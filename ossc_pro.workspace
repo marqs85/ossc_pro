@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Workspace Name="ossc_pro" Database="" Version="10.0.0">
+  <Project Name="ossc_pro_rtl" Path="rtl/ossc_pro_rtl.project" Active="No"/>
+  <Project Name="ossc_pro_sw_bsp" Path="software/sys_controller_bsp/ossc_pro_sw_bsp.project" Active="No"/>
+  <Project Name="ossc_pro_sw" Path="software/sys_controller/ossc_pro_sw.project" Active="Yes"/>
+  <Project Name="tools" Path="tools/tools.project" Active="No"/>
+  <BuildMatrix>
+    <WorkspaceConfiguration Name="Debug" Selected="no">
+      <Environment/>
+      <Project Name="ossc_pro_rtl" ConfigName="Debug"/>
+      <Project Name="ossc_pro_sw_bsp" ConfigName="Debug"/>
+      <Project Name="ossc_pro_sw" ConfigName="Debug"/>
+      <Project Name="tools" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release" Selected="yes">
+      <Environment/>
+      <Project Name="ossc_pro_rtl" ConfigName="Release"/>
+      <Project Name="ossc_pro_sw_bsp" ConfigName="Release"/>
+      <Project Name="ossc_pro_sw" ConfigName="Release"/>
+      <Project Name="tools" ConfigName="Release"/>
+    </WorkspaceConfiguration>
+  </BuildMatrix>
+</CodeLite_Workspace>

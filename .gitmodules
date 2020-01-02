@@ -1,0 +1,6 @@
+[submodule "ip/pulpino_qsys"]
+	path = ip/pulpino_qsys
+	url = https://github.com/marqs85/pulpino_qsys.git
+[submodule "ip/sdc_controller/SD-card-controller"]
+	path = ip/sdc_controller/SD-card-controller
+	url = https://github.com/mczerski/SD-card-controller.git
