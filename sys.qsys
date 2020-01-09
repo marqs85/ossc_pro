@@ -93,14 +93,6 @@
          type = "String";
       }
    }
-   element int_osc_0
-   {
-      datum _sortIndex
-      {
-         value = "13";
-         type = "int";
-      }
-   }
    element jtag_uart_0
    {
       datum _sortIndex
@@ -134,7 +126,7 @@
    {
       datum _sortIndex
       {
-         value = "14";
+         value = "13";
          type = "int";
       }
    }
@@ -150,7 +142,7 @@
    {
       datum _sortIndex
       {
-         value = "15";
+         value = "14";
          type = "int";
       }
    }
@@ -350,16 +342,6 @@
    type="conduit"
    dir="end" />
  <interface
-   name="int_osc_0_clkout"
-   internal="int_osc_0.clkout"
-   type="clock"
-   dir="start" />
- <interface
-   name="int_osc_0_oscena"
-   internal="int_osc_0.oscena"
-   type="conduit"
-   dir="end" />
- <interface
    name="master_0_master_reset"
    internal="master_0.master_reset"
    type="reset"
@@ -434,13 +416,6 @@
    version="17.1"
    enabled="1">
   <parameter name="dedicated_spi" value="0" />
- </module>
- <module name="int_osc_0" kind="altera_int_osc" version="19.1" enabled="1">
-  <parameter name="CBX_AUTO_BLACKBOX" value="ALL" />
-  <parameter name="CLOCK_FREQUENCY_1" value="116" />
-  <parameter name="CLOCK_FREQUENCY_2" value="77" />
-  <parameter name="DEVICE_FAMILY" value="Cyclone V" />
-  <parameter name="PART_NAME" value="5CEFA2F23C8" />
  </module>
  <module
    name="jtag_uart_0"

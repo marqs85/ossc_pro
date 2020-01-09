@@ -26,6 +26,8 @@
 #define PCNT_TOLERANCE 50
 #define HPX16_TOLERANCE 10
 
+uint16_t afe_bw_arr[] = {9, 10, 11, 12, 14, 17, 21, 24, 30, 38, 50, 75, 83, 105, 149, 450};
+
 void isl_writereg(isl51002_dev *dev, uint8_t regaddr, uint8_t data) {
     I2C_start(I2CA_BASE, dev->i2c_addr, 0);
     I2C_write(I2CA_BASE, regaddr, 0);
@@ -157,7 +159,8 @@ int isl_get_sync_stats(isl51002_dev *dev, uint16_t vtotal, uint8_t interlace_fla
     dev->sm.v_sync_backporch = (isl_readreg(dev, ISL_LINESTART_MSB) << 8) | isl_readreg(dev, ISL_LINESTART_LSB);
     dev->sm.v_active = (isl_readreg(dev, ISL_LINEWIDTH_MSB) << 8) | isl_readreg(dev, ISL_LINEWIDTH_LSB);
 
-    if ((vtotal != dev->ss.v_total) ||
+    if (((vtotal > 0) && (pcnt_frame > 0)) &&
+        ((vtotal != dev->ss.v_total) ||
         (interlace_flag != dev->ss.interlace_flag) ||
 #ifdef ISL_MEAS_HZ
         (h_period_x16 < (dev->sm.h_period_x16 - HPX16_TOLERANCE)) ||
@@ -166,7 +169,7 @@ int isl_get_sync_stats(isl51002_dev *dev, uint16_t vtotal, uint8_t interlace_fla
         (pcnt_frame < (dev->ss.pcnt_frame - PCNT_TOLERANCE)) ||
         (pcnt_frame > (dev->ss.pcnt_frame + PCNT_TOLERANCE)) ||
 #endif
-        ((sync_params & 0x2c) != (dev->ss.sync_params & 0x2c)))
+        ((sync_params & 0x2c) != (dev->ss.sync_params & 0x2c))))
     {
         mode_changed = 1;
 
@@ -204,6 +207,58 @@ void isl_de_adj(isl51002_dev *dev) {
 
 void isl_phase_adj(isl51002_dev *dev) {
     isl_writereg(dev, ISL_PHASEADJCMD, 0x03);
+}
+
+uint16_t isl_get_afe_bw_value(uint8_t index) {
+    if (index >= sizeof(afe_bw_arr)/sizeof(uint16_t))
+        return 0;
+    else
+        return afe_bw_arr[index];
+}
+
+void isl_set_afe_bw(isl51002_dev *dev, uint32_t dotclk_hz) {
+    uint8_t bw_sel;
+    uint32_t target_bw_hz;
+
+    // Set AFE -3dB bandwidth to (2/3) of input pixel clock
+    target_bw_hz = (2*dotclk_hz)/3;
+
+    if (target_bw_hz <= 9000000)
+        bw_sel = 0x00;
+    else if (target_bw_hz <= 10000000)
+        bw_sel = 0x01;
+    else if (target_bw_hz <= 11000000)
+        bw_sel = 0x02;
+    else if (target_bw_hz <= 12000000)
+        bw_sel = 0x03;
+    else if (target_bw_hz <= 14000000)
+        bw_sel = 0x04;
+    else if (target_bw_hz <= 17000000)
+        bw_sel = 0x05;
+    else if (target_bw_hz <= 21000000)
+        bw_sel = 0x06;
+    else if (target_bw_hz <= 24000000)
+        bw_sel = 0x07;
+    else if (target_bw_hz <= 30000000)
+        bw_sel = 0x08;
+    else if (target_bw_hz <= 38000000)
+        bw_sel = 0x09;
+    else if (target_bw_hz <= 50000000)
+        bw_sel = 0x0a;
+    else if (target_bw_hz <= 75000000)
+        bw_sel = 0x0b;
+    else if (target_bw_hz <= 83000000)
+        bw_sel = 0x0c;
+    else if (target_bw_hz <= 105000000)
+        bw_sel = 0x0d;
+    else if (target_bw_hz <= 149000000)
+        bw_sel = 0x0e;
+    else
+        bw_sel = 0x0f;
+
+    isl_writereg(dev, ISL_AFEBW, bw_sel);
+
+    printf("AFE BW set to %uMHz\n\n", afe_bw_arr[bw_sel]);
 }
 
 void isl_set_de(isl51002_dev *dev) {

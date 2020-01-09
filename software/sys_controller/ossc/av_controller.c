@@ -41,7 +41,7 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 32
+#define FW_VER_MINOR 33
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x7a
@@ -109,8 +109,6 @@ adv7513_dev advtx_dev = {.main_base = ADV7513_MAIN_BASE,
                          .edid_base = ADV7513_EDID_BASE,
                          .pktmem_base = ADV7513_PKTMEM_BASE,
                          .cec_base = ADV7513_CEC_BASE};
-
-extern mode_data_t video_modes[], video_modes_default[];
 
 volatile uint32_t *ddr = (volatile uint32_t*)MEM_IF_MAPPER_0_BASE;
 volatile sc_regs *sc = (volatile sc_regs*)SC_CONFIG_0_BASE;
@@ -271,7 +269,7 @@ int init_hw()
     for (i=0; i<100; i++)
         printf("%u: %.2x\n", i, buf[i]);*/
 
-    memcpy(video_modes, video_modes_default, VIDEO_MODES_SIZE);
+    set_default_vm_table();
     set_default_keymap();
 
     return 0;
@@ -280,9 +278,9 @@ int init_hw()
 int main()
 {
     int ret, i, man_input_change;
-    int mode;
+    int mode, amode_match;
     uint8_t target_ymult=2, ymult=2;
-    uint32_t pclk_hz, h_hz, v_hz_x100;
+    uint32_t pclk_hz, dotclk_hz, h_hz, v_hz_x100;
     uint32_t sys_status;
     uint16_t remote_code;
     uint8_t pixelrep;
@@ -295,6 +293,7 @@ int main()
     video_type target_typemask=0;
     mode_data_t vmode_in, vmode_out;
     vm_mult_config_t vm_conf;
+    si5351_ms_config_t si_ms_conf;
     int enable_isl=0, enable_hdmirx=0;
 
     ret = init_hw();
@@ -465,29 +464,42 @@ int main()
                     if (isl_dev.ss.interlace_flag)
                         v_hz_x100 *= 2;
 
-                    sniprintf(row1, US2066_ROW_LEN+1, "%s %u%c", avinput_str[avinput], isl_dev.ss.v_total, isl_dev.ss.interlace_flag ? 'i' : 'p');
-                    sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c\n", h_hz/1000, (((h_hz%1000)+5)/10),
-                                                                                        (v_hz_x100/100),
-                                                                                        (v_hz_x100%100),
-                                                                                        isl_dev.ss.h_polarity ? '-' : '+',
-                                                                                        isl_dev.ss.v_polarity ? '-' : '+');
-                    us2066_write(row1, row2);
+                    mode = get_adaptive_mode(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, &vm_conf, target_ymult, &vmode_in, &vmode_out, &si_ms_conf);
 
-                    mode = get_mode_id(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, target_typemask, 0, 0, &vm_conf, target_ymult, &vmode_in, &vmode_out);
+                    if (mode < 0) {
+                        amode_match = 0;
+                        mode = get_mode_id(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, target_typemask, 0, 0, &vm_conf, target_ymult, &vmode_in, &vmode_out);
+                    } else {
+                        amode_match = 1;
+                    }
 
                     if (mode >= 0) {
-                        printf("Mode %s selected\n", vmode_in.name);
+                        printf("\nMode %s selected (%s linemult)\n", vmode_in.name, amode_match ? "Adaptive" : "Pure");
+
+                        sniprintf(row1, US2066_ROW_LEN+1, "%-10s %4u%c x%u%c", avinput_str[avinput], isl_dev.ss.v_total, isl_dev.ss.interlace_flag ? 'i' : 'p', vm_conf.y_rpt+1, amode_match ? 'a' : ' ');
+                        sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
+                                                                                            (v_hz_x100/100),
+                                                                                            (v_hz_x100%100),
+                                                                                            isl_dev.ss.h_polarity ? '-' : '+',
+                                                                                            isl_dev.ss.v_polarity ? '-' : '+');
+                        us2066_write(row1, row2);
 
                         pclk_hz = h_hz * vmode_in.h_total;
-                        printf("H: %u.%.2ukHz V: %u.%.2uHz PCLK_IN: %luHz\n\n", h_hz/1000, (((h_hz%1000)+5)/10), (v_hz_x100/100), (v_hz_x100%100), pclk_hz);
+                        dotclk_hz = estimate_dotclk(&vmode_in, h_hz);
+                        printf("H: %u.%.2ukHz V: %u.%.2uHz\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10, (v_hz_x100/100), (v_hz_x100%100));
+                        printf("Estimated source dot clock: %lu.%.2uMHz\n", (dotclk_hz+5000)/1000000, ((dotclk_hz+5000)%1000000)/10000);
+                        printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_hz, vm_conf.pclk_mult*pclk_hz);
 
                         isl_source_setup(&isl_dev, vmode_in.h_total);
 
-                        // TODO: LPF
+                        isl_set_afe_bw(&isl_dev, dotclk_hz);
                         isl_phase_adj(&isl_dev);
 
                         // Setup Si5351
-                        si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vm_conf.pclk_mult);
+                        if (amode_match)
+                            si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &si_ms_conf);
+                        else
+                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vm_conf.pclk_mult);
 
                         // TODO: dont read polarity from ISL51002
                         sys_ctrl &= ~(SCTRL_ISL_VS_POL);
@@ -498,7 +510,7 @@ int main()
                         update_sc_config(&vmode_in, &vmode_out, &vm_conf);
 
                         // Setup VIC and pixel repetition
-                        adv7513_set_pixelrep_vic(&advtx_dev, vm_conf.tx_pixelrep, vm_conf.hdmitx_pixr_ifr, vm_conf.hdmitx_vic);
+                        adv7513_set_pixelrep_vic(&advtx_dev, vm_conf.tx_pixelrep, vm_conf.hdmitx_pixr_ifr, vmode_out.vic);
                     }
                 }
             } else {
@@ -526,7 +538,7 @@ int main()
 
                     printf("mode changed to: %ux%u%c\n", advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : 'p');
                     sniprintf(row1, US2066_ROW_LEN+1, "%s %ux%u%c", avinput_str[avinput], advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : 'p');
-                    sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c\n", h_hz/1000, (((h_hz%1000)+5)/10),
+                    sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
                                                                                         (v_hz_x100/100),
                                                                                         (v_hz_x100%100),
                                                                                         (advrx_dev.ss.h_polarity ? '+' : '-'),

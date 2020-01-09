@@ -21,6 +21,7 @@
 #define VIDEO_MODES_H_
 
 #include <stdint.h>
+#include "si5351.h"
 #include "sysconfig.h"
 
 #define H_TOTAL_MIN 300
@@ -145,6 +146,32 @@ typedef struct {
 } mode_data_t;
 
 typedef struct {
+    char name[10];
+    HDMI_Video_Type vic:5;
+    uint16_t h_active_i:11;
+    uint16_t v_active_i;
+    uint16_t h_total_i;
+    uint8_t  h_total_adj_i:5;
+    uint16_t v_total_i:11;
+    uint16_t h_backporch_i:9;
+    uint16_t v_backporch_i:9;
+    uint16_t h_synclen_i:9;
+    uint8_t v_synclen_i:5;
+    uint16_t h_active_o:11;
+    uint16_t v_active_o;
+    uint16_t h_total_o;
+    uint8_t  h_total_adj_o:5;
+    uint16_t v_total_o:11;
+    uint16_t h_backporch_o:9;
+    uint16_t v_backporch_o:9;
+    uint16_t h_synclen_o:9;
+    uint8_t v_synclen_o:5;
+    video_type type;
+    uint8_t y_rpt;
+    si5351_ms_config_t si_ms_conf;
+} ad_mode_data_t;
+
+typedef struct {
     uint8_t x_rpt;
     uint8_t y_rpt;
     uint8_t x_skip;
@@ -152,7 +179,6 @@ typedef struct {
     uint8_t pclk_mult;
     HDMI_pixelrep_t tx_pixelrep;
     HDMI_pixelrep_t hdmitx_pixr_ifr;
-    HDMI_Video_Type hdmitx_vic;
 } vm_mult_config_t;
 
 
@@ -214,6 +240,21 @@ typedef struct {
 
 #define VIDEO_MODES_SIZE (sizeof((mode_data_t[])VIDEO_MODES_DEF))
 #define VIDEO_MODES_CNT (sizeof((mode_data_t[])VIDEO_MODES_DEF)/sizeof(mode_data_t))
+
+
+#define ADAPTIVE_MODES_DEF { \
+    /* 240p modes */ \
+    { "1920x1080",  HDMI_1080p60,    1600,  240,  1950, 0, 262,  212, 15,  90, 3,   1920, 1080,  2200, 0, 1125,  148, 36, 44, 5,   VIDEO_SDTV, 4, {0x00C88, 0x00348, 0x006A7, 0x00100, 0x00000, 0x00001, 0, 0, 0} },                                      \
+}
+
+#define ADAPTIVE_MODES_SIZE (sizeof((ad_mode_data_t[])ADAPTIVE_MODES_DEF))
+#define ADAPTIVE_MODES_CNT (sizeof((ad_mode_data_t[])ADAPTIVE_MODES_DEF)/sizeof(ad_mode_data_t))
+
+void set_default_vm_table();
+
+uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz);
+
+int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out, si5351_ms_config_t *si_ms_conf);
 
 int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_type typemask, uint8_t s400p_mode, uint8_t s480p_mode, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out);
 

@@ -104,6 +104,8 @@ void isl_de_adj(isl51002_dev *dev);
 
 void isl_phase_adj(isl51002_dev *dev);
 
+void isl_set_afe_bw(isl51002_dev *dev, uint32_t dotclk_hz);
+
 void isl_set_de(isl51002_dev *dev);
 
 

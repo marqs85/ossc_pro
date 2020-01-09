@@ -44,7 +44,8 @@ module scanconverter (
     output [7:0] B_o,
     output reg HSYNC_o,
     output reg VSYNC_o,
-    output reg DE_o
+    output reg DE_o,
+    output reg resync_strobe
 );
 
 wire [8:0] H_SYNCLEN = h_out_config[28:20];
@@ -103,10 +104,12 @@ always @(posedge PCLK_OUT_i) begin
     if (~frame_change_prev & frame_change & ((v_cnt != V_STARTLINE-1) & (v_cnt != V_STARTLINE))) begin
         h_cnt <= 0;
         v_cnt <= V_STARTLINE;
+        resync_strobe <= 1'b1;
     end else begin
         if (h_cnt == H_TOTAL-1) begin
             if (v_cnt == V_TOTAL-1) begin
                 v_cnt <= 0;
+                resync_strobe <= 1'b0;
             end else begin
                 v_cnt <= v_cnt + 1'b1;
             end

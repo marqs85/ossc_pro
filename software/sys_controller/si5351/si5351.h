@@ -56,6 +56,20 @@ typedef struct {
     uint32_t xtal_freq;
 } si5351_dev;
 
+typedef struct {
+    uint32_t msn_p1;
+    uint32_t msn_p2;
+    uint32_t msn_p3;
+    uint32_t ms_p1;
+    uint32_t ms_p2;
+    uint32_t ms_p3;
+    uint8_t clkin_div_regval;
+    uint8_t outdiv;
+    uint8_t divby4;
+} si5351_ms_config_t;
+
+void si5351_set_frac_mult(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_out_ch out_ch, si5351_clk_src clksrc, si5351_ms_config_t *ms_conf);
+
 int si5351_set_integer_mult(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_out_ch out_ch, si5351_clk_src clksrc, uint32_t clksrc_hz, uint8_t mult);
 
 void si5351_init(si5351_dev *dev);

@@ -105,7 +105,7 @@ module ossc_pro (
     output LS_OE_N_o
 );
 
-wire clk_osc;
+//wire clk_osc;
 wire jtagm_reset_req;
 
 wire [15:0] sys_ctrl;
@@ -119,7 +119,7 @@ wire isl_vs_pol = sys_ctrl[6];
 wire isl_vs_type = sys_ctrl[7];
 wire audmux_sel = sys_ctrl[8];
 
-reg [1:0] clk_osc_div = 2'h0;
+//reg [1:0] clk_osc_div = 2'h0;
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [1:0] btn_sync1_reg, btn_sync2_reg;
@@ -127,8 +127,8 @@ reg [1:0] btn_sync1_reg, btn_sync2_reg;
 wire [15:0] ir_code;
 wire [7:0] ir_code_cnt;
 
-wire clk25 = clk_osc_div[1];
-wire pll_refclk = EXT_IO_io[27];
+//wire clk25 = clk_osc_div[1];
+wire clk27 = EXT_IO_io[27];
 //wire pll_refclk = pll_refclk_buf;
 wire pclk_capture, pclk_out;
 
@@ -160,8 +160,13 @@ wire [31:0] sys_status = {3'h0, emif_status_cal_fail, emif_status_cal_success, e
 
 wire [31:0] h_in_config, h_in_config2, v_in_config, h_out_config, h_out_config2, v_out_config, v_out_config2;
 
+reg [23:0] resync_led_ctr;
+reg resync_strobe_sync1_reg, resync_strobe_sync2_reg, resync_strobe_prev;
+wire resync_strobe_i;
+wire resync_strobe = resync_strobe_sync2_reg;
+
 //BGR?
-assign LED_o = {CLK27_i, (ir_code == 0), 1'b0};
+assign LED_o = {CLK27_i, (ir_code == 0), (resync_led_ctr != 0)};
 //assign LED_o = {emif_status_init_done, emif_status_cal_success, emif_status_cal_fail};
 
 assign ISL_RESET_N_o = isl_reset_n;
@@ -210,7 +215,7 @@ wire [19:0] ISL_fe_pcnt_frame;
 wire [10:0] ISL_fe_vtotal, ISL_fe_xpos, ISL_fe_ypos;
 isl51002_frontend u_isl_frontend ( 
     .PCLK_i(ISL_PCLK_i),
-    .CLK_MEAS_i(pll_refclk),
+    .CLK_MEAS_i(clk27),
     .reset_n(sys_reset_n),
     .R_i(ISL_R),
     .G_i(ISL_G),
@@ -334,7 +339,7 @@ assign LS_OE_N_o = 1'b0;
 assign LS_DIR_o = 2'b00;
 
 // Power-on reset pulse generation (not strictly necessary)
-always @(posedge clk_osc)
+always @(posedge clk27)
 begin
     if (po_reset_ctr == `PO_RESET_WIDTH)
         po_reset_n <= 1'b1;
@@ -343,9 +348,21 @@ begin
 end
 
 // 25MHz clock from internal oscillator
-always @(posedge clk_osc)
+/*always @(posedge clk_osc)
 begin
     clk_osc_div <= clk_osc_div + 1'b1;
+end*/
+
+always @(posedge clk27) begin
+    if (~resync_strobe_prev & resync_strobe) begin
+        resync_led_ctr <= {24{1'b1}};
+    end else if (resync_led_ctr > 0) begin
+        resync_led_ctr <= resync_led_ctr - 1'b1;
+    end
+
+    resync_strobe_sync1_reg <= resync_strobe_i;
+    resync_strobe_sync2_reg <= resync_strobe_sync1_reg;
+    resync_strobe_prev <= resync_strobe_sync2_reg;
 end
 
 // Insert synchronizers to async inputs (synchronize to CPU clock)
@@ -363,7 +380,7 @@ always @(posedge CLK27_i or negedge po_reset_n) begin
     end
 end
 
-always @(posedge clk25 or negedge po_reset_n) begin
+always @(posedge clk27 or negedge po_reset_n) begin
     if (!po_reset_n) begin
         emif_hwreset_n_sync1_reg <= 1'b0;
         emif_hwreset_n_sync2_reg <= 1'b0;
@@ -379,7 +396,7 @@ end
 
 // Qsys system
 sys sys_inst (
-    .clk_clk                                (clk25),
+    .clk_clk                                (clk27),
     .reset_reset_n                          (sys_reset_n),
     .pulpino_0_config_testmode_i            (1'b0),
     .pulpino_0_config_fetch_enable_i        (1'b1),
@@ -413,9 +430,9 @@ sys sys_inst (
     .sc_config_0_sc_if_h_out_config_o       (h_out_config),
     .sc_config_0_sc_if_h_out_config2_o      (h_out_config2),
     .sc_config_0_sc_if_v_out_config_o       (v_out_config),
-    .sc_config_0_sc_if_v_out_config2_o      (v_out_config2),
-    .int_osc_0_oscena_oscena                (1'b1),
-    .int_osc_0_clkout_clk                   (clk_osc)
+    .sc_config_0_sc_if_v_out_config2_o      (v_out_config2)
+    /*.int_osc_0_oscena_oscena                (1'b1),
+    .int_osc_0_clkout_clk                   (clk_osc)*/
     /*,
     .mem_if_lpddr2_emif_0_global_reset_reset_n     (emif_hwreset_n_sync2_reg),
     .mem_if_lpddr2_emif_0_soft_reset_reset_n       (emif_swreset_n_sync2_reg),
@@ -482,7 +499,8 @@ scanconverter scanconverter_inst (
     .B_o(B_sc),
     .HSYNC_o(HSYNC_sc),
     .VSYNC_o(VSYNC_sc),
-    .DE_o(DE_sc)
+    .DE_o(DE_sc),
+    .resync_strobe(resync_strobe_i)
 );
 
 ir_rcv ir0 (

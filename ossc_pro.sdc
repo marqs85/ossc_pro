@@ -1,7 +1,7 @@
 ### Clock definitions ###
 
 create_clock -period 27MHz -name clk27 [get_ports CLK27_i]
-create_clock -period 25MHz -name clk25 clk_osc_div[1]
+#create_clock -period 25MHz -name clk25 clk_osc_div[1]
 
 create_clock -period 165MHz -name pclk_isl [get_ports ISL_PCLK_i]
 create_clock -period 165MHz -name pclk_si [get_ports SI_PCLK_i]
@@ -43,7 +43,6 @@ derive_clock_uncertainty
 
 set_clock_groups -asynchronous -group \
                             {clk27} \
-                            {clk25} \
                             {pclk_isl pclk_isl_postmux} \
                             {pclk_hdmirx pclk_hdmirx_postmux} \
                             {pclk_si pclk_si_out} \
