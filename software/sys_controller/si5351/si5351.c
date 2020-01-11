@@ -130,9 +130,9 @@ static void si5351_writereg(si5351_dev *dev, uint8_t regaddr, uint8_t data)
     I2C_write(I2CA_BASE, data, 1);
 }
 
-void si5351_set_pll_fb_multisynth(si5351_dev *dev, si5351_pll_ch pll_ch, uint32_t p1, uint32_t p2, uint32_t p3) {
+static void si5351_set_pll_fb_multisynth(si5351_dev *dev, si5351_pll_ch pll_ch, uint32_t p1, uint32_t p2, uint32_t p3) {
     uint8_t fb_int_reg;
-    uint8_t msn_base = 0x1a + pll_ch*8;
+    uint8_t msn_base = SI5351_MSNA_BASE + pll_ch*8;
 
     si5351_writereg(dev, msn_base+0, (p3 >> 8) & 0xff);
     si5351_writereg(dev, msn_base+1, (p3 & 0xff));
@@ -143,18 +143,18 @@ void si5351_set_pll_fb_multisynth(si5351_dev *dev, si5351_pll_ch pll_ch, uint32_
     si5351_writereg(dev, msn_base+6, (p2 >> 8) & 0xff);
     si5351_writereg(dev, msn_base+7, (p2 & 0xff));
 
-    fb_int_reg = si5351_readreg(dev, 0x16+pll_ch);
+    fb_int_reg = si5351_readreg(dev, SI5351_CLK6_CTRL+pll_ch);
     fb_int_reg &= ~(1<<6);
     if ((p1 % 256) == 0) {
         fb_int_reg |= (1<<6);
         printf("Si5351 set PLL FB multisynth to integer mode\n");
     }
-    si5351_writereg(dev, 0x16+pll_ch, fb_int_reg);
+    si5351_writereg(dev, SI5351_CLK6_CTRL+pll_ch, fb_int_reg);
 }
 
-void si5351_set_output_multisynth(si5351_dev *dev, si5351_out_ch out_ch, uint32_t p1, uint32_t p2, uint32_t p3, uint8_t outdiv, uint8_t divby4) {
+static void si5351_set_output_multisynth(si5351_dev *dev, si5351_out_ch out_ch, uint32_t p1, uint32_t p2, uint32_t p3, uint8_t outdiv, uint8_t divby4) {
     uint8_t ms_int_reg;
-    uint8_t ms_base = 0x2a + out_ch*8;
+    uint8_t ms_base = SI5351_MS0_BASE + out_ch*8;
 
     si5351_writereg(dev, ms_base+0, (p3 >> 8) & 0xff);
     si5351_writereg(dev, ms_base+1, (p3 & 0xff));
@@ -165,50 +165,73 @@ void si5351_set_output_multisynth(si5351_dev *dev, si5351_out_ch out_ch, uint32_
     si5351_writereg(dev, ms_base+6, (p2 >> 8) & 0xff);
     si5351_writereg(dev, ms_base+7, (p2 & 0xff));
 
-    ms_int_reg = si5351_readreg(dev, 0x10+out_ch);
+    ms_int_reg = si5351_readreg(dev, SI5351_CLK0_CTRL+out_ch);
     ms_int_reg &= ~(1<<6);
     if ((p1 % 256) == 0) {
         ms_int_reg |= (1<<6);
         printf("Si5351 set Output multisynth to integer mode\n");
     }
-    si5351_writereg(dev, 0x10+out_ch, ms_int_reg);
+    si5351_writereg(dev, SI5351_CLK0_CTRL+out_ch, ms_int_reg);
 }
 
-void si5351_set_frac_mult(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_out_ch out_ch, si5351_clk_src clksrc, si5351_ms_config_t *ms_conf) {
+static void si5351_configure_pll(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_clk_src clksrc, uint8_t clkin_div_regval) {
     uint8_t acc_reg;
 
-    //set PLL source and clockdiv
-    acc_reg = si5351_readreg(dev, 0x0f);
+    acc_reg = si5351_readreg(dev, SI5351_PLL_SRC);
     acc_reg &= ~(1<<(2+pll_ch));
     acc_reg |= (clksrc<<(2+pll_ch));
     acc_reg &= ~(3<<6);
-    acc_reg |= (ms_conf->clkin_div_regval<<6);
-    si5351_writereg(dev, 0x0f, acc_reg);
+    acc_reg |= (clkin_div_regval<<6);
+    si5351_writereg(dev, SI5351_PLL_SRC, acc_reg);
+}
+
+static void si5351_configure_clk(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_out_ch out_ch, si5351_clk_src clksrc, uint8_t bypass) {
+    uint8_t acc_reg;
+    uint8_t outsrc = bypass ? clksrc : 3;
+
+    acc_reg = si5351_readreg(dev, SI5351_CLK0_CTRL+out_ch);
+    acc_reg &= ~((1<<7)|(1<<5)|(3<<2));
+    acc_reg |= (pll_ch<<5)|(outsrc<<2);
+    si5351_writereg(dev, SI5351_CLK0_CTRL+out_ch, acc_reg);
+}
+
+static void si5351_enable_output(si5351_dev *dev, si5351_out_ch out_ch) {
+    uint8_t acc_reg;
+
+    acc_reg = si5351_readreg(dev, SI5351_OEN_CTRL);
+    acc_reg &= ~(1<<out_ch);
+    si5351_writereg(dev, SI5351_OEN_CTRL, acc_reg);
+}
+
+static inline void si5351_pll_reset(si5351_dev *dev, si5351_pll_ch pll_ch) {
+    si5351_writereg(dev, SI5351_PLL_RESET, (1<<(5+2*pll_ch)));
+}
+
+
+void si5351_set_frac_mult(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_out_ch out_ch, si5351_clk_src clksrc, si5351_ms_config_t *ms_conf) {
+
+    //set PLL source and clockdiv
+    si5351_configure_pll(dev, pll_ch, clksrc, ms_conf->clkin_div_regval);
 
     // set PLL and output multisynth
     si5351_set_pll_fb_multisynth(dev, pll_ch, ms_conf->msn_p1, ms_conf->msn_p2, ms_conf->msn_p3);
     si5351_set_output_multisynth(dev, out_ch, ms_conf->ms_p1, ms_conf->ms_p2, ms_conf->ms_p3, ms_conf->outdiv, ms_conf->divby4);
 
-    // Set input source and power up clock driver
-    acc_reg = si5351_readreg(dev, 0x10+out_ch);
-    acc_reg &= ~((1<<7)|(1<<5)|(3<<2));
-    acc_reg |= (pll_ch<<5)|(3<<2);
-    si5351_writereg(dev, 0x10+out_ch, acc_reg);
+    // Set MS & output source clocks and power up output clock driver
+    si5351_configure_clk(dev, pll_ch, out_ch, clksrc, 0);
 
     // Reset PLL to prevent occasional lockup
-    si5351_writereg(dev, 0xB1, (1<<(5+2*pll_ch)));
+    si5351_pll_reset(dev, pll_ch);
 
     // Enable clock output
-    acc_reg = si5351_readreg(dev, 0x03);
-    acc_reg &= ~(1<<out_ch);
-    si5351_writereg(dev, 0x03, acc_reg);
+    si5351_enable_output(dev, out_ch);
 
     return;
 }
 
 int si5351_set_integer_mult(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_out_ch out_ch, si5351_clk_src clksrc, uint32_t clksrc_hz, uint8_t mult) {
     uint32_t fbdiv_x100, msn_a, msn_p1, ms_a, ms_p1;
-    uint8_t clkin_div, clkin_div_regval, acc_reg;
+    uint8_t clkin_div, clkin_div_regval;
     uint8_t outdiv=0, divby4=0;
     uint8_t optim_ratio;
 
@@ -218,11 +241,8 @@ int si5351_set_integer_mult(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_out_ch
     }
 
     if (mult == 1) {
-        acc_reg = si5351_readreg(dev, 0x10+out_ch);
-        acc_reg &= ~((1<<7)|(3<<2));
-        acc_reg |= (clksrc<<2);
-        si5351_writereg(dev, 0x10+out_ch, acc_reg);
-        si5351_writereg(dev, 0x0f, 0);
+        si5351_configure_clk(dev, pll_ch, out_ch, clksrc, 1);
+        si5351_configure_pll(dev, pll_ch, SI_XTAL, 0);
         printf("Si5351 Clock source bypass\n\n");
     } else {
         clkin_div = (clksrc_hz / SI_CLKIN_MAX_FREQ) + 1;
@@ -237,12 +257,7 @@ int si5351_set_integer_mult(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_out_ch
         }
 
         //set PLL source and clockdiv
-        acc_reg = si5351_readreg(dev, 0x0f);
-        acc_reg &= ~(1<<(2+pll_ch));
-        acc_reg |= (clksrc<<(2+pll_ch));
-        acc_reg &= ~(3<<6);
-        acc_reg |= (clkin_div_regval<<6);
-        si5351_writereg(dev, 0x0f, acc_reg);
+        si5351_configure_pll(dev, pll_ch, clksrc, clkin_div_regval);
 
         //use even fbdiv for lowest jitter
         optim_ratio = 2*clkin_div*mult;
@@ -265,20 +280,15 @@ int si5351_set_integer_mult(si5351_dev *dev, si5351_pll_ch pll_ch, si5351_out_ch
         si5351_set_output_multisynth(dev, out_ch, ms_p1, 0, 1, outdiv, divby4);
         printf("Si5351 VCO freq: %uMHz (srcdiv=%u) (msn_a=%u) (ms_a=%u)\n\n", (msn_a*(clksrc_hz/clkin_div))/1000000, clkin_div, msn_a, ms_a);
 
-        // Set input source and power up clock driver
-        acc_reg = si5351_readreg(dev, 0x10+out_ch);
-        acc_reg &= ~((1<<7)|(1<<5)|(3<<2));
-        acc_reg |= (pll_ch<<5)|(3<<2);
-        si5351_writereg(dev, 0x10+out_ch, acc_reg);
+        // Set MS & output source clocks and power up output clock driver
+        si5351_configure_clk(dev, pll_ch, out_ch, clksrc, 0);
 
         // Reset PLL to prevent occasional lockup
-        si5351_writereg(dev, 0xB1, (1<<(5+2*pll_ch)));
+        si5351_pll_reset(dev, pll_ch);
     }
 
     // Enable clock output
-    acc_reg = si5351_readreg(dev, 0x03);
-    acc_reg &= ~(1<<out_ch);
-    si5351_writereg(dev, 0x03, acc_reg);
+    si5351_enable_output(dev, out_ch);
 
     return 0;
 }
