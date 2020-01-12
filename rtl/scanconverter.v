@@ -35,16 +35,19 @@ module scanconverter (
     input [31:0] h_out_config2,
     input [31:0] v_out_config,
     input [31:0] v_out_config2,
+    input [31:0] xy_out_config,
     input [31:0] misc_config,
     input [31:0] sl_config,
     input [31:0] sl_config2,
     output PCLK_o,
-    output [7:0] R_o,
-    output [7:0] G_o,
-    output [7:0] B_o,
+    output reg [7:0] R_o,
+    output reg [7:0] G_o,
+    output reg [7:0] B_o,
     output reg HSYNC_o,
     output reg VSYNC_o,
     output reg DE_o,
+    output reg [10:0] xpos_o,
+    output reg [10:0] ypos_o,
     output reg resync_strobe
 );
 
@@ -65,23 +68,31 @@ wire frame_change = frame_change_sync2_reg;
 wire [2:0] X_RPT = h_out_config[31:29];
 wire [2:0] Y_RPT = v_out_config[27:25];
 
-wire [2:0] X_SKIP = h_out_config2[23:21];
+wire [2:0] X_SKIP = h_out_config2[24:22];
 
-wire [8:0] X_START = h_out_config2[20:12];
-wire [8:0] Y_START = 0;
+wire signed [9:0] X_OFFSET = h_out_config2[21:12];
+wire signed [8:0] Y_OFFSET = v_out_config2[30:22];
+wire signed [5:0] Y_START_LB = xy_out_config[27:22];
+
+wire [10:0] X_SIZE = xy_out_config[10:0];
+wire [10:0] Y_SIZE = xy_out_config[21:11];
 
 reg [11:0] h_cnt;
 reg [10:0] v_cnt;
 
-reg [10:0] xpos;
-reg [10:0] ypos;
+reg [10:0] xpos_lb;
+reg [10:0] ypos_lb;
 reg [2:0] x_ctr;
 reg [2:0] y_ctr;
 
+reg mask_enable;
+
 assign PCLK_o = PCLK_OUT_i;
 
-wire [13:0] linebuf_wraddr = {ypos_i[2:0], xpos_i};
-wire [13:0] linebuf_rdaddr = {ypos[2:0], xpos};
+wire [14:0] linebuf_wraddr = {ypos_i[3:0], xpos_i};
+wire [14:0] linebuf_rdaddr = {ypos_lb[3:0], xpos_lb};
+
+wire [7:0] R_linebuf, G_linebuf, B_linebuf;
 
 linebuf linebuf_rgb (
     .data({R_i, G_i, B_i}),
@@ -90,7 +101,7 @@ linebuf linebuf_rgb (
     .wraddress(linebuf_wraddr),
     .wrclock(PCLK_CAP_i),
     .wren(DE_i),
-    .q({R_o, G_o, B_o})
+    .q({R_linebuf, G_linebuf, B_linebuf})
 );
 
 always @(posedge PCLK_OUT_i) begin
@@ -123,28 +134,48 @@ always @(posedge PCLK_OUT_i) begin
     VSYNC_o <= (v_cnt < V_SYNCLEN) ? 1'b0 : 1'b1;
     DE_o <= (h_cnt >= H_SYNCLEN+H_BACKPORCH) & (h_cnt < H_SYNCLEN+H_BACKPORCH+H_ACTIVE) & (v_cnt >= V_SYNCLEN+V_BACKPORCH) & (v_cnt < V_SYNCLEN+V_BACKPORCH+V_ACTIVE);
 
-    if (h_cnt == H_SYNCLEN+H_BACKPORCH+X_START-1'b1) begin
-        if (v_cnt == V_SYNCLEN+V_BACKPORCH+Y_START) begin
-            ypos <= 0;
+    if (h_cnt == H_SYNCLEN+H_BACKPORCH-1'b1) begin
+        if (v_cnt == V_SYNCLEN+V_BACKPORCH) begin
+            ypos_o <= 0;
+            ypos_lb <= Y_START_LB;
             y_ctr <= 0;
         end else begin
+            if (ypos_o < V_ACTIVE) begin
+                ypos_o <= ypos_o + 1'b1;
+            end
+
             if (y_ctr == Y_RPT) begin
-                ypos <= ypos + 1'b1;
+                ypos_lb <= ypos_lb + 1'b1;
                 y_ctr <= 0;
             end else begin
                 y_ctr <= y_ctr + 1'b1;
             end
         end
-        xpos <= 0;
+        xpos_o <= 0;
+        xpos_lb <= -X_OFFSET;
         x_ctr <= 0;
     end else begin
+        if (xpos_o < H_ACTIVE) begin
+            xpos_o <= xpos_o + 1'b1;
+        end
+
         if (x_ctr == X_RPT) begin
-            xpos <= xpos + 1'b1 + X_SKIP;
+            xpos_lb <= xpos_lb + 1'b1 + X_SKIP;
             x_ctr <= 0;
         end else begin
             x_ctr <= x_ctr + 1'b1;
         end
     end
+
+    if (($signed({1'b0, xpos_o}) >= X_OFFSET) & ($signed({1'b0, xpos_o}) < X_OFFSET+X_SIZE) & ($signed({1'b0, ypos_o}) >= Y_OFFSET) & ($signed({1'b0, ypos_o}) < Y_OFFSET+Y_SIZE)) begin
+        mask_enable <= 1'b0;
+    end else begin
+        mask_enable <= 1'b1;
+    end
+
+    R_o <= mask_enable ? 8'h00 : R_linebuf;
+    G_o <= mask_enable ? 8'h00 : G_linebuf;
+    B_o <= mask_enable ? 8'h00 : B_linebuf;
 end
 
 endmodule

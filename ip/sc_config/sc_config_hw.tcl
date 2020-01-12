@@ -156,3 +156,4 @@ add_interface_port sc_if h_out_config_o h_out_config_o Output 32
 add_interface_port sc_if h_out_config2_o h_out_config2_o Output 32
 add_interface_port sc_if v_out_config_o v_out_config_o Output 32
 add_interface_port sc_if v_out_config2_o v_out_config2_o Output 32
+add_interface_port sc_if xy_out_config_o xy_out_config_o Output 32

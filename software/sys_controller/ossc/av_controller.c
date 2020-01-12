@@ -136,32 +136,36 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     h_out_config2_reg h_out_config2 = {.data=0x00000000};
     v_out_config_reg v_out_config = {.data=0x00000000};
     v_out_config2_reg v_out_config2 = {.data=0x00000000};
+    xy_out_config_reg xy_out_config = {.data=0x00000000};
 
     // Set input params
-    h_in_config.h_synclen = vm_in->h_synclen;
-    h_in_config.h_backporch = vm_in->h_backporch;
-    h_in_config.h_active = vm_in->h_active;
-    h_in_config2.h_total = vm_in->h_total;
-    v_in_config.v_synclen = vm_in->v_synclen;
-    v_in_config.v_backporch = vm_in->v_backporch;
-    v_in_config.v_active = vm_in->v_active;
+    h_in_config.h_synclen = vm_in->timings.h_synclen;
+    h_in_config.h_backporch = vm_in->timings.h_backporch;
+    h_in_config.h_active = vm_in->timings.h_active;
+    h_in_config2.h_total = vm_in->timings.h_total;
+    v_in_config.v_synclen = vm_in->timings.v_synclen;
+    v_in_config.v_backporch = vm_in->timings.v_backporch;
+    v_in_config.v_active = vm_in->timings.v_active;
 
     // Set output params
-    h_out_config.h_synclen = vm_out->h_synclen;
-    h_out_config.h_backporch = vm_out->h_backporch;
-    h_out_config.h_active = vm_out->h_active;
+    h_out_config.h_synclen = vm_out->timings.h_synclen;
+    h_out_config.h_backporch = vm_out->timings.h_backporch;
+    h_out_config.h_active = vm_out->timings.h_active;
     h_out_config.x_rpt = vm_conf->x_rpt;
-    h_out_config2.h_total = vm_out->h_total;
-    h_out_config2.x_start = vm_conf->x_start;
+    h_out_config2.h_total = vm_out->timings.h_total;
+    h_out_config2.x_offset = vm_conf->x_offset;
     h_out_config2.x_skip = vm_conf->x_skip;
-    v_out_config.v_synclen = vm_out->v_synclen;
-    v_out_config.v_backporch = vm_out->v_backporch;
-    v_out_config.v_active = vm_out->v_active;
+    v_out_config.v_synclen = vm_out->timings.v_synclen;
+    v_out_config.v_backporch = vm_out->timings.v_backporch;
+    v_out_config.v_active = vm_out->timings.v_active;
     v_out_config.y_rpt = vm_conf->y_rpt;
-    v_out_config2.v_total = vm_out->v_total;
-    v_out_config2.v_startline = vm_out->v_total-1-vm_conf->y_rpt;
+    v_out_config2.v_total = vm_out->timings.v_total;
+    v_out_config2.v_startline = vm_conf->framesync_line;
+    v_out_config2.y_offset = vm_conf->y_offset;
 
-    //printf("%lu %lu %lu %lu %lu %lu\n", ymult*mode->v_synclen, ymult*mode->v_backporch, ymult*mode->v_active, ymult-1, (mode->flags & MODE_INTERLACED) ? mode->v_total : ymult*mode->v_total, (mode->flags & MODE_INTERLACED) ? mode->v_total-2 : ymult*mode->v_total-ymult);
+    xy_out_config.x_size = vm_conf->x_size;
+    xy_out_config.y_size = vm_conf->y_size;
+    xy_out_config.y_start_lb = vm_conf->linebuf_startline;
 
     sc->h_in_config = h_in_config;
     sc->h_in_config2 = h_in_config2;
@@ -173,6 +177,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     sc->h_out_config2 = h_out_config2;
     sc->v_out_config = v_out_config;
     sc->v_out_config2 = v_out_config2;
+    sc->xy_out_config = xy_out_config;
 }
 
 int init_hw()
@@ -484,13 +489,13 @@ int main()
                                                                                             isl_dev.ss.v_polarity ? '-' : '+');
                         us2066_write(row1, row2);
 
-                        pclk_hz = h_hz * vmode_in.h_total;
+                        pclk_hz = h_hz * vmode_in.timings.h_total;
                         dotclk_hz = estimate_dotclk(&vmode_in, h_hz);
                         printf("H: %u.%.2ukHz V: %u.%.2uHz\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10, (v_hz_x100/100), (v_hz_x100%100));
                         printf("Estimated source dot clock: %lu.%.2uMHz\n", (dotclk_hz+5000)/1000000, ((dotclk_hz+5000)%1000000)/10000);
                         printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_hz, vm_conf.pclk_mult*pclk_hz);
 
-                        isl_source_setup(&isl_dev, vmode_in.h_total);
+                        isl_source_setup(&isl_dev, vmode_in.timings.h_total);
 
                         isl_set_afe_bw(&isl_dev, dotclk_hz);
                         isl_phase_adj(&isl_dev);

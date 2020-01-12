@@ -125,9 +125,9 @@ typedef union {
 typedef union {
     struct {
         uint16_t h_total:12;
-        uint16_t x_start:9;
+        int16_t x_offset:10;
         uint16_t x_skip:3;
-        uint32_t h_rsv:8;
+        uint32_t h_rsv:7;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } h_out_config2_reg;
@@ -147,10 +147,21 @@ typedef union {
     struct {
         uint16_t v_total:11;
         uint16_t v_startline:11;
-        uint32_t v_rsv:10;
+        int16_t y_offset:9;
+        uint8_t v_rsv:1;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } v_out_config2_reg;
+
+typedef union {
+    struct {
+        uint16_t x_size:11;
+        uint16_t y_size:11;
+        int8_t y_start_lb:6;
+        uint8_t xy_rsv:4;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} xy_out_config_reg;
 
 typedef struct {
     sc_status_reg sc_status;
@@ -166,6 +177,7 @@ typedef struct {
     h_out_config2_reg h_out_config2;
     v_out_config_reg v_out_config;
     v_out_config2_reg v_out_config2;
+    xy_out_config_reg xy_out_config;
 } __attribute__((packed, __may_alias__)) sc_regs;
 
 #endif //SC_CONFIG_REGS_H_

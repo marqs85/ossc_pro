@@ -158,7 +158,7 @@ wire [2:0] avl_burstcount;
 
 wire [31:0] sys_status = {3'h0, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done, btn_sync2_reg, ir_code_cnt, ir_code};
 
-wire [31:0] h_in_config, h_in_config2, v_in_config, h_out_config, h_out_config2, v_out_config, v_out_config2;
+wire [31:0] h_in_config, h_in_config2, v_in_config, h_out_config, h_out_config2, v_out_config, v_out_config2, xy_out_config;
 
 reg [23:0] resync_led_ctr;
 reg resync_strobe_sync1_reg, resync_strobe_sync2_reg, resync_strobe_prev;
@@ -430,7 +430,8 @@ sys sys_inst (
     .sc_config_0_sc_if_h_out_config_o       (h_out_config),
     .sc_config_0_sc_if_h_out_config2_o      (h_out_config2),
     .sc_config_0_sc_if_v_out_config_o       (v_out_config),
-    .sc_config_0_sc_if_v_out_config2_o      (v_out_config2)
+    .sc_config_0_sc_if_v_out_config2_o      (v_out_config2),
+    .sc_config_0_sc_if_xy_out_config_o      (xy_out_config),
     /*.int_osc_0_oscena_oscena                (1'b1),
     .int_osc_0_clkout_clk                   (clk_osc)*/
     /*,
@@ -490,6 +491,7 @@ scanconverter scanconverter_inst (
     .h_out_config2(h_out_config2),
     .v_out_config(v_out_config),
     .v_out_config2(v_out_config2),
+    .xy_out_config(xy_out_config),
     .misc_config(32'h0),
     .sl_config(32'h0),
     .sl_config2(32'h0),
@@ -500,6 +502,8 @@ scanconverter scanconverter_inst (
     .HSYNC_o(HSYNC_sc),
     .VSYNC_o(VSYNC_sc),
     .DE_o(DE_sc),
+    .xpos_o(),
+    .ypos_o(),
     .resync_strobe(resync_strobe_i)
 );
 

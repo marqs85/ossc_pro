@@ -43,7 +43,8 @@ module sc_config_top(
     output reg [31:0] h_out_config_o,
     output reg [31:0] h_out_config2_o,
     output reg [31:0] v_out_config_o,
-    output reg [31:0] v_out_config2_o
+    output reg [31:0] v_out_config2_o,
+    output reg [31:0] xy_out_config_o
 );
 
 localparam SC_STATUS_REGNUM =       4'h0;
@@ -59,6 +60,7 @@ localparam H_OUT_CONFIG_REGNUM =    4'h9;
 localparam H_OUT_CONFIG2_REGNUM =   4'ha;
 localparam V_OUT_CONFIG_REGNUM =    4'hb;
 localparam V_OUT_CONFIG2_REGNUM =   4'hc;
+localparam XY_OUT_CONFIG_REGNUM =   4'hd;
 
 
 assign avalon_s_waitrequest_n = 1'b1;
@@ -233,6 +235,23 @@ always @(posedge clk_i or posedge rst_i) begin
     end
 end
 
+always @(posedge clk_i or posedge rst_i) begin
+    if (rst_i) begin
+        xy_out_config_o <= 0;
+    end else begin
+        if (avalon_s_chipselect && avalon_s_write && (avalon_s_address==XY_OUT_CONFIG_REGNUM)) begin
+            if (avalon_s_byteenable[3])
+                xy_out_config_o[31:24] <= avalon_s_writedata[31:24];
+            if (avalon_s_byteenable[2])
+                xy_out_config_o[23:16] <= avalon_s_writedata[23:16];
+            if (avalon_s_byteenable[1])
+                xy_out_config_o[15:8] <= avalon_s_writedata[15:8];
+            if (avalon_s_byteenable[0])
+                xy_out_config_o[7:0] <= avalon_s_writedata[7:0];
+        end
+    end
+end
+
 always @(*) begin
     if (avalon_s_chipselect && avalon_s_read) begin
         case (avalon_s_address)
@@ -248,7 +267,8 @@ always @(*) begin
             H_OUT_CONFIG_REGNUM: avalon_s_readdata = h_out_config_o;
             H_OUT_CONFIG2_REGNUM: avalon_s_readdata = h_out_config2_o;
             V_OUT_CONFIG_REGNUM: avalon_s_readdata = v_out_config_o;
-            V_OUT_CONFIG2_REGNUM: avalon_s_readdata = v_out_config2_o;*/
+            V_OUT_CONFIG2_REGNUM: avalon_s_readdata = v_out_config2_o;
+            XY_OUT_CONFIG_REGNUM: avalon_s_readdata = xy_out_config_o*/
             default: avalon_s_readdata = 32'h00000000;
         endcase
     end else begin

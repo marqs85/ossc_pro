@@ -47,9 +47,9 @@ module linebuf (
 	q);
 
 	input	[23:0]  data;
-	input	[13:0]  rdaddress;
+	input	[14:0]  rdaddress;
 	input	  rdclock;
-	input	[13:0]  wraddress;
+	input	[14:0]  wraddress;
 	input	  wrclock;
 	input	  wren;
 	output	[23:0]  q;
@@ -97,14 +97,14 @@ module linebuf (
 		altsyncram_component.clock_enable_output_b = "BYPASS",
 		altsyncram_component.intended_device_family = "Cyclone V",
 		altsyncram_component.lpm_type = "altsyncram",
-		altsyncram_component.numwords_a = 16384,
-		altsyncram_component.numwords_b = 16384,
+		altsyncram_component.numwords_a = 32768,
+		altsyncram_component.numwords_b = 32768,
 		altsyncram_component.operation_mode = "DUAL_PORT",
 		altsyncram_component.outdata_aclr_b = "NONE",
 		altsyncram_component.outdata_reg_b = "UNREGISTERED",
 		altsyncram_component.power_up_uninitialized = "FALSE",
-		altsyncram_component.widthad_a = 14,
-		altsyncram_component.widthad_b = 14,
+		altsyncram_component.widthad_a = 15,
+		altsyncram_component.widthad_b = 15,
 		altsyncram_component.width_a = 24,
 		altsyncram_component.width_b = 24,
 		altsyncram_component.width_byteena_a = 1;
@@ -145,7 +145,7 @@ endmodule
 // Retrieval info: PRIVATE: JTAG_ENABLED NUMERIC "0"
 // Retrieval info: PRIVATE: JTAG_ID STRING "NONE"
 // Retrieval info: PRIVATE: MAXIMUM_DEPTH NUMERIC "0"
-// Retrieval info: PRIVATE: MEMSIZE NUMERIC "393216"
+// Retrieval info: PRIVATE: MEMSIZE NUMERIC "786432"
 // Retrieval info: PRIVATE: MEM_IN_BITS NUMERIC "0"
 // Retrieval info: PRIVATE: MIFfilename STRING ""
 // Retrieval info: PRIVATE: OPERATION_MODE NUMERIC "2"
@@ -182,26 +182,26 @@ endmodule
 // Retrieval info: CONSTANT: CLOCK_ENABLE_OUTPUT_B STRING "BYPASS"
 // Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone V"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "altsyncram"
-// Retrieval info: CONSTANT: NUMWORDS_A NUMERIC "16384"
-// Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "16384"
+// Retrieval info: CONSTANT: NUMWORDS_A NUMERIC "32768"
+// Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "32768"
 // Retrieval info: CONSTANT: OPERATION_MODE STRING "DUAL_PORT"
 // Retrieval info: CONSTANT: OUTDATA_ACLR_B STRING "NONE"
 // Retrieval info: CONSTANT: OUTDATA_REG_B STRING "UNREGISTERED"
 // Retrieval info: CONSTANT: POWER_UP_UNINITIALIZED STRING "FALSE"
-// Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "14"
-// Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "14"
+// Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "15"
+// Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "15"
 // Retrieval info: CONSTANT: WIDTH_A NUMERIC "24"
 // Retrieval info: CONSTANT: WIDTH_B NUMERIC "24"
 // Retrieval info: CONSTANT: WIDTH_BYTEENA_A NUMERIC "1"
 // Retrieval info: USED_PORT: data 0 0 24 0 INPUT NODEFVAL "data[23..0]"
 // Retrieval info: USED_PORT: q 0 0 24 0 OUTPUT NODEFVAL "q[23..0]"
-// Retrieval info: USED_PORT: rdaddress 0 0 14 0 INPUT NODEFVAL "rdaddress[13..0]"
+// Retrieval info: USED_PORT: rdaddress 0 0 15 0 INPUT NODEFVAL "rdaddress[14..0]"
 // Retrieval info: USED_PORT: rdclock 0 0 0 0 INPUT NODEFVAL "rdclock"
-// Retrieval info: USED_PORT: wraddress 0 0 14 0 INPUT NODEFVAL "wraddress[13..0]"
+// Retrieval info: USED_PORT: wraddress 0 0 15 0 INPUT NODEFVAL "wraddress[14..0]"
 // Retrieval info: USED_PORT: wrclock 0 0 0 0 INPUT VCC "wrclock"
 // Retrieval info: USED_PORT: wren 0 0 0 0 INPUT GND "wren"
-// Retrieval info: CONNECT: @address_a 0 0 14 0 wraddress 0 0 14 0
-// Retrieval info: CONNECT: @address_b 0 0 14 0 rdaddress 0 0 14 0
+// Retrieval info: CONNECT: @address_a 0 0 15 0 wraddress 0 0 15 0
+// Retrieval info: CONNECT: @address_b 0 0 15 0 rdaddress 0 0 15 0
 // Retrieval info: CONNECT: @clock0 0 0 0 0 wrclock 0 0 0 0
 // Retrieval info: CONNECT: @clock1 0 0 0 0 rdclock 0 0 0 0
 // Retrieval info: CONNECT: @data_a 0 0 24 0 data 0 0 24 0
