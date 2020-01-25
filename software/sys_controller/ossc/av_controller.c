@@ -41,7 +41,7 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 33
+#define FW_VER_MINOR 34
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x7a
@@ -298,7 +298,6 @@ int main()
     video_type target_typemask=0;
     mode_data_t vmode_in, vmode_out;
     vm_mult_config_t vm_conf;
-    si5351_ms_config_t si_ms_conf;
     int enable_isl=0, enable_hdmirx=0;
 
     ret = init_hw();
@@ -311,6 +310,15 @@ int main()
         us2066_write(row1, row2);
         while (1) {}
     }
+
+    get_standard_mode(STDMODE_480p, &vm_conf, &vmode_in, &vmode_out);
+    if (vmode_out.si_pclk_mult > 0)
+        si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, si_dev.xtal_freq, vmode_out.si_pclk_mult);
+    else
+        si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &vmode_out.si_ms_conf);
+
+    update_sc_config(&vmode_in, &vmode_out, &vm_conf);
+    adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
     while (1) {
         // Read remote control and PCB button status
@@ -469,7 +477,7 @@ int main()
                     if (isl_dev.ss.interlace_flag)
                         v_hz_x100 *= 2;
 
-                    mode = get_adaptive_mode(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, &vm_conf, target_ymult, &vmode_in, &vmode_out, &si_ms_conf);
+                    mode = get_adaptive_mode(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, &vm_conf, target_ymult, &vmode_in, &vmode_out);
 
                     if (mode < 0) {
                         amode_match = 0;
@@ -502,9 +510,9 @@ int main()
 
                         // Setup Si5351
                         if (amode_match)
-                            si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &si_ms_conf);
+                            si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &vmode_out.si_ms_conf);
                         else
-                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vm_conf.pclk_mult);
+                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vmode_out.si_pclk_mult);
 
                         // TODO: dont read polarity from ISL51002
                         sys_ctrl &= ~(SCTRL_ISL_VS_POL);
@@ -515,7 +523,7 @@ int main()
                         update_sc_config(&vmode_in, &vmode_out, &vm_conf);
 
                         // Setup VIC and pixel repetition
-                        adv7513_set_pixelrep_vic(&advtx_dev, vm_conf.tx_pixelrep, vm_conf.hdmitx_pixr_ifr, vmode_out.vic);
+                        adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
                     }
                 }
             } else {

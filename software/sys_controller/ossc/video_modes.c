@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2015-2017  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2015-2020  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -30,15 +30,84 @@
 #define VM_OUT_XMULT        (vm_conf->x_rpt+1)
 #define VM_OUT_PCLKMULT     ((vm_conf->x_rpt+1)*(vm_conf->y_rpt+1))
 
-const mode_data_t video_modes_default[] = VIDEO_MODES_DEF;
-mode_data_t video_modes[VIDEO_MODES_CNT];
 
-const ad_mode_data_t adaptive_modes_default[] = ADAPTIVE_MODES_DEF;
-ad_mode_data_t adaptive_modes[ADAPTIVE_MODES_CNT];
+const mode_data_t video_modes_default[] = { \
+    /* 240p modes */ \
+    { "1600x240",   HDMI_Unknown,     {1600,  240,  2046, 0,  262,  202, 15,  150, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L5_GEN_4_3),                                                        TX_1X, TX_1X,  1, {0} },  \
+    { "1280x240",   HDMI_Unknown,     {1280,  240,  1560, 0,  262,  170, 15,   72, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L3_GEN_16_9 | MODE_L4_GEN_4_3),                                     TX_1X, TX_1X,  1, {0} },  \
+    { "960x240",    HDMI_Unknown,     { 960,  240,  1170, 0,  262,  128, 15,   54, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L3_GEN_4_3),                                                        TX_1X, TX_1X,  1, {0} },  \
+    { "512x240",    HDMI_Unknown,     { 512,  240,   682, 0,  262,   77, 14,   50, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L2_512_COL | MODE_L3_512_COL | MODE_L4_512_COL | MODE_L5_512_COL),  TX_1X, TX_1X,  1, {0} },  \
+    { "384x240",    HDMI_Unknown,     { 384,  240,   512, 0,  262,   59, 14,   37, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L2_384_COL | MODE_L3_384_COL | MODE_L4_384_COL | MODE_L5_384_COL),  TX_1X, TX_1X,  1, {0} },  \
+    { "320x240",    HDMI_Unknown,     { 320,  240,   426, 0,  262,   49, 14,   31, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L2_320_COL | MODE_L3_320_COL | MODE_L4_320_COL | MODE_L5_320_COL),  TX_1X, TX_1X,  1, {0} },  \
+    { "256x240",    HDMI_Unknown,     { 256,  240,   341, 0,  262,   39, 14,   25, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L2_256_COL | MODE_L3_256_COL | MODE_L4_256_COL | MODE_L5_256_COL),  TX_1X, TX_1X,  1, {0} },  \
+    { "240p",       HDMI_240p60,      { 720,  240,   858, 0,  262,   57, 15,   62, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_PT | MODE_L2),                                                      TX_2X, TX_2X,  1, {0} },  \
+    /* 288p modes */ \
+    { "1600x240L",  HDMI_Unknown,     {1600,  240,  2046, 0,  312,  202, 41,  150, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L5_GEN_4_3),                                                        TX_1X, TX_1X,  1, {0} },  \
+    { "1280x288",   HDMI_Unknown,     {1280,  288,  1560, 0,  312,  170, 15,   72, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L3_GEN_16_9 | MODE_L4_GEN_4_3),                                     TX_1X, TX_1X,  1, {0} },  \
+    { "960x288",    HDMI_Unknown,     { 960,  288,  1170, 0,  312,  128, 15,   54, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L3_GEN_4_3),                                                        TX_1X, TX_1X,  1, {0} },  \
+    { "512x240LB",  HDMI_Unknown,     { 512,  240,   682, 0,  312,   77, 41,   50, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L2_512_COL | MODE_L3_512_COL | MODE_L4_512_COL | MODE_L5_512_COL),  TX_1X, TX_1X,  1, {0} },  \
+    { "384x240LB",  HDMI_Unknown,     { 384,  240,   512, 0,  312,   59, 41,   37, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L2_384_COL | MODE_L3_384_COL | MODE_L4_384_COL | MODE_L5_384_COL),  TX_1X, TX_1X,  1, {0} },  \
+    { "320x240LB",  HDMI_Unknown,     { 320,  240,   426, 0,  312,   49, 41,   31, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L2_320_COL | MODE_L3_320_COL | MODE_L4_320_COL | MODE_L5_320_COL),  TX_1X, TX_1X,  1, {0} },  \
+    { "256x240LB",  HDMI_Unknown,     { 256,  240,   341, 0,  312,   39, 41,   25, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_L2_256_COL | MODE_L3_256_COL | MODE_L4_256_COL | MODE_L5_256_COL),  TX_1X, TX_1X,  1, {0} },  \
+    { "288p",       HDMI_288p50,      { 720,  288,   864, 0,  312,   69, 19,   63, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,   (MODE_PT | MODE_L2),                                                      TX_2X, TX_2X,  1, {0} },  \
+    /* 360p: GBI */ \
+    { "480x360",    HDMI_Unknown,     { 480,  360,   600, 0,  375,   63, 10,   38, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV),             GROUP_384P,   (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  1, {0} },  \
+    { "240x360",    HDMI_Unknown,     { 256,  360,   300, 0,  375,   24, 10,   18, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV),             GROUP_384P,   (MODE_L2_240x360 | MODE_L3_240x360),                                      TX_1X, TX_1X,  1, {0} },  \
+    /* 384p: Sega Model 2 */ \
+    { "384p",       HDMI_Unknown,     { 496,  384,   640, 0,  423,   50, 29,   62, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV),             GROUP_384P,   (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  1, {0} },  \
+    /* 400p line3x */ \
+    { "1600x400",   HDMI_Unknown,     {1600,  400,  2000, 0,  449,  120, 34,  240, 2},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_384P,   (MODE_L3_GEN_16_9),                                                       TX_1X, TX_1X,  1, {0} },  \
+    /* 720x400@70Hz, VGA Mode 3+/7+ */ \
+    { "720x400",    HDMI_Unknown,     { 720,  400,   900, 0,  449,   64, 34,   96, 2},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_384P,   (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  1, {0} },  \
+    /* 640x400@70Hz, VGA Mode 13h */ \
+    { "640x400",    HDMI_Unknown,     { 640,  400,   800, 0,  449,   48, 34,   96, 2},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_384P,   (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  1, {0} },  \
+    /* 384p: X68k @ 24kHz */ \
+    { "640x384",    HDMI_Unknown,     { 640,  384,   800, 0,  492,   48, 63,   96, 2},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_384P,   (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  1, {0} },  \
+    /* ~525-line modes */ \
+    { "480i",       HDMI_480i60,      { 720,  240,   858, 0,  525,   57, 15,   62, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_480I,   (MODE_PT | MODE_L2 | MODE_L3_GEN_16_9 | MODE_L4_GEN_4_3 | MODE_INTERLACED), TX_2X, TX_2X,  1, {0} },  \
+    { "480p",       HDMI_480p60,      { 720,  480,   858, 0,  525,   60, 30,   62, 6},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,   (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  1, {0} },  \
+    { "640x480",    HDMI_640x480p60,  { 640,  480,   800, 0,  525,   48, 33,   96, 2},  DEFAULT_SAMPLER_PHASE,  (VIDEO_PC | VIDEO_EDTV),  GROUP_480P,   (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  1, {0} },  \
+    /* X68k @ 31kHz */ \
+    { "640x512",    HDMI_Unknown,     { 640,  512,   800, 0,  568,   48, 28,   96, 2},  DEFAULT_SAMPLER_PHASE,  (VIDEO_PC | VIDEO_EDTV),  GROUP_480P,   (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  1, {0} },  \
+    /* ~625-line modes */ \
+    { "576i",       HDMI_576i50,      { 720,  288,   864, 0,  625,   69, 19,   63, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_480I,   (MODE_PT | MODE_L2 | MODE_L3_GEN_16_9 | MODE_L4_GEN_4_3 | MODE_INTERLACED), TX_2X, TX_2X,  1, {0} },  \
+    { "576p",       HDMI_576p50,      { 720,  576,   864, 0,  625,   68, 39,   64, 5},  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,               GROUP_480P,   (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  1, {0} },  \
+    { "800x600",    HDMI_Unknown,     { 800,  600,  1056, 0,  628,   88, 23,  128, 4},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },  \
+    /* 720p modes */ \
+    { "720p",       HDMI_720p60,      {1280,  720,  1650, 0,  750,  220, 20,   40, 5},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },  \
+    /* VESA XGA and SXGA modes */ \
+    { "1024x768",   HDMI_Unknown,     {1024,  768,  1344, 0,  806,  160, 29,  136, 6},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },  \
+    { "1280x1024",  HDMI_Unknown,     {1280, 1024,  1688, 0, 1066,  248, 38,  112, 3},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },  \
+    /* PS2 GSM 960i mode */ \
+    { "640x960i",   HDMI_Unknown,     { 640,  480,   800, 0, 1050,   48, 33,   96, 2},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_1080I,  (MODE_PT | MODE_L2 | MODE_INTERLACED),                                    TX_1X, TX_1X,  1, {0} },  \
+    /* 1080i/p modes */ \
+    { "1080i",      HDMI_1080i60,     {1920,  540,  2200, 0, 1125,  148, 16,   44, 5},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  (MODE_PT | MODE_L2 | MODE_INTERLACED),                                    TX_1X, TX_1X,  1, {0} },  \
+    { "1080p",      HDMI_1080p60,     {1920, 1080,  2200, 0, 1125,  148, 36,   44, 5},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },  \
+    /* VESA UXGA with 49 H.backporch cycles exchanged for H.synclen */ \
+    { "1600x1200",  HDMI_Unknown,     {1600, 1200,  2160, 0, 1250,  255, 46,  241, 3},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },  \
+    /* CVT 1920x1440 with reduced blanking */ \
+    { "1920x1440",  HDMI_Unknown,     {1920, 1440,  2080, 0, 1481,   80, 34,   32, 4},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  6, {0} },  \
+    /* CVT 2560x1440 with reduced blanking and pixelrep */ \
+    { "2560x1440",  HDMI_Unknown,     {1280, 1440,  1360, 0, 1481,   40, 33,   16, 5},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_2X, TX_1X,  4, {0} },  \
+};
+
+const ad_mode_data_t adaptive_modes_default[] = { \
+    /* 240p modes */ \
+    { STDMODE_720p,                   { 960,  240,  1170, 0,  262,  128, 15,   54, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,  2,  0, 0,  {0x016BA, 0x00028, 0x01A9C, 0x00420, 0x00000, 0x00004, 0, 0, 0} },          \
+    { STDMODE_1080p,                  {1280,  240,  1560, 0,  262,  170, 15,   72, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,  3,  0, 0,  {4138, 1050, 1703, 256, 0, 1, 0, 0, 0} },                                   \
+    { STDMODE_1080p,                  {1600,  240,  1950, 0,  262,  212, 15,   90, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,  4,  0, 0,  {0x00C88, 0x00348, 0x006A7, 0x00100, 0x00000, 0x00001, 0, 0, 0} },          \
+    { STDMODE_1440p,                  {1920,  240,  2340, 0,  262,  256, 15,  108, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,  5,  0, 0,  {3346, 350, 393, 256, 0, 1, 0, 0, 0} },         \
+    /*{ STDMODE_1440p,                  { 960,  240,  1170, 0,  262,  128, 15,   54, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,  5,  0, 0,  {4534, 1234, 5109, 256, 0, 1, 0, 0, 0} },         */ \
+};
+
+
+mode_data_t video_modes[sizeof(video_modes_default)/sizeof(mode_data_t)];
+ad_mode_data_t adaptive_modes[sizeof(adaptive_modes_default)/sizeof(ad_mode_data_t)];
+
 
 void set_default_vm_table() {
-    memcpy(video_modes, video_modes_default, VIDEO_MODES_SIZE);
-    memcpy(adaptive_modes, adaptive_modes_default, ADAPTIVE_MODES_SIZE);
+    memcpy(video_modes, video_modes_default, sizeof(video_modes_default));
+    memcpy(adaptive_modes, adaptive_modes_default, sizeof(adaptive_modes_default));
 }
 
 void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
@@ -70,29 +139,25 @@ uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz) {
     }
 }
 
-int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out, si5351_ms_config_t *si_ms_conf)
+int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out)
 {
     int i;
     int32_t v_linediff;
     unsigned num_modes = sizeof(adaptive_modes)/sizeof(ad_mode_data_t);
-    memset(vm_in, 0, sizeof(ad_mode_data_t));
-    memset(vm_out, 0, sizeof(ad_mode_data_t));
+    memset(vm_in, 0, sizeof(mode_data_t));
+    memset(vm_out, 0, sizeof(mode_data_t));
 
     for (i=0; i<num_modes; i++) {
         if ((totlines == (adaptive_modes[i].timings_i.v_total)) && (ymult == (adaptive_modes[i].y_rpt+1))) {
             vm_conf->x_rpt = 0;
             vm_conf->y_rpt = 0;
             vm_conf->x_skip = 0;
-            vm_conf->pclk_mult = 1;
-            vm_conf->tx_pixelrep = TX_PIXELREP_DISABLE;
-            vm_conf->hdmitx_pixr_ifr = TX_PIXELREP_DISABLE;
 
             memcpy(&vm_in->timings, &adaptive_modes[i].timings_i, sizeof(sync_timings_t));
             vm_in->type = adaptive_modes[i].type;
 
-            strncpy(vm_out->name, adaptive_modes[i].name, 10);
-            vm_out->vic = adaptive_modes[i].vic;
-            memcpy(&vm_out->timings, &adaptive_modes[i].timings_o, sizeof(sync_timings_t));
+            memcpy(vm_out, &video_modes_default[adaptive_modes[i].mode_idx_i], sizeof(mode_data_t));
+
             vm_conf->y_rpt = adaptive_modes[i].y_rpt;
             vm_conf->x_offset = ((vm_out->timings.h_active-vm_in->timings.h_active)/2) + adaptive_modes[i].x_offset_i;
             vm_conf->x_size = vm_in->timings.h_active;
@@ -100,7 +165,8 @@ int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, 
             vm_conf->y_offset = -(adaptive_modes[i].y_rpt+1)*vm_conf->linebuf_startline;
             vm_conf->y_size = vm_in->timings.v_active*(adaptive_modes[i].y_rpt+1);
 
-            memcpy(si_ms_conf, &adaptive_modes[i].si_ms_conf, sizeof(si5351_ms_config_t));
+            vm_out->si_pclk_mult = 0;
+            memcpy(&vm_out->si_ms_conf, &adaptive_modes[i].si_ms_conf, sizeof(si5351_ms_config_t));
 
             // calculate the time (in output lines, rounded up) from source frame start to the point where first to-be-visible line has been written into linebuf
             v_linediff = (((vm_in->timings.v_synclen + vm_in->timings.v_backporch + ((vm_conf->linebuf_startline < 0) ? 0 : vm_conf->linebuf_startline) + 1) * vm_out->timings.v_total) / vm_in->timings.v_total) + 1;
@@ -211,9 +277,10 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
             vm_conf->x_size = 0;
             vm_conf->y_size = 0;
             vm_conf->linebuf_startline = 0;
-            vm_conf->pclk_mult = 1;
-            vm_conf->tx_pixelrep = TX_PIXELREP_DISABLE;
-            vm_conf->hdmitx_pixr_ifr = TX_PIXELREP_DISABLE;
+
+            vm_out->si_pclk_mult = 1;
+            vm_out->tx_pixelrep = TX_1X;
+            vm_out->hdmitx_pixr_ifr = TX_1X;
 
             target_lm &= video_modes[i].flags;    //ensure L2 mode uniqueness
 
@@ -226,11 +293,11 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                             vmode_hv_mult(vm_in, 2, 1);
                             vmode_hv_mult(vm_out, 2, VM_OUT_YMULT);
                         } else {
-                            vm_conf->tx_pixelrep = TX_PIXELREP_2X;
+                            vm_out->tx_pixelrep = TX_2X;
                         }
-                        vm_conf->hdmitx_pixr_ifr = TX_PIXELREP_2X;
+                        vm_out->hdmitx_pixr_ifr = TX_2X;
                     }
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L2:
                     vm_conf->y_rpt = 1;
@@ -242,12 +309,12 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                             vmode_hv_mult(vm_out, 2, VM_OUT_YMULT);
                         } else {
                             vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                            vm_conf->tx_pixelrep = TX_PIXELREP_2X;
+                            vm_out->tx_pixelrep = TX_2X;
                         }
                     } else {
                         vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
                     }
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L2_512_COL:
                     vm_conf->y_rpt = 1;
@@ -255,7 +322,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 1;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L2_256_COL:
                     vm_conf->y_rpt = 1;
@@ -263,7 +330,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 5;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L2_320_COL:
                 case MODE_L2_384_COL:
@@ -272,7 +339,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 3;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L2_240x360:
                     vm_conf->y_rpt = 1;
@@ -280,7 +347,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 4;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L3_GEN_16_9:
                     vm_conf->y_rpt = 2;
@@ -292,12 +359,12 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                             vmode_hv_mult(vm_out, 2, VM_OUT_YMULT);
                         } else {
                             vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                            vm_conf->tx_pixelrep = TX_PIXELREP_2X;
+                            vm_out->tx_pixelrep = TX_2X;
                         }
                     } else {
                         vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
                     }
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L3_GEN_4_3:
                     vm_conf->y_rpt = 2;
@@ -309,7 +376,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_out->timings.h_total /= 3;
                     vm_out->timings.h_total_adj = 0;
                     vmode_hv_mult(vm_out, 4, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = 4;
+                    vm_out->si_pclk_mult = 4;
                     break;
                 case MODE_L3_512_COL:
                     vm_conf->y_rpt = 2;
@@ -317,7 +384,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 1;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L3_384_COL:
                     vm_conf->y_rpt = 2;
@@ -325,7 +392,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 2;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L3_320_COL:
                     vm_conf->y_rpt = 2;
@@ -333,7 +400,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 3;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L3_256_COL:
                     vm_conf->y_rpt = 2;
@@ -341,7 +408,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 4;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L3_240x360:
                     vm_conf->y_rpt = 2;
@@ -349,7 +416,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 6;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     //cm.hsync_cut = 13;
                     break;
                 case MODE_L4_GEN_4_3:
@@ -362,12 +429,12 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                             vmode_hv_mult(vm_out, 2, VM_OUT_YMULT);
                         } else {
                             vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                            vm_conf->tx_pixelrep = TX_PIXELREP_2X;
+                            vm_out->tx_pixelrep = TX_2X;
                         }
                     } else {
                         vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
                     }
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L4_512_COL:
                     vm_conf->y_rpt = 3;
@@ -375,7 +442,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 1;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L4_384_COL:
                     vm_conf->y_rpt = 3;
@@ -383,7 +450,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 2;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L4_320_COL:
                     vm_conf->y_rpt = 3;
@@ -391,7 +458,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 3;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L4_256_COL:
                     vm_conf->y_rpt = 3;
@@ -399,12 +466,12 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 4;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     break;
                 case MODE_L5_GEN_4_3:
                     vm_conf->y_rpt = 4;
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     if (1) {
                         vm_out->timings.h_synclen = (vm_out->timings.h_total - 1920)/4;
                         vm_out->timings.h_backporch = (vm_out->timings.h_total - 1920)/2;
@@ -422,7 +489,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 2;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     //cm.hsync_cut = 40;
                     break;
                 case MODE_L5_384_COL:
@@ -431,7 +498,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 3;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     //cm.hsync_cut = 30;
                     break;
                 case MODE_L5_320_COL:
@@ -440,7 +507,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 4;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     //cm.hsync_cut = 24;
                     break;
                 case MODE_L5_256_COL:
@@ -449,7 +516,7 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                     vm_conf->x_skip = 5;
                     vmode_hv_mult(vm_in, VM_OUT_XMULT, 1);
                     vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
-                    vm_conf->pclk_mult = VM_OUT_PCLKMULT;
+                    vm_out->si_pclk_mult = VM_OUT_PCLKMULT;
                     //cm.hsync_cut = 20;
                     break;
                 default:
@@ -473,4 +540,13 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
     }
 
     return -1;
+}
+
+int get_standard_mode(stdmode_t idx, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out)
+{
+    memset(vm_conf, 0, sizeof(vm_mult_config_t));
+    memset(vm_in, 0, sizeof(mode_data_t));
+    memcpy(vm_out, &video_modes_default[idx], sizeof(mode_data_t));
+
+    return 0;
 }

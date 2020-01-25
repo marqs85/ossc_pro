@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2015-2019  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2015-2020  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -122,10 +122,18 @@ typedef enum tagHDMI_Video_Type {
 } HDMI_Video_Type ;
 
 typedef enum {
-    TX_PIXELREP_DISABLE = 0,
-    TX_PIXELREP_2X      = 1,
-    TX_PIXELREP_4X      = 2
+    TX_1X   = 0,
+    TX_2X   = 1,
+    TX_4X   = 2
 } HDMI_pixelrep_t;
+
+typedef enum {
+    STDMODE_240p   = 7,
+    STDMODE_480p   = 24,
+    STDMODE_720p   = 30,
+    STDMODE_1080p  = 35,
+    STDMODE_1440p  = 37
+} stdmode_t;
 
 typedef struct {
     uint16_t h_active;
@@ -147,14 +155,19 @@ typedef struct {
     video_type type:5;
     video_group group:3;
     mode_flags flags;
+    HDMI_pixelrep_t tx_pixelrep:2;
+    HDMI_pixelrep_t hdmitx_pixr_ifr:2;
+    // for generation from 27MHz clock
+    uint8_t si_pclk_mult:4;
+    si5351_ms_config_t si_ms_conf;
 } mode_data_t;
 
 typedef struct {
-    char name[10];
-    HDMI_Video_Type vic:8;
+    stdmode_t mode_idx_i;
     sync_timings_t timings_i;
-    sync_timings_t timings_o;
-    video_type type;
+    uint8_t sampler_phase;
+    video_type type:5;
+    video_group group:3;
     uint8_t y_rpt;
     int16_t x_offset_i;
     int16_t y_offset_i;
@@ -171,88 +184,17 @@ typedef struct {
     uint16_t y_size;
     uint16_t framesync_line;
     int8_t linebuf_startline;
-    uint8_t pclk_mult;
-    HDMI_pixelrep_t tx_pixelrep;
-    HDMI_pixelrep_t hdmitx_pixr_ifr;
 } vm_mult_config_t;
 
-
-#define VIDEO_MODES_DEF { \
-    /* 240p modes */ \
-    { "1600x240",  HDMI_Unknown,     {1600,  240,  2046, 0,  262,  202, 15,  150, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L5_GEN_4_3 | MODE_PLLDIVBY2) },                                                           \
-    { "1280x240",  HDMI_Unknown,     {1280,  240,  1560, 0,  262,  170, 15,   72, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L3_GEN_16_9 | MODE_L4_GEN_4_3 | MODE_PLLDIVBY2) },                                        \
-    { "960x240",   HDMI_Unknown,     { 960,  240,  1170, 0,  262,  128, 15,   54, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L3_GEN_4_3 | MODE_PLLDIVBY2) },                                                           \
-    { "512x240",   HDMI_Unknown,     { 512,  240,   682, 0,  262,   77, 14,   50, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L2_512_COL | MODE_L3_512_COL | MODE_L4_512_COL | MODE_L5_512_COL) },                      \
-    { "384x240",   HDMI_Unknown,     { 384,  240,   512, 0,  262,   59, 14,   37, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L2_384_COL | MODE_L3_384_COL | MODE_L4_384_COL | MODE_L5_384_COL) },                      \
-    { "320x240",   HDMI_Unknown,     { 320,  240,   426, 0,  262,   49, 14,   31, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L2_320_COL | MODE_L3_320_COL | MODE_L4_320_COL | MODE_L5_320_COL) },                      \
-    { "256x240",   HDMI_Unknown,     { 256,  240,   341, 0,  262,   39, 14,   25, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L2_256_COL | MODE_L3_256_COL | MODE_L4_256_COL | MODE_L5_256_COL) },                      \
-    { "240p",      HDMI_240p60,      { 720,  240,   858, 0,  262,   57, 15,   62, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_PT | MODE_L2 | MODE_PLLDIVBY2) },                                                         \
-    /* 288p modes */ \
-    { "1600x240L", HDMI_Unknown,     {1600,  240,  2046, 0,  312,  202, 41,  150, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L5_GEN_4_3 | MODE_PLLDIVBY2) },                                                           \
-    { "1280x288",  HDMI_Unknown,     {1280,  288,  1560, 0,  312,  170, 15,   72, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L3_GEN_16_9 | MODE_L4_GEN_4_3 | MODE_PLLDIVBY2) },                                        \
-    { "960x288",   HDMI_Unknown,     { 960,  288,  1170, 0,  312,  128, 15,   54, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L3_GEN_4_3 | MODE_PLLDIVBY2) },                                                           \
-    { "512x240LB", HDMI_Unknown,     { 512,  240,   682, 0,  312,   77, 41,   50, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L2_512_COL | MODE_L3_512_COL | MODE_L4_512_COL | MODE_L5_512_COL) },                      \
-    { "384x240LB", HDMI_Unknown,     { 384,  240,   512, 0,  312,   59, 41,   37, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L2_384_COL | MODE_L3_384_COL | MODE_L4_384_COL | MODE_L5_384_COL) },                      \
-    { "320x240LB", HDMI_Unknown,     { 320,  240,   426, 0,  312,   49, 41,   31, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L2_320_COL | MODE_L3_320_COL | MODE_L4_320_COL | MODE_L5_320_COL) },                      \
-    { "256x240LB", HDMI_Unknown,     { 256,  240,   341, 0,  312,   39, 41,   25, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_L2_256_COL | MODE_L3_256_COL | MODE_L4_256_COL | MODE_L5_256_COL) },                      \
-    { "288p",      HDMI_288p50,      { 720,  288,   864, 0,  312,   69, 19,   63, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_240P,     (MODE_PT | MODE_L2 | MODE_PLLDIVBY2) },                                                         \
-    /* 360p: GBI */ \
-    { "480x360",   HDMI_Unknown,     { 480,  360,   600, 0,  375,   63, 10,   38, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_EDTV),              GROUP_384P,     (MODE_PT | MODE_L2 | MODE_PLLDIVBY2) },                                                         \
-    { "240x360",   HDMI_Unknown,     { 256,  360,   300, 0,  375,   24, 10,   18, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_EDTV),              GROUP_384P,     (MODE_L2_240x360 | MODE_L3_240x360) },                                                          \
-    /* 384p: Sega Model 2 */ \
-    { "384p",      HDMI_Unknown,     { 496,  384,   640, 0,  423,   50, 29,   62, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_EDTV),              GROUP_384P,     (MODE_PT | MODE_L2 | MODE_PLLDIVBY2) },                                                         \
-    /* 400p line3x */ \
-    { "1600x400",  HDMI_Unknown,     {1600,  400,  2000, 0,  449,  120, 34,  240, 2},  DEFAULT_SAMPLER_PHASE, VIDEO_PC,                  GROUP_384P,     (MODE_L3_GEN_16_9) },                                                                          \
-    /* 720x400@70Hz, VGA Mode 3+/7+ */ \
-    { "720x400",   HDMI_Unknown,     { 720,  400,   900, 0,  449,   64, 34,   96, 2},  DEFAULT_SAMPLER_PHASE, VIDEO_PC,                  GROUP_384P,     (MODE_PT | MODE_L2) },                                                                          \
-    /* 640x400@70Hz, VGA Mode 13h */ \
-    { "640x400",   HDMI_Unknown,     { 640,  400,   800, 0,  449,   48, 34,   96, 2},  DEFAULT_SAMPLER_PHASE, VIDEO_PC,                  GROUP_384P,     (MODE_PT | MODE_L2) },                                                                          \
-    /* 384p: X68k @ 24kHz */ \
-    { "640x384",   HDMI_Unknown,     { 640,  384,   800, 0,  492,   48, 63,   96, 2},  DEFAULT_SAMPLER_PHASE, VIDEO_PC,                  GROUP_384P,     (MODE_PT | MODE_L2 | MODE_PLLDIVBY2) },                                                         \
-    /* ~525-line modes */ \
-    { "480i",      HDMI_480i60,      { 720,  240,   858, 0,  525,   57, 15,   62, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_480I,     (MODE_PT | MODE_L2 | MODE_L3_GEN_16_9 | MODE_L4_GEN_4_3 | MODE_PLLDIVBY2 | MODE_INTERLACED) },  \
-    { "480p",      HDMI_480p60,      { 720,  480,   858, 0,  525,   60, 30,   62, 6},  DEFAULT_SAMPLER_PHASE, (VIDEO_EDTV | VIDEO_PC),   GROUP_480P,     (MODE_PT | MODE_L2) },                                                                          \
-    { "640x480",   HDMI_640x480p60,  { 640,  480,   800, 0,  525,   48, 33,   96, 2},  DEFAULT_SAMPLER_PHASE, (VIDEO_PC | VIDEO_EDTV),   GROUP_480P,     (MODE_PT | MODE_L2) },                                                                          \
-    /* X68k @ 31kHz */ \
-    { "640x512",   HDMI_Unknown,     { 640,  512,   800, 0,  568,   48, 28,   96, 2},  DEFAULT_SAMPLER_PHASE, (VIDEO_PC | VIDEO_EDTV),   GROUP_480P,     (MODE_PT | MODE_L2) },                                                                          \
-    /* ~625-line modes */ \
-    { "576i",      HDMI_576i50,      { 720,  288,   864, 0,  625,   69, 19,   63, 3},  DEFAULT_SAMPLER_PHASE, (VIDEO_SDTV | VIDEO_PC),   GROUP_480I,     (MODE_PT | MODE_L2 | MODE_L3_GEN_16_9 | MODE_L4_GEN_4_3 | MODE_PLLDIVBY2 | MODE_INTERLACED) },  \
-    { "576p",      HDMI_576p50,      { 720,  576,   864, 0,  625,   68, 39,   64, 5},  DEFAULT_SAMPLER_PHASE, VIDEO_EDTV,                GROUP_480P,     (MODE_PT | MODE_L2) },                                                                          \
-    { "800x600",   HDMI_Unknown,     { 800,  600,  1056, 0,  628,   88, 23,  128, 4},  DEFAULT_SAMPLER_PHASE, VIDEO_PC,                  GROUP_NONE,     MODE_PT },                                                                                      \
-    /* 720p modes */ \
-    { "720p",      HDMI_720p60,      {1280,  720,  1650, 0,  750,  220, 20,   40, 5},  DEFAULT_SAMPLER_PHASE, (VIDEO_HDTV | VIDEO_PC),   GROUP_NONE,     MODE_PT },                                                                                      \
-    /* VESA XGA and SXGA modes */ \
-    { "1024x768",  HDMI_Unknown,     {1024,  768,  1344, 0,  806,  160, 29,  136, 6},  DEFAULT_SAMPLER_PHASE, VIDEO_PC,                  GROUP_NONE,     MODE_PT },                                                                                      \
-    { "1280x1024", HDMI_Unknown,     {1280, 1024,  1688, 0, 1066,  248, 38,  112, 3},  DEFAULT_SAMPLER_PHASE, VIDEO_PC,                  GROUP_NONE,     MODE_PT },                                                                                      \
-    /* PS2 GSM 960i mode */ \
-    { "640x960i",  HDMI_Unknown,     { 640,  480,   800, 0, 1050,   48, 33,   96, 2},  DEFAULT_SAMPLER_PHASE, (VIDEO_EDTV | VIDEO_PC),   GROUP_1080I,    (MODE_PT | MODE_L2 | MODE_INTERLACED) },                                                        \
-    /* 1080i/p modes */ \
-    { "1080i",     HDMI_1080i60,     {1920,  540,  2200, 0, 1125,  148, 16,   44, 5},  DEFAULT_SAMPLER_PHASE, (VIDEO_HDTV | VIDEO_PC),   GROUP_1080I,    (MODE_PT | MODE_L2 | MODE_INTERLACED) },                                                        \
-    { "1080p",     HDMI_1080p60,     {1920, 1080,  2200, 0, 1125,  148, 36,   44, 5},  DEFAULT_SAMPLER_PHASE, (VIDEO_HDTV | VIDEO_PC),   GROUP_NONE,     MODE_PT },                                                                                      \
-    /* VESA UXGA with 49 H.backporch cycles exchanged for H.synclen */ \
-    { "1600x1200", HDMI_Unknown,     {1600, 1200,  2160, 0, 1250,  255, 46,  241, 3},  DEFAULT_SAMPLER_PHASE, VIDEO_PC,                  GROUP_NONE,     MODE_PT },                                                                                      \
-}
-
-#define VIDEO_MODES_SIZE (sizeof((mode_data_t[])VIDEO_MODES_DEF))
-#define VIDEO_MODES_CNT (sizeof((mode_data_t[])VIDEO_MODES_DEF)/sizeof(mode_data_t))
-
-
-#define ADAPTIVE_MODES_DEF { \
-    /* 240p modes */ \
-    { "1280x720",   HDMI_720p60,     { 960,  240,  1170, 0,  262,  128, 15,   54, 3},   {1280,  720,  1650, 0,  750,  220, 20,   40, 5},   (VIDEO_SDTV | VIDEO_PC), 2, 0, 0, {0x016BA, 0x00028, 0x01A9C, 0x00420, 0x00000, 0x00004, 0, 0, 0} },          \
-    { "1920x1080",  HDMI_1080p60,    {1280,  240,  1560, 0,  262,  170, 15,   72, 3},   {1920, 1080,  2200, 0, 1125,  148, 36,   44, 5},   (VIDEO_SDTV | VIDEO_PC), 3, 0, 0, {4138, 1050, 1703, 256, 0, 1, 0, 0, 0} },                                   \
-    { "1920x1080",  HDMI_1080p60,    {1600,  240,  1950, 0,  262,  212, 15,   90, 3},   {1920, 1080,  2200, 0, 1125,  148, 36,   44, 5},   (VIDEO_SDTV | VIDEO_PC), 4, 0, 0, {0x00C88, 0x00348, 0x006A7, 0x00100, 0x00000, 0x00001, 0, 0, 0} },          \
-}
-
-#define ADAPTIVE_MODES_SIZE (sizeof((ad_mode_data_t[])ADAPTIVE_MODES_DEF))
-#define ADAPTIVE_MODES_CNT (sizeof((ad_mode_data_t[])ADAPTIVE_MODES_DEF)/sizeof(ad_mode_data_t))
 
 void set_default_vm_table();
 
 uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz);
 
-int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out, si5351_ms_config_t *si_ms_conf);
+int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out);
 
 int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_type typemask, uint8_t s400p_mode, uint8_t s480p_mode, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out);
+
+int get_standard_mode(stdmode_t idx, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
 
 #endif /* VIDEO_MODES_H_ */
