@@ -131,8 +131,10 @@ typedef enum {
     STDMODE_240p   = 7,
     STDMODE_480p   = 24,
     STDMODE_720p   = 30,
-    STDMODE_1080p  = 35,
-    STDMODE_1440p  = 37
+    STDMODE_960p   = 32,
+    STDMODE_1080p  = 36,
+    STDMODE_1200p  = 38,
+    STDMODE_1440p  = 39
 } stdmode_t;
 
 typedef struct {
@@ -195,6 +197,6 @@ int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, 
 
 int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_type typemask, uint8_t s400p_mode, uint8_t s480p_mode, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out);
 
-int get_standard_mode(stdmode_t idx, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
+int get_standard_mode(unsigned stdmode_idx_arr_idx, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
 
 #endif /* VIDEO_MODES_H_ */

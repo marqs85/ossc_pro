@@ -88,7 +88,7 @@ void set_default_keymap() {
     memcpy(rc_keymap, rc_keymap_default, sizeof(rc_keymap));
 }
 
-int parse_control(avinput_t *input, uint16_t remote_code, uint8_t btn_vec, uint8_t *ymult_new)
+int parse_control(avinput_t *input, uint16_t remote_code, uint8_t btn_vec, uint8_t *ymult_new, unsigned *target_tp_stdmode_idx)
 {
     int i, prof_x10=0, ret=0, retval;
 
@@ -113,11 +113,23 @@ int parse_control(avinput_t *input, uint16_t remote_code, uint8_t btn_vec, uint8
         case RC_BTN7: *input = (*input == AV1_RGBHV) ? AV1_RGBCS : AV1_RGBHV; break;
         case RC_BTN2: *input = (*input == AV2_YPbPr) ? AV2_RGsB : AV2_YPbPr; break;
         case RC_BTN3: *input = (*input == AV3_RGBHV) ? AV3_RGBCS : AV3_RGBHV; break;
-        case RC_BTN6: *input = (*input == AV3_RGsB) ? AV3_YPbPr : AV3_RGsB; break;
+        case RC_BTN6: *input = AV3_RGBS; break;
+        case RC_BTN9: *input = (*input == AV3_RGsB) ? AV3_YPbPr : AV3_RGsB; break;
         case RC_BTN5: *input = AV4; break;
+        case RC_BTN0: *input = AV_TESTPAT; break;
 
-        case RC_LEFT: *ymult_new = 2; break;
-        case RC_RIGHT: *ymult_new = 3; break;
+        case RC_LEFT:
+            if (*input == AV_TESTPAT)
+                *target_tp_stdmode_idx = *target_tp_stdmode_idx - 1;
+            else
+                *ymult_new = 2;
+            break;
+        case RC_RIGHT:
+            if (*input == AV_TESTPAT)
+                *target_tp_stdmode_idx = *target_tp_stdmode_idx + 1;
+            else
+                *ymult_new = 3;
+            break;
         case RC_UP: *ymult_new = 4; break;
         case RC_DOWN: *ymult_new = 5; break;
         case RC_OK: *ymult_new = 1; break;

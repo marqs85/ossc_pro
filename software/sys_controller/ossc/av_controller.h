@@ -60,10 +60,11 @@ typedef enum {
     AV2_RGsB        = 7,
     AV3_RGBHV       = 8,
     AV3_RGBCS       = 9,
-    AV3_RGsB        = 10,
-    AV3_YPbPr       = 11,
-    AV4             = 12,
-    AV_LAST         = 13
+    AV3_RGBS        = 10,
+    AV3_RGsB        = 11,
+    AV3_YPbPr       = 12,
+    AV4             = 13,
+    AV_LAST         = 14
 } avinput_t;
 
 //TODO: transform binary values into flags

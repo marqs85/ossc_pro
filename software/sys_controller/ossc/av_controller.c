@@ -121,7 +121,7 @@ uint16_t sys_ctrl;
 char row1[US2066_ROW_LEN+1];
 char row2[US2066_ROW_LEN+1];
 
-static const char *avinput_str[] = { "Test pattern", "AV1: RGBS", "AV1: RGsB", "AV1: YPbPr", "AV1: RGBHV", "AV1: RGBCS", "AV2: YPbPr", "AV2: RGsB", "AV3: RGBHV", "AV3: RGBCS", "AV3: RGsB", "AV3: YPbPr", "AV4", "Last used" };
+static const char *avinput_str[] = { "Test pattern", "AV1: RGBS", "AV1: RGsB", "AV1: YPbPr", "AV1: RGBHV", "AV1: RGBCS", "AV2: YPbPr", "AV2: RGsB", "AV3: RGBHV", "AV3: RGBCS", "AV3: RGBS", "AV3: RGsB", "AV3: YPbPr", "AV4", "Last used" };
 
 
 void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf)
@@ -298,7 +298,8 @@ int main()
     video_type target_typemask=0;
     mode_data_t vmode_in, vmode_out;
     vm_mult_config_t vm_conf;
-    int enable_isl=0, enable_hdmirx=0;
+    unsigned tp_stdmode_idx=-1, target_tp_stdmode_idx=1; // STDMODE_480p
+    int enable_isl=0, enable_hdmirx=0, enable_tp=1;
 
     ret = init_hw();
     if (ret == 0) {
@@ -310,15 +311,6 @@ int main()
         us2066_write(row1, row2);
         while (1) {}
     }
-
-    get_standard_mode(STDMODE_480p, &vm_conf, &vmode_in, &vmode_out);
-    if (vmode_out.si_pclk_mult > 0)
-        si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, si_dev.xtal_freq, vmode_out.si_pclk_mult);
-    else
-        si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &vmode_out.si_ms_conf);
-
-    update_sc_config(&vmode_in, &vmode_out, &vm_conf);
-    adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
     while (1) {
         // Read remote control and PCB button status
@@ -340,17 +332,23 @@ int main()
         }
 
         target_avinput = avinput;
-        parse_control(&target_avinput, remote_code, btn_vec, &target_ymult);
+        parse_control(&target_avinput, remote_code, btn_vec, &target_ymult, &target_tp_stdmode_idx);
 
         if (target_avinput != avinput) {
 
             // defaults
             enable_isl = 1;
             enable_hdmirx = 0;
+            enable_tp = 0;
             target_typemask = VIDEO_LDTV|VIDEO_SDTV|VIDEO_EDTV|VIDEO_HDTV;
             target_isl_sync = SYNC_SOG;
 
             switch (target_avinput) {
+            case AV_TESTPAT:
+                enable_isl = 0;
+                enable_tp = 1;
+                tp_stdmode_idx = -1;
+                break;
             case AV1_RGBS:
                 target_isl_input = ISL_CH0;
                 target_format = FORMAT_RGBS;
@@ -390,6 +388,10 @@ int main()
             case AV3_RGBCS:
                 target_isl_input = ISL_CH2;
                 target_isl_sync = SYNC_CS;
+                target_format = FORMAT_RGBS;
+                break;
+            case AV3_RGBS:
+                target_isl_input = ISL_CH2;
                 target_format = FORMAT_RGBS;
                 break;
             case AV3_RGsB:
@@ -441,7 +443,23 @@ int main()
             us2066_write(row1, row2);
         }
 
-        if (enable_isl) {
+        if (enable_tp) {
+            if (tp_stdmode_idx != target_tp_stdmode_idx) {
+                get_standard_mode((unsigned)target_tp_stdmode_idx, &vm_conf, &vmode_in, &vmode_out);
+                if (vmode_out.si_pclk_mult > 0)
+                    si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, si_dev.xtal_freq, vmode_out.si_pclk_mult);
+                else
+                    si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, &vmode_out.si_ms_conf);
+
+                update_sc_config(&vmode_in, &vmode_out, &vm_conf);
+                adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
+
+                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u @ 60Hz", vmode_out.timings.h_active, vmode_out.timings.v_active);
+                us2066_write(row1, row2);
+
+                tp_stdmode_idx = target_tp_stdmode_idx;
+            }
+        } else if (enable_isl) {
             if (isl_check_activity(&isl_dev, target_isl_input, target_isl_sync)) {
                 if (isl_dev.sync_active) {
                     isl_enable_power(&isl_dev, 1);
@@ -490,7 +508,7 @@ int main()
                         printf("\nMode %s selected (%s linemult)\n", vmode_in.name, amode_match ? "Adaptive" : "Pure");
 
                         sniprintf(row1, US2066_ROW_LEN+1, "%-10s %4u%c x%u%c", avinput_str[avinput], isl_dev.ss.v_total, isl_dev.ss.interlace_flag ? 'i' : 'p', vm_conf.y_rpt+1, amode_match ? 'a' : ' ');
-                        sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
+                        sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
                                                                                             (v_hz_x100/100),
                                                                                             (v_hz_x100%100),
                                                                                             isl_dev.ss.h_polarity ? '-' : '+',
@@ -551,7 +569,7 @@ int main()
 
                     printf("mode changed to: %ux%u%c\n", advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : 'p');
                     sniprintf(row1, US2066_ROW_LEN+1, "%s %ux%u%c", avinput_str[avinput], advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : 'p');
-                    sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
+                    sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
                                                                                         (v_hz_x100/100),
                                                                                         (v_hz_x100%100),
                                                                                         (advrx_dev.ss.h_polarity ? '+' : '-'),

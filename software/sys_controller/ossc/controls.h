@@ -62,6 +62,6 @@ typedef enum {
 
 //void setup_rc();
 void set_default_keymap();
-int parse_control(avinput_t *input, uint16_t remote_code, uint8_t btn_vec, uint8_t *ymult_new);
+int parse_control(avinput_t *input, uint16_t remote_code, uint8_t btn_vec, uint8_t *ymult_new, unsigned *target_tp_stdmode_idx);
 
 #endif
