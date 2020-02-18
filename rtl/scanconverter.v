@@ -39,6 +39,7 @@ module scanconverter (
     input [31:0] misc_config,
     input [31:0] sl_config,
     input [31:0] sl_config2,
+    input testpattern_enable,
     output PCLK_o,
     output reg [7:0] R_o,
     output reg [7:0] G_o,
@@ -173,9 +174,9 @@ always @(posedge PCLK_OUT_i) begin
         mask_enable <= 1'b1;
     end
 
-    R_o <= mask_enable ? 8'h00 : R_linebuf;
-    G_o <= mask_enable ? 8'h00 : G_linebuf;
-    B_o <= mask_enable ? 8'h00 : B_linebuf;
+    R_o <= testpattern_enable ? (xpos_o ^ ypos_o) : (mask_enable ? 8'h00 : R_linebuf);
+    G_o <= testpattern_enable ? (xpos_o ^ ypos_o) : (mask_enable ? 8'h00 : G_linebuf);
+    B_o <= testpattern_enable ? (xpos_o ^ ypos_o) : (mask_enable ? 8'h00 : B_linebuf);
 end
 
 endmodule

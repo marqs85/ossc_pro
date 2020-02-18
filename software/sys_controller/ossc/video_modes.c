@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include "system.h"
 #include "video_modes.h"
+#include "avconfig.h"
 
 #define LINECNT_MAX_TOLERANCE   30
 
@@ -101,6 +102,9 @@ const ad_mode_data_t adaptive_modes_default[] = { \
     { STDMODE_1080p,                  {1600,  240,  1950, 0,  262,  212, 15,   90, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,  4,  0, 0,  {0x00C88, 0x00348, 0x006A7, 0x00100, 0x00000, 0x00001, 0, 0, 0} },          \
     { STDMODE_1440p,                  {1920,  240,  2340, 0,  262,  256, 15,  108, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,  5,  0, 0,  {3346, 350, 393, 256, 0, 1, 0, 0, 0} },         \
     /*{ STDMODE_1440p,                  { 960,  240,  1170, 0,  262,  128, 15,   54, 3},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_240P,  5,  0, 0,  {4534, 1234, 5109, 256, 0, 1, 0, 0, 0} },         */ \
+    /* 480p modes */ \
+    { STDMODE_1080p,                  {1280,  480,  1560, 0,  525,  170, 30,   72, 6},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  1,  0, 0,  {4129, 69, 91, 256, 0, 1, 1, 0, 0} },                                   \
+    { STDMODE_1440p,                  {1920,  480,  2340, 0,  525,  256, 30,  108, 6},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  2,  0, 0,  {2055, 3277, 4725, 0, 0, 1, 1, 0, 3} },         \
 };
 
 const stdmode_t stdmode_idx_arr[] = {STDMODE_240p, STDMODE_480p, STDMODE_720p, STDMODE_960p, STDMODE_1080p, STDMODE_1200p, STDMODE_1440p};
@@ -144,16 +148,27 @@ uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz) {
     }
 }
 
-int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out)
+int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out)
 {
-    int i;
+    int i, y_rpt;
     int32_t v_linediff;
     unsigned num_modes = sizeof(adaptive_modes)/sizeof(ad_mode_data_t);
+    avconfig_t* cc = get_current_avconfig();
     memset(vm_in, 0, sizeof(mode_data_t));
     memset(vm_out, 0, sizeof(mode_data_t));
 
+    if (!cc->adapt_lm)
+        return -1;
+
     for (i=0; i<num_modes; i++) {
-        if ((totlines == (adaptive_modes[i].timings_i.v_total)) && (ymult == (adaptive_modes[i].y_rpt+1))) {
+        if (adaptive_modes[i].group == GROUP_240P)
+            y_rpt = cc->pm_ad_240p;
+        else if (adaptive_modes[i].group == GROUP_480P)
+            y_rpt = cc->pm_ad_480p;
+        else
+            y_rpt = 0;
+
+        if ((totlines == (adaptive_modes[i].timings_i.v_total)) && (y_rpt == adaptive_modes[i].y_rpt)) {
             vm_conf->x_rpt = 0;
             vm_conf->y_rpt = 0;
             vm_conf->x_skip = 0;
@@ -195,23 +210,19 @@ int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, 
 }
 
 /* TODO: rewrite, check hz etc. */
-int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_type typemask, uint8_t s400p_mode, uint8_t s480p_mode, vm_mult_config_t *vm_conf, uint8_t ymult, mode_data_t *vm_in, mode_data_t *vm_out)
+int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_type typemask, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out)
 {
     int i;
     unsigned num_modes = sizeof(video_modes)/sizeof(mode_data_t);
     video_type mode_type;
-    mode_flags valid_lm[] = { MODE_PT, (MODE_L2 | (MODE_L2)), (MODE_L3_GEN_4_3), (MODE_L4_GEN_4_3), (MODE_L5_GEN_4_3) };
+    avconfig_t* cc = get_current_avconfig();
+    mode_flags valid_lm[] = { MODE_PT, (MODE_L2 | (MODE_L2<<cc->l2_mode)), (MODE_L3_GEN_16_9<<cc->l3_mode), (MODE_L4_GEN_4_3<<cc->l4_mode), (MODE_L5_GEN_4_3<<cc->l5_mode) };
     mode_flags target_lm;
     uint8_t pt_only = 0;
-    uint8_t pm_240p = ymult-1;
-    uint8_t pm_384p = 1;
-    uint8_t pm_480i = 1;
-    uint8_t pm_480p = 0;
-    uint8_t pm_1080i = 1;
     uint8_t upsample2x = 1;
 
     // one for each video_group
-    uint8_t* group_ptr[] = { &pt_only, &pm_240p, &pm_384p, &pm_480i, &pm_480p, &pm_1080i };
+    uint8_t* group_ptr[] = { &pt_only, &cc->pm_240p, &cc->pm_384p, &cc->pm_480i, &cc->pm_480p, &cc->pm_1080i };
 
     for (i=0; i<num_modes; i++) {
         mode_type = video_modes[i].type;
@@ -227,10 +238,10 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
                 valid_lm[4] = MODE_L3_GEN_16_9;
                 if (video_modes[i].timings.v_total == 449) {
                     if (!strncmp(video_modes[i].name, "720x400", 7)) {
-                        if (s400p_mode == 0)
+                        if (cc->s400p_mode == 0)
                             continue;
                     } else if (!strncmp(video_modes[i].name, "640x400", 7)) {
-                        if (s400p_mode == 1)
+                        if (cc->s400p_mode == 1)
                             continue;
                     }
                 }
@@ -243,14 +254,14 @@ int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_
             case GROUP_480P:
                 if (video_modes[i].timings.v_total == 525) {
                     if (video_modes[i-1].group == GROUP_480I) { // hit "480p" on the list
-                        if (s480p_mode == 0) // Auto
+                        if (cc->s480p_mode == 0) // Auto
                             mode_type &= ~VIDEO_PC;
-                        else if (s480p_mode == 2) // VESA 640x480@60
+                        else if (cc->s480p_mode == 2) // VESA 640x480@60
                             continue;
                     } else { // "640x480" on the list
-                        if (s480p_mode == 0) // Auto
+                        if (cc->s480p_mode == 0) // Auto
                             mode_type &= ~VIDEO_EDTV;
-                        else if (s480p_mode == 1) // DTV 480p
+                        else if (cc->s480p_mode == 1) // DTV 480p
                             continue;
                     }
                 }

@@ -118,6 +118,7 @@ wire capture_sel = sys_ctrl[5];
 wire isl_vs_pol = sys_ctrl[6];
 wire isl_vs_type = sys_ctrl[7];
 wire audmux_sel = sys_ctrl[8];
+wire testpattern_enable = sys_ctrl[9];
 
 //reg [1:0] clk_osc_div = 2'h0;
 
@@ -495,6 +496,7 @@ scanconverter scanconverter_inst (
     .misc_config(32'h0),
     .sl_config(32'h0),
     .sl_config2(32'h0),
+    .testpattern_enable(testpattern_enable),
     .PCLK_o(PCLK_sc),
     .R_o(R_sc),
     .G_o(G_sc),

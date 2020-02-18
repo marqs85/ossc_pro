@@ -21,6 +21,7 @@
 #define AV_CONTROLLER_H_
 
 #include "sysconfig.h"
+#include "controls.h"
 #include "video_modes.h"
 
 // sys_ctrl
@@ -31,6 +32,8 @@
 #define SCTRL_CAPTURE_SEL     (1<<5)
 #define SCTRL_ISL_VS_POL      (1<<6)
 #define SCTRL_ISL_VS_TYPE     (1<<7)
+#define SCTRL_AUDMUX_SEL      (1<<8)
+#define SCTRL_VGTP_ENABLE     (1<<9)
 
 // sys_status
 #define SSTAT_RC_MASK   0x0000ffff
@@ -39,15 +42,6 @@
 #define SSTAT_RRPT_OFFS 16
 #define SSTAT_BTN_MASK  0x03000000
 #define SSTAT_BTN_OFFS  24
-
-// In reverse order of importance
-typedef enum {
-    NO_CHANGE           = 0,
-    SC_CONFIG_CHANGE    = 1,
-    MODE_CHANGE         = 2,
-    TX_MODE_CHANGE      = 3,
-    ACTIVITY_CHANGE     = 4
-} status_t;
 
 typedef enum {
     AV_TESTPAT      = 0,
@@ -67,29 +61,8 @@ typedef enum {
     AV_LAST         = 14
 } avinput_t;
 
-//TODO: transform binary values into flags
-/*typedef struct {
-    alt_u32 totlines;
-    alt_u32 clkcnt;
-    alt_u8 progressive;
-    alt_u8 macrovis;
-    alt_8 id;
-    alt_u8 sync_active;
-    alt_u8 fpga_vmultmode;
-    alt_u8 fpga_hmultmode;
-    alt_u8 tx_pixelrep;
-    alt_u8 hdmitx_pixr_ifr;
-    alt_u8 hdmitx_pclk_level;
-    HDMI_Video_Type hdmitx_vic;
-    alt_u8 sample_mult;
-    alt_u8 sample_sel;
-    alt_u8 hsync_cut;
-    alt_u16 h_mult_total;
-    mode_flags target_lm;
-    avinput_t avinput;
-    alt_u8 pll_config;
-    // Current configuration
-    avconfig_t cc;
-} avmode_t;*/
+void chardisp_write_status();
+void switch_input(rc_code_t code, btn_vec_t pb_vec);
+void switch_tp_mode(rc_code_t code);
 
 #endif

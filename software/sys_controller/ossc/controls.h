@@ -21,7 +21,6 @@
 #define CONTROLS_H_
 
 #include <stdint.h>
-#include "av_controller.h"
 
 typedef enum {
     RC_BTN1                 = 0,
@@ -50,7 +49,7 @@ typedef enum {
     RC_LM_MODE,
     RC_PHASE_PLUS,
     RC_PHASE_MINUS,
-    RC_PROF_HOTKEY,
+    RC_PROF_HOTKEY
 } rc_code_t;
 
 typedef enum {
@@ -62,6 +61,6 @@ typedef enum {
 
 //void setup_rc();
 void set_default_keymap();
-int parse_control(avinput_t *input, uint16_t remote_code, uint8_t btn_vec, uint8_t *ymult_new, unsigned *target_tp_stdmode_idx);
+void parse_control(uint16_t remote_code, uint8_t btn_vec);
 
 #endif

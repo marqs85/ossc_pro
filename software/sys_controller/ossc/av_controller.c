@@ -29,10 +29,12 @@
 #include "sys/alt_timestamp.h"
 #include "i2c_opencores.h"
 #include "av_controller.h"
+#include "avconfig.h"
 #include "isl51002.h"
 #include "pcm1862.h"
 #include "us2066.h"
 #include "controls.h"
+#include "menu.h"
 #include "mmc.h"
 #include "si5351.h"
 #include "adv7513.h"
@@ -118,11 +120,18 @@ struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq);
 
 uint16_t sys_ctrl;
 
+avinput_t avinput = AV_TESTPAT, target_avinput;
+unsigned tp_stdmode_idx=-1, target_tp_stdmode_idx=1; // STDMODE_480p
+
 char row1[US2066_ROW_LEN+1];
 char row2[US2066_ROW_LEN+1];
 
 static const char *avinput_str[] = { "Test pattern", "AV1: RGBS", "AV1: RGsB", "AV1: YPbPr", "AV1: RGBHV", "AV1: RGBCS", "AV2: YPbPr", "AV2: RGsB", "AV3: RGBHV", "AV3: RGBCS", "AV3: RGBS", "AV3: RGsB", "AV3: YPbPr", "AV4", "Last used" };
 
+void chardisp_write_status() {
+    if (!is_menu_active())
+        us2066_write(row1, row2);
+}
 
 void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf)
 {
@@ -193,7 +202,7 @@ int init_hw()
 
     //remap conflicting ADV7513 I2C slave immediately
     //sniprintf(row1, US2066_ROW_LEN+1, "Init ADV7513");
-    //us2066_write(row1, row2);
+    //chardisp_write_status();
     adv7513_init(&advtx_dev);
 
     // Init character OLED
@@ -201,7 +210,7 @@ int init_hw()
 
     // Init ISL51002
     sniprintf(row1, US2066_ROW_LEN+1, "Init ISL51002");
-    us2066_write(row1, row2);
+    chardisp_write_status();
     ret = isl_init(&isl_dev);
     if (ret != 0) {
         printf("ISL51002 init fail\n");
@@ -219,11 +228,15 @@ int init_hw()
     //sniprintf(row1, US2066_ROW_LEN+1, "Mem calib: 0x%x", (unsigned)IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE));
     printf("Mem calib: 0x%x\n", ((unsigned)IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE) >> 26) & 0x7);
 
-    //us2066_write(row1, row2);
+    //chardisp_write_status();
+
+    // Enable test pattern generation
+    sys_ctrl |= SCTRL_VGTP_ENABLE;
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
     // Init Si5351C
     sniprintf(row1, US2066_ROW_LEN+1, "Init Si5351C");
-    us2066_write(row1, row2);
+    chardisp_write_status();
     si5351_init(&si_dev);
 
     //init ocsdc driver
@@ -256,7 +269,7 @@ int init_hw()
 
     // Init PCM1862
     sniprintf(row1, US2066_ROW_LEN+1, "Init PCM1862");
-    us2066_write(row1, row2);
+    chardisp_write_status();
     ret = pcm1862_init();
     if (ret != 0) {
         printf("PCM1862 init fail\n");
@@ -265,7 +278,7 @@ int init_hw()
     //pcm_source_sel(PCM_INPUT1);
 
     sniprintf(row1, US2066_ROW_LEN+1, "Init ADV7611");
-    us2066_write(row1, row2);
+    chardisp_write_status();
     adv7611_init(&advrx_dev);
 
     /*check_flash();
@@ -274,41 +287,70 @@ int init_hw()
     for (i=0; i<100; i++)
         printf("%u: %.2x\n", i, buf[i]);*/
 
-    set_default_vm_table();
+    //set_default_vm_table();
+    set_default_avconfig(1);
     set_default_keymap();
 
     return 0;
+}
+
+void switch_input(rc_code_t code, btn_vec_t pb_vec) {
+    avinput_t prev_input = (avinput <= AV1_RGBS) ? AV4 : (avinput-1);
+    avinput_t next_input = (avinput == AV4) ? AV1_RGBS : (avinput+1);
+
+    switch (code) {
+        case RC_BTN1: target_avinput = AV1_RGBS; break;
+        case RC_BTN4: target_avinput = (avinput == AV1_RGsB) ? AV1_YPbPr : AV1_RGsB; break;
+        case RC_BTN7: target_avinput = (avinput == AV1_RGBHV) ? AV1_RGBCS : AV1_RGBHV; break;
+        case RC_BTN2: target_avinput = (avinput == AV2_YPbPr) ? AV2_RGsB : AV2_YPbPr; break;
+        case RC_BTN3: target_avinput = (avinput == AV3_RGBHV) ? AV3_RGBCS : AV3_RGBHV; break;
+        case RC_BTN6: target_avinput = AV3_RGBS; break;
+        case RC_BTN9: target_avinput = (avinput == AV3_RGsB) ? AV3_YPbPr : AV3_RGsB; break;
+        case RC_BTN5: target_avinput = AV4; break;
+        case RC_BTN0: target_avinput = AV_TESTPAT; break;
+        case RC_UP: target_avinput = prev_input; break;
+        case RC_DOWN: target_avinput = next_input; break;
+        default: break;
+    }
+
+    if (pb_vec & PB_BTN0)
+        avinput = next_input;
+}
+
+void switch_tp_mode(rc_code_t code) {
+    if (code == RC_LEFT)
+        target_tp_stdmode_idx--;
+    else if (code == RC_RIGHT)
+        target_tp_stdmode_idx++;
 }
 
 int main()
 {
     int ret, i, man_input_change;
     int mode, amode_match;
-    uint8_t target_ymult=2, ymult=2;
     uint32_t pclk_hz, dotclk_hz, h_hz, v_hz_x100;
     uint32_t sys_status;
     uint16_t remote_code;
     uint8_t pixelrep;
     uint8_t btn_vec, btn_vec_prev=0;
     uint8_t remote_rpt, remote_rpt_prev=0;
-    avinput_t avinput = AV_TESTPAT, target_avinput;
     isl_input_t target_isl_input;
     video_sync target_isl_sync=0;
     video_format target_format;
     video_type target_typemask=0;
     mode_data_t vmode_in, vmode_out;
     vm_mult_config_t vm_conf;
-    unsigned tp_stdmode_idx=-1, target_tp_stdmode_idx=1; // STDMODE_480p
+    status_t status;
     int enable_isl=0, enable_hdmirx=0, enable_tp=1;
 
     ret = init_hw();
     if (ret == 0) {
         printf("### OSSC PRO INIT OK ###\n\n");
         sniprintf(row1, US2066_ROW_LEN+1, "OSSC Pro fw. %u.%.2u", FW_VER_MAJOR, FW_VER_MINOR);
-        us2066_write(row1, row2);
+        chardisp_write_status();
     } else {
         sniprintf(row2, US2066_ROW_LEN+1, "failed (%d)", ret);
-        us2066_write(row1, row2);
+        chardisp_write_status();
         while (1) {}
     }
 
@@ -332,7 +374,7 @@ int main()
         }
 
         target_avinput = avinput;
-        parse_control(&target_avinput, remote_code, btn_vec, &target_ymult, &target_tp_stdmode_idx);
+        parse_control(remote_code, btn_vec);
 
         if (target_avinput != avinput) {
 
@@ -418,7 +460,7 @@ int main()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE);
+            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE);
 
             if (enable_isl) {
                 pcm_source_sel(target_isl_input);
@@ -434,14 +476,18 @@ int main()
             } else if (enable_hdmirx) {
                 advrx_dev.sync_active = 0;
                 sys_ctrl |= SCTRL_CAPTURE_SEL;
+            } else if (enable_tp) {
+                sys_ctrl |= SCTRL_VGTP_ENABLE;
             }
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
             strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
             strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
-            us2066_write(row1, row2);
+            chardisp_write_status();
         }
+
+        status = update_avconfig();
 
         if (enable_tp) {
             if (tp_stdmode_idx != target_tp_stdmode_idx) {
@@ -455,7 +501,7 @@ int main()
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
                 sniprintf(row2, US2066_ROW_LEN+1, "%ux%u @ 60Hz", vmode_out.timings.h_active, vmode_out.timings.v_active);
-                us2066_write(row1, row2);
+                chardisp_write_status();
 
                 tp_stdmode_idx = target_tp_stdmode_idx;
             }
@@ -470,13 +516,13 @@ int main()
                     isl_enable_outputs(&isl_dev, 0);
                     strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
                     strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
-                    us2066_write(row1, row2);
+                    chardisp_write_status();
                     printf("ISL51002 sync lost\n");
                 }
             }
 
             if (isl_dev.sync_active) {
-                if (isl_get_sync_stats(&isl_dev, sc->sc_status.vtotal, sc->sc_status.interlace_flag, sc->sc_status2.pcnt_frame) || (target_ymult != ymult)) {
+                if (isl_get_sync_stats(&isl_dev, sc->sc_status.vtotal, sc->sc_status.interlace_flag, sc->sc_status2.pcnt_frame) || (status == MODE_CHANGE)) {
 
 #ifdef ISL_MEAS_HZ
                     if (isl_dev.sm.h_period_x16 > 0)
@@ -495,11 +541,11 @@ int main()
                     if (isl_dev.ss.interlace_flag)
                         v_hz_x100 *= 2;
 
-                    mode = get_adaptive_mode(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, &vm_conf, target_ymult, &vmode_in, &vmode_out);
+                    mode = get_adaptive_mode(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, &vm_conf, &vmode_in, &vmode_out);
 
                     if (mode < 0) {
                         amode_match = 0;
-                        mode = get_mode_id(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, target_typemask, 0, 0, &vm_conf, target_ymult, &vmode_in, &vmode_out);
+                        mode = get_mode_id(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, target_typemask, &vm_conf, &vmode_in, &vmode_out);
                     } else {
                         amode_match = 1;
                     }
@@ -513,13 +559,13 @@ int main()
                                                                                             (v_hz_x100%100),
                                                                                             isl_dev.ss.h_polarity ? '-' : '+',
                                                                                             isl_dev.ss.v_polarity ? '-' : '+');
-                        us2066_write(row1, row2);
+                        chardisp_write_status();
 
                         pclk_hz = h_hz * vmode_in.timings.h_total;
                         dotclk_hz = estimate_dotclk(&vmode_in, h_hz);
                         printf("H: %u.%.2ukHz V: %u.%.2uHz\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10, (v_hz_x100/100), (v_hz_x100%100));
                         printf("Estimated source dot clock: %lu.%.2uMHz\n", (dotclk_hz+5000)/1000000, ((dotclk_hz+5000)%1000000)/10000);
-                        printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_hz, vm_conf.pclk_mult*pclk_hz);
+                        printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_hz, vmode_out.si_pclk_mult*pclk_hz);
 
                         isl_source_setup(&isl_dev, vmode_in.timings.h_total);
 
@@ -531,6 +577,10 @@ int main()
                             si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &vmode_out.si_ms_conf);
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vmode_out.si_pclk_mult);
+
+                        // Wait a couple frames so that next sync measurements from FPGA are stable
+                        // TODO: don't use pclk for the sync meas
+                        usleep(40000);
 
                         // TODO: dont read polarity from ISL51002
                         sys_ctrl &= ~(SCTRL_ISL_VS_POL);
@@ -554,13 +604,13 @@ int main()
                 } else {
                     strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
                     strncpy(row2, "    free-run", US2066_ROW_LEN+1);
-                    us2066_write(row1, row2);
+                    chardisp_write_status();
                     printf("adv sync lost\n");
                 }
             }
 
             if (advrx_dev.sync_active) {
-                if (adv7611_get_sync_stats(&advrx_dev) || (target_ymult != ymult)) {
+                if (adv7611_get_sync_stats(&advrx_dev) || (status == MODE_CHANGE)) {
                     h_hz = advrx_dev.pclk_hz/advrx_dev.ss.h_total;
                     v_hz_x100 = (((h_hz*10000)/advrx_dev.ss.v_total)+50)/100;
 
@@ -574,9 +624,9 @@ int main()
                                                                                         (v_hz_x100%100),
                                                                                         (advrx_dev.ss.h_polarity ? '+' : '-'),
                                                                                         (advrx_dev.ss.v_polarity ? '+' : '-'));
-                    us2066_write(row1, row2);
+                    chardisp_write_status();
 
-                    mode = get_mode_id(advrx_dev.ss.v_total, !advrx_dev.ss.interlace_flag, v_hz_x100, target_typemask, 0, 0, &vm_conf, target_ymult, &vmode_in, &vmode_out);
+                    mode = get_mode_id(advrx_dev.ss.v_total, !advrx_dev.ss.interlace_flag, v_hz_x100, target_typemask, &vm_conf, &vmode_in, &vmode_out);
 
                     if (mode < 0) {
                         /*vmode_tmp.h_active = advrx_dev.ss.h_active;
@@ -606,8 +656,6 @@ int main()
         }
 
         adv7513_check_hpd_power(&advtx_dev);
-
-        ymult = target_ymult;
 
         usleep(20000);
     }
