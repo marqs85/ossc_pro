@@ -1,7 +1,7 @@
 //
 // fixed for 9.1 jan 21 2010 cruben
 //
-`include "timescale.v"
+//`include "timescale.v"
 `include "i2c_master_defines.v"
 
 module i2c_opencores

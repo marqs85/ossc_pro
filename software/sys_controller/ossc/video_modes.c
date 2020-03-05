@@ -174,6 +174,7 @@ int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, 
             vm_conf->x_skip = 0;
 
             memcpy(&vm_in->timings, &adaptive_modes[i].timings_i, sizeof(sync_timings_t));
+            vm_in->sampler_phase = adaptive_modes[i].sampler_phase;
             vm_in->type = adaptive_modes[i].type;
 
             memcpy(vm_out, &video_modes_default[adaptive_modes[i].mode_idx_i], sizeof(mode_data_t));

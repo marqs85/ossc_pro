@@ -115,19 +115,19 @@ si5351c_revb_register_t const si5351c_revb_registers[] =
 static uint8_t si5351_readreg(si5351_dev *dev, uint8_t regaddr)
 {
     //Phase 1
-    I2C_start(I2CA_BASE, dev->i2c_addr, 0);
-    I2C_write(I2CA_BASE, regaddr, 0);
+    I2C_start(dev->i2cm_base, dev->i2c_addr, 0);
+    I2C_write(dev->i2cm_base, regaddr, 0);
 
     //Phase 2
-    I2C_start(I2CA_BASE, dev->i2c_addr, 1);
-    return I2C_read(I2CA_BASE,1);
+    I2C_start(dev->i2cm_base, dev->i2c_addr, 1);
+    return I2C_read(dev->i2cm_base,1);
 }
 
 static void si5351_writereg(si5351_dev *dev, uint8_t regaddr, uint8_t data)
 {
-    I2C_start(I2CA_BASE, dev->i2c_addr, 0);
-    I2C_write(I2CA_BASE, regaddr, 0);
-    I2C_write(I2CA_BASE, data, 1);
+    I2C_start(dev->i2cm_base, dev->i2c_addr, 0);
+    I2C_write(dev->i2cm_base, regaddr, 0);
+    I2C_write(dev->i2cm_base, data, 1);
 }
 
 static void si5351_set_pll_fb_multisynth(si5351_dev *dev, si5351_pll_ch pll_ch, uint32_t p1, uint32_t p2, uint32_t p3) {

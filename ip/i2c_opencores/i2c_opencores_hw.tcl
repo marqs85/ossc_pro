@@ -53,7 +53,7 @@ add_fileset_file i2c_master_top.v VERILOG PATH i2c_master_top.v
 add_fileset_file i2c_master_defines.v VERILOG PATH i2c_master_defines.v
 add_fileset_file i2c_master_byte_ctrl.v VERILOG PATH i2c_master_byte_ctrl.v
 add_fileset_file i2c_master_bit_ctrl.v VERILOG PATH i2c_master_bit_ctrl.v
-add_fileset_file timescale.v VERILOG PATH timescale.v
+#add_fileset_file timescale.v VERILOG PATH timescale.v
 
 
 # 

@@ -62,7 +62,11 @@ typedef enum {
 } avinput_t;
 
 void chardisp_write_status();
+
 void switch_input(rc_code_t code, btn_vec_t pb_vec);
+
+void switch_audmux(uint8_t audmux_sel);
+
 void switch_tp_mode(rc_code_t code);
 
 #endif

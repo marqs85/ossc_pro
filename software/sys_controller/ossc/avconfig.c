@@ -35,13 +35,10 @@ const avconfig_t tc_default = {
     .pm_384p = 1,
     .pm_480i = 1,
     .pm_1080i = 1,
-    .pm_ad_240p = 3,
+    .pm_ad_240p = 2,
     .pm_ad_480p = 1,
     .sl_altern = 1,
     .adapt_lm = 1,
-    .audio_dw_sampl = DEFAULT_ON,
-    .audio_gain = AUDIO_GAIN_0DB,
-    .clamp_offset = SIGNED_NUMVAL_ZERO,
 };
 
 int reset_target_avconfig() {
@@ -57,9 +54,12 @@ avconfig_t* get_current_avconfig() {
 int set_default_avconfig(int update_cc)
 {
     memcpy(&tc, &tc_default, sizeof(avconfig_t));
+    isl_get_default_cfg(&tc.isl_cfg);
+    adv7513_get_default_cfg(&tc.adv7513_cfg);
+    pcm186x_get_default_cfg(&tc.pcm_cfg);
 
     if (update_cc)
-        memcpy(&cc, &tc_default, sizeof(avconfig_t));
+        memcpy(&cc, &tc, sizeof(avconfig_t));
 
     set_default_vm_table();
 
@@ -83,11 +83,15 @@ status_t update_avconfig() {
         (tc.pm_ad_480p != cc.pm_ad_480p) ||
         (tc.adapt_lm != cc.adapt_lm) ||
         (tc.upsample2x != cc.upsample2x) ||
-        (tc.default_vic != cc.default_vic) ||
-        (tc.clamp_offset != cc.clamp_offset))
+        (tc.default_vic != cc.default_vic))
         status = (status < MODE_CHANGE) ? MODE_CHANGE : status;
 
+    if (tc.audmux_sel != cc.audmux_sel)
+        switch_audmux(tc.audmux_sel);
+
     memcpy(&cc, &tc, sizeof(avconfig_t));
+
+    cc.adv7513_cfg.i2s_fs = cc.pcm_cfg.fs;
 
     return status;
 }

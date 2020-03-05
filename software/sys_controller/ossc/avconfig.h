@@ -21,6 +21,9 @@
 #define AVCONFIG_H_
 
 #include <stdint.h>
+#include "isl51002.h"
+#include "adv7513.h"
+#include "pcm186x.h"
 
 #define SIGNED_NUMVAL_ZERO  128
 
@@ -31,25 +34,20 @@
 #define HV_MASK_MAX_BR      15
 #define VIDEO_LPF_MAX       5
 #define SAMPLER_PHASE_MAX   31
-#define SYNC_VTH_MAX        31
+#define SYNC_VTH_MAX        15
 #define VSYNC_THOLD_MIN     10
 #define VSYNC_THOLD_MAX     200
 #define SD_SYNC_WIN_MAX     255
 #define PLL_COAST_MAX       5
 #define REVERSE_LPF_MAX     31
 #define COARSE_GAIN_MAX     15
-#define ALC_H_FILTER_MAX    7
-#define ALC_V_FILTER_MAX    10
-#define CLAMP_OFFSET_MIN    (SIGNED_NUMVAL_ZERO-100)
-#define CLAMP_OFFSET_MAX    (SIGNED_NUMVAL_ZERO+100)
+#define ALC_H_FILTER_MAX    3
+#define ALC_V_FILTER_MAX    7
+#define CLAMP_POS_MIN       0
+#define CLAMP_POS_MAX       0x3fff
 
 #define SL_MODE_MAX         2
 #define SL_TYPE_MAX         2
-
-#define AUDIO_GAIN_M12DB    0
-#define AUDIO_GAIN_0DB      12
-#define AUDIO_GAIN_12DB     24
-#define AUDIO_GAIN_MAX      AUDIO_GAIN_12DB
 
 #define L5FMT_1920x1080     0
 #define L5FMT_1600x1200     1
@@ -63,16 +61,6 @@ typedef enum {
     TX_MODE_CHANGE      = 3,
     ACTIVITY_CHANGE     = 4
 } status_t;
-
-typedef struct {
-    uint8_t r_f_off;
-    uint8_t g_f_off;
-    uint8_t b_f_off;
-    uint8_t r_f_gain;
-    uint8_t g_f_gain;
-    uint8_t b_f_gain;
-    uint8_t c_gain;
-} __attribute__((packed)) color_setup_t;
 
 typedef struct {
     uint8_t sl_mode;
@@ -104,29 +92,19 @@ typedef struct {
     uint8_t v_mask;
     uint8_t mask_br;
     uint8_t mask_color;
-    uint8_t tx_mode;
-    uint8_t hdmi_itc;
     uint8_t s480p_mode;
     uint8_t s400p_mode;
     uint8_t upsample2x;
     uint8_t ypbpr_cs;
-    uint8_t sync_vth;
-    uint8_t linelen_tol;
-    uint8_t vsync_thold;
     uint8_t sync_lpf;
     uint8_t stc_lpf;
-    uint8_t video_lpf;
-    uint8_t pre_coast;
-    uint8_t post_coast;
     uint8_t full_tx_setup;
+    uint8_t audmux_sel;
     uint8_t reverse_lpf;
-    uint8_t audio_dw_sampl;
-    uint8_t audio_gain;
     uint8_t default_vic;
-    uint8_t clamp_offset;
-    uint8_t alc_h_filter;
-    uint8_t alc_v_filter;
-    color_setup_t col;
+    isl51002_config isl_cfg;
+    adv7513_config adv7513_cfg;
+    pcm186x_config pcm_cfg;
 } __attribute__((packed)) avconfig_t;
 
 int reset_target_avconfig();

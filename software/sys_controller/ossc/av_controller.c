@@ -31,7 +31,7 @@
 #include "av_controller.h"
 #include "avconfig.h"
 #include "isl51002.h"
-#include "pcm1862.h"
+#include "pcm186x.h"
 #include "us2066.h"
 #include "controls.h"
 #include "menu.h"
@@ -43,7 +43,7 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 34
+#define FW_VER_MINOR 35
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x7a
@@ -53,6 +53,8 @@
 
 #define ISL51002_BASE (0x9A>>1)
 #define SI5351_BASE (0xC0>>1)
+#define PCM1863_BASE (0x94>>1)
+#define US2066_BASE (0x78>>1)
 
 #define ADV7611_IO_BASE 0x98
 #define ADV7611_CEC_BASE 0x80
@@ -91,9 +93,13 @@ unsigned char pro_edid_bin[] = {
   0x00, 0x00, 0x00, 0x46
 };
 
-isl51002_dev isl_dev = {.i2c_addr = ISL51002_BASE, .xtal_freq = 27000000LU};
+isl51002_dev isl_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                        .i2c_addr = ISL51002_BASE,
+                        .xtal_freq = 27000000LU};
 
-si5351_dev si_dev = {.i2c_addr = SI5351_BASE, .xtal_freq = 27000000LU};
+si5351_dev si_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                     .i2c_addr = SI5351_BASE,
+                     .xtal_freq = 27000000LU};
 
 adv7611_dev advrx_dev = {.io_base = ADV7611_IO_BASE,
                          .cec_base = ADV7611_CEC_BASE,
@@ -107,10 +113,17 @@ adv7611_dev advrx_dev = {.io_base = ADV7611_IO_BASE,
                          .edid = pro_edid_bin,
                          .edid_len = sizeof(pro_edid_bin)};
 
-adv7513_dev advtx_dev = {.main_base = ADV7513_MAIN_BASE,
+adv7513_dev advtx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                         .main_base = ADV7513_MAIN_BASE,
                          .edid_base = ADV7513_EDID_BASE,
                          .pktmem_base = ADV7513_PKTMEM_BASE,
                          .cec_base = ADV7513_CEC_BASE};
+
+pcm186x_dev pcm_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                       .i2c_addr = PCM1863_BASE};
+
+us2066_dev chardisp_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                           .i2c_addr = US2066_BASE};
 
 volatile uint32_t *ddr = (volatile uint32_t*)MEM_IF_MAPPER_0_BASE;
 volatile sc_regs *sc = (volatile sc_regs*)SC_CONFIG_0_BASE;
@@ -130,7 +143,7 @@ static const char *avinput_str[] = { "Test pattern", "AV1: RGBS", "AV1: RGsB", "
 
 void chardisp_write_status() {
     if (!is_menu_active())
-        us2066_write(row1, row2);
+        us2066_write(&chardisp_dev, row1, row2);
 }
 
 void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf)
@@ -198,15 +211,15 @@ int init_hw()
     sys_ctrl = SCTRL_ISL_RESET_N|SCTRL_HDMIRX_RESET_N;
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
-    I2C_init(I2CA_BASE,ALT_CPU_FREQ,400000);
+    I2C_init(I2CA_BASE,ALT_CPU_FREQ, 400000);
 
     //remap conflicting ADV7513 I2C slave immediately
     //sniprintf(row1, US2066_ROW_LEN+1, "Init ADV7513");
     //chardisp_write_status();
-    adv7513_init(&advtx_dev);
+    adv7513_init(&advtx_dev, 1);
 
     // Init character OLED
-    us2066_init();
+    us2066_init(&chardisp_dev);
 
     // Init ISL51002
     sniprintf(row1, US2066_ROW_LEN+1, "Init ISL51002");
@@ -267,12 +280,12 @@ int init_hw()
         }
     }*/
 
-    // Init PCM1862
-    sniprintf(row1, US2066_ROW_LEN+1, "Init PCM1862");
+    // Init PCM1863
+    sniprintf(row1, US2066_ROW_LEN+1, "Init PCM1863");
     chardisp_write_status();
-    ret = pcm1862_init();
+    ret = pcm186x_init(&pcm_dev);
     if (ret != 0) {
-        printf("PCM1862 init fail\n");
+        printf("PCM1863 init fail\n");
         return ret;
     }
     //pcm_source_sel(PCM_INPUT1);
@@ -317,6 +330,15 @@ void switch_input(rc_code_t code, btn_vec_t pb_vec) {
         avinput = next_input;
 }
 
+void switch_audmux(uint8_t audmux_sel) {
+    if (audmux_sel)
+        sys_ctrl |= SCTRL_AUDMUX_SEL;
+    else
+        sys_ctrl &= ~SCTRL_AUDMUX_SEL;
+
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+}
+
 void switch_tp_mode(rc_code_t code) {
     if (code == RC_LEFT)
         target_tp_stdmode_idx--;
@@ -341,6 +363,7 @@ int main()
     mode_data_t vmode_in, vmode_out;
     vm_mult_config_t vm_conf;
     status_t status;
+    avconfig_t *cur_avconfig;
     int enable_isl=0, enable_hdmirx=0, enable_tp=1;
 
     ret = init_hw();
@@ -353,6 +376,8 @@ int main()
         chardisp_write_status();
         while (1) {}
     }
+
+    cur_avconfig = get_current_avconfig();
 
     while (1) {
         // Read remote control and PCB button status
@@ -463,7 +488,7 @@ int main()
             sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE);
 
             if (enable_isl) {
-                pcm_source_sel(target_isl_input);
+                pcm186x_source_sel(&pcm_dev, target_isl_input);
                 isl_source_sel(&isl_dev, target_isl_input, target_isl_sync, target_format);
                 isl_dev.sync_active = 0;
 
@@ -570,7 +595,7 @@ int main()
                         isl_source_setup(&isl_dev, vmode_in.timings.h_total);
 
                         isl_set_afe_bw(&isl_dev, dotclk_hz);
-                        isl_phase_adj(&isl_dev);
+                        isl_set_sampler_phase(&isl_dev, vmode_in.sampler_phase);
 
                         // Setup Si5351
                         if (amode_match)
@@ -597,6 +622,8 @@ int main()
             } else {
 
             }
+
+            isl_update_config(&isl_dev, &cur_avconfig->isl_cfg);
         } else if (enable_hdmirx) {
             if (adv7611_check_activity(&advrx_dev)) {
                 if (advrx_dev.sync_active) {
@@ -656,6 +683,9 @@ int main()
         }
 
         adv7513_check_hpd_power(&advtx_dev);
+        adv7513_update_config(&advtx_dev, &cur_avconfig->adv7513_cfg);
+
+        pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);
 
         usleep(20000);
     }

@@ -29,15 +29,29 @@
 //#define ISL_MEAS_HZ
 
 typedef struct {
-    uint16_t h_period_x16;
-    uint16_t v_totlines;
-    uint16_t h_synclen_x16;
-    uint16_t v_synclen;
-    uint16_t h_sync_backporch;
-    uint16_t h_active;
-    uint16_t v_sync_backporch;
-    uint16_t v_active;
-} isl51002_sync_meas;
+    uint16_t r_gain;
+    uint16_t g_gain;
+    uint16_t b_gain;
+    uint16_t r_offs;
+    uint16_t g_offs;
+    uint16_t b_offs;
+} color_setup_t;
+
+typedef struct {
+    color_setup_t col;
+    uint8_t pre_coast;
+    uint8_t post_coast;
+    uint16_t clamp_alc_start;
+    uint8_t clamp_alc_width;
+    uint8_t coast_clamp;
+    uint8_t alc_enable;
+    uint8_t alc_h_filter;
+    uint8_t alc_v_filter;
+    uint8_t afe_bw;
+    uint8_t hsync_vth;
+    uint8_t sog_vth;
+    uint8_t sync_gf;
+} isl51002_config;
 
 typedef struct {
     union {
@@ -58,10 +72,24 @@ typedef struct {
 } isl51002_sync_status;
 
 typedef struct {
+    uint16_t h_period_x16;
+    uint16_t v_totlines;
+    uint16_t h_synclen_x16;
+    uint16_t v_synclen;
+    uint16_t h_sync_backporch;
+    uint16_t h_active;
+    uint16_t v_sync_backporch;
+    uint16_t v_active;
+} isl51002_sync_meas;
+
+typedef struct {
+    uint32_t i2cm_base;
     uint8_t i2c_addr;
     uint32_t xtal_freq;
     uint8_t powered_on;
     uint8_t sync_active;
+    uint8_t auto_bw_sel;
+    isl51002_config cfg;
     isl51002_sync_status ss;
     isl51002_sync_meas sm;
 } isl51002_dev;
@@ -85,6 +113,8 @@ uint8_t isl_readreg(isl51002_dev *dev, uint8_t regaddr);
 
 int isl_init(isl51002_dev *dev);
 
+void isl_get_default_cfg(isl51002_config *cfg);
+
 void isl_enable_power(isl51002_dev *dev, int enable);
 
 void isl_enable_outputs(isl51002_dev *dev, int enable);
@@ -102,11 +132,14 @@ uint16_t isl_get_pll_htotal(isl51002_dev *dev);
 
 void isl_de_adj(isl51002_dev *dev);
 
-void isl_phase_adj(isl51002_dev *dev);
+void isl_set_sampler_phase(isl51002_dev *dev, uint8_t sampler_phase);
 
 void isl_set_afe_bw(isl51002_dev *dev, uint32_t dotclk_hz);
 
+uint16_t isl_get_afe_bw(isl51002_dev *dev, uint8_t afe_bw);
+
 void isl_set_de(isl51002_dev *dev);
 
+void isl_update_config(isl51002_dev *dev, isl51002_config *cfg);
 
 #endif /* ISL51002_H_ */

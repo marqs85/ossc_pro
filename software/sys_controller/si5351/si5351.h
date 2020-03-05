@@ -52,6 +52,7 @@ typedef enum {
 } si5351_out_ch;
 
 typedef struct {
+    uint32_t i2cm_base;
     uint8_t i2c_addr;
     uint32_t xtal_freq;
 } si5351_dev;

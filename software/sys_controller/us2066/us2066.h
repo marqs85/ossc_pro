@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2019  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2019-2020  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -24,11 +24,15 @@
 #include "sysconfig.h"
 #include <stdio.h>
 
-#define US2066_BASE (0x78>>1)
 #define US2066_ROW_LEN 20
 
-void us2066_init();
+typedef struct {
+    uint32_t i2cm_base;
+    uint8_t i2c_addr;
+} us2066_dev;
 
-void us2066_write(char *row1, char *row2);
+void us2066_init(us2066_dev *dev);
+
+void us2066_write(us2066_dev *dev, char *row1, char *row2);
 
 #endif /* US2066_H_ */

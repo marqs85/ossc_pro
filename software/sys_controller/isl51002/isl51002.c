@@ -28,20 +28,36 @@
 
 uint16_t afe_bw_arr[] = {9, 10, 11, 12, 14, 17, 21, 24, 30, 38, 50, 75, 83, 105, 149, 450};
 
+const isl51002_config isl_cfg_default = {
+    .col = {0x154, 0x154, 0x154, 0x200, 0x200, 0x200},
+    .pre_coast = 4,
+    .post_coast = 4,
+    .clamp_alc_start = 2,
+    .clamp_alc_width = 16,
+    .coast_clamp = 16,
+    .alc_enable = 1,
+    .alc_h_filter = 0,
+    .alc_v_filter = 4,
+    .afe_bw = 0,
+    .hsync_vth = 4,
+    .sog_vth = 6,
+    .sync_gf = 4
+};
+
 void isl_writereg(isl51002_dev *dev, uint8_t regaddr, uint8_t data) {
-    I2C_start(I2CA_BASE, dev->i2c_addr, 0);
-    I2C_write(I2CA_BASE, regaddr, 0);
-    I2C_write(I2CA_BASE, data, 1);
+    I2C_start(dev->i2cm_base, dev->i2c_addr, 0);
+    I2C_write(dev->i2cm_base, regaddr, 0);
+    I2C_write(dev->i2cm_base, data, 1);
 }
 
 uint8_t isl_readreg(isl51002_dev *dev, uint8_t regaddr) {
     //Phase 1
-    I2C_start(I2CA_BASE, dev->i2c_addr, 0);
-    I2C_write(I2CA_BASE, regaddr, 0);
+    I2C_start(dev->i2cm_base, dev->i2c_addr, 0);
+    I2C_write(dev->i2cm_base, regaddr, 0);
 
     //Phase 2
-    I2C_start(I2CA_BASE, dev->i2c_addr, 1);
-    return I2C_read(I2CA_BASE,1);
+    I2C_start(dev->i2cm_base, dev->i2c_addr, 1);
+    return I2C_read(dev->i2cm_base,1);
 }
 
 int isl_init(isl51002_dev *dev) {
@@ -74,7 +90,13 @@ int isl_init(isl51002_dev *dev) {
     isl_writereg(dev, ISL_ABLC_START_LSB, 16);
     isl_writereg(dev, ISL_CLAMPWIDTH, 16);*/
 
+    memcpy(&dev->cfg, &isl_cfg_default, sizeof(isl51002_config));
+
     return 0;
+}
+
+void isl_get_default_cfg(isl51002_config *cfg) {
+    memcpy(cfg, &isl_cfg_default, sizeof(isl51002_config));
 }
 
 void isl_enable_power(isl51002_dev *dev, int enable) {
@@ -205,8 +227,11 @@ void isl_de_adj(isl51002_dev *dev) {
     isl_writereg(dev, ISL_PHASEADJCMD, 0x04);
 }
 
-void isl_phase_adj(isl51002_dev *dev) {
-    isl_writereg(dev, ISL_PHASEADJCMD, 0x03);
+void isl_set_sampler_phase(isl51002_dev *dev, uint8_t sampler_phase) {
+    if (!sampler_phase)
+        isl_writereg(dev, ISL_PHASEADJCMD, 0x03);
+    else
+        isl_writereg(dev, ISL_HPLL_PHASE, sampler_phase-1);
 }
 
 uint16_t isl_get_afe_bw_value(uint8_t index) {
@@ -224,41 +249,49 @@ void isl_set_afe_bw(isl51002_dev *dev, uint32_t dotclk_hz) {
     target_bw_hz = (2*dotclk_hz)/3;
 
     if (target_bw_hz <= 9000000)
-        bw_sel = 0x00;
+        dev->auto_bw_sel = 0x00;
     else if (target_bw_hz <= 10000000)
-        bw_sel = 0x01;
+        dev->auto_bw_sel = 0x01;
     else if (target_bw_hz <= 11000000)
-        bw_sel = 0x02;
+        dev->auto_bw_sel = 0x02;
     else if (target_bw_hz <= 12000000)
-        bw_sel = 0x03;
+        dev->auto_bw_sel = 0x03;
     else if (target_bw_hz <= 14000000)
-        bw_sel = 0x04;
+        dev->auto_bw_sel = 0x04;
     else if (target_bw_hz <= 17000000)
-        bw_sel = 0x05;
+        dev->auto_bw_sel = 0x05;
     else if (target_bw_hz <= 21000000)
-        bw_sel = 0x06;
+        dev->auto_bw_sel = 0x06;
     else if (target_bw_hz <= 24000000)
-        bw_sel = 0x07;
+        dev->auto_bw_sel = 0x07;
     else if (target_bw_hz <= 30000000)
-        bw_sel = 0x08;
+        dev->auto_bw_sel = 0x08;
     else if (target_bw_hz <= 38000000)
-        bw_sel = 0x09;
+        dev->auto_bw_sel = 0x09;
     else if (target_bw_hz <= 50000000)
-        bw_sel = 0x0a;
+        dev->auto_bw_sel = 0x0a;
     else if (target_bw_hz <= 75000000)
-        bw_sel = 0x0b;
+        dev->auto_bw_sel = 0x0b;
     else if (target_bw_hz <= 83000000)
-        bw_sel = 0x0c;
+        dev->auto_bw_sel = 0x0c;
     else if (target_bw_hz <= 105000000)
-        bw_sel = 0x0d;
+        dev->auto_bw_sel = 0x0d;
     else if (target_bw_hz <= 149000000)
-        bw_sel = 0x0e;
+        dev->auto_bw_sel = 0x0e;
     else
-        bw_sel = 0x0f;
+        dev->auto_bw_sel = 0x0f;
 
-    isl_writereg(dev, ISL_AFEBW, bw_sel);
+    if (!dev->cfg.afe_bw) {
+        isl_writereg(dev, ISL_AFEBW, dev->auto_bw_sel);
+        printf("AFE BW auto-set to %uMHz\n\n", afe_bw_arr[dev->auto_bw_sel]);
+    }
+}
 
-    printf("AFE BW set to %uMHz\n\n", afe_bw_arr[bw_sel]);
+uint16_t isl_get_afe_bw(isl51002_dev *dev, uint8_t afe_bw) {
+    if (!afe_bw)
+        return afe_bw_arr[dev->auto_bw_sel];
+    else
+        return afe_bw_arr[afe_bw-1];
 }
 
 void isl_set_de(isl51002_dev *dev) {
@@ -272,3 +305,68 @@ void isl_set_de(isl51002_dev *dev) {
     isl_writereg(dev, ISL_LINEWIDTH_MSB, dev->sm.v_active >> 8);
     isl_writereg(dev, ISL_LINEWIDTH_LSB, dev->sm.v_active & 0xff);
 }
+
+void isl_update_config(isl51002_dev *dev, isl51002_config *cfg) {
+    uint8_t val;
+
+    if (memcmp(&cfg->col, &dev->cfg.col, sizeof(color_setup_t))) {
+        isl_writereg(dev, ISL_R_GAIN_MSB, (cfg->col.r_gain >> 2));
+        isl_writereg(dev, ISL_R_GAIN_LSB, (cfg->col.r_gain << 6));
+        isl_writereg(dev, ISL_G_GAIN_MSB, (cfg->col.g_gain >> 2));
+        isl_writereg(dev, ISL_G_GAIN_LSB, (cfg->col.g_gain << 6));
+        isl_writereg(dev, ISL_B_GAIN_MSB, (cfg->col.b_gain >> 2));
+        isl_writereg(dev, ISL_B_GAIN_LSB, (cfg->col.b_gain << 6));
+        isl_writereg(dev, ISL_R_OFFSET_MSB, (cfg->col.r_offs >> 2));
+        isl_writereg(dev, ISL_R_OFFSET_LSB, (cfg->col.r_offs << 6));
+        isl_writereg(dev, ISL_G_OFFSET_MSB, (cfg->col.g_offs >> 2));
+        isl_writereg(dev, ISL_G_OFFSET_LSB, (cfg->col.g_offs << 6));
+        isl_writereg(dev, ISL_B_OFFSET_MSB, (cfg->col.b_offs >> 2));
+        isl_writereg(dev, ISL_B_OFFSET_LSB, (cfg->col.b_offs << 6));
+    }
+
+    if (cfg->pre_coast != dev->cfg.pre_coast)
+        isl_writereg(dev, ISL_HPLL_PRECOAST, cfg->pre_coast);
+    if (cfg->post_coast != dev->cfg.post_coast)
+        isl_writereg(dev, ISL_HPLL_POSTCOAST, cfg->post_coast);
+    if (cfg->clamp_alc_start != dev->cfg.clamp_alc_start) {
+        isl_writereg(dev, ISL_ABLC_START_MSB, (cfg->clamp_alc_start >> 8));
+        isl_writereg(dev, ISL_ABLC_START_LSB, (cfg->clamp_alc_start & 0xff));
+    }
+    if (cfg->clamp_alc_width != dev->cfg.clamp_alc_width)
+        isl_writereg(dev, ISL_CLAMPWIDTH, cfg->clamp_alc_width);
+    if (cfg->coast_clamp != dev->cfg.coast_clamp) {
+        val = isl_readreg(dev, ISL_AFECTRL) & ~(1<<2);
+        isl_writereg(dev, ISL_AFECTRL, val | (cfg->coast_clamp<<2));
+    }
+    if (cfg->alc_enable != dev->cfg.alc_enable) {
+        val = isl_readreg(dev, ISL_ABLCCFG) & ~(1<<0);
+        isl_writereg(dev, ISL_ABLCCFG, val | !cfg->alc_enable);
+    }
+    if (cfg->alc_h_filter != dev->cfg.alc_h_filter) {
+        val = isl_readreg(dev, ISL_ABLCCFG) & ~(3<<2);
+        isl_writereg(dev, ISL_ABLCCFG, val | (cfg->alc_h_filter<<2));
+    }
+    if (cfg->alc_v_filter != dev->cfg.alc_v_filter) {
+        val = isl_readreg(dev, ISL_ABLCCFG) & ~(7<<4);
+        isl_writereg(dev, ISL_ABLCCFG, val | (cfg->alc_v_filter<<4));
+    }
+    if (cfg->hsync_vth != dev->cfg.hsync_vth)
+        isl_writereg(dev, ISL_HSYNC_VTH, (cfg->hsync_vth<<4) | cfg->hsync_vth);
+    if (cfg->sog_vth != dev->cfg.sog_vth)
+        isl_writereg(dev, ISL_SOG_VTH, cfg->sog_vth);
+    if (cfg->sync_gf != dev->cfg.sync_gf) {
+        val = isl_readreg(dev, ISL_SYNCCFG) & ~(0x0f<<0);
+        isl_writereg(dev, ISL_SYNCCFG, val | cfg->sync_gf);
+    }
+
+    if (cfg->afe_bw != dev->cfg.afe_bw) {
+        if (!cfg->afe_bw) {
+            isl_writereg(dev, ISL_AFEBW, dev->auto_bw_sel);
+            printf("AFE BW auto-set to %uMHz\n\n", afe_bw_arr[dev->auto_bw_sel]);
+        } else {
+            isl_writereg(dev, ISL_AFEBW, cfg->afe_bw-1);
+            printf("AFE BW manually set to %uMHz\n\n", afe_bw_arr[cfg->afe_bw-1]);
+        }
+    }
+
+    memcpy(&dev->cfg, cfg, sizeof(isl51002_config));}

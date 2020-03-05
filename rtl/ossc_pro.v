@@ -332,7 +332,7 @@ assign HDMITX_I2S_WS_o = capture_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
 assign HDMITX_I2S_DATA_o = capture_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
 assign HDMITX_SPDIF_o = SPDIF_EXT_i;
 
-assign AUDMUX_o = audmux_sel;
+assign AUDMUX_o = ~audmux_sel;
 
 //assign EXT_IO_io = BTN_i[0] ? {29{1'b1}} : {29{1'b0}};
 assign LS_OE_N_o = 1'b0;
