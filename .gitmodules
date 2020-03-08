@@ -4,3 +4,9 @@
 [submodule "ip/sdc_controller/SD-card-controller"]
 	path = ip/sdc_controller/SD-card-controller
 	url = https://github.com/mczerski/SD-card-controller.git
+[submodule "software/sys_controller/ic_drivers"]
+	path = software/sys_controller/ic_drivers
+	url = /home/markus/Code/git_repos/ic_drivers.git
+[submodule "rtl/ic_frontends"]
+	path = rtl/ic_frontends
+	url = /home/markus/Code/git_repos/ic_frontends.git
