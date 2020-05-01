@@ -59,8 +59,9 @@ static const char *pm_480i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Lin
 static const char *pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line2x 240x360", "Line3x 240x360", "Line3x Generic" };
 static const char *pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x" };
 static const char *pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (bob)" };
-static const char *pm_ad_240p_desc[] = { "Skip", "720x480 (Line2x)", "1280x720 (Line3x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1920x1440 (Line6x)" };
-static const char *pm_ad_480p_desc[] = { "Skip", "1920x1080 (Line2x)", "1920x1440 (Line3x)" };
+static const char *pm_ad_240p_desc[] = { "Skip", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)" };
+static const char *pm_ad_480i_desc[] = { "Skip", "1280x1024 (Line4x)", "1920x1080 (Line4x)", "1920x1440 (Line6x)" };
+static const char *pm_ad_480p_desc[] = { "Skip", "1280x1024 (Line2x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)" };
 static const char *ar_256col_desc[] = { "4:3", "8:7" };
 static const char *tx_mode_desc[] = { "HDMI (RGB Full)", "HDMI (RGB Limited)", "HDMI (YCbCr444)", "DVI" };
 static const char *sl_mode_desc[] = { LNG("Off","ｵﾌ"), LNG("Auto","ｵｰﾄ"), LNG("On","ｵﾝ") };
@@ -182,6 +183,7 @@ MENU(menu_pure_lm, P99_PROTECT({ \
 
 MENU(menu_adap_lm, P99_PROTECT({ \
     { LNG("240p proc","240pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_240p,      OPT_WRAP, SETTING_ITEM(pm_ad_240p_desc) } } },
+    { LNG("480i proc","480iｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_480i,      OPT_WRAP, SETTING_ITEM(pm_ad_480i_desc) } } },
     { LNG("480p proc","480pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_480p,      OPT_WRAP, SETTING_ITEM(pm_ad_480p_desc) } } },
 }))
 

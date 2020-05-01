@@ -36,7 +36,8 @@ const avconfig_t tc_default = {
     .pm_480i = 1,
     .pm_1080i = 1,
     .pm_ad_240p = 2,
-    .pm_ad_480p = 1,
+    .pm_ad_480i = 2,
+    .pm_ad_480p = 2,
     .sl_altern = 1,
     .adapt_lm = 1,
 };
@@ -80,6 +81,7 @@ status_t update_avconfig() {
         (tc.l5_mode != cc.l5_mode) ||
         (tc.l5_fmt != cc.l5_fmt) ||
         (tc.pm_ad_240p != cc.pm_ad_240p) ||
+        (tc.pm_ad_480i != cc.pm_ad_480i) ||
         (tc.pm_ad_480p != cc.pm_ad_480p) ||
         (tc.adapt_lm != cc.adapt_lm) ||
         (tc.upsample2x != cc.upsample2x) ||

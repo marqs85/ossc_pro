@@ -43,7 +43,7 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 35
+#define FW_VER_MINOR 36
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x7a
@@ -134,12 +134,12 @@ struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq);
 uint16_t sys_ctrl;
 
 avinput_t avinput = AV_TESTPAT, target_avinput;
-unsigned tp_stdmode_idx=-1, target_tp_stdmode_idx=1; // STDMODE_480p
+unsigned tp_stdmode_idx=-1, target_tp_stdmode_idx=2; // STDMODE_480p
 
 char row1[US2066_ROW_LEN+1];
 char row2[US2066_ROW_LEN+1];
 
-static const char *avinput_str[] = { "Test pattern", "AV1: RGBS", "AV1: RGsB", "AV1: YPbPr", "AV1: RGBHV", "AV1: RGBCS", "AV2: YPbPr", "AV2: RGsB", "AV3: RGBHV", "AV3: RGBCS", "AV3: RGBS", "AV3: RGsB", "AV3: YPbPr", "AV4", "Last used" };
+static const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4", "Last used" };
 
 void chardisp_write_status() {
     if (!is_menu_active())
@@ -432,6 +432,7 @@ int main()
                 target_isl_input = ISL_CH0;
                 target_isl_sync = SYNC_HV;
                 target_format = FORMAT_RGBHV;
+                target_typemask = VIDEO_PC; // OK?
                 break;
             case AV1_RGBCS:
                 target_isl_input = ISL_CH0;
@@ -518,14 +519,14 @@ int main()
             if (tp_stdmode_idx != target_tp_stdmode_idx) {
                 get_standard_mode((unsigned)target_tp_stdmode_idx, &vm_conf, &vmode_in, &vmode_out);
                 if (vmode_out.si_pclk_mult > 0)
-                    si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, si_dev.xtal_freq, vmode_out.si_pclk_mult);
+                    si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, si_dev.xtal_freq, vmode_out.si_pclk_mult, vmode_out.si_ms_conf.outdiv);
                 else
                     si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, &vmode_out.si_ms_conf);
 
                 update_sc_config(&vmode_in, &vmode_out, &vm_conf);
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
-                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u @ 60Hz", vmode_out.timings.h_active, vmode_out.timings.v_active);
+                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u @ xxHz", vmode_out.timings.h_active, vmode_out.timings.v_active);
                 chardisp_write_status();
 
                 tp_stdmode_idx = target_tp_stdmode_idx;
@@ -566,11 +567,11 @@ int main()
                     if (isl_dev.ss.interlace_flag)
                         v_hz_x100 *= 2;
 
-                    mode = get_adaptive_mode(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, &vm_conf, &vmode_in, &vmode_out);
+                    mode = get_adaptive_mode(isl_dev.ss.v_total, isl_dev.ss.interlace_flag, v_hz_x100, &vm_conf, &vmode_in, &vmode_out);
 
                     if (mode < 0) {
                         amode_match = 0;
-                        mode = get_mode_id(isl_dev.ss.v_total, !isl_dev.ss.interlace_flag, v_hz_x100, target_typemask, &vm_conf, &vmode_in, &vmode_out);
+                        mode = get_mode_id(isl_dev.ss.v_total, isl_dev.ss.interlace_flag, v_hz_x100, target_typemask, &vm_conf, &vmode_in, &vmode_out);
                     } else {
                         amode_match = 1;
                     }
@@ -578,7 +579,7 @@ int main()
                     if (mode >= 0) {
                         printf("\nMode %s selected (%s linemult)\n", vmode_in.name, amode_match ? "Adaptive" : "Pure");
 
-                        sniprintf(row1, US2066_ROW_LEN+1, "%-10s %4u%c x%u%c", avinput_str[avinput], isl_dev.ss.v_total, isl_dev.ss.interlace_flag ? 'i' : 'p', vm_conf.y_rpt+1, amode_match ? 'a' : ' ');
+                        sniprintf(row1, US2066_ROW_LEN+1, "%-10s %4u-%c x%u%c", avinput_str[avinput], isl_dev.ss.v_total, isl_dev.ss.interlace_flag ? 'i' : 'p', vm_conf.y_rpt+1, amode_match ? 'a' : ' ');
                         sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
                                                                                             (v_hz_x100/100),
                                                                                             (v_hz_x100%100),
@@ -601,7 +602,7 @@ int main()
                         if (amode_match)
                             si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &vmode_out.si_ms_conf);
                         else
-                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vmode_out.si_pclk_mult);
+                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vmode_out.si_pclk_mult, 0);
 
                         // Wait a couple frames so that next sync measurements from FPGA are stable
                         // TODO: don't use pclk for the sync meas

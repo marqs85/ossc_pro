@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include "si5351.h"
+#include "adv7513.h"
 #include "sysconfig.h"
 
 #define H_TOTAL_MIN 300
@@ -67,6 +68,7 @@ typedef enum {
 } video_group;
 
 typedef enum {
+    //deprecated
     MODE_INTERLACED     = (1<<0),
     MODE_PLLDIVBY2      = (1<<1),
     //at least one of the flags below must be set for each mode
@@ -96,46 +98,33 @@ typedef enum {
     MODE_L5_256_COL     = (1<<25),
 } mode_flags;
 
-typedef enum tagHDMI_Video_Type {
-    HDMI_Unknown = 0 ,
-    HDMI_640x480p60 = 1 ,
-    HDMI_480p60,
-    HDMI_480p60_16x9,
-    HDMI_720p60,
-    HDMI_1080i60,
-    HDMI_480i60,
-    HDMI_480i60_16x9,
-    HDMI_240p60,
-    HDMI_1080p60 = 16,
-    HDMI_576p50,
-    HDMI_576p50_16x9,
-    HDMI_720p50 = 19,
-    HDMI_1080i50,
-    HDMI_576i50,
-    HDMI_576i50_16x9,
-    HDMI_288p50,
-    HDMI_1080p50 = 31,
-    /*HDMI_1080p24,
-    HDMI_1080p25,
-    HDMI_1080p30,
-    HDMI_1080i120 = 46,*/
-} HDMI_Video_Type ;
-
 typedef enum {
-    TX_1X   = 0,
-    TX_2X   = 1,
-    TX_4X   = 2
-} HDMI_pixelrep_t;
-
-typedef enum {
-    STDMODE_240p   = 7,
-    STDMODE_480p   = 24,
-    STDMODE_720p   = 30,
-    STDMODE_960p   = 32,
-    STDMODE_1080p  = 36,
-    STDMODE_1200p  = 38,
-    STDMODE_1440p  = 39
+    STDMODE_240p      = 7,
+    STDMODE_288p      = 15,
+    STDMODE_480i      = 23,
+    STDMODE_480p      = 24,
+    STDMODE_576i      = 27,
+    STDMODE_576p      = 28,
+    STDMODE_720p      = 30,
+    STDMODE_1280x1024 = 33,
+    STDMODE_1080i     = 35,
+    STDMODE_1080p     = 36,
+    STDMODE_1600x1200 = 37,
+    STDMODE_1920x1200 = 38,
+    STDMODE_1920x1440 = 39
 } stdmode_t;
+
+typedef enum {
+    ADMODE_240p      = 0,
+    ADMODE_480p      = 1,
+    ADMODE_720p      = 2,
+    ADMODE_1280x1024 = 3,
+    ADMODE_1080p_LB  = 4,
+    ADMODE_1080p_CR  = 5,
+    ADMODE_1600x1200 = 6,
+    ADMODE_1920x1200 = 7,
+    ADMODE_1920x1440 = 8,
+} ad_mode_id_t;
 
 typedef struct {
     uint16_t h_active;
@@ -146,7 +135,8 @@ typedef struct {
     uint16_t h_backporch:9;
     uint16_t v_backporch:9;
     uint16_t h_synclen:9;
-    uint8_t v_synclen:5;
+    uint8_t v_synclen:4;
+    uint8_t interlaced:1;
 } __attribute__((packed)) sync_timings_t;
 
 typedef struct {
@@ -165,11 +155,12 @@ typedef struct {
 } mode_data_t;
 
 typedef struct {
-    stdmode_t mode_idx_i;
+    ad_mode_id_t id;
     sync_timings_t timings_i;
     uint8_t sampler_phase;
     video_type type:5;
     video_group group:3;
+    uint8_t x_rpt;
     uint8_t y_rpt;
     int16_t x_offset_i;
     int16_t y_offset_i;
@@ -193,9 +184,9 @@ void set_default_vm_table();
 
 uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz);
 
-int get_adaptive_mode(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
+int get_adaptive_mode(uint16_t totlines, uint8_t interlaced, uint16_t hz_x100, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
 
-int get_mode_id(uint16_t totlines, uint8_t progressive, uint16_t hz_x100, video_type typemask, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
+int get_mode_id(uint16_t totlines, uint8_t interlaced, uint16_t hz_x100, video_type typemask, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
 
 int get_standard_mode(unsigned stdmode_idx_arr_idx, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
 

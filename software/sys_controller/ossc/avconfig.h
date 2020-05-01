@@ -71,7 +71,7 @@ typedef struct {
     uint8_t sl_altiv;
     uint8_t sl_str;
     uint8_t sl_id;
-    uint8_t sl_cust_l_str[5];
+    uint8_t sl_cust_l_str[6];
     uint8_t sl_cust_c_str[6];
     uint8_t linemult_target;
     uint8_t l2_mode;
@@ -85,6 +85,7 @@ typedef struct {
     uint8_t pm_480p;
     uint8_t pm_1080i;
     uint8_t pm_ad_240p;
+    uint8_t pm_ad_480i;
     uint8_t pm_ad_480p;
     uint8_t adapt_lm;
     uint8_t ar_256col;
@@ -102,9 +103,9 @@ typedef struct {
     uint8_t audmux_sel;
     uint8_t reverse_lpf;
     uint8_t default_vic;
-    isl51002_config isl_cfg;
-    adv7513_config adv7513_cfg;
-    pcm186x_config pcm_cfg;
+    isl51002_config isl_cfg __attribute__ ((aligned (4)));
+    adv7513_config adv7513_cfg __attribute__ ((aligned (4)));
+    pcm186x_config pcm_cfg __attribute__ ((aligned (4)));
 } __attribute__((packed)) avconfig_t;
 
 int reset_target_avconfig();
