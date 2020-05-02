@@ -3,7 +3,7 @@ __DYNAMIC  =  0;
 
 MEMORY
 {
-    dataram    : ORIGIN = 0x00010000, LENGTH = 0x9000
+    dataram    : ORIGIN = 0x00010000, LENGTH = 0xb000
 }
 
 /* Stack information variables */

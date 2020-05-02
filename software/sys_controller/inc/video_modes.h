@@ -51,20 +51,22 @@ typedef enum {
 } video_format;
 
 typedef enum {
-    VIDEO_LDTV      = (1<<0),
-    VIDEO_SDTV      = (1<<1),
-    VIDEO_EDTV      = (1<<2),
-    VIDEO_HDTV      = (1<<3),
-    VIDEO_PC        = (1<<4),
+    VIDEO_SDTV      = (1<<0),
+    VIDEO_EDTV      = (1<<1),
+    VIDEO_HDTV      = (1<<2),
+    VIDEO_PC        = (1<<3),
 } video_type;
 
 typedef enum {
     GROUP_NONE      = 0,
     GROUP_240P      = 1,
-    GROUP_384P      = 2,
-    GROUP_480I      = 3,
-    GROUP_480P      = 4,
-    GROUP_1080I     = 5,
+    GROUP_288P      = 2,
+    GROUP_384P      = 3,
+    GROUP_480I      = 4,
+    GROUP_576I      = 5,
+    GROUP_480P      = 6,
+    GROUP_576P      = 7,
+    GROUP_1080I     = 8,
 } video_group;
 
 typedef enum {
@@ -99,36 +101,43 @@ typedef enum {
 } mode_flags;
 
 typedef enum {
-    STDMODE_240p      = 7,
-    STDMODE_288p      = 15,
-    STDMODE_480i      = 23,
-    STDMODE_480p      = 24,
-    STDMODE_576i      = 27,
-    STDMODE_576p      = 28,
-    STDMODE_720p      = 30,
-    STDMODE_1280x1024 = 33,
-    STDMODE_1080i     = 35,
-    STDMODE_1080p     = 36,
-    STDMODE_1600x1200 = 37,
-    STDMODE_1920x1200 = 38,
-    STDMODE_1920x1440 = 39
+    STDMODE_240p         = 7,
+    STDMODE_288p         = 15,
+    STDMODE_480i         = 23,
+    STDMODE_480p         = 24,
+    STDMODE_576i         = 27,
+    STDMODE_576p         = 28,
+    STDMODE_720p_50      = 30,
+    STDMODE_720p_60      = 31,
+    STDMODE_1280x1024_60 = 34,
+    STDMODE_1080i_60     = 36,
+    STDMODE_1080p_50     = 37,
+    STDMODE_1080p_60     = 38,
+    STDMODE_1600x1200_60 = 39,
+    STDMODE_1920x1200_60 = 40,
+    STDMODE_1920x1440_60 = 41
 } stdmode_t;
 
 typedef enum {
     ADMODE_240p      = 0,
-    ADMODE_480p      = 1,
-    ADMODE_720p      = 2,
-    ADMODE_1280x1024 = 3,
-    ADMODE_1080p_LB  = 4,
-    ADMODE_1080p_CR  = 5,
-    ADMODE_1600x1200 = 6,
-    ADMODE_1920x1200 = 7,
-    ADMODE_1920x1440 = 8,
+    ADMODE_288p,
+    ADMODE_480p,
+    ADMODE_576p,
+    ADMODE_720p_60,
+    ADMODE_1280x1024_60,
+    ADMODE_1080p_50_CR,
+    ADMODE_1080p_60_LB,
+    ADMODE_1080p_60_CR,
+    ADMODE_1600x1200_60,
+    ADMODE_1920x1200_60,
+    ADMODE_1920x1440_50,
+    ADMODE_1920x1440_60,
 } ad_mode_id_t;
 
 typedef struct {
-    uint16_t h_active;
-    uint16_t v_active;
+    uint16_t h_active:13;
+    uint16_t v_active:11;
+    uint8_t v_hz;
     uint16_t h_total;
     uint8_t  h_total_adj:5;
     uint16_t v_total:11;
@@ -140,12 +149,12 @@ typedef struct {
 } __attribute__((packed)) sync_timings_t;
 
 typedef struct {
-    char name[10];
+    char name[14];
     HDMI_Video_Type vic:8;
     sync_timings_t timings;
     uint8_t sampler_phase;
-    video_type type:5;
-    video_group group:3;
+    video_type type:4;
+    video_group group:4;
     mode_flags flags;
     HDMI_pixelrep_t tx_pixelrep:2;
     HDMI_pixelrep_t hdmitx_pixr_ifr:2;
@@ -158,8 +167,8 @@ typedef struct {
     ad_mode_id_t id;
     sync_timings_t timings_i;
     uint8_t sampler_phase;
-    video_type type:5;
-    video_group group:3;
+    video_type type:4;
+    video_group group:4;
     uint8_t x_rpt;
     uint8_t y_rpt;
     int16_t x_offset_i;

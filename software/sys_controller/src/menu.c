@@ -18,6 +18,7 @@
 //
 
 #include <string.h>
+#include "sysconfig.h"
 #include "menu.h"
 #include "av_controller.h"
 #include "avconfig.h"
@@ -60,8 +61,11 @@ static const char *pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Lin
 static const char *pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x" };
 static const char *pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (bob)" };
 static const char *pm_ad_240p_desc[] = { "Skip", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)" };
+static const char *pm_ad_288p_desc[] = { "Skip", "720x576 (Line2x)", "1920x1080 (Line4x)", "1920x1440 (Line5x)" };
 static const char *pm_ad_480i_desc[] = { "Skip", "1280x1024 (Line4x)", "1920x1080 (Line4x)", "1920x1440 (Line6x)" };
+static const char *pm_ad_576i_desc[] = { "Skip", "1920x1080 (Line4x)" };
 static const char *pm_ad_480p_desc[] = { "Skip", "1280x1024 (Line2x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)" };
+static const char *pm_ad_576p_desc[] = { "Skip", "1920x1080 (Line2x)", "1920x1440 (Line3x)" };
 static const char *ar_256col_desc[] = { "4:3", "8:7" };
 static const char *tx_mode_desc[] = { "HDMI (RGB Full)", "HDMI (RGB Limited)", "HDMI (YCbCr444)", "DVI" };
 static const char *sl_mode_desc[] = { LNG("Off","ｵﾌ"), LNG("Auto","ｵｰﾄ"), LNG("On","ｵﾝ") };
@@ -93,7 +97,9 @@ static void value_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "    
 static void value16_disp(uint16_t *v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "    %u", *v); }
 static void signed_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "    %d", (int8_t)(v-SIGNED_NUMVAL_ZERO)); }
 static void lt_disp(uint8_t v) { strncpy(menu_row2, lt_desc[v], US2066_ROW_LEN+1); }
+#ifndef DExx_FW
 static void aud_db_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d dB", ((int8_t)v-PCM_GAIN_0DB)); }
+#endif
 //static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes[v].name, US2066_ROW_LEN+1); }
 //static void link_av_desc (avinput_t v) { strncpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
 //static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
@@ -183,8 +189,11 @@ MENU(menu_pure_lm, P99_PROTECT({ \
 
 MENU(menu_adap_lm, P99_PROTECT({ \
     { LNG("240p proc","240pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_240p,      OPT_WRAP, SETTING_ITEM(pm_ad_240p_desc) } } },
+    { LNG("288p proc","288pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_288p,      OPT_WRAP, SETTING_ITEM(pm_ad_288p_desc) } } },
     { LNG("480i proc","480iｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_480i,      OPT_WRAP, SETTING_ITEM(pm_ad_480i_desc) } } },
+    { LNG("576i proc","576iｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_576i,      OPT_WRAP, SETTING_ITEM(pm_ad_576i_desc) } } },
     { LNG("480p proc","480pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_480p,      OPT_WRAP, SETTING_ITEM(pm_ad_480p_desc) } } },
+    { LNG("576p proc","576pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_576p,      OPT_WRAP, SETTING_ITEM(pm_ad_576p_desc) } } },
 }))
 
 MENU(menu_output, P99_PROTECT({ \
@@ -219,13 +228,15 @@ MENU(menu_compatibility, P99_PROTECT({ \
     { "Default HDMI VIC",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.default_vic,     OPT_NOWRAP, 0, HDMI_1080p50, value_disp } } },
 }))
 
+#ifndef DExx_FW
 MENU(menu_audio, P99_PROTECT({ \
     { "Sampling format",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.pcm_cfg.fs,      OPT_WRAP, SETTING_ITEM(audio_fs_desc) } } },
-    { "Pre-ADC gain",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.pcm_cfg.gain,    OPT_NOWRAP, PCM_GAIN_M12DB, PCM_GAIN_12DB, aud_db_disp } } },
     { "Quad stereo",                            OPT_AVCONFIG_SELECTION,  { .sel = { &tc.adv7513_cfg.i2s_chcfg, OPT_WRAP, SETTING_ITEM(audio_sr_desc) } } },
+    { "Pre-ADC gain",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.pcm_cfg.gain,    OPT_NOWRAP, PCM_GAIN_M12DB, PCM_GAIN_12DB, aud_db_disp } } },
     { "AV1-3 audio source",                     OPT_AVCONFIG_SELECTION,  { .sel = { &tc.adv7513_cfg.audio_fmt, OPT_WRAP, SETTING_ITEM(audio_src_desc) } } },
     { "3.5mm jack assign",                      OPT_AVCONFIG_SELECTION,  { .sel = { &tc.audmux_sel,     OPT_WRAP, SETTING_ITEM(audmux_sel_desc) } } },
 }))
+#endif
 
 MENU(menu_settings, P99_PROTECT({ \
     //{ LNG("<Load profile >","<ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ    >"),   OPT_FUNC_CALL,         { .fun = { load_profile, &profile_arg_info } } },
@@ -255,7 +266,9 @@ MENU(menu_main, P99_PROTECT({ \
     //{ LNG("Scanline opt.  >","ｽｷｬﾝﾗｲﾝｵﾌﾟｼｮﾝ >"),  OPT_SUBMENU,            { .sub = { &menu_scanlines, NULL, NULL } } },
     //{ LNG("Post-proc.     >","ｱﾄｼｮﾘ         >"),  OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },
     { LNG("Compatibility  >","ｺﾞｶﾝｾｲ        >"), OPT_SUBMENU,             { .sub = { &menu_compatibility, NULL, NULL } } },
+#ifndef DExx_FW
     { LNG("Audio options  >","ｵｰﾃﾞｨｵｵﾌﾟｼｮﾝ  >"), OPT_SUBMENU,             { .sub = { &menu_audio, NULL, NULL } } },
+#endif
     { "Settings opt   >",                       OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
 

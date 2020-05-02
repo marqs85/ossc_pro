@@ -21,9 +21,12 @@
 #define AVCONFIG_H_
 
 #include <stdint.h>
+#include "sysconfig.h"
 #include "isl51002.h"
 #include "adv7513.h"
+#ifndef DExx_FW
 #include "pcm186x.h"
+#endif
 
 #define SIGNED_NUMVAL_ZERO  128
 
@@ -85,8 +88,11 @@ typedef struct {
     uint8_t pm_480p;
     uint8_t pm_1080i;
     uint8_t pm_ad_240p;
+    uint8_t pm_ad_288p;
     uint8_t pm_ad_480i;
+    uint8_t pm_ad_576i;
     uint8_t pm_ad_480p;
+    uint8_t pm_ad_576p;
     uint8_t adapt_lm;
     uint8_t ar_256col;
     uint8_t h_mask;
@@ -105,7 +111,9 @@ typedef struct {
     uint8_t default_vic;
     isl51002_config isl_cfg __attribute__ ((aligned (4)));
     adv7513_config adv7513_cfg __attribute__ ((aligned (4)));
+#ifndef DExx_FW
     pcm186x_config pcm_cfg __attribute__ ((aligned (4)));
+#endif
 } __attribute__((packed)) avconfig_t;
 
 int reset_target_avconfig();

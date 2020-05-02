@@ -36,8 +36,11 @@ const avconfig_t tc_default = {
     .pm_480i = 1,
     .pm_1080i = 1,
     .pm_ad_240p = 2,
+    .pm_ad_288p = 2,
     .pm_ad_480i = 2,
+    .pm_ad_576i = 1,
     .pm_ad_480p = 2,
+    .pm_ad_576p = 1,
     .sl_altern = 1,
     .adapt_lm = 1,
 };
@@ -57,7 +60,9 @@ int set_default_avconfig(int update_cc)
     memcpy(&tc, &tc_default, sizeof(avconfig_t));
     isl_get_default_cfg(&tc.isl_cfg);
     adv7513_get_default_cfg(&tc.adv7513_cfg);
+#ifndef DExx_FW
     pcm186x_get_default_cfg(&tc.pcm_cfg);
+#endif
 
     if (update_cc)
         memcpy(&cc, &tc, sizeof(avconfig_t));
@@ -81,19 +86,26 @@ status_t update_avconfig() {
         (tc.l5_mode != cc.l5_mode) ||
         (tc.l5_fmt != cc.l5_fmt) ||
         (tc.pm_ad_240p != cc.pm_ad_240p) ||
+        (tc.pm_ad_288p != cc.pm_ad_288p) ||
         (tc.pm_ad_480i != cc.pm_ad_480i) ||
+        (tc.pm_ad_576i != cc.pm_ad_576i) ||
         (tc.pm_ad_480p != cc.pm_ad_480p) ||
+        (tc.pm_ad_576p != cc.pm_ad_576p) ||
         (tc.adapt_lm != cc.adapt_lm) ||
         (tc.upsample2x != cc.upsample2x) ||
         (tc.default_vic != cc.default_vic))
         status = (status < MODE_CHANGE) ? MODE_CHANGE : status;
 
+#ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)
         switch_audmux(tc.audmux_sel);
+#endif
 
     memcpy(&cc, &tc, sizeof(avconfig_t));
 
+#ifndef DExx_FW
     cc.adv7513_cfg.i2s_fs = cc.pcm_cfg.fs;
+#endif
 
     return status;
 }
