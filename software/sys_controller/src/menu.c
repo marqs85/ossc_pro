@@ -56,16 +56,17 @@ static const char *l3_mode_desc[] = { LNG("Generic 16:9","ｼﾞｪﾈﾘｯｸ 
 static const char *l2l4l5_mode_desc[] = { LNG("Generic 4:3","ｼﾞｪﾈﾘｯｸ 4:3"), LNG("512x240 optim.","512x240 ｻｲﾃｷｶ."), LNG("384x240 optim.","384x240 ｻｲﾃｷｶ."), LNG("320x240 optim.","320x240 ｻｲﾃｷｶ."), LNG("256x240 optim.","256x240 ｻｲﾃｷｶ.") };
 static const char *l5_fmt_desc[] = { "1920x1080", "1600x1200", "1920x1200" };
 static const char *pm_240p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line3x", "Line4x", "Line5x" };
-static const char *pm_480i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (bob)", "Line3x (laced)", "Line4x (bob)" };
+static const char *pm_480i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Deint + Line2x", "Line3x (laced)", "Deint + Line4x" };
 static const char *pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line2x 240x360", "Line3x 240x360", "Line3x Generic" };
 static const char *pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x" };
-static const char *pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (bob)" };
+static const char *pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Deint + Line2x" };
 static const char *pm_ad_240p_desc[] = { "Skip", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)" };
 static const char *pm_ad_288p_desc[] = { "Skip", "720x576 (Line2x)", "1920x1080 (Line4x)", "1920x1440 (Line5x)" };
-static const char *pm_ad_480i_desc[] = { "Skip", "1280x1024 (Line4x)", "1920x1080 (Line4x)", "1920x1440 (Line6x)" };
-static const char *pm_ad_576i_desc[] = { "Skip", "1920x1080 (Line4x)" };
-static const char *pm_ad_480p_desc[] = { "Skip", "1280x1024 (Line2x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)" };
-static const char *pm_ad_576p_desc[] = { "Skip", "1920x1080 (Line2x)", "1920x1440 (Line3x)" };
+static const char *pm_ad_480i_desc[] = { "Skip", "720x240 (240p rest.)", "1280x1024 (Dint+L4x)", "1920x1080 (Dint+L4x)", "1920x1440 (Dint+L6x)" };
+static const char *pm_ad_576i_desc[] = { "Skip", "720x288 (288p rest.)", "1920x1080 (Dint+L4x)" };
+static const char *pm_ad_480p_desc[] = { "Skip", "720x240 (Line drop)", "1280x1024 (Line2x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)" };
+static const char *pm_ad_576p_desc[] = { "Skip", "720x288 (Line drop)", "1920x1080 (Line2x)" };
+static const char *lm_deint_mode_desc[] = { "Bob", "Noninterlace restore" };
 static const char *ar_256col_desc[] = { "4:3", "8:7" };
 static const char *tx_mode_desc[] = { "HDMI (RGB Full)", "HDMI (RGB Limited)", "HDMI (YCbCr444)", "DVI" };
 static const char *sl_mode_desc[] = { LNG("Off","ｵﾌ"), LNG("Auto","ｵｰﾄ"), LNG("On","ｵﾝ") };
@@ -198,6 +199,7 @@ MENU(menu_adap_lm, P99_PROTECT({ \
 
 MENU(menu_output, P99_PROTECT({ \
     { "Adaptive LM priority",                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.adapt_lm,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
+    { "LM deinterlace mode",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lm_deint_mode,   OPT_WRAP, SETTING_ITEM(lm_deint_mode_desc) } } },
     { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.adv7513_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM(tx_mode_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 }))

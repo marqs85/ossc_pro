@@ -146,60 +146,68 @@ void chardisp_write_status() {
         us2066_write(&chardisp_dev, row1, row2);
 }
 
-void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf)
+void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf, avconfig_t *avconfig)
 {
-    h_in_config_reg h_in_config = {.data=0x00000000};
-    h_in_config2_reg h_in_config2 = {.data=0x00000000};
-    v_in_config_reg v_in_config = {.data=0x00000000};
+    hv_config_reg hv_in_config = {.data=0x00000000};
+    hv_config2_reg hv_in_config2 = {.data=0x00000000};
+    hv_config3_reg hv_in_config3 = {.data=0x00000000};
+    hv_config_reg hv_out_config = {.data=0x00000000};
+    hv_config2_reg hv_out_config2 = {.data=0x00000000};
+    hv_config3_reg hv_out_config3 = {.data=0x00000000};
+    xy_config_reg xy_out_config = {.data=0x00000000};
+    xy_config2_reg xy_out_config2 = {.data=0x00000000};
     misc_config_reg misc_config = {.data=0x00000000};
     sl_config_reg sl_config = {.data=0x00000000};
     sl_config2_reg sl_config2 = {.data=0x00000000};
-    h_out_config_reg h_out_config = {.data=0x00000000};
-    h_out_config2_reg h_out_config2 = {.data=0x00000000};
-    v_out_config_reg v_out_config = {.data=0x00000000};
-    v_out_config2_reg v_out_config2 = {.data=0x00000000};
-    xy_out_config_reg xy_out_config = {.data=0x00000000};
 
     // Set input params
-    h_in_config.h_synclen = vm_in->timings.h_synclen;
-    h_in_config.h_backporch = vm_in->timings.h_backporch;
-    h_in_config.h_active = vm_in->timings.h_active;
-    h_in_config2.h_total = vm_in->timings.h_total;
-    v_in_config.v_synclen = vm_in->timings.v_synclen;
-    v_in_config.v_backporch = vm_in->timings.v_backporch;
-    v_in_config.v_active = vm_in->timings.v_active;
+    hv_in_config.h_total = vm_in->timings.h_total;
+    hv_in_config.h_active = vm_in->timings.h_active;
+    hv_in_config.h_backporch = vm_in->timings.h_backporch;
+    hv_in_config2.h_synclen = vm_in->timings.h_synclen;
+    hv_in_config2.v_active = vm_in->timings.v_active;
+    hv_in_config3.v_backporch = vm_in->timings.v_backporch;
+    hv_in_config3.v_synclen = vm_in->timings.v_synclen;
+    hv_in_config2.interlaced = vm_in->timings.interlaced;
 
     // Set output params
-    h_out_config.h_synclen = vm_out->timings.h_synclen;
-    h_out_config.h_backporch = vm_out->timings.h_backporch;
-    h_out_config.h_active = vm_out->timings.h_active;
-    h_out_config.x_rpt = vm_conf->x_rpt;
-    h_out_config2.h_total = vm_out->timings.h_total;
-    h_out_config2.x_offset = vm_conf->x_offset;
-    h_out_config2.x_skip = vm_conf->x_skip;
-    v_out_config.v_synclen = vm_out->timings.v_synclen;
-    v_out_config.v_backporch = vm_out->timings.v_backporch;
-    v_out_config.v_active = vm_out->timings.v_active;
-    v_out_config.y_rpt = vm_conf->y_rpt;
-    v_out_config2.v_total = vm_out->timings.v_total;
-    v_out_config2.v_startline = vm_conf->framesync_line;
-    v_out_config2.y_offset = vm_conf->y_offset;
+    hv_out_config.h_total = vm_out->timings.h_total;
+    hv_out_config.h_active = vm_out->timings.h_active;
+    hv_out_config.h_backporch = vm_out->timings.h_backporch;
+    hv_out_config2.h_synclen = vm_out->timings.h_synclen;
+    hv_out_config2.v_total = vm_out->timings.v_total;
+    hv_out_config2.v_active = vm_out->timings.v_active;
+    hv_out_config3.v_backporch = vm_out->timings.v_backporch;
+    hv_out_config3.v_synclen = vm_out->timings.v_synclen;
+    hv_out_config2.interlaced = vm_out->timings.interlaced;
+    hv_out_config3.v_startline = vm_conf->framesync_line;
 
     xy_out_config.x_size = vm_conf->x_size;
     xy_out_config.y_size = vm_conf->y_size;
-    xy_out_config.y_start_lb = vm_conf->linebuf_startline;
+    xy_out_config.x_offset = vm_conf->x_offset;
+    xy_out_config2.y_offset = vm_conf->y_offset;
+    xy_out_config2.x_start_lb = vm_conf->x_start_lb;
+    xy_out_config2.y_start_lb = vm_conf->y_start_lb;
+    xy_out_config2.x_rpt = vm_conf->x_rpt;
+    xy_out_config2.y_rpt = vm_conf->y_rpt;
+    xy_out_config2.x_skip = vm_conf->x_skip;
 
-    sc->h_in_config = h_in_config;
-    sc->h_in_config2 = h_in_config2;
-    sc->v_in_config = v_in_config;
+    misc_config.mask_br = avconfig->mask_br;
+    misc_config.mask_color = avconfig->mask_color;
+    misc_config.reverse_lpf = avconfig->reverse_lpf;
+    misc_config.lm_deint_mode = avconfig->lm_deint_mode;
+
+    sc->hv_in_config = hv_in_config;
+    sc->hv_in_config2 = hv_in_config2;
+    sc->hv_in_config3 = hv_in_config3;
+    sc->hv_out_config = hv_out_config;
+    sc->hv_out_config2 = hv_out_config2;
+    sc->hv_out_config3 = hv_out_config3;
+    sc->xy_out_config = xy_out_config;
+    sc->xy_out_config2 = xy_out_config2;
     sc->misc_config = misc_config;
     sc->sl_config = sl_config;
     sc->sl_config2 = sl_config2;
-    sc->h_out_config = h_out_config;
-    sc->h_out_config2 = h_out_config2;
-    sc->v_out_config = v_out_config;
-    sc->v_out_config2 = v_out_config2;
-    sc->xy_out_config = xy_out_config;
 }
 
 int init_hw()
@@ -494,7 +502,7 @@ int main()
                 isl_dev.sync_active = 0;
 
                 // send current PLL h_total to isl_frontend for mode detection
-                sc->h_in_config2.h_total = isl_get_pll_htotal(&isl_dev);
+                sc->hv_in_config.h_total = isl_get_pll_htotal(&isl_dev);
 
                 // set some defaults
                 if (target_isl_sync == SYNC_HV)
@@ -523,7 +531,7 @@ int main()
                 else
                     si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, &vmode_out.si_ms_conf);
 
-                update_sc_config(&vmode_in, &vmode_out, &vm_conf);
+                update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
                 sniprintf(row2, US2066_ROW_LEN+1, "%ux%u @ %uHz", vmode_out.timings.h_active, vmode_out.timings.v_active, vmode_out.timings.v_hz);
@@ -548,7 +556,7 @@ int main()
             }
 
             if (isl_dev.sync_active) {
-                if (isl_get_sync_stats(&isl_dev, sc->sc_status.vtotal, sc->sc_status.interlace_flag, sc->sc_status2.pcnt_frame) || (status == MODE_CHANGE)) {
+                if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status2.pcnt_frame) || (status == MODE_CHANGE)) {
 
 #ifdef ISL_MEAS_HZ
                     if (isl_dev.sm.h_period_x16 > 0)
@@ -614,11 +622,13 @@ int main()
                             sys_ctrl |= SCTRL_ISL_VS_POL;
                         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
-                        update_sc_config(&vmode_in, &vmode_out, &vm_conf);
+                        update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
 
                         // Setup VIC and pixel repetition
                         adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
                     }
+                } else if (status == SC_CONFIG_CHANGE) {
+                    update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 }
             } else {
 

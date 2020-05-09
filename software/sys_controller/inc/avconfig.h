@@ -94,6 +94,7 @@ typedef struct {
     uint8_t pm_ad_480p;
     uint8_t pm_ad_576p;
     uint8_t adapt_lm;
+    uint8_t lm_deint_mode;
     uint8_t ar_256col;
     uint8_t h_mask;
     uint8_t v_mask;

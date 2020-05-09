@@ -160,25 +160,30 @@ const ad_mode_data_t adaptive_modes_default[] = { \
     { ADMODE_1080p_50_CR,                {1536,  288,   50,  1872, 0,  314,  150, 19,  136, 3,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_288P,  0, 3,  0, 0,  {3368,   920,  2041,   256, 0, 1,  0, 0, 0} },  \
     { ADMODE_1920x1440_60,               {1920,  288,   50,  2340, 0,  314,  187, 19,  171, 3,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_288P,  0, 4,  0, 0,  {1634,   790,  1413,     0, 0, 1,  0, 0, 3} },  \
 
-    /* Generic 625-line interlace modes */ \
-    { ADMODE_1080p_50_CR,                {1536,  288,   50,  1872, 0,  625,  150, 19,  136, 3,  1},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_576I,  0, 3,  0, 0,  {3387,     1,    13,   256, 0, 1,  0, 0, 0} },  \
-
     /* Generic 525-line interlace modes */ \
+    { ADMODE_240p,                       { 720,  240,   60,   858, 0,  525,   57, 15,   62, 3,  1},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_480I,  0, 0,  0, 0,  {8015,   127,   175,  8032, 0, 4,  0, 0, 0} },  \
     { ADMODE_1280x1024_60,               {1280,  240,   60,  1560, 0,  525,  170, 15,   72, 3,  1},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_480I,  0, 3,  0, 0,  {4128,   608,  2625,   544, 0, 4,  0, 0, 0} },  \
     { ADMODE_1080p_60_LB,                {1280,  240,   60,  1560, 0,  525,  170, 15,   72, 3,  1},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_480I,  0, 3,  0, 0,  {4129,    69,    91,   256, 0, 1,  0, 0, 0} },  \
     { ADMODE_1920x1440_60,               {1920,  240,   60,  2340, 0,  525,  256, 15,  108, 3,  1},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_480I,  0, 5,  0, 0,  {2055,  3277,  4725,     0, 0, 1,  0, 0, 3} },  \
 
+    /* Generic 625-line interlace modes */ \
+    { ADMODE_288p,                       { 720,  288,   50,   864, 0,  625,   69, 19,   63, 3,  1},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_576I,  0, 0,  0, 0,  {8018,   206,   625,  8032, 0, 4,  0, 0, 0} },  \
+    { ADMODE_1080p_50_CR,                {1536,  288,   50,  1872, 0,  625,  150, 19,  136, 3,  1},  DEFAULT_SAMPLER_PHASE,  (VIDEO_SDTV | VIDEO_PC),  GROUP_576I,  0, 3,  0, 0,  {3387,     1,    13,   256, 0, 1,  0, 0, 0} },  \
+
     /* Generic 524-line modes */ \
+    { ADMODE_240p,                       { 720,  480,   60,   858, 0,  524,   60, 30,   62, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0,-1,  0, 0,  {3744,     0,     4,  8000, 0, 2,  0, 0, 0} },  \
     { ADMODE_1280x1024_60,               {1280,  480,   60,  1560, 0,  524,  170, 30,   72, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 1,  0, 0,  {4137,   228,  2620,   544, 0, 4,  1, 0, 0} },  \
     { ADMODE_1080p_60_LB,                {1280,  480,   60,  1560, 0,  524,  170, 30,   72, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 1,  0, 0,  {4138,  1050,  1703,   256, 0, 1,  1, 0, 0} },  \
     { ADMODE_1920x1440_60,               {1920,  480,   60,  2340, 0,  524,  256, 30,  108, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 2,  0, 0,  {2060,   700,  1179,     0, 0, 1,  1, 0, 3} },  \
 
     /* Generic 525-line modes */ \
+    { ADMODE_240p,                       { 720,  480,   60,   858, 0,  525,   60, 30,   62, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0,-1,  0, 0,  {3751,   302,   350,  8032, 0, 4,  0, 0, 0} },  \
     { ADMODE_1280x1024_60,               {1280,  480,   60,  1560, 0,  525,  170, 30,   72, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 1,  0, 0,  {4128,   608,  2625,   544, 0, 4,  1, 0, 0} },  \
     { ADMODE_1080p_60_LB,                {1280,  480,   60,  1560, 0,  525,  170, 30,   72, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 1,  0, 0,  {4129,    69,    91,   256, 0, 1,  1, 0, 0} },  \
     { ADMODE_1920x1440_60,               {1920,  480,   60,  2340, 0,  525,  256, 30,  108, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 2,  0, 0,  {2055,  3277,  4725,     0, 0, 1,  1, 0, 3} },  \
 
     /* Generic 526-line modes */ \
+    { ADMODE_240p,                       { 720,  480,   60,   858, 0,  526,   60, 30,   62, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0,-1,  0, 0,  {3743,   796,  1052,  8032, 0, 4,  0, 0, 0} },  \
     { ADMODE_1280x1024_60,               {1280,  480,   60,  1560, 0,  526,  170, 30,   72, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 1,  0, 0,  {4119,  1078,  2630,   544, 0, 4,  1, 0, 0} },  \
     { ADMODE_1080p_60_LB,                {1280,  480,   60,  1560, 0,  526,  170, 30,   72, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 1,  0, 0,  {4120,  3192,  3419,   256, 0, 1,  1, 0, 0} },  \
     { ADMODE_1920x1440_60,               {1920,  480,   60,  2340, 0,  526,  256, 30,  108, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 2,  0, 0,  {2050,  1922,  2367,     0, 0, 1,  1, 0, 3} },  \
@@ -253,7 +258,7 @@ int get_adaptive_mode(uint16_t totlines, uint8_t interlaced, uint16_t hz_x100, v
     int i;
     ad_mode_id_t target_ad_id;
     int32_t v_linediff;
-    uint32_t interlace_mult;
+    uint32_t interlace_mult, vtotal_ref;
     uint8_t target_v_hz = (hz_x100+50)/100;
     unsigned num_modes = sizeof(adaptive_modes)/sizeof(ad_mode_data_t);
     avconfig_t* cc = get_current_avconfig();
@@ -262,10 +267,10 @@ int get_adaptive_mode(uint16_t totlines, uint8_t interlaced, uint16_t hz_x100, v
 
     const ad_mode_id_t pm_ad_240p_map[] = {-1, ADMODE_480p, ADMODE_720p_60, ADMODE_1280x1024_60, ADMODE_1080p_60_LB, ADMODE_1080p_60_CR, ADMODE_1600x1200_60, ADMODE_1920x1200_60, ADMODE_1920x1440_60};
     const ad_mode_id_t pm_ad_288p_map[] = {-1, ADMODE_576p, ADMODE_1080p_50_CR, ADMODE_1920x1440_60};
-    const ad_mode_id_t pm_ad_480i_map[] = {-1, ADMODE_1280x1024_60, ADMODE_1080p_60_LB, ADMODE_1920x1440_60};
-    const ad_mode_id_t pm_ad_576i_map[] = {-1, ADMODE_1080p_50_CR};
-    const ad_mode_id_t pm_ad_480p_map[] = {-1, ADMODE_1280x1024_60, ADMODE_1080p_60_LB, ADMODE_1920x1440_60};
-    const ad_mode_id_t pm_ad_576p_map[] = {-1, ADMODE_1080p_50_CR, ADMODE_1920x1440_60};
+    const ad_mode_id_t pm_ad_480i_map[] = {-1, ADMODE_240p, ADMODE_1280x1024_60, ADMODE_1080p_60_LB, ADMODE_1920x1440_60};
+    const ad_mode_id_t pm_ad_576i_map[] = {-1, ADMODE_288p, ADMODE_1080p_50_CR};
+    const ad_mode_id_t pm_ad_480p_map[] = {-1, ADMODE_240p, ADMODE_1280x1024_60, ADMODE_1080p_60_LB, ADMODE_1920x1440_60};
+    const ad_mode_id_t pm_ad_576p_map[] = {-1, ADMODE_288p, ADMODE_1080p_50_CR};
 
     if (!cc->adapt_lm)
         return -1;
@@ -306,27 +311,35 @@ int get_adaptive_mode(uint16_t totlines, uint8_t interlaced, uint16_t hz_x100, v
 
             vm_conf->y_rpt = adaptive_modes[i].y_rpt;
             vm_conf->x_offset = ((vm_out->timings.h_active-vm_in->timings.h_active)/2) + adaptive_modes[i].x_offset_i;
+            vm_conf->x_start_lb = (vm_conf->x_offset >= 0) ? 0 : (-vm_conf->x_offset / (adaptive_modes[i].x_rpt+1));
             vm_conf->x_size = vm_in->timings.h_active;
-            vm_conf->linebuf_startline = ((vm_in->timings.v_active - (vm_out->timings.v_active/(adaptive_modes[i].y_rpt+1)))/2) + adaptive_modes[i].y_offset_i;
-            vm_conf->y_offset = -(adaptive_modes[i].y_rpt+1)*vm_conf->linebuf_startline;
-            vm_conf->y_size = vm_in->timings.v_active*(adaptive_modes[i].y_rpt+1);
+            if (adaptive_modes[i].y_rpt == (uint8_t)(-1)) {
+                vm_conf->y_start_lb = ((vm_in->timings.v_active - (vm_out->timings.v_active*2))/2) + adaptive_modes[i].y_offset_i*2;
+                vm_conf->y_offset = -vm_conf->y_start_lb/2;
+                vm_conf->y_size = vm_in->timings.v_active/2;
+            } else {
+                vm_conf->y_start_lb = ((vm_in->timings.v_active - (vm_out->timings.v_active/(adaptive_modes[i].y_rpt+1)))/2) + adaptive_modes[i].y_offset_i;
+                vm_conf->y_offset = -(adaptive_modes[i].y_rpt+1)*vm_conf->y_start_lb;
+                vm_conf->y_size = vm_in->timings.v_active*(adaptive_modes[i].y_rpt+1);
+            }
 
             vm_out->si_pclk_mult = 0;
             memcpy(&vm_out->si_ms_conf, &adaptive_modes[i].si_ms_conf, sizeof(si5351_ms_config_t));
 
             // calculate the time (in output lines, rounded up) from source frame start to the point where first to-be-visible line has been written into linebuf
-            v_linediff = (((vm_in->timings.v_synclen + vm_in->timings.v_backporch + ((vm_conf->linebuf_startline < 0) ? 0 : vm_conf->linebuf_startline) + 1) * vm_out->timings.v_total * interlace_mult) / vm_in->timings.v_total) + 1;
+            v_linediff = (((vm_in->timings.v_synclen + vm_in->timings.v_backporch + ((vm_conf->y_start_lb < 0) ? 0 : vm_conf->y_start_lb) + 1) * vm_out->timings.v_total * interlace_mult) / vm_in->timings.v_total) + 1;
 
             // subtract the previous value from the total number of output blanking/empty lines. Resulting value indicates how many lines output framestart must be offset
             v_linediff = (vm_out->timings.v_synclen + vm_out->timings.v_backporch + ((vm_conf->y_offset < 0) ? 0 : vm_conf->y_offset)) - v_linediff;
 
             // if linebuf is read faster than written, output framestart must be delayed accordingly to avoid read pointer catching write pointer
-            if (vm_out->timings.v_total * interlace_mult > vm_in->timings.v_total*(adaptive_modes[i].y_rpt+1))
+            vtotal_ref = (adaptive_modes[i].y_rpt == (uint8_t)(-1)) ? (vm_in->timings.v_total/2) : (vm_in->timings.v_total*(adaptive_modes[i].y_rpt+1));
+            if (vm_out->timings.v_total * interlace_mult > vtotal_ref)
                 v_linediff -= (((vm_in->timings.v_active * vm_out->timings.v_total * interlace_mult) / vm_in->timings.v_total) - vm_conf->y_size);
 
             vm_conf->framesync_line = (v_linediff < 0) ? vm_out->timings.v_total+v_linediff : v_linediff;
 
-            printf("framesync_line = %u (linebuf_startline: %d, y_offset: %d, y_size: %u)\n", vm_conf->framesync_line, vm_conf->linebuf_startline, vm_conf->y_offset, vm_conf->y_size);
+            printf("framesync_line = %u (y_start_lb: %d, y_offset: %d, y_size: %u)\n", vm_conf->framesync_line, vm_conf->y_start_lb, vm_conf->y_offset, vm_conf->y_size);
 
             return i;
         }
@@ -433,7 +446,8 @@ int get_mode_id(uint16_t totlines, uint8_t interlaced, uint16_t hz_x100, video_t
             vm_conf->y_offset = 0;
             vm_conf->x_size = 0;
             vm_conf->y_size = 0;
-            vm_conf->linebuf_startline = 0;
+            vm_conf->x_start_lb = 0;
+            vm_conf->y_start_lb = 0;
 
             vm_out->si_pclk_mult = 1;
             vm_out->tx_pixelrep = TX_1X;

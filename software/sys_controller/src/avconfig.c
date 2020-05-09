@@ -37,10 +37,10 @@ const avconfig_t tc_default = {
     .pm_1080i = 1,
     .pm_ad_240p = 2,
     .pm_ad_288p = 2,
-    .pm_ad_480i = 2,
-    .pm_ad_576i = 1,
-    .pm_ad_480p = 2,
-    .pm_ad_576p = 1,
+    .pm_ad_480i = 3,
+    .pm_ad_576i = 2,
+    .pm_ad_480p = 3,
+    .pm_ad_576p = 2,
     .sl_altern = 1,
     .adapt_lm = 1,
 };
@@ -74,6 +74,12 @@ int set_default_avconfig(int update_cc)
 
 status_t update_avconfig() {
     status_t status = NO_CHANGE;
+
+    if ((tc.mask_br != cc.mask_br) ||
+        (tc.mask_color != cc.mask_color) ||
+        (tc.reverse_lpf != cc.reverse_lpf) ||
+        (tc.lm_deint_mode != cc.lm_deint_mode))
+        status = (status < SC_CONFIG_CHANGE) ? SC_CONFIG_CHANGE : status;
 
     if ((tc.pm_240p != cc.pm_240p) ||
         (tc.pm_384p != cc.pm_384p) ||

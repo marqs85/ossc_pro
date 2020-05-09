@@ -28,14 +28,15 @@ module scanconverter (
     input VSYNC_i,
     input DE_i,
     input FID_i,
+    input interlaced_in_i,
     input frame_change_i,
     input [10:0] xpos_i,
     input [10:0] ypos_i,
-    input [31:0] h_out_config,
-    input [31:0] h_out_config2,
-    input [31:0] v_out_config,
-    input [31:0] v_out_config2,
+    input [31:0] hv_out_config,
+    input [31:0] hv_out_config2,
+    input [31:0] hv_out_config3,
     input [31:0] xy_out_config,
+    input [31:0] xy_out_config2,
     input [31:0] misc_config,
     input [31:0] sl_config,
     input [31:0] sl_config2,
@@ -54,6 +55,9 @@ module scanconverter (
 
 localparam NUM_LINE_BUFFERS = 20;
 
+localparam FID_EVEN = 1'b0;
+localparam FID_ODD = 1'b1;
+
 localparam PP_PL_START          = 1;
 localparam PP_LINEBUF_START     = PP_PL_START + 1;
 localparam PP_LINEBUF_LENGTH    = 1;
@@ -63,38 +67,50 @@ localparam PP_SLGEN_LENGTH      = 1;
 localparam PP_SLGEN_END         = PP_SLGEN_START + PP_SLGEN_LENGTH;
 localparam PP_PL_END            = PP_SLGEN_END;
 
-wire [11:0] H_TOTAL = h_out_config2[11:0];
-wire [10:0] H_ACTIVE = h_out_config[10:0];
-wire [8:0] H_BACKPORCH = h_out_config[19:11];
-wire [8:0] H_SYNCLEN = h_out_config[28:20];
+wire [11:0] H_TOTAL = hv_out_config[11:0];
+wire [10:0] H_ACTIVE = hv_out_config[22:12];
+wire [8:0] H_BACKPORCH = hv_out_config[31:23];
+wire [8:0] H_SYNCLEN = hv_out_config2[8:0];
 
-wire [10:0] V_TOTAL = v_out_config2[10:0];
-wire [10:0] V_ACTIVE = v_out_config[10:0];
-wire [8:0] V_BACKPORCH = v_out_config[19:11];
-wire [4:0] V_SYNCLEN = v_out_config[24:20];
+wire [10:0] V_TOTAL = hv_out_config2[19:9];
+wire [10:0] V_ACTIVE = hv_out_config2[30:20];
+wire [8:0] V_BACKPORCH = hv_out_config3[8:0];
+wire [4:0] V_SYNCLEN = hv_out_config3[13:9];
 
-wire [10:0] V_STARTLINE = v_out_config2[21:11];
+wire [10:0] V_STARTLINE = hv_out_config3[24:14];
 
 wire [10:0] V_STARTLINE_PREV = (V_STARTLINE == 0) ? (V_TOTAL-1) : (V_STARTLINE-1);
 
 wire [10:0] X_SIZE = xy_out_config[10:0];
 wire [10:0] Y_SIZE = xy_out_config[21:11];
-wire signed [9:0] X_OFFSET = h_out_config2[21:12];
-wire signed [8:0] Y_OFFSET = v_out_config2[30:22];
+wire signed [9:0] X_OFFSET = xy_out_config[31:22];
+wire signed [8:0] Y_OFFSET = xy_out_config2[8:0];
 
-wire [7:0] X_START_LB = 0; //fix
-wire signed [5:0] Y_START_LB = xy_out_config[27:22];
+wire [7:0] X_START_LB = xy_out_config2[16:9];
+wire signed [5:0] Y_START_LB = xy_out_config2[22:17];
 
-wire [2:0] X_RPT = h_out_config[31:29];
-wire [2:0] Y_RPT = v_out_config[27:25];
+wire [2:0] X_RPT = xy_out_config2[25:23];
+wire [2:0] Y_RPT = xy_out_config2[28:26];
 
-wire [2:0] X_SKIP = h_out_config2[24:22];
+wire [2:0] X_SKIP = xy_out_config2[31:29];
+wire [1:0] Y_SKIP = (Y_RPT == 3'(-1)) ? 2'h1 : 2'h0;
+
+wire [2:0] X_STEP = X_SKIP+1'b1;
+wire [1:0] Y_STEP = Y_SKIP+1'b1;
+
+wire [3:0] MISC_MASK_BR = misc_config[3:0];
+wire [2:0] MISC_MASK_COLOR = misc_config[6:4];
+wire [5:0] MISC_REV_LPF_STR = (misc_config[11:7] + 6'd16);
+wire MISC_REV_LPF_ENABLE = (misc_config[11:7] != 5'h0);
+wire MISC_LM_DEINT_MODE = misc_config[12];
+
 
 reg frame_change_sync1_reg, frame_change_sync2_reg, frame_change_prev;
 wire frame_change = frame_change_sync2_reg;
 
 reg [11:0] h_cnt;
 reg [10:0] v_cnt;
+reg src_fid;
 
 reg [10:0] xpos_lb;
 reg [10:0] ypos_lb;
@@ -167,11 +183,13 @@ always @(posedge PCLK_OUT_i) begin
     if (~frame_change_prev & frame_change & ((v_cnt != V_STARTLINE_PREV) & (v_cnt != V_STARTLINE))) begin
         h_cnt <= 0;
         v_cnt <= V_STARTLINE;
+        src_fid <= (~interlaced_in_i | (V_STARTLINE < V_TOTAL)) ? FID_ODD : FID_EVEN;
         resync_strobe <= 1'b1;
     end else begin
         if (h_cnt == H_TOTAL-1) begin
             if (v_cnt == V_TOTAL-1) begin
                 v_cnt <= 0;
+                src_fid <= interlaced_in_i ? (src_fid ^ 1'b1) : FID_ODD;
                 resync_strobe <= 1'b0;
             end else begin
                 v_cnt <= v_cnt + 1'b1;
@@ -203,18 +221,18 @@ always @(posedge PCLK_OUT_i) begin
         if (v_cnt == V_SYNCLEN+V_BACKPORCH) begin
             ypos_pp[1] <= 0;
             ypos_lb <= Y_START_LB;
-            y_ctr <= 0;
+            y_ctr <= (~MISC_LM_DEINT_MODE & (src_fid == FID_EVEN)) ? ((Y_RPT+1'b1) >> 1) : 0;
             xpos_lb_start <= (X_OFFSET < 10'sd0) ? 11'd0 : {1'b0, X_OFFSET};
         end else begin
             if (ypos_pp[1] < V_ACTIVE) begin
                 ypos_pp[1] <= ypos_pp[1] + 1'b1;
             end
 
-            if (y_ctr == Y_RPT) begin
-                if (ypos_lb == NUM_LINE_BUFFERS-1)
+            if ((y_ctr == Y_RPT) | Y_SKIP) begin
+                if (ypos_lb == NUM_LINE_BUFFERS-Y_STEP)
                     ypos_lb <= 0;
                 else
-                    ypos_lb <= ypos_lb + 1'b1;
+                    ypos_lb <= ypos_lb + Y_STEP;
                 y_ctr <= 0;
             end else begin
                 y_ctr <= y_ctr + 1'b1;
@@ -230,7 +248,7 @@ always @(posedge PCLK_OUT_i) begin
 
         if (xpos_pp[1] >= xpos_lb_start) begin
             if (x_ctr == X_RPT) begin
-                xpos_lb <= xpos_lb + 1'b1 + X_SKIP;
+                xpos_lb <= xpos_lb + X_STEP;
                 x_ctr <= 0;
             end else begin
                 x_ctr <= x_ctr + 1'b1;

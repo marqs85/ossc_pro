@@ -27,22 +27,18 @@ typedef union {
     struct {
         uint16_t vtotal:11;
         uint8_t interlace_flag:1;
-        uint8_t sc_rsv2:4;
-        uint8_t fpga_vsyncgen:2;
-        uint16_t vmax_tvp:11;
-        uint8_t sc_rsv:2;
-        uint8_t vsync_flag:1;
+        uint32_t fe_rsv:20;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
-} sc_status_reg;
+} fe_status_reg;
 
 typedef union {
     struct {
         uint32_t pcnt_frame:20;
-        uint16_t sc_rsv:12;
+        uint16_t fe_rsv:12;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
-} sc_status2_reg;
+} fe_status2_reg;
 
 typedef union {
     struct {
@@ -56,36 +52,60 @@ typedef union {
 
 typedef union {
     struct {
+        uint16_t h_total:12;
         uint16_t h_active:11;
         uint16_t h_backporch:9;
-        uint8_t h_synclen:8;
-        uint8_t h_rsv:4;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
-} h_in_config_reg;
+} hv_config_reg;
 
 typedef union {
     struct {
-        uint16_t h_total:12;
-        uint32_t h_rsv:20;
-    } __attribute__((packed, __may_alias__));
-    uint32_t data;
-} h_in_config2_reg;
-
-typedef union {
-    struct {
+        uint16_t h_synclen:9;
+        uint16_t v_total:11;
         uint16_t v_active:11;
-        uint8_t v_backporch:6;
-        uint8_t v_synclen:3;
-        uint16_t v_rsv:12;
+        uint8_t interlaced:1;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
-} v_in_config_reg;
+} hv_config2_reg;
+
+typedef union {
+    struct {
+        uint16_t v_backporch:9;
+        uint8_t v_synclen:5;
+        uint16_t v_startline:11;
+        uint8_t hv_rsv:7;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} hv_config3_reg;
+
+typedef union {
+    struct {
+        uint16_t x_size:11;
+        uint16_t y_size:11;
+        int16_t x_offset:10;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} xy_config_reg;
+
+typedef union {
+    struct {
+        int16_t y_offset:9;
+        uint8_t x_start_lb:8;
+        int8_t y_start_lb:6;
+        uint8_t x_rpt:3;
+        uint8_t y_rpt:3;
+        uint16_t x_skip:3;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} xy_config2_reg;
 
 typedef union {
     struct {
         uint8_t mask_br:4;
-        uint8_t rev_lpf_str:5;
+        uint8_t mask_color:3;
+        uint8_t reverse_lpf:5;
+        uint8_t lm_deint_mode:1;
         uint32_t misc_rsv:23;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
@@ -106,78 +126,27 @@ typedef union {
     struct {
         uint32_t sl_c_str_arr:24;
         uint8_t sl_c_overlay:6;
-        uint8_t sl_rsv:1;
         uint8_t sl_altiv:1;
+        uint8_t sl_rsv:1;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } sl_config2_reg;
 
-typedef union {
-    struct {
-        uint16_t h_active:11;
-        uint16_t h_backporch:9;
-        uint16_t h_synclen:9;
-        uint8_t x_rpt:3;
-    } __attribute__((packed, __may_alias__));
-    uint32_t data;
-} h_out_config_reg;
-
-typedef union {
-    struct {
-        uint16_t h_total:12;
-        int16_t x_offset:10;
-        uint16_t x_skip:3;
-        uint32_t h_rsv:7;
-    } __attribute__((packed, __may_alias__));
-    uint32_t data;
-} h_out_config2_reg;
-
-typedef union {
-    struct {
-        uint16_t v_active:11;
-        uint16_t v_backporch:9;
-        uint8_t v_synclen:5;
-        uint8_t y_rpt:3;
-        uint8_t v_rsv:4;
-    } __attribute__((packed, __may_alias__));
-    uint32_t data;
-} v_out_config_reg;
-
-typedef union {
-    struct {
-        uint16_t v_total:11;
-        uint16_t v_startline:11;
-        int16_t y_offset:9;
-        uint8_t v_rsv:1;
-    } __attribute__((packed, __may_alias__));
-    uint32_t data;
-} v_out_config2_reg;
-
-typedef union {
-    struct {
-        uint16_t x_size:11;
-        uint16_t y_size:11;
-        int8_t y_start_lb:6;
-        uint8_t xy_rsv:4;
-    } __attribute__((packed, __may_alias__));
-    uint32_t data;
-} xy_out_config_reg;
-
 typedef struct {
-    sc_status_reg sc_status;
-    sc_status2_reg sc_status2;
+    fe_status_reg fe_status;
+    fe_status2_reg fe_status2;
     lt_status_reg lt_status;
-    h_in_config_reg h_in_config;
-    h_in_config2_reg h_in_config2;
-    v_in_config_reg v_in_config;
+    hv_config_reg hv_in_config;
+    hv_config2_reg hv_in_config2;
+    hv_config3_reg hv_in_config3;
+    hv_config_reg hv_out_config;
+    hv_config2_reg hv_out_config2;
+    hv_config3_reg hv_out_config3;
+    xy_config_reg xy_out_config;
+    xy_config2_reg xy_out_config2;
     misc_config_reg misc_config;
     sl_config_reg sl_config;
     sl_config2_reg sl_config2;
-    h_out_config_reg h_out_config;
-    h_out_config2_reg h_out_config2;
-    v_out_config_reg v_out_config;
-    v_out_config2_reg v_out_config2;
-    xy_out_config_reg xy_out_config;
 } __attribute__((packed, __may_alias__)) sc_regs;
 
 #endif //SC_CONFIG_REGS_H_
