@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include "sysconfig.h"
+#include "av_controller.h"
 #include "isl51002.h"
 #include "adv7513.h"
 #ifndef DExx_FW
@@ -108,6 +109,7 @@ typedef struct {
     uint8_t stc_lpf;
     uint8_t full_tx_setup;
     uint8_t audmux_sel;
+    audinput_t audio_src_map[4];
     uint8_t reverse_lpf;
     uint8_t default_vic;
     isl51002_config isl_cfg __attribute__ ((aligned (4)));

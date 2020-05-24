@@ -43,6 +43,7 @@ const avconfig_t tc_default = {
     .pm_ad_576p = 2,
     .sl_altern = 1,
     .adapt_lm = 1,
+    .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL},
 };
 
 int reset_target_avconfig() {
@@ -78,7 +79,8 @@ status_t update_avconfig() {
     if ((tc.mask_br != cc.mask_br) ||
         (tc.mask_color != cc.mask_color) ||
         (tc.reverse_lpf != cc.reverse_lpf) ||
-        (tc.lm_deint_mode != cc.lm_deint_mode))
+        (tc.lm_deint_mode != cc.lm_deint_mode) ||
+        (tc.ypbpr_cs != cc.ypbpr_cs))
         status = (status < SC_CONFIG_CHANGE) ? SC_CONFIG_CHANGE : status;
 
     if ((tc.pm_240p != cc.pm_240p) ||
@@ -105,6 +107,8 @@ status_t update_avconfig() {
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)
         switch_audmux(tc.audmux_sel);
+    if (memcmp(tc.audio_src_map, cc.audio_src_map, 4*sizeof(audinput_t)))
+        switch_audsrc(tc.audio_src_map, &tc.adv7513_cfg.audio_fmt);
 #endif
 
     memcpy(&cc, &tc, sizeof(avconfig_t));

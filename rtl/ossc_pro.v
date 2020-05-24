@@ -119,6 +119,7 @@ wire isl_vs_pol = sys_ctrl[6];
 wire isl_vs_type = sys_ctrl[7];
 wire audmux_sel = sys_ctrl[8];
 wire testpattern_enable = sys_ctrl[9];
+wire csc_enable = sys_ctrl[10];
 
 //reg [1:0] clk_osc_div = 2'h0;
 
@@ -229,6 +230,8 @@ isl51002_frontend u_isl_frontend (
     .FID_i(ISL_FID),
     .vs_type(isl_vs_type),
     .vs_polarity(isl_vs_pol),
+    .csc_enable(csc_enable),
+    .csc_cs(misc_config[13]),
     .hv_in_config(hv_in_config),
     .hv_in_config2(hv_in_config2),
     .hv_in_config3(hv_in_config3),

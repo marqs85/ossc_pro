@@ -187,6 +187,10 @@ const ad_mode_data_t adaptive_modes_default[] = { \
     { ADMODE_1280x1024_60,               {1280,  480,   60,  1560, 0,  526,  170, 30,   72, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 1,  0, 0,  {4119,  1078,  2630,   544, 0, 4,  1, 0, 0} },  \
     { ADMODE_1080p_60_LB,                {1280,  480,   60,  1560, 0,  526,  170, 30,   72, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 1,  0, 0,  {4120,  3192,  3419,   256, 0, 1,  1, 0, 0} },  \
     { ADMODE_1920x1440_60,               {1920,  480,   60,  2340, 0,  526,  256, 30,  108, 6,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_480P,  0, 2,  0, 0,  {2050,  1922,  2367,     0, 0, 1,  1, 0, 3} },  \
+
+    /* Generic 625-line modes */ \
+    { ADMODE_288p,                       { 720,  576,   50,   864, 0,  625,   68, 39,   64, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_576P,  0,-1,  0, 0,  {3753,   103,   625,  8032, 0, 4,  0, 0, 0} },  \
+    { ADMODE_1080p_50_CR,                {1536,  576,   50,  1872, 0,  625,  150, 39,  136, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_EDTV | VIDEO_PC),  GROUP_576P,  0, 1,  0, 0,  {3387,     1,    13,   256, 0, 1,  1, 0, 0} },  \
 };
 
 const stdmode_t ad_mode_id_map[] = {STDMODE_240p,

@@ -34,6 +34,7 @@
 #define SCTRL_ISL_VS_TYPE     (1<<7)
 #define SCTRL_AUDMUX_SEL      (1<<8)
 #define SCTRL_VGTP_ENABLE     (1<<9)
+#define SCTRL_CSC_ENABLE      (1<<10)
 
 // sys_status
 #define SSTAT_RC_MASK   0x0000ffff
@@ -61,11 +62,21 @@ typedef enum {
     AV_LAST         = 14
 } avinput_t;
 
+typedef enum {
+    AUD_AV1_ANALOG  = 0,
+    AUD_AV2_ANALOG  = 1,
+    AUD_AV3_ANALOG  = 2,
+    AUD_SPDIF       = 3,
+    AUD_AV4_DIGITAL = 4,
+} audinput_t;
+
 void chardisp_write_status();
 
 void switch_input(rc_code_t code, btn_vec_t pb_vec);
 
 void switch_audmux(uint8_t audmux_sel);
+
+void switch_audsrc(audinput_t *audsrc_map, adv7513_audio_fmt_t *aud_tx_fmt);
 
 void switch_tp_mode(rc_code_t code);
 

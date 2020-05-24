@@ -43,7 +43,7 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 36
+#define FW_VER_MINOR 37
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x7a
@@ -196,6 +196,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     misc_config.mask_color = avconfig->mask_color;
     misc_config.reverse_lpf = avconfig->reverse_lpf;
     misc_config.lm_deint_mode = avconfig->lm_deint_mode;
+    misc_config.ypbpr_cs = avconfig->ypbpr_cs;
 
     sc->hv_in_config = hv_in_config;
     sc->hv_in_config2 = hv_in_config2;
@@ -347,6 +348,24 @@ void switch_audmux(uint8_t audmux_sel) {
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 }
 
+void switch_audsrc(audinput_t *audsrc_map, adv7513_audio_fmt_t *aud_tx_fmt) {
+    uint8_t audsrc;
+
+    if (avinput <= AV1_RGBCS)
+        audsrc = audsrc_map[0];
+    else if (avinput <= AV2_RGsB)
+        audsrc = audsrc_map[1];
+    else if (avinput <= AV3_YPbPr)
+        audsrc = audsrc_map[2];
+    else
+        audsrc = audsrc_map[3];
+
+    if (audsrc <= AUD_AV3_ANALOG)
+        pcm186x_source_sel(&pcm_dev, audsrc);
+
+    *aud_tx_fmt = (audsrc == AUD_SPDIF) ? ADV_AUDIO_SPDIF : ADV_AUDIO_I2S;
+}
+
 void switch_tp_mode(rc_code_t code) {
     if (code == RC_LEFT)
         target_tp_stdmode_idx--;
@@ -494,10 +513,9 @@ int main()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE);
+            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE);
 
             if (enable_isl) {
-                pcm186x_source_sel(&pcm_dev, target_isl_input);
                 isl_source_sel(&isl_dev, target_isl_input, target_isl_sync, target_format);
                 isl_dev.sync_active = 0;
 
@@ -507,12 +525,16 @@ int main()
                 // set some defaults
                 if (target_isl_sync == SYNC_HV)
                     sys_ctrl |= SCTRL_ISL_VS_TYPE;
+                if (target_format == FORMAT_YPbPr)
+                    sys_ctrl |= SCTRL_CSC_ENABLE;
             } else if (enable_hdmirx) {
                 advrx_dev.sync_active = 0;
                 sys_ctrl |= SCTRL_CAPTURE_SEL;
             } else if (enable_tp) {
                 sys_ctrl |= SCTRL_VGTP_ENABLE;
             }
+
+            switch_audsrc(cur_avconfig->audio_src_map, &cur_avconfig->adv7513_cfg.audio_fmt);
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
