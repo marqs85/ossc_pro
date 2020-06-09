@@ -110,12 +110,13 @@ typedef enum {
     STDMODE_720p_50      = 30,
     STDMODE_720p_60      = 31,
     STDMODE_1280x1024_60 = 34,
-    STDMODE_1080i_60     = 36,
-    STDMODE_1080p_50     = 37,
-    STDMODE_1080p_60     = 38,
-    STDMODE_1600x1200_60 = 39,
-    STDMODE_1920x1200_60 = 40,
-    STDMODE_1920x1440_60 = 41
+    STDMODE_1080i_50     = 36,
+    STDMODE_1080i_60     = 37,
+    STDMODE_1080p_50     = 38,
+    STDMODE_1080p_60     = 39,
+    STDMODE_1600x1200_60 = 40,
+    STDMODE_1920x1200_60 = 41,
+    STDMODE_1920x1440_60 = 42
 } stdmode_t;
 
 typedef enum {
@@ -125,6 +126,8 @@ typedef enum {
     ADMODE_576p,
     ADMODE_720p_60,
     ADMODE_1280x1024_60,
+    ADMODE_1080i_50_CR,
+    ADMODE_1080i_60_LB,
     ADMODE_1080p_50_CR,
     ADMODE_1080p_60_LB,
     ADMODE_1080p_60_CR,

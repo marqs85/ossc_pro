@@ -72,7 +72,8 @@ wire [10:0] H_ACTIVE = hv_out_config[22:12];
 wire [8:0] H_BACKPORCH = hv_out_config[31:23];
 wire [8:0] H_SYNCLEN = hv_out_config2[8:0];
 
-wire [10:0] V_TOTAL = hv_out_config2[19:9];
+wire V_INTERLACED = hv_out_config2[31];
+wire [10:0] V_TOTAL = hv_out_config2[19:9] >> V_INTERLACED;
 wire [10:0] V_ACTIVE = hv_out_config2[30:20];
 wire [8:0] V_BACKPORCH = hv_out_config3[8:0];
 wire [4:0] V_SYNCLEN = hv_out_config3[13:9];
@@ -110,7 +111,7 @@ wire frame_change = frame_change_sync2_reg;
 
 reg [11:0] h_cnt;
 reg [10:0] v_cnt;
-reg src_fid;
+reg src_fid, dst_fid;
 
 reg [10:0] xpos_lb;
 reg [10:0] ypos_lb;
@@ -183,13 +184,18 @@ always @(posedge PCLK_OUT_i) begin
     if (~frame_change_prev & frame_change & ((v_cnt != V_STARTLINE_PREV) & (v_cnt != V_STARTLINE))) begin
         h_cnt <= 0;
         v_cnt <= V_STARTLINE;
-        src_fid <= (~interlaced_in_i | (V_STARTLINE < V_TOTAL)) ? FID_ODD : FID_EVEN;
+        src_fid <= (~interlaced_in_i | (V_STARTLINE < (V_TOTAL/2))) ? FID_ODD : FID_EVEN;
+        dst_fid <= (~V_INTERLACED | (V_STARTLINE < (V_TOTAL/2))) ? FID_ODD : FID_EVEN;
         resync_strobe <= 1'b1;
     end else begin
         if (h_cnt == H_TOTAL-1) begin
-            if (v_cnt == V_TOTAL-1) begin
+            if ((~V_INTERLACED & (v_cnt == V_TOTAL-1)) |
+                (V_INTERLACED & (dst_fid == FID_ODD) & (v_cnt == V_TOTAL)) |
+                (V_INTERLACED & (dst_fid == FID_EVEN) & (v_cnt == V_TOTAL-1)))
+            begin
                 v_cnt <= 0;
                 src_fid <= interlaced_in_i ? (src_fid ^ 1'b1) : FID_ODD;
+                dst_fid <= V_INTERLACED ? (dst_fid ^ 1'b1) : FID_ODD;
                 resync_strobe <= 1'b0;
             end else begin
                 v_cnt <= v_cnt + 1'b1;
@@ -214,14 +220,27 @@ end
 // Pipeline stage 0
 always @(posedge PCLK_OUT_i) begin
     HSYNC_pp[1] <= (h_cnt < H_SYNCLEN) ? 1'b0 : 1'b1;
-    VSYNC_pp[1] <= (v_cnt < V_SYNCLEN) ? 1'b0 : 1'b1;
+    if (V_INTERLACED) begin
+        if (dst_fid == FID_ODD)
+            VSYNC_pp[1] <= ((v_cnt < V_SYNCLEN) | ((v_cnt == V_TOTAL) & (h_cnt >= (H_TOTAL/2)))) ? 1'b0 : 1'b1;
+        else
+            VSYNC_pp[1] <= ((v_cnt < V_SYNCLEN-1) | ((v_cnt == V_SYNCLEN) & (h_cnt < (H_TOTAL/2)))) ? 1'b0 : 1'b1;
+    end else begin
+        VSYNC_pp[1] <= (v_cnt < V_SYNCLEN) ? 1'b0 : 1'b1;
+    end
     DE_pp[1] <= (h_cnt >= H_SYNCLEN+H_BACKPORCH) & (h_cnt < H_SYNCLEN+H_BACKPORCH+H_ACTIVE) & (v_cnt >= V_SYNCLEN+V_BACKPORCH) & (v_cnt < V_SYNCLEN+V_BACKPORCH+V_ACTIVE);
 
     if (h_cnt == H_SYNCLEN+H_BACKPORCH) begin
         if (v_cnt == V_SYNCLEN+V_BACKPORCH) begin
             ypos_pp[1] <= 0;
-            ypos_lb <= Y_START_LB;
-            y_ctr <= (~MISC_LM_DEINT_MODE & (src_fid == FID_EVEN)) ? ((Y_RPT+1'b1) >> 1) : 0;
+            // Bob deinterlace adjusts linebuf start position and y_ctr on even fields
+            if (~MISC_LM_DEINT_MODE & ~V_INTERLACED & (src_fid == FID_EVEN)) begin
+                ypos_lb <= Y_START_LB - 1'b1;
+                y_ctr <= ((Y_RPT+1'b1) >> 1);
+            end else begin
+                ypos_lb <= (Y_SKIP & (dst_fid == FID_EVEN)) ? (Y_START_LB + 1) : Y_START_LB;
+                y_ctr <= 0;
+            end
             xpos_lb_start <= (X_OFFSET < 10'sd0) ? 11'd0 : {1'b0, X_OFFSET};
         end else begin
             if (ypos_pp[1] < V_ACTIVE) begin
@@ -229,8 +248,8 @@ always @(posedge PCLK_OUT_i) begin
             end
 
             if ((y_ctr == Y_RPT) | Y_SKIP) begin
-                if (ypos_lb == NUM_LINE_BUFFERS-Y_STEP)
-                    ypos_lb <= 0;
+                if ((ypos_lb >= NUM_LINE_BUFFERS-Y_STEP) & (ypos_lb < NUM_LINE_BUFFERS))
+                    ypos_lb <= ypos_lb + Y_STEP - NUM_LINE_BUFFERS;
                 else
                     ypos_lb <= ypos_lb + Y_STEP;
                 y_ctr <= 0;
