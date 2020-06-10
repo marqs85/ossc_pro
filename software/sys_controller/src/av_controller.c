@@ -101,7 +101,8 @@ si5351_dev si_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                      .i2c_addr = SI5351_BASE,
                      .xtal_freq = 27000000LU};
 
-adv7611_dev advrx_dev = {.io_base = ADV7611_IO_BASE,
+adv7611_dev advrx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                         .io_base = ADV7611_IO_BASE,
                          .cec_base = ADV7611_CEC_BASE,
                          .infoframe_base = ADV7611_INFOFRAME_BASE,
                          .dpll_base = ADV7611_DPLL_BASE,
@@ -597,11 +598,17 @@ int main()
                     if (isl_dev.ss.interlace_flag)
                         v_hz_x100 *= 2;
 
-                    mode = get_adaptive_mode(isl_dev.ss.v_total, isl_dev.ss.interlace_flag, v_hz_x100, &vm_conf, &vmode_in, &vmode_out);
+                    memset(&vmode_in, 0, sizeof(mode_data_t));
+                    vmode_in.timings.v_hz = v_hz_x100/100;
+                    vmode_in.timings.v_total = isl_dev.ss.v_total;
+                    vmode_in.timings.interlaced = isl_dev.ss.interlace_flag;
+                    vmode_in.type = target_typemask;
+
+                    mode = get_adaptive_mode(&vmode_in, &vmode_out, &vm_conf);
 
                     if (mode < 0) {
                         amode_match = 0;
-                        mode = get_mode_id(isl_dev.ss.v_total, isl_dev.ss.interlace_flag, v_hz_x100, target_typemask, &vm_conf, &vmode_in, &vmode_out);
+                        mode = get_mode_id(&vmode_in, &vmode_out, &vm_conf);
                     } else {
                         amode_match = 1;
                     }
@@ -677,38 +684,57 @@ int main()
                     if (advrx_dev.ss.interlace_flag)
                         v_hz_x100 *= 2;
 
-                    printf("mode changed to: %ux%u%c\n", advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : 'p');
-                    sniprintf(row1, US2066_ROW_LEN+1, "%s %ux%u%c", avinput_str[avinput], advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : 'p');
-                    sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
-                                                                                        (v_hz_x100/100),
-                                                                                        (v_hz_x100%100),
-                                                                                        (advrx_dev.ss.h_polarity ? '+' : '-'),
-                                                                                        (advrx_dev.ss.v_polarity ? '+' : '-'));
-                    chardisp_write_status();
+                    memset(&vmode_in, 0, sizeof(mode_data_t));
+                    sniprintf(vmode_in.name, 14, "%ux%u%c", advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : ' ');
+                    vmode_in.timings.h_active = advrx_dev.ss.h_active;
+                    vmode_in.timings.v_active = advrx_dev.ss.v_active;
+                    vmode_in.timings.v_hz = v_hz_x100/100;
+                    vmode_in.timings.h_total = advrx_dev.ss.h_total;
+                    vmode_in.timings.v_total = advrx_dev.ss.v_total;
+                    vmode_in.timings.h_backporch = advrx_dev.ss.h_backporch;
+                    vmode_in.timings.v_backporch = advrx_dev.ss.v_backporch;
+                    vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen;
+                    vmode_in.timings.v_synclen = advrx_dev.ss.v_synclen;
+                    vmode_in.timings.interlaced = advrx_dev.ss.interlace_flag;
+                    vmode_in.type = VIDEO_SDTV|VIDEO_EDTV|VIDEO_HDTV|VIDEO_PC;
+                    //TODO: VIC+pixelrep
 
-                    mode = get_mode_id(advrx_dev.ss.v_total, !advrx_dev.ss.interlace_flag, v_hz_x100, target_typemask, &vm_conf, &vmode_in, &vmode_out);
+                    mode = get_adaptive_mode(&vmode_in, &vmode_out, &vm_conf);
 
                     if (mode < 0) {
-                        /*vmode_tmp.h_active = advrx_dev.ss.h_active;
-                        vmode_tmp.v_active = advrx_dev.ss.v_active;
-                        vmode_tmp.h_total = advrx_dev.ss.h_total;
-                        vmode_tmp.v_total = advrx_dev.ss.v_total;
-                        vmode_tmp.h_backporch = advrx_dev.ss.h_backporch;
-                        vmode_tmp.v_backporch = advrx_dev.ss.v_backporch;
-                        vmode_tmp.h_synclen = advrx_dev.ss.h_synclen;
-                        vmode_tmp.v_synclen = advrx_dev.ss.v_synclen;
+                        amode_match = 0;
+                        mode = get_mode_id(&vmode_in, &vmode_out, &vm_conf);
+                    } else {
+                        amode_match = 1;
+                    }
 
-                        printf("Mode %s selected\n", vmode_tmp.name);
+                    if (mode >= 0) {
+                        printf("\nMode %s selected (%s linemult)\n", vmode_in.name, amode_match ? "Adaptive" : "Pure");
 
-                        pclk_hz = h_hz * vmode_tmp.h_total * vm_conf.xmult;
+                        sniprintf(row1, US2066_ROW_LEN+1, "%s %ux%u%c x%u%c", avinput_str[avinput], advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : 'p', (int8_t)vm_conf.y_rpt+1, amode_match ? 'a' : ' ');
+                        sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
+                                                                                            (v_hz_x100/100),
+                                                                                            (v_hz_x100%100),
+                                                                                            advrx_dev.ss.h_polarity ? '-' : '+',
+                                                                                            advrx_dev.ss.v_polarity ? '-' : '+');
+                        chardisp_write_status();
+
+                        pclk_hz = h_hz * advrx_dev.ss.h_total;
                         printf("H: %u.%.2ukHz V: %u.%.2uHz PCLK_IN: %luHz\n\n", h_hz/1000, (((h_hz%1000)+5)/10), (v_hz_x100/100), (v_hz_x100%100), pclk_hz);
 
-                        si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, advrx_dev.pclk_hz, vm_conf.ymult);
-                        update_sc_config(&vmode_tmp, vm_conf.xmult, vm_conf.ymult);
+                        // Setup Si5351
+                        if (amode_match)
+                            si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &vmode_out.si_ms_conf);
+                        else
+                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vmode_out.si_pclk_mult, 0);
+
+                        update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
 
                         // Setup VIC and pixel repetition
-                        adv7513_set_pixelrep_vic(&advtx_dev, vm_conf.tx_pixelrep, vm_conf.hdmitx_pixr_ifr, vm_conf.hdmitx_vic);*/
+                        adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
                     }
+                } else if (status == SC_CONFIG_CHANGE) {
+                    update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 }
             } else {
                 advrx_dev.pclk_hz = 0;

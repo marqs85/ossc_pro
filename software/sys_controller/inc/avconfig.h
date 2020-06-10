@@ -94,6 +94,10 @@ typedef struct {
     uint8_t pm_ad_576i;
     uint8_t pm_ad_480p;
     uint8_t pm_ad_576p;
+    uint8_t sm_ad_240p_288p;
+    uint8_t sm_ad_480i_576i;
+    uint8_t sm_ad_480p;
+    uint8_t sm_ad_576p;
     uint8_t adapt_lm;
     uint8_t lm_deint_mode;
     uint8_t ar_256col;

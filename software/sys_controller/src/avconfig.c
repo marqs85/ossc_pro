@@ -99,6 +99,10 @@ status_t update_avconfig() {
         (tc.pm_ad_576i != cc.pm_ad_576i) ||
         (tc.pm_ad_480p != cc.pm_ad_480p) ||
         (tc.pm_ad_576p != cc.pm_ad_576p) ||
+        (tc.sm_ad_240p_288p != cc.sm_ad_240p_288p) ||
+        (tc.sm_ad_480i_576i != cc.sm_ad_480i_576i) ||
+        (tc.sm_ad_480p != cc.sm_ad_480p) ||
+        (tc.sm_ad_576p != cc.sm_ad_576p) ||
         (tc.adapt_lm != cc.adapt_lm) ||
         (tc.upsample2x != cc.upsample2x) ||
         (tc.default_vic != cc.default_vic))

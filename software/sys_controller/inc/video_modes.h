@@ -137,6 +137,24 @@ typedef enum {
     ADMODE_1920x1440_60,
 } ad_mode_id_t;
 
+typedef enum {
+    SM_GEN_4_3      = 0,
+    SM_GEN_16_9,
+    SM_OPT_DTV480P,
+    SM_OPT_VGA480P60,
+    SM_OPT_SNES_256COL,
+    SM_OPT_SNES_512COL,
+    SM_OPT_MD_256COL,
+    SM_OPT_MD_320COL,
+    SM_OPT_PSX_256COL,
+    SM_OPT_PSX_320COL,
+    SM_OPT_PSX_384COL,
+    SM_OPT_PSX_512COL,
+    SM_OPT_SAT_320COL,
+    SM_OPT_SAT_352COL,
+    SM_OPT_SAT_704COL,
+} ad_sampling_mode_t;
+
 typedef struct {
     uint16_t h_active:13;
     uint16_t v_active:11;
@@ -172,6 +190,7 @@ typedef struct {
     uint8_t sampler_phase;
     video_type type:4;
     video_group group:4;
+    ad_sampling_mode_t sm;
     uint8_t x_rpt;
     uint8_t y_rpt;
     int16_t x_offset_i;
@@ -197,9 +216,9 @@ void set_default_vm_table();
 
 uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz);
 
-int get_adaptive_mode(uint16_t totlines, uint8_t interlaced, uint16_t hz_x100, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
+int get_adaptive_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf);
 
-int get_mode_id(uint16_t totlines, uint8_t interlaced, uint16_t hz_x100, video_type typemask, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
+int get_mode_id(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf);
 
 int get_standard_mode(unsigned stdmode_idx_arr_idx, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
 
