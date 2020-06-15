@@ -43,7 +43,7 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 37
+#define FW_VER_MINOR 38
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x7a
@@ -599,16 +599,16 @@ int main()
                         v_hz_x100 *= 2;
 
                     memset(&vmode_in, 0, sizeof(mode_data_t));
-                    vmode_in.timings.v_hz = v_hz_x100/100;
+                    vmode_in.timings.v_hz = (v_hz_x100+50)/100;
                     vmode_in.timings.v_total = isl_dev.ss.v_total;
                     vmode_in.timings.interlaced = isl_dev.ss.interlace_flag;
                     vmode_in.type = target_typemask;
 
-                    mode = get_adaptive_mode(&vmode_in, &vmode_out, &vm_conf);
+                    mode = get_adaptive_lm_mode(&vmode_in, &vmode_out, &vm_conf);
 
                     if (mode < 0) {
                         amode_match = 0;
-                        mode = get_mode_id(&vmode_in, &vmode_out, &vm_conf);
+                        mode = get_pure_lm_mode(&vmode_in, &vmode_out, &vm_conf);
                     } else {
                         amode_match = 1;
                     }
@@ -685,10 +685,10 @@ int main()
                         v_hz_x100 *= 2;
 
                     memset(&vmode_in, 0, sizeof(mode_data_t));
-                    sniprintf(vmode_in.name, 14, "%ux%u%c", advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : ' ');
+                    sniprintf(vmode_in.name, 14, "%ux%u%c", advrx_dev.ss.h_active, (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : ' ');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active;
                     vmode_in.timings.v_active = advrx_dev.ss.v_active;
-                    vmode_in.timings.v_hz = v_hz_x100/100;
+                    vmode_in.timings.v_hz = (v_hz_x100+50)/100;
                     vmode_in.timings.h_total = advrx_dev.ss.h_total;
                     vmode_in.timings.v_total = advrx_dev.ss.v_total;
                     vmode_in.timings.h_backporch = advrx_dev.ss.h_backporch;
@@ -699,11 +699,11 @@ int main()
                     vmode_in.type = VIDEO_SDTV|VIDEO_EDTV|VIDEO_HDTV|VIDEO_PC;
                     //TODO: VIC+pixelrep
 
-                    mode = get_adaptive_mode(&vmode_in, &vmode_out, &vm_conf);
+                    mode = get_adaptive_lm_mode(&vmode_in, &vmode_out, &vm_conf);
 
                     if (mode < 0) {
                         amode_match = 0;
-                        mode = get_mode_id(&vmode_in, &vmode_out, &vm_conf);
+                        mode = get_pure_lm_mode(&vmode_in, &vmode_out, &vm_conf);
                     } else {
                         amode_match = 1;
                     }
@@ -711,12 +711,12 @@ int main()
                     if (mode >= 0) {
                         printf("\nMode %s selected (%s linemult)\n", vmode_in.name, amode_match ? "Adaptive" : "Pure");
 
-                        sniprintf(row1, US2066_ROW_LEN+1, "%s %ux%u%c x%u%c", avinput_str[avinput], advrx_dev.ss.h_active, advrx_dev.ss.v_active, advrx_dev.ss.interlace_flag ? 'i' : 'p', (int8_t)vm_conf.y_rpt+1, amode_match ? 'a' : ' ');
+                        sniprintf(row1, US2066_ROW_LEN+1, "%s %s x%u%c", avinput_str[avinput], vmode_in.name, (int8_t)vm_conf.y_rpt+1, amode_match ? 'a' : ' ');
                         sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
                                                                                             (v_hz_x100/100),
                                                                                             (v_hz_x100%100),
-                                                                                            advrx_dev.ss.h_polarity ? '-' : '+',
-                                                                                            advrx_dev.ss.v_polarity ? '-' : '+');
+                                                                                            advrx_dev.ss.h_polarity ? '+' : '-',
+                                                                                            advrx_dev.ss.v_polarity ? '+' : '-');
                         chardisp_write_status();
 
                         pclk_hz = h_hz * advrx_dev.ss.h_total;

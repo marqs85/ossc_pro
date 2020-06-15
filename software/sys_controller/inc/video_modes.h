@@ -216,9 +216,9 @@ void set_default_vm_table();
 
 uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz);
 
-int get_adaptive_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf);
+int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf);
 
-int get_mode_id(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf);
+int get_pure_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf);
 
 int get_standard_mode(unsigned stdmode_idx_arr_idx, vm_mult_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
 
