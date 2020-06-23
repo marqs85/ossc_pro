@@ -41,7 +41,7 @@ typedef enum {
     RC_LEFT,
     RC_RIGHT,
     RC_INFO,
-    RC_LCDBL,
+    RC_STANDBY,
     RC_SL_MODE,
     RC_SL_TYPE,
     RC_SL_PLUS,

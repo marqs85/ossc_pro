@@ -109,7 +109,7 @@ module ossc_pro (
 wire jtagm_reset_req;
 
 wire [15:0] sys_ctrl;
-wire sys_extra = sys_ctrl[0];
+wire sys_poweron = sys_ctrl[0];
 wire isl_reset_n = sys_ctrl[1];
 wire hdmirx_reset_n = sys_ctrl[2];
 wire emif_hwreset_n = sys_ctrl[3];
@@ -169,7 +169,7 @@ wire resync_strobe_i;
 wire resync_strobe = resync_strobe_sync2_reg;
 
 //BGR?
-assign LED_o = {CLK27_i, (ir_code == 0), (resync_led_ctr != 0)};
+assign LED_o = sys_poweron ? {CLK27_i, (ir_code == 0), (resync_led_ctr != 0)} : 3'b001;
 //assign LED_o = {emif_status_init_done, emif_status_cal_success, emif_status_cal_fail};
 
 assign ISL_RESET_N_o = isl_reset_n;
@@ -322,7 +322,7 @@ assign HDMITX_PCLK_o = pclk_out;
 // output data assignment
 wire [7:0] R_sc, G_sc, B_sc;
 wire HSYNC_sc, VSYNC_sc, DE_sc;
-always @(posedge pclk_out) begin
+always @(negedge pclk_out) begin
     HDMITX_R_o <= R_sc;
     HDMITX_G_o <= G_sc;
     HDMITX_B_o <= B_sc;

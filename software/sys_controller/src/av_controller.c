@@ -133,9 +133,14 @@ struct mmc *mmc_dev;
 struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq);
 
 uint16_t sys_ctrl;
+uint32_t sys_status;
+uint16_t remote_code;
+uint8_t sys_powered_on;
+uint8_t btn_vec, btn_vec_prev;
+uint8_t remote_rpt, remote_rpt_prev;
 
-avinput_t avinput = AV_TESTPAT, target_avinput;
-unsigned tp_stdmode_idx=-1, target_tp_stdmode_idx=2; // STDMODE_480p
+avinput_t avinput, target_avinput;
+unsigned tp_stdmode_idx, target_tp_stdmode_idx;
 
 char row1[US2066_ROW_LEN+1];
 char row2[US2066_ROW_LEN+1];
@@ -226,14 +231,14 @@ int init_hw()
     //remap conflicting ADV7513 I2C slave immediately
     //sniprintf(row1, US2066_ROW_LEN+1, "Init ADV7513");
     //chardisp_write_status();
-    adv7513_init(&advtx_dev, 1);
+    adv7513_init(&advtx_dev);
 
     // Init character OLED
     us2066_init(&chardisp_dev);
 
     // Init ISL51002
-    sniprintf(row1, US2066_ROW_LEN+1, "Init ISL51002");
-    chardisp_write_status();
+    /*sniprintf(row1, US2066_ROW_LEN+1, "Init ISL51002");
+    chardisp_write_status();*/
     ret = isl_init(&isl_dev);
     if (ret != 0) {
         printf("ISL51002 init fail\n");
@@ -258,8 +263,8 @@ int init_hw()
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
     // Init Si5351C
-    sniprintf(row1, US2066_ROW_LEN+1, "Init Si5351C");
-    chardisp_write_status();
+    /*sniprintf(row1, US2066_ROW_LEN+1, "Init Si5351C");
+    chardisp_write_status();*/
     si5351_init(&si_dev);
 
     //init ocsdc driver
@@ -291,8 +296,8 @@ int init_hw()
     }*/
 
     // Init PCM1863
-    sniprintf(row1, US2066_ROW_LEN+1, "Init PCM1863");
-    chardisp_write_status();
+    /*sniprintf(row1, US2066_ROW_LEN+1, "Init PCM1863");
+    chardisp_write_status();*/
     ret = pcm186x_init(&pcm_dev);
     if (ret != 0) {
         printf("PCM1863 init fail\n");
@@ -300,8 +305,8 @@ int init_hw()
     }
     //pcm_source_sel(PCM_INPUT1);
 
-    sniprintf(row1, US2066_ROW_LEN+1, "Init ADV7611");
-    chardisp_write_status();
+    /*sniprintf(row1, US2066_ROW_LEN+1, "Init ADV7611");
+    chardisp_write_status();*/
     adv7611_init(&advrx_dev);
 
     /*check_flash();
@@ -374,16 +379,19 @@ void switch_tp_mode(rc_code_t code) {
         target_tp_stdmode_idx++;
 }
 
-int main()
+int sys_is_powered_on() {
+    return sys_powered_on;
+}
+
+void sys_toggle_power() {
+    sys_powered_on ^= 1;
+}
+
+void mainloop()
 {
-    int ret, i, man_input_change;
+    int i, man_input_change;
     int mode, amode_match;
     uint32_t pclk_hz, dotclk_hz, h_hz, v_hz_x100;
-    uint32_t sys_status;
-    uint16_t remote_code;
-    uint8_t pixelrep;
-    uint8_t btn_vec, btn_vec_prev=0;
-    uint8_t remote_rpt, remote_rpt_prev=0;
     isl_input_t target_isl_input;
     video_sync target_isl_sync=0;
     video_format target_format;
@@ -393,17 +401,6 @@ int main()
     status_t status;
     avconfig_t *cur_avconfig;
     int enable_isl=0, enable_hdmirx=0, enable_tp=1;
-
-    ret = init_hw();
-    if (ret == 0) {
-        printf("### OSSC PRO INIT OK ###\n\n");
-        sniprintf(row1, US2066_ROW_LEN+1, "OSSC Pro fw. %u.%.2u", FW_VER_MAJOR, FW_VER_MINOR);
-        chardisp_write_status();
-    } else {
-        sniprintf(row2, US2066_ROW_LEN+1, "failed (%d)", ret);
-        chardisp_write_status();
-        while (1) {}
-    }
 
     cur_avconfig = get_current_avconfig();
 
@@ -428,6 +425,9 @@ int main()
 
         target_avinput = avinput;
         parse_control(remote_code, btn_vec);
+
+        if (!sys_powered_on)
+            break;
 
         if (target_avinput != avinput) {
 
@@ -535,6 +535,8 @@ int main()
                 sys_ctrl |= SCTRL_VGTP_ENABLE;
             }
 
+            adv7611_enable_power(&advrx_dev, enable_hdmirx);
+
             switch_audsrc(cur_avconfig->audio_src_map, &cur_avconfig->adv7513_cfg.audio_fmt);
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
@@ -557,7 +559,7 @@ int main()
                 update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
-                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u @ %uHz", vmode_out.timings.h_active, vmode_out.timings.v_active, vmode_out.timings.v_hz);
+                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c @ %uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', vmode_out.timings.v_hz);
                 chardisp_write_status();
 
                 tp_stdmode_idx = target_tp_stdmode_idx;
@@ -748,6 +750,72 @@ int main()
 
         usleep(20000);
     }
+}
 
-    return 0;
+void wait_powerup() {
+    while (1) {
+        // Read remote control
+        sys_status = IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE);
+        remote_code = (sys_status & SSTAT_RC_MASK) >> SSTAT_RC_OFFS;
+        remote_rpt = (sys_status & SSTAT_RRPT_MASK) >> SSTAT_RRPT_OFFS;
+        btn_vec = (~sys_status & SSTAT_BTN_MASK) >> SSTAT_BTN_OFFS;
+
+        if ((remote_rpt == 0) || ((remote_rpt > 1) && (remote_rpt < 6)) || (remote_rpt == remote_rpt_prev))
+            remote_code = 0;
+
+        remote_rpt_prev = remote_rpt;
+
+        if (btn_vec_prev == 0) {
+            btn_vec_prev = btn_vec;
+        } else {
+            btn_vec_prev = btn_vec;
+            btn_vec = 0;
+        }
+
+        parse_control(remote_code, btn_vec);
+
+        if (sys_powered_on)
+            break;
+
+        usleep(20000);
+    }
+}
+
+int main()
+{
+    int ret;
+
+    while (1) {
+        ret = init_hw();
+        if (ret != 0) {
+            sniprintf(row2, US2066_ROW_LEN+1, "failed (%d)", ret);
+            us2066_display_on(&chardisp_dev);
+            chardisp_write_status();
+            while (1) {}
+        }
+
+        printf("### OSSC PRO INIT OK ###\n\n");
+
+        sys_powered_on = 0;
+        wait_powerup();
+
+        sniprintf(row1, US2066_ROW_LEN+1, "OSSC Pro fw. %u.%.2u", FW_VER_MAJOR, FW_VER_MINOR);
+        chardisp_write_status();
+
+        // ADVRX powerup
+        // pcm powerup
+        sys_ctrl |= SCTRL_POWER_ON;
+        IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+
+        // Set testpattern mode
+        avinput = AV_TESTPAT;
+        tp_stdmode_idx=-1;
+        target_tp_stdmode_idx=3; // STDMODE_480p
+
+        pcm186x_enable_power(&pcm_dev, 1);
+
+        us2066_display_on(&chardisp_dev);
+
+        mainloop();
+    }
 }

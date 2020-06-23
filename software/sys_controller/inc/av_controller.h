@@ -25,6 +25,7 @@
 #include "video_modes.h"
 
 // sys_ctrl
+#define SCTRL_POWER_ON        (1<<0)
 #define SCTRL_ISL_RESET_N     (1<<1)
 #define SCTRL_HDMIRX_RESET_N  (1<<2)
 #define SCTRL_EMIF_HWRESET_N  (1<<3)
@@ -79,5 +80,9 @@ void switch_audmux(uint8_t audmux_sel);
 void switch_audsrc(audinput_t *audsrc_map, adv7513_audio_fmt_t *aud_tx_fmt);
 
 void switch_tp_mode(rc_code_t code);
+
+int sys_is_powered_on();
+
+void sys_toggle_power();
 
 #endif

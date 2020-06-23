@@ -62,7 +62,7 @@ set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
 set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
 set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
 set_global_assignment -name ACTIVE_SERIAL_CLOCK FREQ_100MHZ
-set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "NO HEAT SINK WITH STILL AIR"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name VERILOG_INPUT_VERSION SYSTEMVERILOG_2005
 set_global_assignment -name VERILOG_SHOW_LMF_MAPPING_MESSAGES OFF
@@ -248,6 +248,12 @@ set_instance_assignment -name IO_STANDARD "1.2 V" -to EXT_IO_io[28]
 set_instance_assignment -name IO_STANDARD "1.2 V" -to BTN_i[0]
 set_instance_assignment -name IO_STANDARD "1.2 V" -to BTN_i[1]
 set_instance_assignment -name IO_STANDARD "1.2 V" -to BTN_i
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_R_o
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_G_o
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_B_o
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_HSYNC_o
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_VSYNC_o
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_DE_o
 set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCQ256
 set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 3.3V
 set_global_assignment -name ENABLE_SIGNALTAP OFF
@@ -283,5 +289,10 @@ set_global_assignment -name SIP_FILE software/sys_controller/mem_init/meminit.si
 set_global_assignment -name VERILOG_FILE rtl/ossc_pro.v
 set_global_assignment -name SIGNALTAP_FILE output_files/ossc_pro_io.stp
 set_global_assignment -name QIP_FILE rtl/linebuf.qip
+
+set_global_assignment -name FLOW_ENABLE_POWER_ANALYZER ON
+set_global_assignment -name POWER_DEFAULT_INPUT_IO_TOGGLE_RATE "12.5 %"
+
+
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

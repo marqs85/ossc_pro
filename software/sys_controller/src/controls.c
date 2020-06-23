@@ -24,7 +24,7 @@
 #include "menu.h"
 
 static const char *rc_keydesc[REMOTE_MAX_KEYS] = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", \
-                                                   "MENU", "OK", "BACK", "UP", "DOWN", "LEFT", "RIGHT", "INFO", "LCD_BACKLIGHT", "SCANLINE_MODE", \
+                                                   "MENU", "OK", "BACK", "UP", "DOWN", "LEFT", "RIGHT", "INFO", "STANDBY", "SCANLINE_MODE", \
                                                    "SCANLINE_TYPE", "SCANLINE_INT+", "SCANLINE_INT-", "LINEMULT_MODE", "PHASE+", "PHASE-", "PROFILE_HOTKEY"};
 const uint16_t rc_keymap_default[REMOTE_MAX_KEYS] = {0x3E29, 0x3EA9, 0x3E69, 0x3EE9, 0x3E19, 0x3E99, 0x3E59, 0x3ED9, 0x3E39, 0x3EC9, \
                                               0x3E4D, 0x3E1D, 0x3EED, 0x3E2D, 0x3ECD, 0x3EAD, 0x3E6D, 0x3E65, 0x3E01, 0x1C48, \
@@ -106,15 +106,20 @@ void parse_control(uint16_t remote_code, uint8_t btn_vec)
             break;
     }
 
-    if (!is_menu_active()) {
-        if ((c <= RC_BTN0) || (c == RC_UP) || (c == RC_DOWN))
-            switch_input(c, b);
-        else if (c == RC_MENU)
-            display_menu(c);
-        if ((c == RC_LEFT) || (c == RC_RIGHT))
-            switch_tp_mode(c);
-    } else {
-        if (c <= RC_RIGHT)
-            display_menu(c);
+    if (sys_is_powered_on()) {
+        if (!is_menu_active()) {
+            if ((c <= RC_BTN0) || (c == RC_UP) || (c == RC_DOWN))
+                switch_input(c, b);
+            else if (c == RC_MENU)
+                display_menu(c);
+            if ((c == RC_LEFT) || (c == RC_RIGHT))
+                switch_tp_mode(c);
+        } else {
+            if (c <= RC_RIGHT)
+                display_menu(c);
+        }
     }
+
+    if (c == RC_STANDBY)
+        sys_toggle_power();
 }
