@@ -88,13 +88,13 @@ wire signed [9:0] X_OFFSET = xy_out_config[31:22];
 wire signed [8:0] Y_OFFSET = xy_out_config2[8:0];
 
 wire [7:0] X_START_LB = xy_out_config2[16:9];
-wire signed [5:0] Y_START_LB = xy_out_config2[22:17];
+wire signed [6:0] Y_START_LB = {xy_out_config2[22], xy_out_config2[22:17]};
 
 wire [2:0] X_RPT = xy_out_config2[25:23];
 wire [2:0] Y_RPT = xy_out_config2[28:26];
 
 wire [2:0] X_SKIP = xy_out_config2[31:29];
-wire [1:0] Y_SKIP = (Y_RPT == 3'(-1)) ? 2'h1 : 2'h0;
+wire Y_SKIP = (Y_RPT == 3'(-1));
 
 wire [2:0] X_STEP = X_SKIP+1'b1;
 wire [1:0] Y_STEP = Y_SKIP+1'b1;
@@ -114,7 +114,7 @@ reg [10:0] v_cnt;
 reg src_fid, dst_fid;
 
 reg [10:0] xpos_lb;
-reg [10:0] ypos_lb;
+reg [6:0] ypos_lb;
 reg [2:0] x_ctr;
 reg [2:0] y_ctr;
 
@@ -220,25 +220,21 @@ end
 // Pipeline stage 0
 always @(posedge PCLK_OUT_i) begin
     HSYNC_pp[1] <= (h_cnt < H_SYNCLEN) ? 1'b0 : 1'b1;
-    if (V_INTERLACED) begin
-        if (dst_fid == FID_ODD)
-            VSYNC_pp[1] <= ((v_cnt < V_SYNCLEN) | ((v_cnt == V_TOTAL) & (h_cnt >= (H_TOTAL/2)))) ? 1'b0 : 1'b1;
-        else
-            VSYNC_pp[1] <= ((v_cnt < V_SYNCLEN-1) | ((v_cnt == V_SYNCLEN) & (h_cnt < (H_TOTAL/2)))) ? 1'b0 : 1'b1;
-    end else begin
-        VSYNC_pp[1] <= (v_cnt < V_SYNCLEN) ? 1'b0 : 1'b1;
-    end
+    if (dst_fid == FID_ODD)
+        VSYNC_pp[1] <= ((v_cnt < V_SYNCLEN) | ((v_cnt == V_TOTAL) & (h_cnt >= (H_TOTAL/2)))) ? 1'b0 : 1'b1;
+    else
+        VSYNC_pp[1] <= ((v_cnt < V_SYNCLEN-1) | ((v_cnt == V_SYNCLEN-1) & (h_cnt < (H_TOTAL/2)))) ? 1'b0 : 1'b1;
     DE_pp[1] <= (h_cnt >= H_SYNCLEN+H_BACKPORCH) & (h_cnt < H_SYNCLEN+H_BACKPORCH+H_ACTIVE) & (v_cnt >= V_SYNCLEN+V_BACKPORCH) & (v_cnt < V_SYNCLEN+V_BACKPORCH+V_ACTIVE);
 
     if (h_cnt == H_SYNCLEN+H_BACKPORCH) begin
         if (v_cnt == V_SYNCLEN+V_BACKPORCH) begin
             ypos_pp[1] <= 0;
             // Bob deinterlace adjusts linebuf start position and y_ctr on even fields
-            if (~MISC_LM_DEINT_MODE & ~V_INTERLACED & (src_fid == FID_EVEN)) begin
+            if (~MISC_LM_DEINT_MODE & (Y_RPT > 0) & ~V_INTERLACED & (src_fid == FID_EVEN)) begin
                 ypos_lb <= Y_START_LB - 1'b1;
                 y_ctr <= ((Y_RPT+1'b1) >> 1);
             end else begin
-                ypos_lb <= (Y_SKIP & (dst_fid == FID_EVEN)) ? (Y_START_LB + 1) : Y_START_LB;
+                ypos_lb <= (Y_SKIP & (dst_fid == FID_EVEN)) ? (Y_START_LB + 1'b1) : Y_START_LB;
                 y_ctr <= 0;
             end
             xpos_lb_start <= (X_OFFSET < 10'sd0) ? 11'd0 : {1'b0, X_OFFSET};
