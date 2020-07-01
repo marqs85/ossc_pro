@@ -248,6 +248,12 @@ set_instance_assignment -name IO_STANDARD "1.2 V" -to EXT_IO_io[28]
 set_instance_assignment -name IO_STANDARD "1.2 V" -to BTN_i[0]
 set_instance_assignment -name IO_STANDARD "1.2 V" -to BTN_i[1]
 set_instance_assignment -name IO_STANDARD "1.2 V" -to BTN_i
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to HDMIRX_R_i
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to HDMIRX_G_i
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to HDMIRX_B_i
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to HDMIRX_HSYNC_i
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to HDMIRX_VSYNC_i
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to HDMIRX_DE_i
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_R_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_G_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_B_o
@@ -292,6 +298,7 @@ set_global_assignment -name QIP_FILE rtl/linebuf.qip
 
 set_global_assignment -name FLOW_ENABLE_POWER_ANALYZER ON
 set_global_assignment -name POWER_DEFAULT_INPUT_IO_TOGGLE_RATE "12.5 %"
+
 
 
 

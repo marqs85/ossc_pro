@@ -26,6 +26,7 @@
 #include "isl51002.h"
 #include "adv7513.h"
 #ifndef DExx_FW
+#include "adv7611.h"
 #include "pcm186x.h"
 #endif
 
@@ -119,6 +120,7 @@ typedef struct {
     isl51002_config isl_cfg __attribute__ ((aligned (4)));
     adv7513_config adv7513_cfg __attribute__ ((aligned (4)));
 #ifndef DExx_FW
+    adv7611_config adv7611_cfg __attribute__ ((aligned (4)));
     pcm186x_config pcm_cfg __attribute__ ((aligned (4)));
 #endif
 } __attribute__((packed)) avconfig_t;
