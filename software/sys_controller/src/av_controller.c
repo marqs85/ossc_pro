@@ -318,6 +318,7 @@ int init_hw()
     //set_default_vm_table();
     set_default_avconfig(1);
     set_default_keymap();
+    init_menu();
 
     return 0;
 }

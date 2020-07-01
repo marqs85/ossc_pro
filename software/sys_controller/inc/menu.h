@@ -115,6 +115,7 @@ typedef struct {
 } menunavi;
 
 int is_menu_active();
+void init_menu();
 void display_menu(rc_code_t remote_code);
 static void vm_select();
 static void vm_tweak(uint16_t *v);

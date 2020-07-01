@@ -25,6 +25,8 @@
 #include "controls.h"
 #include "us2066.h"
 
+#define MAX_MENU_DEPTH 3
+
 #define OPT_NOWRAP  0
 #define OPT_WRAP    1
 
@@ -45,6 +47,9 @@ uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_a
 uint8_t menu_active;
 uint8_t vm_sel, vm_edit;
 
+menunavi navi[MAX_MENU_DEPTH];
+uint8_t navlvl;
+
 static const char *off_on_desc[] = { LNG("Off","ｵﾌ"), LNG("On","ｵﾝ") };
 static const char *video_lpf_desc[] = { LNG("Auto","ｵｰﾄ"), LNG("Off","ｵﾌ"), "95MHz (HDTV II)", "35MHz (HDTV I)", "16MHz (EDTV)", "9MHz (SDTV)" };
 static const char *ypbpr_cs_desc[] = { "Rec. 601", "Rec. 709" };
@@ -61,11 +66,11 @@ static const char *pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Lin
 static const char *pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x" };
 static const char *pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Deint + Line2x" };
 static const char *pm_ad_240p_desc[] = { "Skip", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)" };
-static const char *pm_ad_288p_desc[] = { "Skip", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1440 (Line5x)" };
+static const char *pm_ad_288p_desc[] = { "Skip", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1200 (Line4x)", "1920x1440 (Line5x)" };
 static const char *pm_ad_480i_desc[] = { "Skip", "720x240 (240p rest.)", "1280x1024 (Dint+L4x)", "1080i (240p rest+L2x)", "1920x1080 (Dint+L4x)", "1920x1440 (Dint+L6x)" };
 static const char *pm_ad_576i_desc[] = { "Skip", "720x288 (288p rest.)", "1080i (288p rest+L2x)", "1920x1080 (Dint+L4x)" };
 static const char *pm_ad_480p_desc[] = { "Skip", "720x240 (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)" };
-static const char *pm_ad_576p_desc[] = { "Skip", "720x288 (Line drop)", "1920x1080i (Line1x)", "1920x1080 (Line2x)" };
+static const char *pm_ad_576p_desc[] = { "Skip", "720x288 (Line drop)", "1920x1200 (Line2x)" };
 static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3" };
 static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3" };
 static const char *sm_ad_480p_desc[] = { "Generic 4:3", "DTV 480p", "VESA 640x480@60" };
@@ -282,12 +287,16 @@ MENU(menu_main, P99_PROTECT({ \
     { "Settings opt   >",                       OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
 
-// Max 3 levels currently
-menunavi navi[] = {{&menu_main, 0}, {NULL, 0}, {NULL, 0}};
-uint8_t navlvl = 0;
 
 int is_menu_active() {
     return !!menu_active;
+}
+
+void init_menu() {
+    menu_active = 0;
+    memset(navi, 0, sizeof(navi));
+    navi[0].m = &menu_main;
+    navlvl = 0;
 }
 
 void chardisp_write_menu() {
