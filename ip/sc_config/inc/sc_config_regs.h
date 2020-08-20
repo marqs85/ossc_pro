@@ -74,7 +74,9 @@ typedef union {
         uint16_t v_backporch:9;
         uint8_t v_synclen:5;
         uint16_t v_startline:11;
-        uint8_t hv_rsv:7;
+        uint8_t h_skip:3;
+        uint8_t h_sample_sel:3;
+        uint8_t hv_rsv:1;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } hv_config3_reg;
@@ -95,7 +97,7 @@ typedef union {
         int8_t y_start_lb:6;
         uint8_t x_rpt:3;
         uint8_t y_rpt:3;
-        uint16_t x_skip:3;
+        uint8_t xy_rsv:3;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } xy_config2_reg;

@@ -93,10 +93,7 @@ wire signed [6:0] Y_START_LB = {xy_out_config2[22], xy_out_config2[22:17]};
 wire [2:0] X_RPT = xy_out_config2[25:23];
 wire [2:0] Y_RPT = xy_out_config2[28:26];
 
-wire [2:0] X_SKIP = xy_out_config2[31:29];
 wire Y_SKIP = (Y_RPT == 3'(-1));
-
-wire [2:0] X_STEP = X_SKIP+1'b1;
 wire [1:0] Y_STEP = Y_SKIP+1'b1;
 
 wire [3:0] MISC_MASK_BR = misc_config[3:0];
@@ -263,7 +260,7 @@ always @(posedge PCLK_OUT_i) begin
 
         if (xpos_pp[1] >= xpos_lb_start) begin
             if (x_ctr == X_RPT) begin
-                xpos_lb <= xpos_lb + X_STEP;
+                xpos_lb <= xpos_lb + 1'b1;
                 x_ctr <= 0;
             end else begin
                 x_ctr <= x_ctr + 1'b1;

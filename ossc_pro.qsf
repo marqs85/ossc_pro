@@ -260,7 +260,7 @@ set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_B_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_HSYNC_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_VSYNC_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_DE_o
-set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCQ256
+set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCQ128
 set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 3.3V
 set_global_assignment -name ENABLE_SIGNALTAP OFF
 set_global_assignment -name USE_SIGNALTAP_FILE output_files/ossc_pro_io.stp

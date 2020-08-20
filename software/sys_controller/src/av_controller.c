@@ -175,6 +175,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     hv_in_config3.v_backporch = vm_in->timings.v_backporch;
     hv_in_config3.v_synclen = vm_in->timings.v_synclen;
     hv_in_config2.interlaced = vm_in->timings.interlaced;
+    hv_in_config3.h_skip = vm_conf->h_skip;
+    hv_in_config3.h_sample_sel = 0;
 
     // Set output params
     hv_out_config.h_total = vm_out->timings.h_total;
@@ -196,7 +198,6 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     xy_out_config2.y_start_lb = vm_conf->y_start_lb;
     xy_out_config2.x_rpt = vm_conf->x_rpt;
     xy_out_config2.y_rpt = vm_conf->y_rpt;
-    xy_out_config2.x_skip = vm_conf->x_skip;
 
     misc_config.mask_br = avconfig->mask_br;
     misc_config.mask_color = avconfig->mask_color;
@@ -392,11 +393,10 @@ void mainloop()
 {
     int i, man_input_change;
     int mode, amode_match;
-    uint32_t pclk_hz, dotclk_hz, h_hz, v_hz_x100;
+    uint32_t pclk_hz, dotclk_hz, h_hz, v_hz_x100, pll_h_total;
     isl_input_t target_isl_input;
     video_sync target_isl_sync=0;
     video_format target_format;
-    video_type target_typemask=0;
     mode_data_t vmode_in, vmode_out;
     vm_mult_config_t vm_conf;
     status_t status;
@@ -436,7 +436,6 @@ void mainloop()
             enable_isl = 1;
             enable_hdmirx = 0;
             enable_tp = 0;
-            target_typemask = VIDEO_SDTV|VIDEO_EDTV|VIDEO_HDTV;
             target_isl_sync = SYNC_SOG;
 
             switch (target_avinput) {
@@ -461,7 +460,6 @@ void mainloop()
                 target_isl_input = ISL_CH0;
                 target_isl_sync = SYNC_HV;
                 target_format = FORMAT_RGBHV;
-                target_typemask = VIDEO_PC; // OK?
                 break;
             case AV1_RGBCS:
                 target_isl_input = ISL_CH0;
@@ -480,7 +478,6 @@ void mainloop()
                 target_isl_input = ISL_CH2;
                 target_format = FORMAT_RGBHV;
                 target_isl_sync = SYNC_HV;
-                target_typemask = VIDEO_PC;
                 break;
             case AV3_RGBCS:
                 target_isl_input = ISL_CH2;
@@ -560,7 +557,8 @@ void mainloop()
                 update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
-                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c @ %uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', vmode_out.timings.v_hz);
+                //sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c @ %uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', vmode_out.timings.v_hz_max);
+                sniprintf(row2, US2066_ROW_LEN+1, "Test: %s", vmode_out.name);
                 chardisp_write_status();
 
                 tp_stdmode_idx = target_tp_stdmode_idx;
@@ -602,10 +600,10 @@ void mainloop()
                         v_hz_x100 *= 2;
 
                     memset(&vmode_in, 0, sizeof(mode_data_t));
-                    vmode_in.timings.v_hz = (v_hz_x100+50)/100;
+                    vmode_in.timings.h_synclen = isl_dev.sm.h_synclen_x16 / 16;
+                    vmode_in.timings.v_hz_max = (v_hz_x100+50)/100;
                     vmode_in.timings.v_total = isl_dev.ss.v_total;
                     vmode_in.timings.interlaced = isl_dev.ss.interlace_flag;
-                    vmode_in.type = target_typemask;
 
                     mode = get_adaptive_lm_mode(&vmode_in, &vmode_out, &vm_conf);
 
@@ -624,16 +622,18 @@ void mainloop()
                                                                                             (v_hz_x100/100),
                                                                                             (v_hz_x100%100),
                                                                                             isl_dev.ss.h_polarity ? '-' : '+',
-                                                                                            isl_dev.ss.v_polarity ? '-' : '+');
+                                                                                            (target_isl_sync == SYNC_HV) ? (isl_dev.ss.v_polarity ? '-' : '+') : (isl_dev.ss.sog_trilevel ? '3' : ' '));
                         chardisp_write_status();
 
-                        pclk_hz = h_hz * vmode_in.timings.h_total;
+                        pll_h_total = (vm_conf.h_skip+1) * vmode_in.timings.h_total + (((vm_conf.h_skip+1) * vmode_in.timings.h_total_adj * 5 + 50) / 100);
+
+                        pclk_hz = h_hz * pll_h_total;
                         dotclk_hz = estimate_dotclk(&vmode_in, h_hz);
                         printf("H: %u.%.2ukHz V: %u.%.2uHz\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10, (v_hz_x100/100), (v_hz_x100%100));
                         printf("Estimated source dot clock: %lu.%.2uMHz\n", (dotclk_hz+5000)/1000000, ((dotclk_hz+5000)%1000000)/10000);
                         printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_hz, vmode_out.si_pclk_mult*pclk_hz);
 
-                        isl_source_setup(&isl_dev, vmode_in.timings.h_total);
+                        isl_source_setup(&isl_dev, pll_h_total);
 
                         isl_set_afe_bw(&isl_dev, dotclk_hz);
                         isl_set_sampler_phase(&isl_dev, vmode_in.sampler_phase);
@@ -691,7 +691,7 @@ void mainloop()
                     sniprintf(vmode_in.name, 14, "%ux%u%c", advrx_dev.ss.h_active, (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : ' ');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active;
                     vmode_in.timings.v_active = advrx_dev.ss.v_active;
-                    vmode_in.timings.v_hz = (v_hz_x100+50)/100;
+                    vmode_in.timings.v_hz_max = (v_hz_x100+50)/100;
                     vmode_in.timings.h_total = advrx_dev.ss.h_total;
                     vmode_in.timings.v_total = advrx_dev.ss.v_total;
                     vmode_in.timings.h_backporch = advrx_dev.ss.h_backporch;
@@ -699,7 +699,6 @@ void mainloop()
                     vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen;
                     vmode_in.timings.v_synclen = advrx_dev.ss.v_synclen;
                     vmode_in.timings.interlaced = advrx_dev.ss.interlace_flag;
-                    vmode_in.type = VIDEO_SDTV|VIDEO_EDTV|VIDEO_HDTV|VIDEO_PC;
                     //TODO: VIC+pixelrep
 
                     mode = get_adaptive_lm_mode(&vmode_in, &vmode_out, &vm_conf);

@@ -161,7 +161,7 @@ typedef enum {
 typedef struct {
     uint16_t h_active:13;
     uint16_t v_active:11;
-    uint8_t v_hz;
+    uint8_t v_hz_max;
     uint16_t h_total;
     uint8_t  h_total_adj:5;
     uint16_t v_total:11;
@@ -204,7 +204,7 @@ typedef struct {
 typedef struct {
     uint8_t x_rpt;
     uint8_t y_rpt;
-    uint8_t x_skip;
+    uint8_t h_skip;
     int16_t x_offset;
     int16_t y_offset;
     uint16_t x_size;

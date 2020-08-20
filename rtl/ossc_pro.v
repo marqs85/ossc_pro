@@ -243,8 +243,8 @@ isl51002_frontend u_isl_frontend (
     .DE_o(ISL_DE_post),
     .FID_o(ISL_FID_post),
     .interlace_flag(ISL_fe_interlace),
-    .xpos(ISL_fe_xpos),
-    .ypos(ISL_fe_ypos),
+    .xpos_o(ISL_fe_xpos),
+    .ypos_o(ISL_fe_ypos),
     .vtotal(ISL_fe_vtotal),
     .frame_change(ISL_fe_frame_change),
     .pcnt_frame(ISL_fe_pcnt_frame)
@@ -283,8 +283,8 @@ adv7611_frontend u_hdmirx_frontend (
     .DE_o(HDMIRX_DE_post),
     .FID_o(HDMIRX_FID_post),
     .interlace_flag(HDMIRX_fe_interlace),
-    .xpos(HDMIRX_fe_xpos),
-    .ypos(HDMIRX_fe_ypos),
+    .xpos_o(HDMIRX_fe_xpos),
+    .ypos_o(HDMIRX_fe_ypos),
     .frame_change(HDMIRX_fe_frame_change)
 );
 
