@@ -43,7 +43,7 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 38
+#define FW_VER_MINOR 39
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x7a
@@ -176,7 +176,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     hv_in_config3.v_synclen = vm_in->timings.v_synclen;
     hv_in_config2.interlaced = vm_in->timings.interlaced;
     hv_in_config3.h_skip = vm_conf->h_skip;
-    hv_in_config3.h_sample_sel = 0;
+    hv_in_config3.h_sample_sel = vm_conf->h_skip / 2; // TODO: fix
 
     // Set output params
     hv_out_config.h_total = vm_out->timings.h_total;
