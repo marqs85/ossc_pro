@@ -21,7 +21,9 @@
 #define MENU_H_
 
 #include <stdint.h>
+#include "sysconfig.h"
 #include "controls.h"
+#include "video_modes.h"
 
 typedef enum {
     OPT_AVCONFIG_SELECTION,
@@ -116,9 +118,12 @@ typedef struct {
 
 int is_menu_active();
 void init_menu();
+menunavi* get_current_menunavi();
+void render_osd_menu();
 void display_menu(rc_code_t remote_code);
-static void vm_select();
-static void vm_tweak(uint16_t *v);
-static void sampler_phase_tweak(uint8_t v);
+void update_osd_size(mode_data_t *vm_out);
+void update_settings();
+/*static void vm_select();
+static void vm_tweak(uint16_t *v);*/
 
 #endif

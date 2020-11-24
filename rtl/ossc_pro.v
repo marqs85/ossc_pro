@@ -18,7 +18,8 @@
 //
 
 `define PO_RESET_WIDTH 27
-`define DISABLE_SDC_CONTROLLER
+//`define DISABLE_SDC_CONTROLLER
+`define PCB1P3_SI_FIX
 
 module ossc_pro (
     input CLK27_i,
@@ -31,8 +32,6 @@ module ossc_pro (
     input ISL_HS_i,
     input ISL_HSYNC_i,
     input ISL_VSYNC_i,
-    input ISL_DE_i,
-    input ISL_FID_i,
     input ISL_INT_N_i,
     output ISL_EXT_PCLK_o,
     output ISL_RESET_N_o,
@@ -40,7 +39,6 @@ module ossc_pro (
     output ISL_CLAMP_o,
 
     input HDMIRX_PCLK_i,
-    input HDMIRX_MCLK_i,
     input HDMIRX_AP_i,
     input [7:0] HDMIRX_R_i,
     input [7:0] HDMIRX_G_i,
@@ -55,12 +53,11 @@ module ossc_pro (
 
     input HDMITX_INT_N_i,
     output HDMITX_PCLK_o,
-    output HDMITX_MCLK_o,
     output HDMITX_I2S_BCK_o,
     output HDMITX_I2S_WS_o,
     output HDMITX_I2S_DATA_o,
     output HDMITX_SPDIF_o,
-    output HDMITX_PD_o,
+    output HDMITX_5V_EN_o,
     output reg [7:0] HDMITX_R_o,
     output reg [7:0] HDMITX_G_o,
     output reg [7:0] HDMITX_B_o,
@@ -68,16 +65,16 @@ module ossc_pro (
     output reg HDMITX_VSYNC_o,
     output reg HDMITX_DE_o,
 
-    /*input DDR_RZQ_i,
+    input DDR_RZQ_i,
     output [9:0] DDR_CA_o,
-    output DDR_CK_o,
-    output DDR_CK_N_o,
+    output DDR_CK_o_p,
+    output DDR_CK_o_n,
     output DDR_CKE_o,
     output DDR_CS_N_o,
-    output [2:0] DDR_DM_o,
-    inout [23:0] DDR_DQ_io,
-    inout [2:0] DDR_DQS_io,
-    inout [2:0] DDR_DQS_N_io,*/
+    output [3:0] DDR_DM_o,
+    inout [31:0] DDR_DQ_io,
+    inout [3:0] DDR_DQS_io_p,
+    inout [3:0] DDR_DQS_io_n,
 
     input PCM_I2S_BCK_i,
     input PCM_I2S_WS_i,
@@ -92,20 +89,21 @@ module ossc_pro (
 
     input SPDIF_EXT_i,
     input IR_RX_i,
-    input [1:0] BTN_i,
+    input [5:0] BTN_i,
     output [2:0] LED_o,
     output AUDMUX_o,
 
     output SD_CLK_o,
     inout SD_CMD_io,
     inout [3:0] SD_DATA_io,
+    input SD_DETECT_i,
 
-    inout [28:0] EXT_IO_io,
-    output [1:0] LS_DIR_o,
-    output LS_OE_N_o
+    inout [5:0] EXT_IO_A_io,
+
+    inout [31:0] EXT_IO_B_io,
+    output [1:0] LS_DIR_o
 );
 
-//wire clk_osc;
 wire jtagm_reset_req;
 
 wire [15:0] sys_ctrl;
@@ -114,24 +112,22 @@ wire isl_reset_n = sys_ctrl[1];
 wire hdmirx_reset_n = sys_ctrl[2];
 wire emif_hwreset_n = sys_ctrl[3];
 wire emif_swreset_n = sys_ctrl[4];
-wire capture_sel = sys_ctrl[5];
-wire isl_vs_pol = sys_ctrl[6];
-wire isl_vs_type = sys_ctrl[7];
-wire audmux_sel = sys_ctrl[8];
-wire testpattern_enable = sys_ctrl[9];
-wire csc_enable = sys_ctrl[10];
-
-//reg [1:0] clk_osc_div = 2'h0;
+wire emif_powerdn_req = sys_ctrl[5];
+wire emif_powerdn_mask = sys_ctrl[6];
+wire capture_sel = sys_ctrl[7];
+wire isl_vs_pol = sys_ctrl[8];
+wire isl_vs_type = sys_ctrl[9];
+wire audmux_sel = sys_ctrl[10];
+wire testpattern_enable = sys_ctrl[11];
+wire csc_enable = sys_ctrl[12];
+wire adap_lm = sys_ctrl[13];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
-reg [1:0] btn_sync1_reg, btn_sync2_reg;
+reg [5:0] btn_sync1_reg, btn_sync2_reg;
 
 wire [15:0] ir_code;
 wire [7:0] ir_code_cnt;
 
-//wire clk25 = clk_osc_div[1];
-wire clk27 = EXT_IO_io[27];
-//wire pll_refclk = pll_refclk_buf;
 wire pclk_capture, pclk_out;
 
 reg [7:0] po_reset_ctr = 0;
@@ -146,19 +142,12 @@ wire sys_reset_n = (po_reset_n & ~jtagm_reset_req);
 wire emif_status_init_done;
 wire emif_status_cal_success;
 wire emif_status_cal_fail;
+wire emif_status_powerdn_ack;
 
-wire avl_waitrequest_n;
-wire avl_beginbursttransfer;
-wire [22:0] avl_address;
-wire avl_readdatavalid;
-wire [47:0] avl_readdata;
-wire [47:0] avl_writedata;
-wire [5:0] avl_byteenable;
-wire avl_read;
-wire avl_write;
-wire [2:0] avl_burstcount;
+wire sd_detect = ~SD_DETECT_i;
 
-wire [31:0] sys_status = {3'h0, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done, btn_sync2_reg, ir_code_cnt, ir_code};
+wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
+wire [31:0] sys_status = {27'h0, sd_detect, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
 wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2;
 wire [31:0] misc_config, sl_config, sl_config2;
@@ -168,16 +157,20 @@ reg resync_strobe_sync1_reg, resync_strobe_sync2_reg, resync_strobe_prev;
 wire resync_strobe_i;
 wire resync_strobe = resync_strobe_sync2_reg;
 
-//BGR?
-assign LED_o = sys_poweron ? {CLK27_i, (ir_code == 0), (resync_led_ctr != 0)} : 3'b001;
+//BGR
+assign LED_o = sys_poweron ? {adap_lm, (ir_code == 0), (resync_led_ctr != 0)} : 3'b001;
 //assign LED_o = {emif_status_init_done, emif_status_cal_success, emif_status_cal_fail};
+
+wire [10:0] xpos, ypos;
+wire osd_enable;
+wire [1:0] osd_color;
 
 assign ISL_RESET_N_o = isl_reset_n;
 assign HDMIRX_RESET_N_o = hdmirx_reset_n;
 
 reg emif_hwreset_n_sync1_reg, emif_hwreset_n_sync2_reg, emif_swreset_n_sync1_reg, emif_swreset_n_sync2_reg;
 
-assign HDMITX_PD_o = 1'b1;
+assign HDMITX_5V_EN_o = 1'b1;
 
 `ifndef DISABLE_SDC_CONTROLLER
 wire sd_cmd_oe_o, sd_cmd_out_o, sd_dat_oe_o;
@@ -192,8 +185,6 @@ assign FPGA_PCLK1x_o = pclk_capture;
 // ISL51002 RGB digitizer
 reg [7:0] ISL_R, ISL_G, ISL_B;
 reg ISL_HS;
-reg ISL_DE;
-reg ISL_FID;
 reg ISL_HSYNC_sync1_reg, ISL_HSYNC_sync2_reg;
 reg ISL_VSYNC_sync1_reg, ISL_VSYNC_sync2_reg;
 always @(posedge ISL_PCLK_i) begin
@@ -201,8 +192,6 @@ always @(posedge ISL_PCLK_i) begin
     ISL_G <= ISL_G_i;
     ISL_B <= ISL_B_i;
     ISL_HS <= ISL_HS_i;
-    ISL_DE <= ISL_DE_i;
-    ISL_FID <= ISL_FID_i;
 
     // sync to pclk
     ISL_HSYNC_sync1_reg <= ISL_HSYNC_i;
@@ -218,7 +207,7 @@ wire [19:0] ISL_fe_pcnt_frame;
 wire [10:0] ISL_fe_vtotal, ISL_fe_xpos, ISL_fe_ypos;
 isl51002_frontend u_isl_frontend ( 
     .PCLK_i(ISL_PCLK_i),
-    .CLK_MEAS_i(clk27),
+    .CLK_MEAS_i(CLK27_i),
     .reset_n(sys_reset_n),
     .R_i(ISL_R),
     .G_i(ISL_G),
@@ -226,8 +215,8 @@ isl51002_frontend u_isl_frontend (
     .HS_i(ISL_HS),
     .HSYNC_i(ISL_HSYNC_sync2_reg),
     .VSYNC_i(ISL_VSYNC_sync2_reg),
-    .DE_i(ISL_DE),
-    .FID_i(ISL_FID),
+    .DE_i(1'b0),
+    .FID_i(1'b0),
     .vs_type(isl_vs_type),
     .vs_polarity(isl_vs_pol),
     .csc_enable(csc_enable),
@@ -253,13 +242,22 @@ isl51002_frontend u_isl_frontend (
 // ADV7611 HDMI RX
 reg [7:0] HDMIRX_R, HDMIRX_G, HDMIRX_B;
 reg HDMIRX_HSYNC, HDMIRX_VSYNC, HDMIRX_DE;
+reg [7:0] HDMIRX_R_iq, HDMIRX_G_iq, HDMIRX_B_iq;
+reg HDMIRX_HSYNC_iq, HDMIRX_VSYNC_iq, HDMIRX_DE_iq;
 always @(posedge HDMIRX_PCLK_i) begin
-    HDMIRX_R <= HDMIRX_R_i;
-    HDMIRX_G <= HDMIRX_G_i;
-    HDMIRX_B <= HDMIRX_B_i;
-    HDMIRX_HSYNC <= HDMIRX_HSYNC_i;
-    HDMIRX_VSYNC <= HDMIRX_VSYNC_i;
-    HDMIRX_DE <= HDMIRX_DE_i;
+    HDMIRX_R_iq <= HDMIRX_R_i;
+    HDMIRX_G_iq <= HDMIRX_G_i;
+    HDMIRX_B_iq <= HDMIRX_B_i;
+    HDMIRX_HSYNC_iq <= HDMIRX_HSYNC_i;
+    HDMIRX_VSYNC_iq <= HDMIRX_VSYNC_i;
+    HDMIRX_DE_iq <= HDMIRX_DE_i;
+
+    HDMIRX_R <= HDMIRX_R_iq;
+    HDMIRX_G <= HDMIRX_G_iq;
+    HDMIRX_B <= HDMIRX_B_iq;
+    HDMIRX_HSYNC <= HDMIRX_HSYNC_iq;
+    HDMIRX_VSYNC <= HDMIRX_VSYNC_iq;
+    HDMIRX_DE <= HDMIRX_DE_iq;
 end
 
 wire [7:0] HDMIRX_R_post, HDMIRX_G_post, HDMIRX_B_post;
@@ -319,16 +317,43 @@ wire PCLK_sc;
 assign pclk_out = PCLK_sc;
 assign HDMITX_PCLK_o = pclk_out;
 
-// output data assignment
+// output data assignment (2 stages and launch on negedge for timing closure)
+reg [7:0] R_out, G_out, B_out;
+reg HSYNC_out, VSYNC_out, DE_out;
 wire [7:0] R_sc, G_sc, B_sc;
 wire HSYNC_sc, VSYNC_sc, DE_sc;
+
+always @(posedge pclk_out) begin
+    if (osd_enable) begin
+        if (osd_color == 2'h0) begin
+            {R_out, G_out, B_out} <= 24'h000000;
+        end else if (osd_color == 2'h1) begin
+            {R_out, G_out, B_out} <= 24'h0000ff;
+        end else if (osd_color == 2'h2) begin
+            {R_out, G_out, B_out} <= 24'hffff00;
+        end else begin
+            {R_out, G_out, B_out} <= 24'hffffff;
+        end
+    end else begin
+        {R_out, G_out, B_out} <= {R_sc, G_sc, B_sc};
+    end
+
+    HSYNC_out <= HSYNC_sc;
+    VSYNC_out <= VSYNC_sc;
+    DE_out <= DE_sc;
+end
+
 always @(negedge pclk_out) begin
-    HDMITX_R_o <= R_sc;
-    HDMITX_G_o <= G_sc;
-    HDMITX_B_o <= B_sc;
-    HDMITX_HSYNC_o <= HSYNC_sc;
-    HDMITX_VSYNC_o <= VSYNC_sc;
-    HDMITX_DE_o <= DE_sc;
+`ifdef PCB1P3_SI_FIX
+    HDMITX_R_o <= {R_out[7:1], 1'b0};
+`else
+    HDMITX_R_o <= R_out;
+`endif
+    HDMITX_G_o <= G_out;
+    HDMITX_B_o <= B_out;
+    HDMITX_HSYNC_o <= HSYNC_out;
+    HDMITX_VSYNC_o <= VSYNC_out;
+    HDMITX_DE_o <= DE_out;
 end
 
 //audio
@@ -340,12 +365,10 @@ assign HDMITX_SPDIF_o = SPDIF_EXT_i;
 assign AUDMUX_o = ~audmux_sel;
 
 //assign EXT_IO_io = BTN_i[0] ? {29{1'b1}} : {29{1'b0}};
-assign LS_OE_N_o = 1'b0;
-//assign LS_DIR_o = 2'b01;
 assign LS_DIR_o = 2'b00;
 
 // Power-on reset pulse generation (not strictly necessary)
-always @(posedge clk27)
+always @(posedge CLK27_i)
 begin
     if (po_reset_ctr == `PO_RESET_WIDTH)
         po_reset_n <= 1'b1;
@@ -353,13 +376,7 @@ begin
         po_reset_ctr <= po_reset_ctr + 1'b1;
 end
 
-// 25MHz clock from internal oscillator
-/*always @(posedge clk_osc)
-begin
-    clk_osc_div <= clk_osc_div + 1'b1;
-end*/
-
-always @(posedge clk27) begin
+always @(posedge CLK27_i) begin
     if (~resync_strobe_prev & resync_strobe) begin
         resync_led_ctr <= {24{1'b1}};
     end else if (resync_led_ctr > 0) begin
@@ -386,7 +403,7 @@ always @(posedge CLK27_i or negedge po_reset_n) begin
     end
 end
 
-always @(posedge clk27 or negedge po_reset_n) begin
+always @(posedge CLK27_i or negedge po_reset_n) begin
     if (!po_reset_n) begin
         emif_hwreset_n_sync1_reg <= 1'b0;
         emif_hwreset_n_sync2_reg <= 1'b0;
@@ -402,7 +419,7 @@ end
 
 // Qsys system
 sys sys_inst (
-    .clk_clk                                (clk27),
+    .clk_clk                                (CLK27_i),
     .reset_reset_n                          (sys_reset_n),
     .pulpino_0_config_testmode_i            (1'b0),
     .pulpino_0_config_fetch_enable_i        (1'b1),
@@ -423,7 +440,8 @@ sys sys_inst (
     .i2c_opencores_0_export_sda_pad_io      (SDA_io),
     .i2c_opencores_0_export_spi_miso_pad_i  (1'b0),
     .pio_0_sys_ctrl_out_export              (sys_ctrl),
-    .pio_1_controls_in_export               (sys_status),
+    .pio_1_controls_in_export               (controls),
+    .pio_2_sys_status_in_export             (sys_status),
     .sc_config_0_sc_if_fe_status_i          ({20'h0, ISL_fe_interlace, ISL_fe_vtotal}),
     .sc_config_0_sc_if_fe_status2_i         ({12'h0, ISL_fe_pcnt_frame}),
     .sc_config_0_sc_if_lt_status_i          (32'h00000000),
@@ -438,45 +456,30 @@ sys sys_inst (
     .sc_config_0_sc_if_misc_config_o        (misc_config),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
-    /*.int_osc_0_oscena_oscena                (1'b1),
-    .int_osc_0_clkout_clk                   (clk_osc)*/
-    /*,
+    .osd_generator_0_osd_if_vclk            (SI_PCLK_i),
+    .osd_generator_0_osd_if_xpos            (xpos),
+    .osd_generator_0_osd_if_ypos            (ypos),
+    .osd_generator_0_osd_if_osd_enable      (osd_enable),
+    .osd_generator_0_osd_if_osd_color       (osd_color),
     .mem_if_lpddr2_emif_0_global_reset_reset_n     (emif_hwreset_n_sync2_reg),
     .mem_if_lpddr2_emif_0_soft_reset_reset_n       (emif_swreset_n_sync2_reg),
-    .mem_if_lpddr2_emif_0_pll_ref_clk_clk          (pll_refclk),
+    .mem_if_lpddr2_emif_0_pll_ref_clk_clk          (CLK27_i),
     .mem_if_lpddr2_emif_0_status_local_init_done   (emif_status_init_done),
     .mem_if_lpddr2_emif_0_status_local_cal_success (emif_status_cal_success),
     .mem_if_lpddr2_emif_0_status_local_cal_fail    (emif_status_cal_fail),
+    .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_req  (emif_powerdn_req),
+    .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_chip (emif_powerdn_mask),
+    .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_ack  (emif_status_powerdn_ack),
     .memory_mem_ca                                 (DDR_CA_o),
-    .memory_mem_ck                                 (DDR_CK_o),
-    .memory_mem_ck_n                               (DDR_CK_N_o),
+    .memory_mem_ck                                 (DDR_CK_o_p),
+    .memory_mem_ck_n                               (DDR_CK_o_n),
     .memory_mem_cke                                (DDR_CKE_o),
     .memory_mem_cs_n                               (DDR_CS_N_o),
     .memory_mem_dm                                 (DDR_DM_o),
     .memory_mem_dq                                 (DDR_DQ_io),
-    .memory_mem_dqs                                (DDR_DQS_io),
-    .memory_mem_dqs_n                              (DDR_DQS_N_io),
-    .oct_rzqin                                     (DDR_RZQ_i),
-    .mem_if_lpddr2_emif_0_avl_0_waitrequest_n      (avl_waitrequest_n),
-    .mem_if_lpddr2_emif_0_avl_0_beginbursttransfer (avl_beginbursttransfer),
-    .mem_if_lpddr2_emif_0_avl_0_address            (avl_address),
-    .mem_if_lpddr2_emif_0_avl_0_readdatavalid      (avl_readdatavalid),
-    .mem_if_lpddr2_emif_0_avl_0_readdata           (avl_readdata),
-    .mem_if_lpddr2_emif_0_avl_0_writedata          (avl_writedata),
-    .mem_if_lpddr2_emif_0_avl_0_byteenable         (avl_byteenable),
-    .mem_if_lpddr2_emif_0_avl_0_read               (avl_read),
-    .mem_if_lpddr2_emif_0_avl_0_write              (avl_write),
-    .mem_if_lpddr2_emif_0_avl_0_burstcount         (avl_burstcount),
-    .mem_if_mapper_0_avl_export_0_waitrequest_n      (avl_waitrequest_n),
-    .mem_if_mapper_0_avl_export_0_beginbursttransfer (avl_beginbursttransfer),
-    .mem_if_mapper_0_avl_export_0_address            (avl_address),
-    .mem_if_mapper_0_avl_export_0_readdatavalid      (avl_readdatavalid),
-    .mem_if_mapper_0_avl_export_0_readdata           (avl_readdata),
-    .mem_if_mapper_0_avl_export_0_writedata          (avl_writedata),
-    .mem_if_mapper_0_avl_export_0_byteenable         (avl_byteenable),
-    .mem_if_mapper_0_avl_export_0_read               (avl_read),
-    .mem_if_mapper_0_avl_export_0_write              (avl_write),
-    .mem_if_mapper_0_avl_export_0_burstcount         (avl_burstcount)*/
+    .memory_mem_dqs                                (DDR_DQS_io_p),
+    .memory_mem_dqs_n                              (DDR_DQS_io_n),
+    .oct_rzqin                                     (DDR_RZQ_i)
 );
 
 scanconverter scanconverter_inst (
@@ -510,8 +513,8 @@ scanconverter scanconverter_inst (
     .HSYNC_o(HSYNC_sc),
     .VSYNC_o(VSYNC_sc),
     .DE_o(DE_sc),
-    .xpos_o(),
-    .ypos_o(),
+    .xpos_o(xpos),
+    .ypos_o(ypos),
     .resync_strobe(resync_strobe_i)
 );
 
@@ -523,19 +526,5 @@ ir_rcv ir0 (
     .ir_code_ack    (),
     .ir_code_cnt    (ir_code_cnt)
 );
-
-/*videogen vg0 (
-    .clk27          (SI_PCLK_i),
-    .reset_n        (po_reset_n),
-    .lt_active      (1'b0),
-    .lt_mode        (2'b00),
-    .R_out          (HDMITX_R_o),
-    .G_out          (HDMITX_G_o),
-    .B_out          (HDMITX_B_o),
-    .HSYNC_out      (HDMITX_HSYNC_o),
-    .VSYNC_out      (HDMITX_VSYNC_o),
-    .PCLK_out       (HDMITX_PCLK_o),
-    .ENABLE_out     (HDMITX_DE_o)
-);*/
 
 endmodule

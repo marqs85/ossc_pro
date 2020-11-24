@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2015-2018  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2015-2020  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -21,6 +21,7 @@
 #define CONTROLS_H_
 
 #include <stdint.h>
+#include "sysconfig.h"
 
 typedef enum {
     RC_BTN1                 = 0,
@@ -59,8 +60,16 @@ typedef enum {
 
 #define REMOTE_MAX_KEYS (RC_PROF_HOTKEY-RC_BTN1+1)
 
+#define CONTROLS_RC_MASK                   0x0000ffff
+#define CONTROLS_RC_OFFS                   0
+#define CONTROLS_RRPT_MASK                 0x00ff0000
+#define CONTROLS_RRPT_OFFS                 16
+#define CONTROLS_BTN_MASK                  0x3f000000
+#define CONTROLS_BTN_OFFS                  24
+
 //void setup_rc();
 void set_default_keymap();
-void parse_control(uint16_t remote_code, uint8_t btn_vec);
+void read_controls();
+void parse_control();
 
 #endif

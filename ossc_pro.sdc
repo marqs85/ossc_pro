@@ -1,8 +1,6 @@
 ### Clock definitions ###
 
 create_clock -period 27MHz -name clk27 [get_ports CLK27_i]
-create_clock -period 27MHz -name clk27_2 [get_ports EXT_IO_io[27]]
-#create_clock -period 25MHz -name clk25 clk_osc_div[1]
 
 create_clock -period 165MHz -name pclk_isl [get_ports ISL_PCLK_i]
 create_clock -period 165MHz -name pclk_si [get_ports SI_PCLK_i]
@@ -12,8 +10,7 @@ create_clock -period 165MHz -name pclk_hdmirx [get_ports HDMIRX_PCLK_i]
 create_clock -period 5MHz -name bck_pcm [get_ports PCM_I2S_BCK_i]
 create_clock -period 5MHz -name bck_hdmirx [get_ports HDMIRX_I2S_BCK_i]
 
-#create_generated_clock -name sd_clk -divide_by 2 -source [get_ports CLK27_i] [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q]
-#                           {sd_clk} \
+create_generated_clock -name sd_clk -divide_by 2 -source [get_ports CLK27_i] [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q]
 
 # output clocks
 #set pclk_out_port [get_ports HDMITX_PCLK_o]
@@ -43,8 +40,7 @@ derive_clock_uncertainty
 ### Clock relationships ###
 
 set_clock_groups -asynchronous -group \
-                            {clk27} \
-                            {clk27_2} \
+                            {clk27 sd_clk} \
                             {pclk_isl pclk_isl_postmux} \
                             {pclk_hdmirx pclk_hdmirx_postmux} \
                             {pclk_si pclk_si_out} \
@@ -55,8 +51,8 @@ set_clock_groups -asynchronous -group \
 ### IO delays ###
 
 # SD card
-#set_input_delay 0 -clock sd_clk -reference_pin [get_ports {SD_CLK_o}] [get_ports {SD_CMD_io SD_DATA_io[*]}]
-#set_output_delay 0 -clock sd_clk -reference_pin [get_ports {SD_CLK_o}] [get_ports {SD_CMD_io SD_DATA_io[*]}]
+set_input_delay 0 -clock sd_clk -reference_pin [get_ports {SD_CLK_o}] [get_ports {SD_CMD_io SD_DATA_io[*]}]
+set_output_delay 0 -clock sd_clk -reference_pin [get_ports {SD_CLK_o}] [get_ports {SD_CMD_io SD_DATA_io[*]}]
 
 # ISL51002
 set ISL_dmin [expr 3.4-0.5*(1000/165)]
@@ -88,19 +84,19 @@ foreach_in_collection c [get_clocks pclk_*_out] {
 set_output_delay -clock bck_out -min $hdmitx_dmin [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
 set_output_delay -clock bck_out -max $hdmitx_dmax [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
 set_false_path -from [get_ports {HDMITX_INT_N_i}]
-set_false_path -to [get_ports {HDMITX_SPDIF_o HDMITX_PD_o}]
+set_false_path -to [get_ports {HDMITX_SPDIF_o HDMITX_5V_EN_o}]
 
 # PCM1862
 set_input_delay 0 -clock bck_pcm -clock_fall [get_ports {PCM_I2S_WS_i PCM_I2S_DATA_i}]
 
 # Misc
-set_false_path -from [get_ports {BTN_i* IR_RX_i SCL_io SDA_io SI_INT_N_i SPDIF_EXT_i}]
+set_false_path -from [get_ports {BTN_i* IR_RX_i SCL_io SDA_io SI_INT_N_i SPDIF_EXT_i SD_DETECT_i}]
 set_false_path -to [get_ports {LED_o* AUDMUX_o SCL_io SDA_io FPGA_PCLK1x_o}]
-#set_false_path -from {emif_hwreset_n_sync2_reg emif_swreset_n_sync2_reg}
-#set_false_path -to {emif_hwreset_n_sync1_reg emif_swreset_n_sync1_reg}
-#set_false_path -to sys:sys_inst|sys_pio_1:pio_1|readdata[0]
-#set_false_path -to sys:sys_inst|sys_pio_1:pio_1|readdata[1]
-#set_false_path -to sys:sys_inst|sys_pio_1:pio_1|readdata[2]
+set_false_path -from {emif_hwreset_n_sync2_reg emif_swreset_n_sync2_reg}
+set_false_path -to {emif_hwreset_n_sync1_reg emif_swreset_n_sync1_reg}
+set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[0]
+set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[1]
+set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[2]
 
 
 ### JTAG Signal Constraints ###

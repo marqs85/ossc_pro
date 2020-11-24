@@ -122,36 +122,37 @@ typedef enum {
 } stdmode_t;
 
 typedef enum {
-    ADPRESET_GEN_720x240    = 0,
-    ADPRESET_GEN_960x240,
-    ADPRESET_GEN_1280x240,
-    ADPRESET_GEN_1600x240,
-    ADPRESET_GEN_1920x240,
-    ADPRESET_GEN_720x288,
-    ADPRESET_GEN_1536x288,
-    ADPRESET_GEN_1920x288,
-    ADPRESET_GEN_720x480i,
-    ADPRESET_GEN_1280x480i,
-    ADPRESET_GEN_1920x480i,
-    ADPRESET_GEN_720x576i,
-    ADPRESET_GEN_1536x576i,
-    ADPRESET_GEN_720x480,
-    ADPRESET_GEN_1280x480,
-    ADPRESET_GEN_1920x480,
-    ADPRESET_GEN_720x576,
-    ADPRESET_GEN_1536x576,
-    ADPRESET_OPT_VGA480P60,
-    ADPRESET_OPT_DTV480P,
-    ADPRESET_SNES_256_240,
-    ADPRESET_SNES_512_240,
-    ADPRESET_MD_256_224,
-    ADPRESET_MD_320_224,
-    ADPRESET_PSX_256_240,
-    ADPRESET_PSX_320_240,
-    ADPRESET_PSX_384_240,
-    ADPRESET_PSX_512_240,
-    ADPRESET_PSX_640_240,
-} ad_preset_id_t;
+    SMPPRESET_GEN_720x240    = 0,
+    SMPPRESET_GEN_960x240,
+    SMPPRESET_GEN_1280x240,
+    SMPPRESET_GEN_1600x240,
+    SMPPRESET_GEN_1920x240,
+    SMPPRESET_GEN_720x288,
+    SMPPRESET_GEN_1536x288,
+    SMPPRESET_GEN_1920x288,
+    SMPPRESET_GEN_720x480i,
+    SMPPRESET_GEN_1280x480i,
+    SMPPRESET_GEN_1920x480i,
+    SMPPRESET_GEN_720x576i,
+    SMPPRESET_GEN_1536x576i,
+    SMPPRESET_GEN_720x480,
+    SMPPRESET_GEN_1280x480,
+    SMPPRESET_GEN_1920x480,
+    SMPPRESET_GEN_720x576,
+    SMPPRESET_GEN_1536x576,
+    SMPPRESET_VGA480P60,
+    SMPPRESET_DTV480P,
+    SMPPRESET_SNES_256x240,
+    SMPPRESET_SNES_512x240,
+    SMPPRESET_MD_256x224,
+    SMPPRESET_MD_320x224,
+    SMPPRESET_PSX_256x240,
+    SMPPRESET_PSX_320x240,
+    SMPPRESET_PSX_384x240,
+    SMPPRESET_PSX_512x240,
+    SMPPRESET_PSX_640x240,
+    SMPPRESET_N64_320x240,
+} smp_preset_id_t;
 
 typedef enum {
     ADMODE_240p      = 0,
@@ -189,7 +190,8 @@ typedef enum {
     SM_OPT_SAT_320COL,
     SM_OPT_SAT_352COL,
     SM_OPT_SAT_704COL,
-} ad_sampling_mode_t;
+    SM_OPT_N64_320COL,
+} smp_mode_t;
 
 typedef struct {
     uint16_t h_active:13;
@@ -222,17 +224,17 @@ typedef struct {
 
 typedef struct {
     char name[14];
+    smp_mode_t sm;
     sync_timings_t timings_i;
     uint8_t h_skip;
     uint8_t sampler_phase;
     video_type type:4;
     video_group group:4;
-    ad_sampling_mode_t sm;
-} ad_preset_t;
+} smp_preset_t;
 
 typedef struct {
     ad_mode_id_t id;
-    ad_preset_id_t preset_id;
+    smp_preset_id_t smp_preset_id;
     uint16_t v_total_override;
     uint8_t x_rpt;
     uint8_t y_rpt;

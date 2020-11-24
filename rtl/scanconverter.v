@@ -53,7 +53,7 @@ module scanconverter (
     output reg resync_strobe
 );
 
-localparam NUM_LINE_BUFFERS = 20;
+localparam NUM_LINE_BUFFERS = 40;
 
 localparam FID_EVEN = 1'b0;
 localparam FID_ODD = 1'b1;

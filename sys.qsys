@@ -126,7 +126,7 @@
    {
       datum _sortIndex
       {
-         value = "13";
+         value = "15";
          type = "int";
       }
    }
@@ -134,28 +134,7 @@
    {
       datum baseAddress
       {
-         value = "0";
-         type = "String";
-      }
-   }
-   element mem_if_mapper_0
-   {
-      datum _sortIndex
-      {
-         value = "14";
-         type = "int";
-      }
-   }
-   element mem_if_mapper_0.avl_0
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-      datum baseAddress
-      {
-         value = "67108864";
+         value = "268435456";
          type = "String";
       }
    }
@@ -193,6 +172,27 @@
          type = "String";
       }
    }
+   element osd_generator_0
+   {
+      datum _sortIndex
+      {
+         value = "14";
+         type = "int";
+      }
+   }
+   element osd_generator_0.avalon_s
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "143360";
+         type = "String";
+      }
+   }
    element pio_0
    {
       datum _sortIndex
@@ -210,7 +210,7 @@
       }
       datum baseAddress
       {
-         value = "135392";
+         value = "135360";
          type = "String";
       }
    }
@@ -235,6 +235,27 @@
          type = "String";
       }
    }
+   element pio_2
+   {
+      datum _sortIndex
+      {
+         value = "12";
+         type = "int";
+      }
+   }
+   element pio_2.s1
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "135392";
+         type = "String";
+      }
+   }
    element pulpino_0
    {
       datum _sortIndex
@@ -255,7 +276,7 @@
    {
       datum _sortIndex
       {
-         value = "12";
+         value = "13";
          type = "int";
       }
    }
@@ -317,7 +338,7 @@
 }
 ]]></parameter>
  <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
- <parameter name="device" value="5CEFA2F23C8" />
+ <parameter name="device" value="5CEFA5F23C8" />
  <parameter name="deviceFamily" value="Cyclone V" />
  <parameter name="deviceSpeedGrade" value="8" />
  <parameter name="fabricMode" value="QSYS" />
@@ -347,25 +368,45 @@
    type="reset"
    dir="start" />
  <interface
-   name="mem_if_lpddr2_emif_0_avl_0"
-   internal="mem_if_lpddr2_emif_0.avl_0" />
+   name="mem_if_lpddr2_emif_0_deep_powerdn"
+   internal="mem_if_lpddr2_emif_0.deep_powerdn"
+   type="conduit"
+   dir="end" />
  <interface
    name="mem_if_lpddr2_emif_0_global_reset"
-   internal="mem_if_lpddr2_emif_0.global_reset" />
+   internal="mem_if_lpddr2_emif_0.global_reset"
+   type="reset"
+   dir="end" />
  <interface
    name="mem_if_lpddr2_emif_0_pll_ref_clk"
-   internal="mem_if_lpddr2_emif_0.pll_ref_clk" />
+   internal="mem_if_lpddr2_emif_0.pll_ref_clk"
+   type="clock"
+   dir="end" />
  <interface
    name="mem_if_lpddr2_emif_0_soft_reset"
-   internal="mem_if_lpddr2_emif_0.soft_reset" />
+   internal="mem_if_lpddr2_emif_0.soft_reset"
+   type="reset"
+   dir="end" />
  <interface
    name="mem_if_lpddr2_emif_0_status"
-   internal="mem_if_lpddr2_emif_0.status" />
+   internal="mem_if_lpddr2_emif_0.status"
+   type="conduit"
+   dir="end" />
  <interface
-   name="mem_if_mapper_0_avl_export_0"
-   internal="mem_if_mapper_0.avl_export_0" />
- <interface name="memory" internal="mem_if_lpddr2_emif_0.memory" />
- <interface name="oct" internal="mem_if_lpddr2_emif_0.oct" />
+   name="memory"
+   internal="mem_if_lpddr2_emif_0.memory"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="oct"
+   internal="mem_if_lpddr2_emif_0.oct"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="osd_generator_0_osd_if"
+   internal="osd_generator_0.osd_if"
+   type="conduit"
+   dir="end" />
  <interface
    name="pio_0_sys_ctrl_out"
    internal="pio_0.external_connection"
@@ -374,6 +415,11 @@
  <interface
    name="pio_1_controls_in"
    internal="pio_1.external_connection"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="pio_2_sys_status_in"
+   internal="pio_2.external_connection"
    type="conduit"
    dir="end" />
  <interface
@@ -387,7 +433,11 @@
    internal="sc_config_0.sc_if"
    type="conduit"
    dir="end" />
- <interface name="sdc_controller_0_sd" internal="sdc_controller_0.sd" />
+ <interface
+   name="sdc_controller_0_sd"
+   internal="sdc_controller_0.sd"
+   type="conduit"
+   dir="end" />
  <module name="clk_27" kind="clock_source" version="19.1" enabled="1">
   <parameter name="clockFrequency" value="27000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -399,7 +449,7 @@
    kind="altera_epcq_controller2"
    version="19.1"
    enabled="0">
-  <parameter name="AUTO_DEVICE" value="5CEFA2F23C8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
   <parameter name="CHIP_SELS" value="1" />
   <parameter name="DDASI" value="0" />
@@ -441,7 +491,7 @@
    kind="altera_jtag_avalon_master"
    version="19.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA2F23C8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
   <parameter name="COMPONENT_CLOCK" value="0" />
@@ -454,7 +504,7 @@
    name="mem_if_lpddr2_emif_0"
    kind="altera_mem_if_lpddr2_emif"
    version="19.1"
-   enabled="0">
+   enabled="1">
   <parameter name="ABSTRACT_REAL_COMPARE_TEST" value="false" />
   <parameter name="ABS_RAM_MEM_INIT_FILENAME" value="meminit" />
   <parameter name="ACV_PHY_CLK_ADD_FR_PHASE" value="0.0" />
@@ -470,11 +520,11 @@
   <parameter name="ALTMEMPHY_COMPATIBLE_MODE" value="false" />
   <parameter name="AP_MODE" value="false" />
   <parameter name="AP_MODE_EN" value="0" />
-  <parameter name="AUTO_DEVICE" value="5CEFA2F23C8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
   <parameter name="AUTO_PD_CYCLES" value="0" />
   <parameter name="AUTO_POWERDN_EN" value="false" />
-  <parameter name="AVL_DATA_WIDTH_PORT" value="48,32,32,32,32,32" />
+  <parameter name="AVL_DATA_WIDTH_PORT" value="32,32,32,32,32,32" />
   <parameter name="AVL_MAX_SIZE" value="4" />
   <parameter name="BYTE_ENABLE" value="true" />
   <parameter name="C2P_WRITE_CLOCK_ADD_PHASE" value="0.0" />
@@ -492,7 +542,7 @@
   <parameter name="CTL_CSR_CONNECTION" value="INTERNAL_JTAG" />
   <parameter name="CTL_CSR_ENABLED" value="false" />
   <parameter name="CTL_CSR_READ_ONLY" value="1" />
-  <parameter name="CTL_DEEP_POWERDN_EN" value="false" />
+  <parameter name="CTL_DEEP_POWERDN_EN" value="true" />
   <parameter name="CTL_DYNAMIC_BANK_ALLOCATION" value="false" />
   <parameter name="CTL_DYNAMIC_BANK_NUM" value="4" />
   <parameter name="CTL_ECC_AUTO_CORRECTION_ENABLED" value="false" />
@@ -529,7 +579,7 @@
   <parameter name="ENABLE_NON_DES_CAL" value="false" />
   <parameter name="ENABLE_NON_DES_CAL_TEST" value="false" />
   <parameter name="ENABLE_SEQUENCER_MARGINING_ON_BY_DEFAULT" value="false" />
-  <parameter name="ENABLE_USER_ECC" value="true" />
+  <parameter name="ENABLE_USER_ECC" value="false" />
   <parameter name="EXPORT_AFI_HALF_CLK" value="false" />
   <parameter name="EXTRA_SETTINGS" value="" />
   <parameter name="FIX_READ_LATENCY" value="8" />
@@ -555,20 +605,20 @@
   <parameter name="MAX_PENDING_WR_CMD" value="16" />
   <parameter name="MEM_ATCL" value="0" />
   <parameter name="MEM_AUTO_LEVELING_MODE" value="true" />
-  <parameter name="MEM_BANKADDR_WIDTH" value="2" />
+  <parameter name="MEM_BANKADDR_WIDTH" value="3" />
   <parameter name="MEM_BL" value="4" />
   <parameter name="MEM_BT" value="Sequential" />
   <parameter name="MEM_CK_PHASE" value="0.0" />
   <parameter name="MEM_CK_WIDTH" value="1" />
   <parameter name="MEM_CLK_EN_WIDTH" value="1" />
-  <parameter name="MEM_CLK_FREQ" value="266.6" />
+  <parameter name="MEM_CLK_FREQ" value="300.0" />
   <parameter name="MEM_CLK_FREQ_MAX" value="533.333" />
   <parameter name="MEM_COL_ADDR_WIDTH" value="9" />
   <parameter name="MEM_CS_WIDTH" value="1" />
   <parameter name="MEM_DEVICE" value="MISSING_MODEL" />
   <parameter name="MEM_DLL_EN" value="true" />
   <parameter name="MEM_DQ_PER_DQS" value="8" />
-  <parameter name="MEM_DQ_WIDTH" value="24" />
+  <parameter name="MEM_DQ_WIDTH" value="32" />
   <parameter name="MEM_DRV_STR" value="40" />
   <parameter name="MEM_FORMAT" value="DISCRETE" />
   <parameter name="MEM_GUARANTEED_WRITE_INIT" value="false" />
@@ -583,7 +633,7 @@
   <parameter name="MEM_NUMBER_OF_RANKS_PER_DEVICE" value="1" />
   <parameter name="MEM_NUMBER_OF_RANKS_PER_DIMM" value="1" />
   <parameter name="MEM_RANK_MULTIPLICATION_FACTOR" value="1" />
-  <parameter name="MEM_ROW_ADDR_WIDTH" value="13" />
+  <parameter name="MEM_ROW_ADDR_WIDTH" value="14" />
   <parameter name="MEM_TCL" value="4" />
   <parameter name="MEM_TFAW_NS" value="50.0" />
   <parameter name="MEM_TINIT_US" value="200" />
@@ -715,7 +765,7 @@
   <parameter name="TIMING_BOARD_AC_EYE_REDUCTION_SU" value="0.0" />
   <parameter name="TIMING_BOARD_AC_SKEW" value="0.02" />
   <parameter name="TIMING_BOARD_AC_SLEW_RATE" value="1.0" />
-  <parameter name="TIMING_BOARD_AC_TO_CK_SKEW" value="-0.071" />
+  <parameter name="TIMING_BOARD_AC_TO_CK_SKEW" value="0.0" />
   <parameter name="TIMING_BOARD_CK_CKN_SLEW_RATE" value="2.0" />
   <parameter name="TIMING_BOARD_DELTA_DQS_ARRIVAL_TIME" value="0.0" />
   <parameter name="TIMING_BOARD_DELTA_READ_DQS_ARRIVAL_TIME" value="0.0" />
@@ -723,16 +773,16 @@
   <parameter name="TIMING_BOARD_DQS_DQSN_SLEW_RATE" value="2.0" />
   <parameter name="TIMING_BOARD_DQ_EYE_REDUCTION" value="0.0" />
   <parameter name="TIMING_BOARD_DQ_SLEW_RATE" value="1.0" />
-  <parameter name="TIMING_BOARD_DQ_TO_DQS_SKEW" value="0.01" />
+  <parameter name="TIMING_BOARD_DQ_TO_DQS_SKEW" value="0.0" />
   <parameter name="TIMING_BOARD_ISI_METHOD" value="AUTO" />
-  <parameter name="TIMING_BOARD_MAX_CK_DELAY" value="0.4" />
-  <parameter name="TIMING_BOARD_MAX_DQS_DELAY" value="0.3" />
+  <parameter name="TIMING_BOARD_MAX_CK_DELAY" value="0.6" />
+  <parameter name="TIMING_BOARD_MAX_DQS_DELAY" value="0.6" />
   <parameter name="TIMING_BOARD_READ_DQ_EYE_REDUCTION" value="0.0" />
   <parameter name="TIMING_BOARD_SKEW_BETWEEN_DIMMS" value="0.05" />
-  <parameter name="TIMING_BOARD_SKEW_BETWEEN_DQS" value="0.057" />
-  <parameter name="TIMING_BOARD_SKEW_CKDQS_DIMM_MAX" value="0.188" />
-  <parameter name="TIMING_BOARD_SKEW_CKDQS_DIMM_MIN" value="0.13" />
-  <parameter name="TIMING_BOARD_SKEW_WITHIN_DQS" value="0.026" />
+  <parameter name="TIMING_BOARD_SKEW_BETWEEN_DQS" value="0.02" />
+  <parameter name="TIMING_BOARD_SKEW_CKDQS_DIMM_MAX" value="0.01" />
+  <parameter name="TIMING_BOARD_SKEW_CKDQS_DIMM_MIN" value="-0.01" />
+  <parameter name="TIMING_BOARD_SKEW_WITHIN_DQS" value="0.02" />
   <parameter name="TIMING_BOARD_TDH" value="0.5" />
   <parameter name="TIMING_BOARD_TDS" value="0.5" />
   <parameter name="TIMING_BOARD_TIH" value="0.5" />
@@ -764,7 +814,6 @@
   <parameter name="WEIGHT_PORT" value="0,0,0,0,0,0" />
   <parameter name="WRBUFFER_ADDR_WIDTH" value="6" />
  </module>
- <module name="mem_if_mapper_0" kind="mem_if_mapper" version="1.0" enabled="0" />
  <module
    name="onchip_memory2_0"
    kind="altera_avalon_onchip_memory2"
@@ -785,7 +834,7 @@
   <parameter name="initMemContent" value="true" />
   <parameter name="initializationFileName" value="onchip_mem.hex" />
   <parameter name="instanceID" value="NONE" />
-  <parameter name="memorySize" value="49152" />
+  <parameter name="memorySize" value="65536" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
   <parameter name="resetrequest_enabled" value="true" />
   <parameter name="simAllowMRAMContentsFile" value="false" />
@@ -797,6 +846,7 @@
   <parameter name="useShallowMemBlocks" value="false" />
   <parameter name="writable" value="true" />
  </module>
+ <module name="osd_generator_0" kind="osd_generator" version="1.0" enabled="1" />
  <module name="pio_0" kind="altera_avalon_pio" version="19.1" enabled="1">
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
@@ -825,8 +875,22 @@
   <parameter name="simDrivenValue" value="0" />
   <parameter name="width" value="32" />
  </module>
+ <module name="pio_2" kind="altera_avalon_pio" version="19.1" enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="27000000" />
+  <parameter name="direction" value="Input" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="32" />
+ </module>
  <module name="pulpino_0" kind="pulpino" version="1.0" enabled="1">
-  <parameter name="AUTO_INTERRUPT_RECEIVER_INTERRUPTS_USED" value="11" />
+  <parameter name="AUTO_INTERRUPT_RECEIVER_INTERRUPTS_USED" value="31" />
   <parameter name="AXI_ADDR_WIDTH" value="32" />
   <parameter name="AXI_DATA_WIDTH" value="32" />
   <parameter name="AXI_ID_MASTER_WIDTH" value="10" />
@@ -842,7 +906,7 @@
    name="sdc_controller_0"
    kind="sdc_controller"
    version="1.0"
-   enabled="0" />
+   enabled="1" />
  <module name="timer_0" kind="altera_avalon_timer" version="19.1" enabled="1">
   <parameter name="alwaysRun" value="false" />
   <parameter name="counterSize" value="32" />
@@ -895,6 +959,15 @@
    kind="avalon"
    version="19.1"
    start="pulpino_0.avalon_master_lsu"
+   end="osd_generator_0.avalon_s">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x00023000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="19.1"
+   start="pulpino_0.avalon_master_lsu"
    end="sdc_controller_0.avalon_s">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00020200" />
@@ -922,9 +995,9 @@
    kind="avalon"
    version="19.1"
    start="pulpino_0.avalon_master_lsu"
-   end="mem_if_mapper_0.avl_0">
+   end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04000000" />
+  <parameter name="baseAddress" value="0x10000000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -960,7 +1033,7 @@
    start="pulpino_0.avalon_master_lsu"
    end="pio_0.s1">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x000210e0" />
+  <parameter name="baseAddress" value="0x000210c0" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -970,6 +1043,15 @@
    end="pio_1.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x000210d0" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="19.1"
+   start="pulpino_0.avalon_master_lsu"
+   end="pio_2.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x000210e0" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -994,7 +1076,7 @@
    kind="avalon"
    version="19.1"
    start="master_0.master"
-   end="onchip_memory2_0.s2">
+   end="onchip_memory2_0.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00010000" />
   <parameter name="defaultConnection" value="false" />
@@ -1004,6 +1086,7 @@
  <connection kind="clock" version="19.1" start="clk_27.clk" end="pio_1.clk" />
  <connection kind="clock" version="19.1" start="clk_27.clk" end="timer_0.clk" />
  <connection kind="clock" version="19.1" start="clk_27.clk" end="master_0.clk" />
+ <connection kind="clock" version="19.1" start="clk_27.clk" end="pio_2.clk" />
  <connection
    kind="clock"
    version="19.1"
@@ -1038,12 +1121,12 @@
    kind="clock"
    version="19.1"
    start="clk_27.clk"
-   end="sdc_controller_0.clock_sink" />
+   end="osd_generator_0.clock_sink" />
  <connection
    kind="clock"
    version="19.1"
    start="clk_27.clk"
-   end="mem_if_mapper_0.clock_sink" />
+   end="sdc_controller_0.clock_sink" />
  <connection
    kind="clock"
    version="19.1"
@@ -1064,14 +1147,14 @@
    version="19.1"
    start="pulpino_0.interrupt_receiver"
    end="sdc_controller_0.int_cmd">
-  <parameter name="irqNumber" value="4" />
+  <parameter name="irqNumber" value="2" />
  </connection>
  <connection
    kind="interrupt"
    version="19.1"
    start="pulpino_0.interrupt_receiver"
    end="sdc_controller_0.int_data">
-  <parameter name="irqNumber" value="5" />
+  <parameter name="irqNumber" value="3" />
  </connection>
  <connection
    kind="interrupt"
@@ -1085,7 +1168,7 @@
    version="19.1"
    start="pulpino_0.interrupt_receiver"
    end="i2c_opencores_0.interrupt_sender">
-  <parameter name="irqNumber" value="3" />
+  <parameter name="irqNumber" value="4" />
  </connection>
  <connection
    kind="interrupt"
@@ -1155,6 +1238,11 @@
    kind="reset"
    version="19.1"
    start="clk_27.clk_reset"
+   end="pio_2.reset" />
+ <connection
+   kind="reset"
+   version="19.1"
+   start="clk_27.clk_reset"
    end="onchip_memory2_0.reset1" />
  <connection
    kind="reset"
@@ -1175,12 +1263,12 @@
    kind="reset"
    version="19.1"
    start="clk_27.clk_reset"
-   end="sdc_controller_0.reset_sink" />
+   end="osd_generator_0.reset_sink" />
  <connection
    kind="reset"
    version="19.1"
    start="clk_27.clk_reset"
-   end="mem_if_mapper_0.reset_sink" />
+   end="sdc_controller_0.reset_sink" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="false" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />

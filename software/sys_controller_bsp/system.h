@@ -301,8 +301,8 @@
 #define ONCHIP_MEMORY2_0_READ_DURING_WRITE_MODE "DONT_CARE"
 #define ONCHIP_MEMORY2_0_SINGLE_CLOCK_OP 0
 #define ONCHIP_MEMORY2_0_SIZE_MULTIPLE 1
-#define ONCHIP_MEMORY2_0_SIZE_VALUE 49152
-#define ONCHIP_MEMORY2_0_SPAN 49152
+#define ONCHIP_MEMORY2_0_SIZE_VALUE 65536
+#define ONCHIP_MEMORY2_0_SPAN 65536
 #define ONCHIP_MEMORY2_0_TYPE "altera_avalon_onchip_memory2"
 #define ONCHIP_MEMORY2_0_WRITABLE 1
 
@@ -333,7 +333,7 @@
  */
 
 #define ALT_MODULE_CLASS_pio_0 altera_avalon_pio
-#define PIO_0_BASE 0x210e0
+#define PIO_0_BASE 0x210c0
 #define PIO_0_BIT_CLEARING_EDGE_REGISTER 0
 #define PIO_0_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define PIO_0_CAPTURE 0
@@ -379,6 +379,47 @@
 #define PIO_1_RESET_VALUE 0
 #define PIO_1_SPAN 16
 #define PIO_1_TYPE "altera_avalon_pio"
+
+
+/*
+ * pio_2 configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_pio_2 altera_avalon_pio
+#define PIO_2_BASE 0x210e0
+#define PIO_2_BIT_CLEARING_EDGE_REGISTER 0
+#define PIO_2_BIT_MODIFYING_OUTPUT_REGISTER 0
+#define PIO_2_CAPTURE 0
+#define PIO_2_DATA_WIDTH 32
+#define PIO_2_DO_TEST_BENCH_WIRING 0
+#define PIO_2_DRIVEN_SIM_VALUE 0
+#define PIO_2_EDGE_TYPE "NONE"
+#define PIO_2_FREQ 27000000
+#define PIO_2_HAS_IN 1
+#define PIO_2_HAS_OUT 0
+#define PIO_2_HAS_TRI 0
+#define PIO_2_IRQ -1
+#define PIO_2_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define PIO_2_IRQ_TYPE "NONE"
+#define PIO_2_NAME "/dev/pio_2"
+#define PIO_2_RESET_VALUE 0
+#define PIO_2_SPAN 16
+#define PIO_2_TYPE "altera_avalon_pio"
+
+
+/*
+ * osd_generator_0 configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_osd_generator_0 osd_generator
+#define OSD_GENERATOR_0_BASE 0x23000
+#define OSD_GENERATOR_0_IRQ -1
+#define OSD_GENERATOR_0_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define OSD_GENERATOR_0_NAME "/dev/osd_generator_0"
+#define OSD_GENERATOR_0_SPAN 1024
+#define OSD_GENERATOR_0_TYPE "osd_generator"
 
 
 /*

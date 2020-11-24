@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2015-2019  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2015-2020  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <unistd.h>
+#include "altera_avalon_pio_regs.h"
 #include "controls.h"
 #include "av_controller.h"
 #include "menu.h"
@@ -26,10 +27,21 @@
 static const char *rc_keydesc[REMOTE_MAX_KEYS] = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", \
                                                    "MENU", "OK", "BACK", "UP", "DOWN", "LEFT", "RIGHT", "INFO", "STANDBY", "SCANLINE_MODE", \
                                                    "SCANLINE_TYPE", "SCANLINE_INT+", "SCANLINE_INT-", "LINEMULT_MODE", "PHASE+", "PHASE-", "PROFILE_HOTKEY"};
+#ifndef DExx_FW
+const uint16_t rc_keymap_default[REMOTE_MAX_KEYS] = {0x0ab0, 0x0a70, 0x0af0, 0x0a38, 0x0ab8, 0x0a78, 0x0af8, 0x0a20, 0x0aa0, 0x0a30, \
+                                              0x0aca, 0x0acc, 0x0a26, 0x0a0e, 0x0a8e, 0x0ace, 0x0a4e, 0x0a08, 0x0ae8, 0x0a56, \
+                                              0x0a86, 0x0a48, 0x0aa8, 0x0ae6, 0x0a98, 0x0a18, 0x0a88};
+#else
 const uint16_t rc_keymap_default[REMOTE_MAX_KEYS] = {0x3E29, 0x3EA9, 0x3E69, 0x3EE9, 0x3E19, 0x3E99, 0x3E59, 0x3ED9, 0x3E39, 0x3EC9, \
                                               0x3E4D, 0x3E1D, 0x3EED, 0x3E2D, 0x3ECD, 0x3EAD, 0x3E6D, 0x3E65, 0x3E01, 0x1C48, \
                                               0x1C18, 0x1C50, 0x1CD0, 0x1CC8, 0x5E58, 0x5ED8, 0x3EB9};
+#endif
 uint16_t rc_keymap[REMOTE_MAX_KEYS];
+
+uint32_t controls;
+uint16_t remote_code;
+uint8_t remote_rpt, remote_rpt_prev;
+uint8_t btn_vec, btn_vec_prev;
 
 /*void setup_rc()
 {
@@ -89,7 +101,27 @@ void set_default_keymap() {
     memcpy(rc_keymap, rc_keymap_default, sizeof(rc_keymap));
 }
 
-void parse_control(uint16_t remote_code, uint8_t btn_vec)
+void read_controls() {
+    // Read remote control and PCB button status
+    controls = IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE);
+    remote_code = (controls & CONTROLS_RC_MASK) >> CONTROLS_RC_OFFS;
+    remote_rpt = (controls & CONTROLS_RRPT_MASK) >> CONTROLS_RRPT_OFFS;
+    btn_vec = (~controls & CONTROLS_BTN_MASK) >> CONTROLS_BTN_OFFS;
+
+    if ((remote_rpt == 0) || ((remote_rpt > 1) && (remote_rpt < 6)) || (remote_rpt == remote_rpt_prev))
+        remote_code = 0;
+
+    remote_rpt_prev = remote_rpt;
+
+    if (btn_vec_prev == 0) {
+        btn_vec_prev = btn_vec;
+    } else {
+        btn_vec_prev = btn_vec;
+        btn_vec = 0;
+    }
+}
+
+void parse_control()
 {
     rc_code_t c;
     btn_vec_t b = (btn_vec_t)btn_vec;
