@@ -76,9 +76,9 @@ wire V_INTERLACED = hv_out_config2[31];
 wire [10:0] V_TOTAL = hv_out_config2[19:9] >> V_INTERLACED;
 wire [10:0] V_ACTIVE = hv_out_config2[30:20];
 wire [8:0] V_BACKPORCH = hv_out_config3[8:0];
-wire [4:0] V_SYNCLEN = hv_out_config3[13:9];
+wire [3:0] V_SYNCLEN = hv_out_config3[12:9];
 
-wire [10:0] V_STARTLINE = hv_out_config3[24:14];
+wire [10:0] V_STARTLINE = hv_out_config3[23:13];
 
 wire [10:0] V_STARTLINE_PREV = (V_STARTLINE == 0) ? (V_TOTAL-1) : (V_STARTLINE-1);
 

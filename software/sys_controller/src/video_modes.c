@@ -44,15 +44,52 @@ void set_default_vm_table() {
 }
 
 void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
-    // TODO: check limits
-    vmode->timings.h_synclen *= h_mult;
-    vmode->timings.h_backporch *= h_mult;
-    vmode->timings.h_active *= h_mult;
+    uint32_t val, bp_extra;
+
+    val = vmode->timings.h_synclen * h_mult;
+    if (val >= (1<<9)) {
+        vmode->timings.h_synclen = (1<<9)-1;
+        bp_extra = val - vmode->timings.h_synclen;
+    } else {
+        vmode->timings.h_synclen = val;
+        bp_extra = 0;
+    }
+
+    val = (vmode->timings.h_backporch * h_mult) + bp_extra;
+    if (val >= (1<<9))
+        vmode->timings.h_backporch = (1<<9)-1;
+    else
+        vmode->timings.h_backporch = val;
+
+    val = vmode->timings.h_active * h_mult;
+    if (val >= (1<<11))
+        vmode->timings.h_active = (1<<11)-1;
+    else
+        vmode->timings.h_active = val;
+
     vmode->timings.h_total = h_mult * vmode->timings.h_total + ((h_mult * vmode->timings.h_total_adj * 5 + 50) / 100);
 
-    vmode->timings.v_synclen *= v_mult;
-    vmode->timings.v_backporch *= v_mult;
-    vmode->timings.v_active *= v_mult;
+    val = vmode->timings.v_synclen * v_mult;
+    if (val >= (1<<4)) {
+        vmode->timings.v_synclen = (1<<4)-1;
+        bp_extra = val - vmode->timings.v_synclen;
+    } else {
+        vmode->timings.v_synclen = val;
+        bp_extra = 0;
+    }
+
+    val = (vmode->timings.v_backporch * v_mult) + bp_extra;
+    if (val >= (1<<9))
+        vmode->timings.v_backporch = (1<<9)-1;
+    else
+        vmode->timings.v_backporch = val;
+
+    val = vmode->timings.v_active * v_mult;
+    if (val >= (1<<11))
+        vmode->timings.v_active = (1<<11)-1;
+    else
+        vmode->timings.v_active = val;
+
     if (vmode->timings.interlaced && ((v_mult % 2) == 0)) {
         vmode->timings.interlaced = 0;
         vmode->timings.v_total *= (v_mult / 2);
@@ -90,7 +127,11 @@ int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config
     const ad_mode_id_t pm_ad_480p_map[] = {-1, ADMODE_240p, ADMODE_1280x1024_60, ADMODE_1080i_60_LB, ADMODE_1080p_60_LB, ADMODE_1920x1440_60};
     const ad_mode_id_t pm_ad_576p_map[] = {-1, ADMODE_288p, ADMODE_1920x1200_50};
 
-    const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3, SM_OPT_SNES_256COL, SM_OPT_SNES_512COL, SM_OPT_MD_256COL, SM_OPT_MD_320COL, SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL, SM_OPT_N64_320COL};
+    const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
+                                          SM_OPT_SNES_256COL, SM_OPT_SNES_512COL,
+                                          SM_OPT_MD_256COL, SM_OPT_MD_320COL,
+                                          SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
+                                          SM_OPT_N64_320COL, SM_OPT_N64_640COL};
     const smp_mode_t sm_480i_576i_map[] = {SM_GEN_4_3};
     const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VGA480P60};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3};

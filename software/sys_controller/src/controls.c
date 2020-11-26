@@ -146,6 +146,8 @@ void parse_control()
                 display_menu(c);
             if ((c == RC_LEFT) || (c == RC_RIGHT))
                 switch_tp_mode(c);
+            if (c == RC_INFO)
+                print_vm_stats();
         } else {
             if (c <= RC_RIGHT)
                 display_menu(c);

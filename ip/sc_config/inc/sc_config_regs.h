@@ -72,11 +72,10 @@ typedef union {
 typedef union {
     struct {
         uint16_t v_backporch:9;
-        uint8_t v_synclen:5;
+        uint8_t v_synclen:4;
         uint16_t v_startline:11;
-        uint8_t h_skip:3;
-        uint8_t h_sample_sel:3;
-        uint8_t hv_rsv:1;
+        uint8_t h_skip:4;
+        uint8_t h_sample_sel:4;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } hv_config3_reg;

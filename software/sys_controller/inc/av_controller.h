@@ -89,4 +89,6 @@ int sys_is_powered_on();
 
 void sys_toggle_power();
 
+void print_vm_stats();
+
 #endif

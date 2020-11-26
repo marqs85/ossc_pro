@@ -143,10 +143,16 @@ uint16_t sys_ctrl;
 uint32_t sys_status;
 uint8_t sys_powered_on;
 
+uint8_t sd_det, sd_det_prev;
+
+int enable_isl, enable_hdmirx, enable_tp;
+
 extern uint8_t osd_enable;
 
 avinput_t avinput, target_avinput;
 unsigned tp_stdmode_idx, target_tp_stdmode_idx;
+
+mode_data_t vmode_in, vmode_out;
 
 char row1[US2066_ROW_LEN+1], row2[US2066_ROW_LEN+1];
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
@@ -323,6 +329,28 @@ int init_sdcard() {
     return 0;
 }
 
+int check_sdcard() {
+    int ret = 0;
+
+    sys_status = IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE);
+    sd_det = !!(sys_status & (1<<SSTAT_SD_DETECT_BIT));
+
+    //init sdcard if detected
+    if (sd_det != sd_det_prev) {
+        if (sd_det) {
+            printf("SD card inserted\n");
+            ret = init_sdcard();
+        } else {
+            printf("SD card ejected\n");
+            mmc_dev->has_init = 0;
+        }
+    }
+
+    sd_det_prev = sd_det;
+
+    return ret;
+}
+
 int init_hw()
 {
     int ret;
@@ -371,17 +399,7 @@ int init_hw()
     //init ocsdc driver
     mmc_dev = ocsdc_mmc_init(SDC_CONTROLLER_QSYS_0_BASE, ALT_CPU_CPU_FREQ);
     mmc_dev->has_init = 0;
-    sys_status = IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE);
-
-    //init sdcard if detected
-    if (sys_status & (1<<SSTAT_SD_DETECT_BIT)) {
-        ret = init_sdcard();
-
-        if (ret != 0) {
-            printf("sdcard init fail\n");
-            return ret;
-        }
-    }
+    sd_det = sd_det_prev = 0;
 
     // Init PCM1863
     /*sniprintf(row1, US2066_ROW_LEN+1, "Init PCM1863");
@@ -480,21 +498,63 @@ void sys_toggle_power() {
     sys_powered_on ^= 1;
 }
 
+void print_vm_stats() {
+    int row = 0;
+    memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+
+    if (enable_tp || (enable_isl && isl_dev.sync_active) || (enable_hdmirx && advrx_dev.sync_active)) {
+        if (!enable_tp) {
+            sniprintf((char*)osd->osd_array.data[row][0], OSD_CHAR_COLS, "Input preset:");
+            sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%s", vmode_in.name);
+            sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V synclen:");
+            sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_in.timings.h_synclen, vmode_in.timings.v_synclen);
+            sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V backporch:");
+            sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_in.timings.h_backporch, vmode_in.timings.v_backporch);
+            sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V active:");
+            sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_in.timings.h_active, vmode_in.timings.v_active);
+            sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V total:");
+            sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_in.timings.h_total, vmode_in.timings.v_total);
+            row++;
+            row++;
+        }
+
+        sniprintf((char*)osd->osd_array.data[row][0], OSD_CHAR_COLS, "Output mode:");
+        sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%s", vmode_out.name);
+        sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V synclen:");
+        sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_out.timings.h_synclen, vmode_out.timings.v_synclen);
+        sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V backporch:");
+        sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_out.timings.h_backporch, vmode_out.timings.v_backporch);
+        sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V active:");
+        sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_out.timings.h_active, vmode_out.timings.v_active);
+        sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V total:");
+        sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_out.timings.h_total, vmode_out.timings.v_total);
+        row++;
+    }
+    sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Firmware:");
+    sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "v%u.%.2u @ " __DATE__, FW_VER_MAJOR, FW_VER_MINOR);
+    osd->osd_config.status_refresh = 1;
+    osd->osd_row_color.mask = 0;
+    osd->osd_sec_enable[0].mask = (1<<(row+1))-1;
+    osd->osd_sec_enable[1].mask = (1<<(row+1))-1;
+}
+
 void mainloop()
 {
     int i, man_input_change;
     int mode, amode_match;
-    uint32_t pclk_hz, dotclk_hz, h_hz, v_hz_x100, pll_h_total;
+    uint32_t pclk_hz, dotclk_hz, h_hz, v_hz_x100, pll_h_total, pll_h_total_prev=0;
     ths_channel_t target_ths_ch;
     ths_input_t target_ths_input;
-    isl_input_t target_isl_input;
+    isl_input_t target_isl_input=0;
     video_sync target_isl_sync=0;
-    video_format target_format;
-    mode_data_t vmode_in, vmode_out;
+    video_format target_format=0;
     vm_mult_config_t vm_conf;
     status_t status;
     avconfig_t *cur_avconfig;
-    int enable_isl=0, enable_hdmirx=0, enable_tp=1;
+
+    enable_isl = 0;
+    enable_hdmirx = 0;
+    enable_tp = 1;
 
     cur_avconfig = get_current_avconfig();
 
@@ -609,6 +669,7 @@ void mainloop()
             if (enable_isl) {
                 isl_source_sel(&isl_dev, target_isl_input, target_isl_sync, target_format);
                 isl_dev.sync_active = 0;
+                pll_h_total_prev = 0;
 
                 // send current PLL h_total to isl_frontend for mode detection
                 sc->hv_in_config.h_total = isl_get_pll_htotal(&isl_dev);
@@ -729,7 +790,11 @@ void mainloop()
                         isl_source_setup(&isl_dev, pll_h_total);
 
                         isl_set_afe_bw(&isl_dev, dotclk_hz);
-                        isl_set_sampler_phase(&isl_dev, vmode_in.sampler_phase);
+
+                        if (pll_h_total != pll_h_total_prev)
+                            isl_set_sampler_phase(&isl_dev, vmode_in.sampler_phase);
+
+                        pll_h_total_prev = pll_h_total;
 
                         // Setup Si5351
                         if (amode_match) {
@@ -856,6 +921,8 @@ void mainloop()
 
         pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);
 
+        check_sdcard();
+
         usleep(20000);
     }
 }
@@ -875,7 +942,6 @@ void wait_powerup() {
 int main()
 {
     int ret;
-    char *emif = (char*)0x10000000;
 
     while (1) {
         ret = init_hw();
