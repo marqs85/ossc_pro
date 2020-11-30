@@ -34,12 +34,13 @@
 #define SCTRL_EMIF_POWERDN_REQ  (1<<5)
 #define SCTRL_EMIF_POWERDN_MASK (1<<6)
 #define SCTRL_CAPTURE_SEL       (1<<7)
-#define SCTRL_ISL_VS_POL        (1<<8)
-#define SCTRL_ISL_VS_TYPE       (1<<9)
-#define SCTRL_AUDMUX_SEL        (1<<10)
-#define SCTRL_VGTP_ENABLE       (1<<11)
-#define SCTRL_CSC_ENABLE        (1<<12)
-#define SCTRL_ADAPT_LM          (1<<13)
+#define SCTRL_ISL_HS_POL        (1<<8)
+#define SCTRL_ISL_VS_POL        (1<<9)
+#define SCTRL_ISL_VS_TYPE       (1<<10)
+#define SCTRL_AUDMUX_SEL        (1<<11)
+#define SCTRL_VGTP_ENABLE       (1<<12)
+#define SCTRL_CSC_ENABLE        (1<<13)
+#define SCTRL_ADAPT_LM          (1<<14)
 
 // sys_status
 #define SSTAT_MEMSTAT_MASK              0x0000000f

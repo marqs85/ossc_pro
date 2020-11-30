@@ -100,6 +100,8 @@ smp_preset_t smp_presets_default[] = {
     { "720x480i",     SM_GEN_4_3,        { 720,  240,   80,   858, 0,  525,   57, 15,   62, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     { "1280x480i",    SM_GEN_4_3,        {1280,  240,   80,  1560, 0,  525,  170, 15,   72, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     { "1920x480i",    SM_GEN_4_3,        {1920,  240,   80,  2340, 0,  525,  256, 15,  108, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
+    /* Generic 480i 16:9 presets */
+    { "1707x480i",    SM_GEN_16_9,       {1707,  240,   80,  2080, 0,  525,  228, 15,   96, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     /* Generic 576i presets */
     { "720x576i",     SM_GEN_4_3,        { 720,  288,   70,   864, 0,  625,   69, 19,   63, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_576I },
     { "1536x576i",    SM_GEN_4_3,        {1536,  288,   70,  1872, 0,  625,  150, 19,  136, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_576I },
@@ -107,6 +109,8 @@ smp_preset_t smp_presets_default[] = {
     { "720x480",      SM_GEN_4_3,        { 720,  480,   80,   858, 0,  525,   60, 30,   62, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     { "1280x480",     SM_GEN_4_3,        {1280,  480,   80,  1560, 0,  525,  170, 30,   72, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     { "1920x480",     SM_GEN_4_3,        {1920,  480,   80,  2340, 0,  525,  256, 30,  108, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
+    /* Generic 480p 16:9 presets */
+    { "1707x480",     SM_GEN_16_9,       {1707,  480,   80,  2080, 0,  525,  228, 30,   96, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     /* Generic 576p presets */
     { "720x576",      SM_GEN_4_3,        { 720,  576,   70,   864, 0,  625,   68, 39,   64, 5,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_576P },
     { "1536x576",     SM_GEN_4_3,        {1536,  576,   70,  1872, 0,  625,  150, 39,  136, 5,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_576P },
@@ -114,6 +118,7 @@ smp_preset_t smp_presets_default[] = {
     { "640x480_60",   SM_OPT_VGA480P60,  { 640,  480,   80,   800, 0,  525,   48, 33,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     /* DTV 480p */
     { "480p",         SM_OPT_DTV480P,    { 720,  480,   80,   858, 0,  525,   60, 30,   62, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
+    { "480p wide",    SM_OPT_DTV480P_WS, { 720,  480,   80,   858, 0,  525,   60, 30,   62, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     /* NES/SNES */
     { "SNES 256x240", SM_OPT_SNES_256COL,{ 256,  240,    0,   341, 0,  262,   39, 14,   25, 3,  0},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "SNES 512x240", SM_OPT_SNES_512COL,{ 512,  240,    0,   682, 0,  262,   78, 14,   50, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
@@ -212,6 +217,10 @@ const ad_mode_data_t adaptive_modes[] = {
     { ADMODE_1080p_60_LB,                SMPPRESET_GEN_1280x480i,525,  0, 3,  0, 0,  {4129,    69,    91,   256, 0, 1,  0, 0, 0} },
     { ADMODE_1920x1440_60,               SMPPRESET_GEN_1920x480i,525,  0, 5,  0, 0,  {2055,  3277,  4725,     0, 0, 1,  0, 0, 3} },
 
+    /* Generic 525-line interlace 16:9 modes */
+    { ADMODE_1080i_60_LB,             SMPPRESET_GEN_1707x480i_WS, 525,  0, 1,  0, 0,  {2969,    29,    91,  1024, 0, 1,  0, 0, 0} },
+    { ADMODE_1080p_60_LB,             SMPPRESET_GEN_1707x480i_WS, 525,  0, 3,  0, 0,  {2969,    29,    91,   256, 0, 1,  0, 0, 0} },
+
     /* Generic 625-line interlace modes */
     { ADMODE_288p,                       SMPPRESET_GEN_720x576i, 625,  0, 0,  0, 0,  {8018,   206,   625,  8032, 0, 4,  0, 0, 0} },
     { ADMODE_1080i_50_CR,                SMPPRESET_GEN_1536x576i,625,  0, 1,  0, 0,  {3387,     1,    13,  1024, 0, 1,  0, 0, 0} },
@@ -230,6 +239,10 @@ const ad_mode_data_t adaptive_modes[] = {
     { ADMODE_1080i_60_LB,                SMPPRESET_GEN_1280x480, 525,  0, 0,  0, 0,  {4129,    69,    91,  1024, 0, 1,  1, 0, 0} },
     { ADMODE_1080p_60_LB,                SMPPRESET_GEN_1280x480, 525,  0, 1,  0, 0,  {4129,    69,    91,   256, 0, 1,  1, 0, 0} },
     { ADMODE_1920x1440_60,               SMPPRESET_GEN_1920x480, 525,  0, 2,  0, 0,  {2055,  3277,  4725,     0, 0, 1,  1, 0, 3} },
+
+    /* Generic 525-line 16:9 modes */
+    { ADMODE_1080i_60_LB,             SMPPRESET_GEN_1707x480_WS, 525,  0, 0,  0, 0,  {2969,    29,    91,  1024, 0, 1,  1, 0, 0} },
+    { ADMODE_1080p_60_LB,             SMPPRESET_GEN_1707x480_WS, 525,  0, 1,  0, 0,  {2969,    29,    91,   256, 0, 1,  1, 0, 0} },
 
     /* Generic 526-line modes */
     { ADMODE_240p,                       SMPPRESET_GEN_720x480,  526,  0,-1,  0, 0,  {3743,   796,  1052,  8032, 0, 4,  0, 0, 0} },
@@ -258,11 +271,15 @@ const ad_mode_data_t adaptive_modes[] = {
     { ADMODE_1080p_60_LB,                SMPPRESET_VGA480P60,      0,  1, 1,  0, 0,  {4013,    10,    14,   256, 0, 1,  0, 0, 0} },
     { ADMODE_1920x1440_60,               SMPPRESET_VGA480P60,      0,  2, 2,  0, 0,  {3243,   661,  2625,     0, 0, 1,  0, 0, 3} },
 
-    /* DTV 480p modes */
+    /* DTV 480p 4:3 modes */
     { ADMODE_1280x1024_60,               SMPPRESET_DTV480P,        0,  1, 1,  0, 0,  {3706,   206,   525,   544, 0, 4,  0, 0, 0} },
     { ADMODE_1080i_60_LB,                SMPPRESET_DTV480P,        0,  1, 0,  0, 0,  {3707,    71,    91,  1024, 0, 1,  0, 0, 0} },
     { ADMODE_1080p_60_LB,                SMPPRESET_DTV480P,        0,  1, 1,  0, 0,  {3707,    71,    91,   256, 0, 1,  0, 0, 0} },
     { ADMODE_1920x1440_60,               SMPPRESET_DTV480P,        0,  2, 2,  0, 0,  {2989,  1387,  3465,     0, 0, 1,  0, 0, 3} },
+
+    /* DTV 480p 16:9 modes */
+    { ADMODE_1080i_60_LB,                SMPPRESET_DTV480P_WS,     0,  2, 0,  0, 0,  {3707,    71,    91,  1024, 0, 1,  0, 0, 0} },
+    { ADMODE_1080p_60_LB,                SMPPRESET_DTV480P_WS,     0,  2, 1,  0, 0,  {3707,    71,    91,   256, 0, 1,  0, 0, 0} },
 
     /* (S)NES 256x240 modes (NTSC) */
     { ADMODE_480p,                       SMPPRESET_SNES_256x240,   0,  1, 1,  0, 0,  {4812,  3344, 16244,  3712, 0, 1,  0, 0, 0} },

@@ -750,9 +750,6 @@ void mainloop()
                     h_hz = (100*27000000UL)/((100*isl_dev.ss.pcnt_frame)/isl_dev.ss.v_total);
 #endif
 
-                    if (isl_dev.ss.interlace_flag)
-                        v_hz_x100 *= 2;
-
                     memset(&vmode_in, 0, sizeof(mode_data_t));
                     vmode_in.timings.h_synclen = isl_dev.sm.h_synclen_x16 / 16;
                     vmode_in.timings.v_hz_max = (v_hz_x100+50)/100;
@@ -805,12 +802,10 @@ void mainloop()
                             sys_ctrl &= ~SCTRL_ADAPT_LM;
                         }
 
-                        // Wait a couple frames so that next sync measurements from FPGA are stable
-                        // TODO: don't use pclk for the sync meas
-                        usleep(40000);
-
                         // TODO: dont read polarity from ISL51002
-                        sys_ctrl &= ~(SCTRL_ISL_VS_POL);
+                        sys_ctrl &= ~(SCTRL_ISL_HS_POL|SCTRL_ISL_VS_POL);
+                        if ((target_isl_sync != SYNC_HV) || isl_dev.ss.h_polarity)
+                            sys_ctrl |= SCTRL_ISL_HS_POL;
                         if ((target_isl_sync == SYNC_HV) && isl_dev.ss.v_polarity)
                             sys_ctrl |= SCTRL_ISL_VS_POL;
                         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);

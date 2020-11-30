@@ -115,12 +115,13 @@ wire emif_swreset_n = sys_ctrl[4];
 wire emif_powerdn_req = sys_ctrl[5];
 wire emif_powerdn_mask = sys_ctrl[6];
 wire capture_sel = sys_ctrl[7];
-wire isl_vs_pol = sys_ctrl[8];
-wire isl_vs_type = sys_ctrl[9];
-wire audmux_sel = sys_ctrl[10];
-wire testpattern_enable = sys_ctrl[11];
-wire csc_enable = sys_ctrl[12];
-wire adap_lm = sys_ctrl[13];
+wire isl_hsync_pol = sys_ctrl[8];
+wire isl_vsync_pol = sys_ctrl[9];
+wire isl_vsync_type = sys_ctrl[10];
+wire audmux_sel = sys_ctrl[11];
+wire testpattern_enable = sys_ctrl[12];
+wire csc_enable = sys_ctrl[13];
+wire adap_lm = sys_ctrl[14];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -185,6 +186,7 @@ assign FPGA_PCLK1x_o = pclk_capture;
 // ISL51002 RGB digitizer
 reg [7:0] ISL_R, ISL_G, ISL_B;
 reg ISL_HS;
+reg ISL_VS_sync1_reg, ISL_VS_sync2_reg;
 reg ISL_HSYNC_sync1_reg, ISL_HSYNC_sync2_reg;
 reg ISL_VSYNC_sync1_reg, ISL_VSYNC_sync2_reg;
 always @(posedge ISL_PCLK_i) begin
@@ -194,6 +196,11 @@ always @(posedge ISL_PCLK_i) begin
     ISL_HS <= ISL_HS_i;
 
     // sync to pclk
+    ISL_VS_sync1_reg <= ISL_VSYNC_i;
+    ISL_VS_sync2_reg <= ISL_VS_sync1_reg;
+end
+always @(posedge CLK27_i) begin
+    // sync to always-running fixed meas clk
     ISL_HSYNC_sync1_reg <= ISL_HSYNC_i;
     ISL_HSYNC_sync2_reg <= ISL_HSYNC_sync1_reg;
     ISL_VSYNC_sync1_reg <= ISL_VSYNC_i;
@@ -213,12 +220,14 @@ isl51002_frontend u_isl_frontend (
     .G_i(ISL_G),
     .B_i(ISL_B),
     .HS_i(ISL_HS),
+    .VS_i(ISL_VS_sync2_reg),
     .HSYNC_i(ISL_HSYNC_sync2_reg),
     .VSYNC_i(ISL_VSYNC_sync2_reg),
     .DE_i(1'b0),
     .FID_i(1'b0),
-    .vs_type(isl_vs_type),
-    .vs_polarity(isl_vs_pol),
+    .hsync_i_polarity(isl_hsync_pol),
+    .vsync_i_polarity(isl_vsync_pol),
+    .vsync_i_type(isl_vsync_type),
     .csc_enable(csc_enable),
     .csc_cs(misc_config[13]),
     .hv_in_config(hv_in_config),
