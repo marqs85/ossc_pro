@@ -25,7 +25,6 @@
 #include "altera_avalon_pio_regs.h"
 #include "sysconfig.h"
 #include "utils.h"
-#include "flash.h"
 #include "sys/alt_timestamp.h"
 #include "i2c_opencores.h"
 #include "av_controller.h"
@@ -37,6 +36,7 @@
 #include "controls.h"
 #include "menu.h"
 #include "mmc.h"
+#include "ff.h"
 #include "si5351.h"
 #include "adv7513.h"
 #include "adv761x.h"
@@ -132,12 +132,14 @@ pcm186x_dev pcm_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
 us2066_dev chardisp_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                            .i2c_addr = US2066_BASE};
 
-volatile uint32_t *ddr = (volatile uint32_t*)MEM_IF_MAPPER_0_BASE;
 volatile sc_regs *sc = (volatile sc_regs*)SC_CONFIG_0_BASE;
 volatile osd_regs *osd = (volatile osd_regs*)OSD_GENERATOR_0_BASE;
 
 struct mmc *mmc_dev;
 struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq);
+
+FATFS fs;
+FRESULT res;
 
 uint16_t sys_ctrl;
 uint32_t sys_status;
@@ -289,6 +291,37 @@ int init_emif()
     return 0;
 }
 
+FRESULT scan_files (
+    char* path        /* Start node to be scanned (***also used as work area***) */
+)
+{
+    FRESULT res;
+    DIR dir;
+    UINT i;
+    static FILINFO fno;
+
+
+    res = f_opendir(&dir, path);                       /* Open the directory */
+    if (res == FR_OK) {
+        for (;;) {
+            res = f_readdir(&dir, &fno);                   /* Read a directory item */
+            if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+            if (fno.fattrib & AM_DIR) {                    /* It is a directory */
+                i = strlen(path);
+                sprintf(&path[i], "/%s", fno.fname);
+                res = scan_files(path);                    /* Enter the directory */
+                if (res != FR_OK) break;
+                path[i] = 0;
+            } else {                                       /* It is a file. */
+                printf("%s/%s\n", path, fno.fname);
+            }
+        }
+        f_closedir(&dir);
+    }
+
+    return res;
+}
+
 int init_sdcard() {
     int err = mmc_init(mmc_dev);
 
@@ -324,6 +357,15 @@ int init_sdcard() {
         printf("mmc_bread success\n\r");
         for (i=0; i<8; i++)
             printf("0x%.2x\n", buf[i]);*/
+
+        /*char buff[256];
+
+
+        res = f_mount(&fs, "", 1);
+        if (res == FR_OK) {
+            strcpy(buff, "/");
+            res = scan_files(buff);
+        }*/
     }
 
     return 0;

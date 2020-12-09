@@ -52,7 +52,7 @@
 #define __SYSTEM_H_
 
 /* Include definitions from linker script generator */
-#include "linker.h"
+//#include "linker.h"
 
 
 /*
@@ -155,6 +155,7 @@
 #define __ALTERA_NIOS2_GEN2
 #define __ALTERA_NIOS_CUSTOM_INSTR_BITSWAP
 #define __ALTERA_NIOS_CUSTOM_INSTR_ENDIANCONVERTER
+#define __INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP
 #define __I2C_OPENCORES
 #define __NIOS2_HW_CRC32
 #define __SDC_CONTROLLER
@@ -197,43 +198,31 @@
 
 
 /*
- * epcq_controller2_0_avl_csr configuration
+ * intel_generic_serial_flash_interface_top_0_avl_csr configuration
  *
  */
 
-#define ALT_MODULE_CLASS_epcq_controller2_0_avl_csr altera_epcq_controller2
-#define EPCQ_CONTROLLER2_0_AVL_CSR_BASE 0x20100
-#define EPCQ_CONTROLLER2_0_AVL_CSR_FLASH_TYPE "EPCQ64"
-#define EPCQ_CONTROLLER2_0_AVL_CSR_IRQ 2
-#define EPCQ_CONTROLLER2_0_AVL_CSR_IRQ_INTERRUPT_CONTROLLER_ID 0
-#define EPCQ_CONTROLLER2_0_AVL_CSR_IS_EPCS 0
-#define EPCQ_CONTROLLER2_0_AVL_CSR_NAME "/dev/epcq_controller2_0_avl_csr"
-#define EPCQ_CONTROLLER2_0_AVL_CSR_NUMBER_OF_SECTORS 128
-#define EPCQ_CONTROLLER2_0_AVL_CSR_PAGE_SIZE 256
-#define EPCQ_CONTROLLER2_0_AVL_CSR_SECTOR_SIZE 65536
-#define EPCQ_CONTROLLER2_0_AVL_CSR_SPAN 32
-#define EPCQ_CONTROLLER2_0_AVL_CSR_SUBSECTOR_SIZE 4096
-#define EPCQ_CONTROLLER2_0_AVL_CSR_TYPE "altera_epcq_controller2"
+#define ALT_MODULE_CLASS_intel_generic_serial_flash_interface_top_0_avl_csr intel_generic_serial_flash_interface_top
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_CSR_BASE 0x00002000
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_CSR_IRQ -1
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_CSR_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_CSR_NAME "/dev/intel_generic_serial_flash_interface_top_0_avl_csr"
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_CSR_SPAN 256
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_CSR_TYPE "intel_generic_serial_flash_interface_top"
 
 
 /*
- * epcq_controller2_0_avl_mem configuration
+ * intel_generic_serial_flash_interface_top_0_avl_mem configuration
  *
  */
 
-#define ALT_MODULE_CLASS_epcq_controller2_0_avl_mem altera_epcq_controller2
-#define EPCQ_CONTROLLER2_0_AVL_MEM_BASE 0x800000
-#define EPCQ_CONTROLLER2_0_AVL_MEM_FLASH_TYPE "EPCQ64"
-#define EPCQ_CONTROLLER2_0_AVL_MEM_IRQ -1
-#define EPCQ_CONTROLLER2_0_AVL_MEM_IRQ_INTERRUPT_CONTROLLER_ID -1
-#define EPCQ_CONTROLLER2_0_AVL_MEM_IS_EPCS 0
-#define EPCQ_CONTROLLER2_0_AVL_MEM_NAME "/dev/epcq_controller2_0_avl_mem"
-#define EPCQ_CONTROLLER2_0_AVL_MEM_NUMBER_OF_SECTORS 128
-#define EPCQ_CONTROLLER2_0_AVL_MEM_PAGE_SIZE 256
-#define EPCQ_CONTROLLER2_0_AVL_MEM_SECTOR_SIZE 65536
-#define EPCQ_CONTROLLER2_0_AVL_MEM_SPAN 8388608
-#define EPCQ_CONTROLLER2_0_AVL_MEM_SUBSECTOR_SIZE 4096
-#define EPCQ_CONTROLLER2_0_AVL_MEM_TYPE "altera_epcq_controller2"
+#define ALT_MODULE_CLASS_intel_generic_serial_flash_interface_top_0_avl_mem intel_generic_serial_flash_interface_top
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE 0x01000000
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_IRQ -1
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_NAME "/dev/intel_generic_serial_flash_interface_top_0_avl_mem"
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_SPAN 16777216
+#define INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_TYPE "intel_generic_serial_flash_interface_top"
 
 
 /*
@@ -430,16 +419,6 @@
 #define ALT_MODULE_CLASS_sc_config_0 sc_config
 #define SC_CONFIG_0_BASE 0x22000
 #define SC_CONFIG_0_SPAN 16
-
-/*
- * avl configuration
- *
- */
-
-#define ALT_MODULE_CLASS_mem_if_mapper_0 mem_if_mapper
-#define MEM_IF_MAPPER_0_BASE 0x400000
-#define MEM_IF_MAPPER_0_SPAN 23
-
 
 
 /*

@@ -148,7 +148,6 @@ C_SRCS += src/utils.c
 C_SRCS += src/controls.c
 C_SRCS += src/menu.c
 C_SRCS += src/video_modes.c
-C_SRCS += src/flash.c
 C_SRCS += ic_drivers/isl51002/isl51002.c
 C_SRCS += ic_drivers/ths7353/ths7353.c
 C_SRCS += ic_drivers/us2066/us2066.c
@@ -156,6 +155,10 @@ C_SRCS += ic_drivers/si5351/si5351.c
 C_SRCS += ic_drivers/adv7513/adv7513.c
 C_SRCS += ic_drivers/adv761x/adv761x.c
 C_SRCS += ic_drivers/pcm186x/pcm186x.c
+C_SRCS += fatfs/source/diskio.c
+C_SRCS += fatfs/source/ff.c
+C_SRCS += fatfs/source/ffsystem.c
+C_SRCS += fatfs/source/ffunicode.c
 CXX_SRCS :=
 ASM_SRCS := crt0.boot_E.S
 
@@ -204,6 +207,7 @@ APP_INCLUDE_DIRS += ic_drivers/si5351
 APP_INCLUDE_DIRS += ic_drivers/adv7513
 APP_INCLUDE_DIRS += ic_drivers/adv761x
 APP_INCLUDE_DIRS += ic_drivers/pcm186x
+APP_INCLUDE_DIRS += fatfs/source
 APP_LIBRARY_DIRS :=
 APP_LIBRARY_NAMES :=
 
