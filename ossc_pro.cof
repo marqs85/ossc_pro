@@ -6,7 +6,14 @@
 	<n_pages>1</n_pages>
 	<width>1</width>
 	<mode>13</mode>
+	<hex_block>
+		<hex_filename>/home/markus/Code/ossc_pro/software/sys_controller/mem_init/flash.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>5242880</hex_offset>
+		<hex_little_endian>0</hex_little_endian>
+	</hex_block>
 	<sof_data>
+		<start_address>00000000</start_address>
 		<user_name>Page_0</user_name>
 		<page_flags>1</page_flags>
 		<bit0>

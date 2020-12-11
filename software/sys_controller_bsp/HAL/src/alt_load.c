@@ -78,9 +78,9 @@ void alt_load (void)
    * Copy the exception handler.
    */
 
-  alt_load_section (&__flash_exceptions_start, 
+  /*alt_load_section (&__flash_exceptions_start,
 		                &__ram_exceptions_start,
-		                &__ram_exceptions_end);
+		                &__ram_exceptions_end);*/
 
   /*
    * Copy the .rodata section.
@@ -94,6 +94,6 @@ void alt_load (void)
    * Now ensure that the caches are in synch.
    */
   
-  alt_dcache_flush_all();
-  alt_icache_flush_all();
+  /*alt_dcache_flush_all();
+  alt_icache_flush_all();*/
 }
