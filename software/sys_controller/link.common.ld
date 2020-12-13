@@ -6,7 +6,7 @@ __DYNAMIC  =  0;
    That leaves 160 sectors (10MB) for flash_imem. */
 MEMORY
 {
-    flash_imem : ORIGIN = 0x01500000, LENGTH = 10485760
+    flash_imem : ORIGIN = 0x02500000, LENGTH = 10485760
     dataram    : ORIGIN = 0x00010000, LENGTH = 0x10000
 }
 

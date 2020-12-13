@@ -439,7 +439,7 @@ int init_hw()
     si5351_init(&si_dev);
 
     //init ocsdc driver
-    mmc_dev = ocsdc_mmc_init(SDC_CONTROLLER_QSYS_0_BASE, ALT_CPU_CPU_FREQ);
+    mmc_dev = ocsdc_mmc_init(SDC_CONTROLLER_QSYS_0_BASE, 108000000U);
     mmc_dev->has_init = 0;
     sd_det = sd_det_prev = 0;
 

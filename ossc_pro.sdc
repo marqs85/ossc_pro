@@ -10,7 +10,10 @@ create_clock -period 165MHz -name pclk_hdmirx [get_ports HDMIRX_PCLK_i]
 create_clock -period 5MHz -name bck_pcm [get_ports PCM_I2S_BCK_i]
 create_clock -period 5MHz -name bck_hdmirx [get_ports HDMIRX_I2S_BCK_i]
 
-create_generated_clock -name sd_clk -divide_by 2 -source [get_ports CLK27_i] [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q]
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 24 -duty_cycle 50.00 -name pll_0_vco {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 3 -duty_cycle 50.00 -name clk108 {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
+
+create_generated_clock -name sd_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q]
 
 # output clocks
 #set pclk_out_port [get_ports HDMITX_PCLK_o]
@@ -40,7 +43,8 @@ derive_clock_uncertainty
 ### Clock relationships ###
 
 set_clock_groups -asynchronous -group \
-                            {clk27 sd_clk} \
+                            {clk27} \
+                            {clk108 sd_clk} \
                             {pclk_isl pclk_isl_postmux} \
                             {pclk_hdmirx pclk_hdmirx_postmux} \
                             {pclk_si pclk_si_out} \

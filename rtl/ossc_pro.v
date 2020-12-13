@@ -18,7 +18,6 @@
 //
 
 `define PO_RESET_WIDTH 270
-//`define DISABLE_SDC_CONTROLLER
 `define PCB1P3_SI_FIX
 
 module ossc_pro (
@@ -134,10 +133,12 @@ wire pclk_capture, pclk_out;
 reg [8:0] po_reset_ctr = 0;
 reg po_reset_n = 1'b0;
 
+wire pll_locked;
+
 `ifdef SIMULATION
-wire sys_reset_n = po_reset_n;
+wire sys_reset_n = (po_reset_n & pll_locked);
 `else
-wire sys_reset_n = (po_reset_n & ~jtagm_reset_req);
+wire sys_reset_n = (po_reset_n & ~jtagm_reset_req & pll_locked);
 `endif
 
 wire emif_status_init_done;
@@ -173,13 +174,11 @@ reg emif_hwreset_n_sync1_reg, emif_hwreset_n_sync2_reg, emif_swreset_n_sync1_reg
 
 assign HDMITX_5V_EN_o = 1'b1;
 
-`ifndef DISABLE_SDC_CONTROLLER
 wire sd_cmd_oe_o, sd_cmd_out_o, sd_dat_oe_o;
 wire [3:0] sd_dat_out_o;
 
 assign SD_CMD_io = sd_cmd_oe_o ? sd_cmd_out_o : 1'bz;
 assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
-`endif
 
 assign FPGA_PCLK1x_o = pclk_capture;
 
@@ -430,21 +429,20 @@ end
 sys sys_inst (
     .clk_clk                                (CLK27_i),
     .reset_reset_n                          (sys_reset_n),
+    .pll_0_reset_reset                      (~po_reset_n),
+    .pll_0_locked_export                    (pll_locked),
     .pulpino_0_config_testmode_i            (1'b0),
     .pulpino_0_config_fetch_enable_i        (1'b1),
     .pulpino_0_config_clock_gating_i        (1'b0),
-    .pulpino_0_config_boot_addr_i           (32'h01500000),
+    .pulpino_0_config_boot_addr_i           (32'h02500000),
     .master_0_master_reset_reset            (jtagm_reset_req),
-`ifndef DISABLE_SDC_CONTROLLER
     .sdc_controller_0_sd_sd_cmd_dat_i       (SD_CMD_io),
     .sdc_controller_0_sd_sd_cmd_out_o       (sd_cmd_out_o),
     .sdc_controller_0_sd_sd_cmd_oe_o        (sd_cmd_oe_o),
     .sdc_controller_0_sd_sd_dat_dat_i       (SD_DATA_io),
     .sdc_controller_0_sd_sd_dat_out_o       (sd_dat_out_o),
     .sdc_controller_0_sd_sd_dat_oe_o        (sd_dat_oe_o),
-    .sdc_controller_0_sd_sd_clk_o_pad       (SD_CLK_o),
-    .sdc_controller_0_sd_sd_clk_i_pad       (CLK27_i),
-`endif
+    .sdc_controller_0_sd_clk_o_clk          (SD_CLK_o),
     .i2c_opencores_0_export_scl_pad_io      (SCL_io),
     .i2c_opencores_0_export_sda_pad_io      (SDA_io),
     .i2c_opencores_0_export_spi_miso_pad_i  (1'b0),
@@ -472,7 +470,6 @@ sys sys_inst (
     .osd_generator_0_osd_if_osd_color       (osd_color),
     .mem_if_lpddr2_emif_0_global_reset_reset_n     (emif_hwreset_n_sync2_reg),
     .mem_if_lpddr2_emif_0_soft_reset_reset_n       (emif_swreset_n_sync2_reg),
-    .mem_if_lpddr2_emif_0_pll_ref_clk_clk          (CLK27_i),
     .mem_if_lpddr2_emif_0_status_local_init_done   (emif_status_init_done),
     .mem_if_lpddr2_emif_0_status_local_cal_success (emif_status_cal_success),
     .mem_if_lpddr2_emif_0_status_local_cal_fail    (emif_status_cal_fail),

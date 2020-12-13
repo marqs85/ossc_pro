@@ -1,19 +1,19 @@
 # flash details
-set flash_base                  0x01000000
+set flash_base                  0x02000000
 set flash_imem_offset           0x00500000
 set flash_imem_base             [format 0x%.8x [expr $flash_base + $flash_imem_offset]]
 set flash_secsize               65536
 
 # flash controller register addresses
-set control_register            0x8000
-set operating_protocols_setting 0x8010
-set read_instr                  0x8014
-set write_instr                 0x8018
-set flash_cmd_setting           0x801c
-set flash_cmd_ctrl              0x8020
-set flash_cmd_addr_register     0x8024
-set flash_cmd_write_data_0      0x8028
-set flash_cmd_read_data_0       0x8030
+set control_register            0x03000000
+set operating_protocols_setting 0x03000010
+set read_instr                  0x03000014
+set write_instr                 0x03000018
+set flash_cmd_setting           0x0300001c
+set flash_cmd_ctrl              0x03000020
+set flash_cmd_addr_register     0x03000024
+set flash_cmd_write_data_0      0x03000028
+set flash_cmd_read_data_0       0x03000030
 
 # target file details
 set bin_file mem_init/flash.bin

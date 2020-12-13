@@ -203,11 +203,32 @@ add_interface_port avalon_m avalon_m_chipselect chipselect Output 1
 add_interface_port avalon_m avalon_m_waitrequest_n waitrequest_n Input 1
 
 
-# 
+#
+# connection point sd_clk_i
+#
+add_interface sd_clk_i clock end
+set_interface_property sd_clk_i clockRate 0
+set_interface_property sd_clk_i ENABLED true
+set_interface_property sd_clk_i EXPORT_OF ""
+set_interface_property sd_clk_i PORT_NAME_MAP ""
+set_interface_property sd_clk_i CMSIS_SVD_VARIABLES ""
+set_interface_property sd_clk_i SVD_ADDRESS_GROUP ""
+
+add_interface_port sd_clk_i sd_clk_i_pad clk Input 1
+
+
+#
+# connection point sd_clk_o
+#
+add_interface sd_clk_o clock start
+add_interface_port sd_clk_o sd_clk_o_pad clk Output 1
+
+
+#
 # connection point sd
 # 
 add_interface sd conduit end
-set_interface_property sd associatedClock ""
+set_interface_property sd associatedClock "sd_clk_o"
 set_interface_property sd associatedReset ""
 set_interface_property sd ENABLED true
 set_interface_property sd EXPORT_OF ""
@@ -221,8 +242,6 @@ add_interface_port sd sd_cmd_oe_o sd_cmd_oe_o Output 1
 add_interface_port sd sd_dat_dat_i sd_dat_dat_i Input 4
 add_interface_port sd sd_dat_out_o sd_dat_out_o Output 4
 add_interface_port sd sd_dat_oe_o sd_dat_oe_o Output 1
-add_interface_port sd sd_clk_o_pad sd_clk_o_pad Output 1
-add_interface_port sd sd_clk_i_pad sd_clk_i_pad Input 1
 
 
 # 

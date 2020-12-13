@@ -21,7 +21,7 @@
    {
       datum _sortIndex
       {
-         value = "8";
+         value = "10";
          type = "int";
       }
    }
@@ -42,7 +42,7 @@
    {
       datum _sortIndex
       {
-         value = "9";
+         value = "11";
          type = "int";
       }
    }
@@ -63,7 +63,7 @@
    {
       datum _sortIndex
       {
-         value = "2";
+         value = "4";
          type = "int";
       }
    }
@@ -76,7 +76,7 @@
       }
       datum baseAddress
       {
-         value = "32768";
+         value = "16777216";
          type = "String";
       }
    }
@@ -89,7 +89,7 @@
       }
       datum baseAddress
       {
-         value = "16777216";
+         value = "0";
          type = "String";
       }
    }
@@ -97,7 +97,7 @@
    {
       datum _sortIndex
       {
-         value = "6";
+         value = "8";
          type = "int";
       }
    }
@@ -118,7 +118,7 @@
    {
       datum _sortIndex
       {
-         value = "4";
+         value = "6";
          type = "int";
       }
    }
@@ -126,7 +126,7 @@
    {
       datum _sortIndex
       {
-         value = "15";
+         value = "17";
          type = "int";
       }
    }
@@ -143,11 +143,32 @@
          type = "String";
       }
    }
+   element mm_clock_crossing_bridge_0
+   {
+      datum _sortIndex
+      {
+         value = "2";
+         type = "int";
+      }
+   }
+   element mm_clock_crossing_bridge_0.s0
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "33554432";
+         type = "String";
+      }
+   }
    element onchip_memory2_0
    {
       datum _sortIndex
       {
-         value = "3";
+         value = "5";
          type = "int";
       }
    }
@@ -181,7 +202,7 @@
    {
       datum _sortIndex
       {
-         value = "14";
+         value = "16";
          type = "int";
       }
    }
@@ -202,7 +223,7 @@
    {
       datum _sortIndex
       {
-         value = "10";
+         value = "12";
          type = "int";
       }
    }
@@ -223,7 +244,7 @@
    {
       datum _sortIndex
       {
-         value = "11";
+         value = "13";
          type = "int";
       }
    }
@@ -244,7 +265,7 @@
    {
       datum _sortIndex
       {
-         value = "12";
+         value = "14";
          type = "int";
       }
    }
@@ -261,11 +282,19 @@
          type = "String";
       }
    }
-   element pulpino_0
+   element pll_0
    {
       datum _sortIndex
       {
          value = "1";
+         type = "int";
+      }
+   }
+   element pulpino_0
+   {
+      datum _sortIndex
+      {
+         value = "3";
          type = "int";
       }
    }
@@ -281,7 +310,7 @@
    {
       datum _sortIndex
       {
-         value = "13";
+         value = "15";
          type = "int";
       }
    }
@@ -302,7 +331,7 @@
    {
       datum _sortIndex
       {
-         value = "7";
+         value = "9";
          type = "int";
       }
    }
@@ -323,7 +352,7 @@
    {
       datum _sortIndex
       {
-         value = "5";
+         value = "7";
          type = "int";
       }
    }
@@ -383,11 +412,6 @@
    type="reset"
    dir="end" />
  <interface
-   name="mem_if_lpddr2_emif_0_pll_ref_clk"
-   internal="mem_if_lpddr2_emif_0.pll_ref_clk"
-   type="clock"
-   dir="end" />
- <interface
    name="mem_if_lpddr2_emif_0_soft_reset"
    internal="mem_if_lpddr2_emif_0.soft_reset"
    type="reset"
@@ -427,6 +451,8 @@
    internal="pio_2.external_connection"
    type="conduit"
    dir="end" />
+ <interface name="pll_0_locked" internal="pll_0.locked" type="conduit" dir="end" />
+ <interface name="pll_0_reset" internal="pll_0.reset" type="reset" dir="end" />
  <interface
    name="pulpino_0_config"
    internal="pulpino_0.config"
@@ -443,6 +469,11 @@
    internal="sdc_controller_0.sd"
    type="conduit"
    dir="end" />
+ <interface
+   name="sdc_controller_0_sd_clk_o"
+   internal="sdc_controller_0.sd_clk_o"
+   type="clock"
+   dir="start" />
  <module name="clk_27" kind="clock_source" version="19.1" enabled="1">
   <parameter name="clockFrequency" value="27000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -469,7 +500,7 @@
   <parameter name="DEBUG_OPTION" value="0" />
   <parameter name="DEFAULT_VALUE_REG_0" value="1" />
   <parameter name="DEFAULT_VALUE_REG_1" value="1" />
-  <parameter name="DEFAULT_VALUE_REG_2" value="0" />
+  <parameter name="DEFAULT_VALUE_REG_2" value="3" />
   <parameter name="DEFAULT_VALUE_REG_3" value="0" />
   <parameter name="DEFAULT_VALUE_REG_4" value="139808" />
   <parameter name="DEFAULT_VALUE_REG_5" value="3307" />
@@ -835,6 +866,23 @@
   <parameter name="WRBUFFER_ADDR_WIDTH" value="6" />
  </module>
  <module
+   name="mm_clock_crossing_bridge_0"
+   kind="altera_avalon_mm_clock_crossing_bridge"
+   version="19.1"
+   enabled="1">
+  <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
+  <parameter name="ADDRESS_WIDTH" value="23" />
+  <parameter name="COMMAND_FIFO_DEPTH" value="4" />
+  <parameter name="DATA_WIDTH" value="32" />
+  <parameter name="MASTER_SYNC_DEPTH" value="2" />
+  <parameter name="MAX_BURST_SIZE" value="1" />
+  <parameter name="RESPONSE_FIFO_DEPTH" value="4" />
+  <parameter name="SLAVE_SYNC_DEPTH" value="2" />
+  <parameter name="SYMBOL_WIDTH" value="8" />
+  <parameter name="SYSINFO_ADDR_WIDTH" value="25" />
+  <parameter name="USE_AUTO_ADDRESS_WIDTH" value="1" />
+ </module>
+ <module
    name="onchip_memory2_0"
    kind="altera_avalon_onchip_memory2"
    version="19.1"
@@ -909,6 +957,209 @@
   <parameter name="simDrivenValue" value="0" />
   <parameter name="width" value="32" />
  </module>
+ <module name="pll_0" kind="altera_pll" version="19.1" enabled="1">
+  <parameter name="debug_print_output" value="false" />
+  <parameter name="debug_use_rbc_taf_method" value="false" />
+  <parameter name="device" value="5CEFA5F23C8" />
+  <parameter name="device_family" value="Cyclone V" />
+  <parameter name="gui_active_clk" value="false" />
+  <parameter name="gui_actual_output_clock_frequency0" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency1" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency10" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency11" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency12" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency13" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency14" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency15" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency16" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency17" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency2" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency3" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency4" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency5" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency6" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency7" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency8" value="0 MHz" />
+  <parameter name="gui_actual_output_clock_frequency9" value="0 MHz" />
+  <parameter name="gui_actual_phase_shift0" value="0" />
+  <parameter name="gui_actual_phase_shift1" value="0" />
+  <parameter name="gui_actual_phase_shift10" value="0" />
+  <parameter name="gui_actual_phase_shift11" value="0" />
+  <parameter name="gui_actual_phase_shift12" value="0" />
+  <parameter name="gui_actual_phase_shift13" value="0" />
+  <parameter name="gui_actual_phase_shift14" value="0" />
+  <parameter name="gui_actual_phase_shift15" value="0" />
+  <parameter name="gui_actual_phase_shift16" value="0" />
+  <parameter name="gui_actual_phase_shift17" value="0" />
+  <parameter name="gui_actual_phase_shift2" value="0" />
+  <parameter name="gui_actual_phase_shift3" value="0" />
+  <parameter name="gui_actual_phase_shift4" value="0" />
+  <parameter name="gui_actual_phase_shift5" value="0" />
+  <parameter name="gui_actual_phase_shift6" value="0" />
+  <parameter name="gui_actual_phase_shift7" value="0" />
+  <parameter name="gui_actual_phase_shift8" value="0" />
+  <parameter name="gui_actual_phase_shift9" value="0" />
+  <parameter name="gui_cascade_counter0" value="false" />
+  <parameter name="gui_cascade_counter1" value="false" />
+  <parameter name="gui_cascade_counter10" value="false" />
+  <parameter name="gui_cascade_counter11" value="false" />
+  <parameter name="gui_cascade_counter12" value="false" />
+  <parameter name="gui_cascade_counter13" value="false" />
+  <parameter name="gui_cascade_counter14" value="false" />
+  <parameter name="gui_cascade_counter15" value="false" />
+  <parameter name="gui_cascade_counter16" value="false" />
+  <parameter name="gui_cascade_counter17" value="false" />
+  <parameter name="gui_cascade_counter2" value="false" />
+  <parameter name="gui_cascade_counter3" value="false" />
+  <parameter name="gui_cascade_counter4" value="false" />
+  <parameter name="gui_cascade_counter5" value="false" />
+  <parameter name="gui_cascade_counter6" value="false" />
+  <parameter name="gui_cascade_counter7" value="false" />
+  <parameter name="gui_cascade_counter8" value="false" />
+  <parameter name="gui_cascade_counter9" value="false" />
+  <parameter name="gui_cascade_outclk_index" value="0" />
+  <parameter name="gui_channel_spacing" value="0.0" />
+  <parameter name="gui_clk_bad" value="false" />
+  <parameter name="gui_device_speed_grade" value="1" />
+  <parameter name="gui_divide_factor_c0" value="1" />
+  <parameter name="gui_divide_factor_c1" value="1" />
+  <parameter name="gui_divide_factor_c10" value="1" />
+  <parameter name="gui_divide_factor_c11" value="1" />
+  <parameter name="gui_divide_factor_c12" value="1" />
+  <parameter name="gui_divide_factor_c13" value="1" />
+  <parameter name="gui_divide_factor_c14" value="1" />
+  <parameter name="gui_divide_factor_c15" value="1" />
+  <parameter name="gui_divide_factor_c16" value="1" />
+  <parameter name="gui_divide_factor_c17" value="1" />
+  <parameter name="gui_divide_factor_c2" value="1" />
+  <parameter name="gui_divide_factor_c3" value="1" />
+  <parameter name="gui_divide_factor_c4" value="1" />
+  <parameter name="gui_divide_factor_c5" value="1" />
+  <parameter name="gui_divide_factor_c6" value="1" />
+  <parameter name="gui_divide_factor_c7" value="1" />
+  <parameter name="gui_divide_factor_c8" value="1" />
+  <parameter name="gui_divide_factor_c9" value="1" />
+  <parameter name="gui_divide_factor_n" value="1" />
+  <parameter name="gui_dps_cntr" value="C0" />
+  <parameter name="gui_dps_dir" value="Positive" />
+  <parameter name="gui_dps_num" value="1" />
+  <parameter name="gui_dsm_out_sel" value="1st_order" />
+  <parameter name="gui_duty_cycle0" value="50" />
+  <parameter name="gui_duty_cycle1" value="50" />
+  <parameter name="gui_duty_cycle10" value="50" />
+  <parameter name="gui_duty_cycle11" value="50" />
+  <parameter name="gui_duty_cycle12" value="50" />
+  <parameter name="gui_duty_cycle13" value="50" />
+  <parameter name="gui_duty_cycle14" value="50" />
+  <parameter name="gui_duty_cycle15" value="50" />
+  <parameter name="gui_duty_cycle16" value="50" />
+  <parameter name="gui_duty_cycle17" value="50" />
+  <parameter name="gui_duty_cycle2" value="50" />
+  <parameter name="gui_duty_cycle3" value="50" />
+  <parameter name="gui_duty_cycle4" value="50" />
+  <parameter name="gui_duty_cycle5" value="50" />
+  <parameter name="gui_duty_cycle6" value="50" />
+  <parameter name="gui_duty_cycle7" value="50" />
+  <parameter name="gui_duty_cycle8" value="50" />
+  <parameter name="gui_duty_cycle9" value="50" />
+  <parameter name="gui_en_adv_params" value="false" />
+  <parameter name="gui_en_dps_ports" value="false" />
+  <parameter name="gui_en_phout_ports" value="false" />
+  <parameter name="gui_en_reconf" value="false" />
+  <parameter name="gui_enable_cascade_in" value="false" />
+  <parameter name="gui_enable_cascade_out" value="false" />
+  <parameter name="gui_enable_mif_dps" value="false" />
+  <parameter name="gui_feedback_clock" value="Global Clock" />
+  <parameter name="gui_frac_multiply_factor" value="1" />
+  <parameter name="gui_fractional_cout" value="32" />
+  <parameter name="gui_mif_generate" value="false" />
+  <parameter name="gui_multiply_factor" value="1" />
+  <parameter name="gui_number_of_clocks" value="1" />
+  <parameter name="gui_operation_mode" value="direct" />
+  <parameter name="gui_output_clock_frequency0" value="108.0" />
+  <parameter name="gui_output_clock_frequency1" value="100.0" />
+  <parameter name="gui_output_clock_frequency10" value="100.0" />
+  <parameter name="gui_output_clock_frequency11" value="100.0" />
+  <parameter name="gui_output_clock_frequency12" value="100.0" />
+  <parameter name="gui_output_clock_frequency13" value="100.0" />
+  <parameter name="gui_output_clock_frequency14" value="100.0" />
+  <parameter name="gui_output_clock_frequency15" value="100.0" />
+  <parameter name="gui_output_clock_frequency16" value="100.0" />
+  <parameter name="gui_output_clock_frequency17" value="100.0" />
+  <parameter name="gui_output_clock_frequency2" value="100.0" />
+  <parameter name="gui_output_clock_frequency3" value="100.0" />
+  <parameter name="gui_output_clock_frequency4" value="100.0" />
+  <parameter name="gui_output_clock_frequency5" value="100.0" />
+  <parameter name="gui_output_clock_frequency6" value="100.0" />
+  <parameter name="gui_output_clock_frequency7" value="100.0" />
+  <parameter name="gui_output_clock_frequency8" value="100.0" />
+  <parameter name="gui_output_clock_frequency9" value="100.0" />
+  <parameter name="gui_phase_shift0" value="0" />
+  <parameter name="gui_phase_shift1" value="0" />
+  <parameter name="gui_phase_shift10" value="0" />
+  <parameter name="gui_phase_shift11" value="0" />
+  <parameter name="gui_phase_shift12" value="0" />
+  <parameter name="gui_phase_shift13" value="0" />
+  <parameter name="gui_phase_shift14" value="0" />
+  <parameter name="gui_phase_shift15" value="0" />
+  <parameter name="gui_phase_shift16" value="0" />
+  <parameter name="gui_phase_shift17" value="0" />
+  <parameter name="gui_phase_shift2" value="0" />
+  <parameter name="gui_phase_shift3" value="0" />
+  <parameter name="gui_phase_shift4" value="0" />
+  <parameter name="gui_phase_shift5" value="0" />
+  <parameter name="gui_phase_shift6" value="0" />
+  <parameter name="gui_phase_shift7" value="0" />
+  <parameter name="gui_phase_shift8" value="0" />
+  <parameter name="gui_phase_shift9" value="0" />
+  <parameter name="gui_phase_shift_deg0" value="0.0" />
+  <parameter name="gui_phase_shift_deg1" value="0.0" />
+  <parameter name="gui_phase_shift_deg10" value="0.0" />
+  <parameter name="gui_phase_shift_deg11" value="0.0" />
+  <parameter name="gui_phase_shift_deg12" value="0.0" />
+  <parameter name="gui_phase_shift_deg13" value="0.0" />
+  <parameter name="gui_phase_shift_deg14" value="0.0" />
+  <parameter name="gui_phase_shift_deg15" value="0.0" />
+  <parameter name="gui_phase_shift_deg16" value="0.0" />
+  <parameter name="gui_phase_shift_deg17" value="0.0" />
+  <parameter name="gui_phase_shift_deg2" value="0.0" />
+  <parameter name="gui_phase_shift_deg3" value="0.0" />
+  <parameter name="gui_phase_shift_deg4" value="0.0" />
+  <parameter name="gui_phase_shift_deg5" value="0.0" />
+  <parameter name="gui_phase_shift_deg6" value="0.0" />
+  <parameter name="gui_phase_shift_deg7" value="0.0" />
+  <parameter name="gui_phase_shift_deg8" value="0.0" />
+  <parameter name="gui_phase_shift_deg9" value="0.0" />
+  <parameter name="gui_phout_division" value="1" />
+  <parameter name="gui_pll_auto_reset" value="Off" />
+  <parameter name="gui_pll_bandwidth_preset" value="Auto" />
+  <parameter name="gui_pll_cascading_mode">Create an adjpllin signal to connect with an upstream PLL</parameter>
+  <parameter name="gui_pll_mode" value="Integer-N PLL" />
+  <parameter name="gui_ps_units0" value="ps" />
+  <parameter name="gui_ps_units1" value="ps" />
+  <parameter name="gui_ps_units10" value="ps" />
+  <parameter name="gui_ps_units11" value="ps" />
+  <parameter name="gui_ps_units12" value="ps" />
+  <parameter name="gui_ps_units13" value="ps" />
+  <parameter name="gui_ps_units14" value="ps" />
+  <parameter name="gui_ps_units15" value="ps" />
+  <parameter name="gui_ps_units16" value="ps" />
+  <parameter name="gui_ps_units17" value="ps" />
+  <parameter name="gui_ps_units2" value="ps" />
+  <parameter name="gui_ps_units3" value="ps" />
+  <parameter name="gui_ps_units4" value="ps" />
+  <parameter name="gui_ps_units5" value="ps" />
+  <parameter name="gui_ps_units6" value="ps" />
+  <parameter name="gui_ps_units7" value="ps" />
+  <parameter name="gui_ps_units8" value="ps" />
+  <parameter name="gui_ps_units9" value="ps" />
+  <parameter name="gui_refclk1_frequency" value="100.0" />
+  <parameter name="gui_refclk_switch" value="false" />
+  <parameter name="gui_reference_clock_frequency" value="27.0" />
+  <parameter name="gui_switchover_delay" value="0" />
+  <parameter name="gui_switchover_mode">Automatic Switchover</parameter>
+  <parameter name="gui_use_locked" value="true" />
+ </module>
  <module name="pulpino_0" kind="pulpino" version="1.0" enabled="1">
   <parameter name="AUTO_INTERRUPT_RECEIVER_INTERRUPTS_USED" value="31" />
   <parameter name="AXI_ADDR_WIDTH" value="32" />
@@ -952,9 +1203,9 @@
    kind="avalon"
    version="19.1"
    start="pulpino_0.avalon_master_instr"
-   end="intel_generic_serial_flash_interface_top_0.avl_mem">
+   end="mm_clock_crossing_bridge_0.s0">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x01000000" />
+  <parameter name="baseAddress" value="0x02000000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1033,18 +1284,9 @@
    kind="avalon"
    version="19.1"
    start="pulpino_0.avalon_master_lsu"
-   end="intel_generic_serial_flash_interface_top_0.avl_csr">
+   end="mm_clock_crossing_bridge_0.s0">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x8000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="19.1"
-   start="pulpino_0.avalon_master_lsu"
-   end="intel_generic_serial_flash_interface_top_0.avl_mem">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x01000000" />
+  <parameter name="baseAddress" value="0x02000000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1087,9 +1329,27 @@
    kind="avalon"
    version="19.1"
    start="pulpino_0.avalon_master_lsu"
-   end="onchip_memory2_0.s2">
+   end="onchip_memory2_0.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00010000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="19.1"
+   start="mm_clock_crossing_bridge_0.m0"
+   end="intel_generic_serial_flash_interface_top_0.avl_csr">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x01000000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="19.1"
+   start="mm_clock_crossing_bridge_0.m0"
+   end="intel_generic_serial_flash_interface_top_0.avl_mem">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1105,25 +1365,16 @@
    kind="avalon"
    version="19.1"
    start="master_0.master"
-   end="intel_generic_serial_flash_interface_top_0.avl_csr">
+   end="mm_clock_crossing_bridge_0.s0">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x8000" />
+  <parameter name="baseAddress" value="0x02000000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
    kind="avalon"
    version="19.1"
    start="master_0.master"
-   end="intel_generic_serial_flash_interface_top_0.avl_mem">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x01000000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="19.1"
-   start="master_0.master"
-   end="onchip_memory2_0.s1">
+   end="onchip_memory2_0.s2">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00010000" />
   <parameter name="defaultConnection" value="false" />
@@ -1134,11 +1385,6 @@
  <connection kind="clock" version="19.1" start="clk_27.clk" end="timer_0.clk" />
  <connection kind="clock" version="19.1" start="clk_27.clk" end="master_0.clk" />
  <connection kind="clock" version="19.1" start="clk_27.clk" end="pio_2.clk" />
- <connection
-   kind="clock"
-   version="19.1"
-   start="clk_27.clk"
-   end="intel_generic_serial_flash_interface_top_0.clk" />
  <connection
    kind="clock"
    version="19.1"
@@ -1190,6 +1436,32 @@
    start="clk_27.clk"
    end="mem_if_lpddr2_emif_0.mp_wfifo_clk_0" />
  <connection
+   kind="clock"
+   version="19.1"
+   start="clk_27.clk"
+   end="mem_if_lpddr2_emif_0.pll_ref_clk" />
+ <connection kind="clock" version="19.1" start="clk_27.clk" end="pll_0.refclk" />
+ <connection
+   kind="clock"
+   version="19.1"
+   start="clk_27.clk"
+   end="mm_clock_crossing_bridge_0.s0_clk" />
+ <connection
+   kind="clock"
+   version="19.1"
+   start="pll_0.outclk0"
+   end="intel_generic_serial_flash_interface_top_0.clk" />
+ <connection
+   kind="clock"
+   version="19.1"
+   start="pll_0.outclk0"
+   end="mm_clock_crossing_bridge_0.m0_clk" />
+ <connection
+   kind="clock"
+   version="19.1"
+   start="pll_0.outclk0"
+   end="sdc_controller_0.sd_clk_i" />
+ <connection
    kind="interrupt"
    version="19.1"
    start="pulpino_0.interrupt_receiver"
@@ -1234,6 +1506,11 @@
    version="19.1"
    start="clk_27.clk_reset"
    end="i2c_opencores_0.clock_reset" />
+ <connection
+   kind="reset"
+   version="19.1"
+   start="clk_27.clk_reset"
+   end="mm_clock_crossing_bridge_0.m0_reset" />
  <connection
    kind="reset"
    version="19.1"
@@ -1309,6 +1586,11 @@
    version="19.1"
    start="clk_27.clk_reset"
    end="sdc_controller_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="19.1"
+   start="clk_27.clk_reset"
+   end="mm_clock_crossing_bridge_0.s0_reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="false" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
