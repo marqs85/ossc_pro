@@ -55,6 +55,8 @@ zero_loop:
   ble x14, x15, zero_loop
 zero_loop_end:
 
+copy_sections:
+  jal alt_load
 
 main_entry:
   /* jump to alt_main program entry point */

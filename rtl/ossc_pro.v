@@ -17,7 +17,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-`define PO_RESET_WIDTH 27
+`define PO_RESET_WIDTH 270
 //`define DISABLE_SDC_CONTROLLER
 `define PCB1P3_SI_FIX
 
@@ -131,7 +131,7 @@ wire [7:0] ir_code_cnt;
 
 wire pclk_capture, pclk_out;
 
-reg [7:0] po_reset_ctr = 0;
+reg [8:0] po_reset_ctr = 0;
 reg po_reset_n = 1'b0;
 
 `ifdef SIMULATION
@@ -376,7 +376,7 @@ assign AUDMUX_o = ~audmux_sel;
 //assign EXT_IO_io = BTN_i[0] ? {29{1'b1}} : {29{1'b0}};
 assign LS_DIR_o = 2'b00;
 
-// Power-on reset pulse generation (not strictly necessary)
+// Power-on reset pulse generation (seems to be needed for booting from flash)
 always @(posedge CLK27_i)
 begin
     if (po_reset_ctr == `PO_RESET_WIDTH)
@@ -433,7 +433,7 @@ sys sys_inst (
     .pulpino_0_config_testmode_i            (1'b0),
     .pulpino_0_config_fetch_enable_i        (1'b1),
     .pulpino_0_config_clock_gating_i        (1'b0),
-    .pulpino_0_config_boot_addr_i           (32'h00010000),
+    .pulpino_0_config_boot_addr_i           (32'h01500000),
     .master_0_master_reset_reset            (jtagm_reset_req),
 `ifndef DISABLE_SDC_CONTROLLER
     .sdc_controller_0_sd_sd_cmd_dat_i       (SD_CMD_io),

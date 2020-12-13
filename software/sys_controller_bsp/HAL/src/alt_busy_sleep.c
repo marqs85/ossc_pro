@@ -60,7 +60,7 @@ unsigned int alt_busy_sleep (unsigned int us)
   unsigned long i, loops;
 
   // 1 loop >= 7 cyc
-  loops = ((ALT_CPU_FREQ/1000000)*us)/7;
+  loops = ((ALT_CPU_FREQ/1000000)*us)/300;
 
   for (i=7; i<loops; i++)
     asm volatile ("nop");

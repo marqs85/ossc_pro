@@ -76,7 +76,7 @@
       }
       datum baseAddress
       {
-         value = "8192";
+         value = "32768";
          type = "String";
       }
    }
@@ -473,7 +473,7 @@
   <parameter name="DEFAULT_VALUE_REG_3" value="0" />
   <parameter name="DEFAULT_VALUE_REG_4" value="139808" />
   <parameter name="DEFAULT_VALUE_REG_5" value="3307" />
-  <parameter name="DEFAULT_VALUE_REG_6" value="28690" />
+  <parameter name="DEFAULT_VALUE_REG_6" value="1298" />
   <parameter name="DEFAULT_VALUE_REG_7" value="6149" />
   <parameter name="DEVICE_DENSITY" value="128" />
   <parameter name="DEVICE_FAMILY" value="Cyclone V" />
@@ -851,7 +851,7 @@
   <parameter name="ecc_enabled" value="false" />
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
-  <parameter name="initMemContent" value="true" />
+  <parameter name="initMemContent" value="false" />
   <parameter name="initializationFileName" value="onchip_mem.hex" />
   <parameter name="instanceID" value="NONE" />
   <parameter name="memorySize" value="65536" />
@@ -1035,7 +1035,7 @@
    start="pulpino_0.avalon_master_lsu"
    end="intel_generic_serial_flash_interface_top_0.avl_csr">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x2000" />
+  <parameter name="baseAddress" value="0x8000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1107,7 +1107,7 @@
    start="master_0.master"
    end="intel_generic_serial_flash_interface_top_0.avl_csr">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x2000" />
+  <parameter name="baseAddress" value="0x8000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection

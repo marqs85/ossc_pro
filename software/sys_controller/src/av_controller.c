@@ -44,7 +44,7 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 41
+#define FW_VER_MINOR 42
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72

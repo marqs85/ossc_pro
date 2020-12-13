@@ -1,13 +1,17 @@
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 
+/* First 80 flash sectors reserved for 2 compressed bitstreams.
+   Last 16 flash sectors reserved for userdata.
+   That leaves 160 sectors (10MB) for flash_imem. */
 MEMORY
 {
+    flash_imem : ORIGIN = 0x01500000, LENGTH = 10485760
     dataram    : ORIGIN = 0x00010000, LENGTH = 0x10000
 }
 
 /* Stack information variables */
-_min_stack      = 0x400;   /* 1K - minimum stack space to reserve */
+_min_stack      = 0x1000;   /* 4KB - minimum stack space to reserve */
 _stack_start   = ORIGIN(dataram) + LENGTH(dataram);
 
 /* We have to align each sector to word boundaries as our current s19->slm
@@ -19,7 +23,7 @@ SECTIONS
     {
         . = ALIGN(4);
         KEEP(*(.vectors))
-    } > dataram
+    } > flash_imem
 
     .text : {
         . = ALIGN(4);
@@ -40,7 +44,7 @@ SECTIONS
         *(.lit)
         *(.shdata)
         _endtext = .;
-    }  > dataram
+    }  > flash_imem
 
     /*--------------------------------------------------------------------*/
     /* Global constructor/destructor segement                             */
@@ -69,19 +73,20 @@ SECTIONS
       PROVIDE_HIDDEN (__fini_array_end = .);
     } > dataram
 
-    .rodata : {
+    .rodata : AT ( LOADADDR (.text) + SIZEOF (.text) ) {
+        PROVIDE (__ram_rodata_start = ABSOLUTE(.));
         . = ALIGN(4);
         *(.rodata);
         *(.rodata.*)
+        *(.srodata);
+        *(.srodata.*)
+        PROVIDE (__ram_rodata_end = ABSOLUTE(.));
     } > dataram
 
-    .shbss :
-    {
-        . = ALIGN(4);
-        *(.shbss)
-    } > dataram
+    PROVIDE (__flash_rodata_start = LOADADDR(.rodata));
 
-    .data : {
+    .data : AT ( LOADADDR (.rodata) + SIZEOF (.rodata) ) {
+        PROVIDE (__ram_rwdata_start = ABSOLUTE(.));
         . = ALIGN(4);
         sdata  =  .;
         _sdata  =  .;
@@ -93,6 +98,15 @@ SECTIONS
         *(.sdata2.*)
         edata  =  .;
         _edata  =  .;
+        PROVIDE (__ram_rwdata_end = ABSOLUTE(.));
+    } > dataram
+
+    PROVIDE (__flash_rwdata_start = LOADADDR(.data));
+
+    .shbss :
+    {
+        . = ALIGN(4);
+        *(.shbss)
     } > dataram
 
     .bss :
