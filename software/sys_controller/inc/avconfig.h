@@ -44,10 +44,12 @@
 #define VSYNC_THOLD_MAX     200
 #define SD_SYNC_WIN_MAX     255
 #define PLL_COAST_MAX       5
+#define PLL_LOOP_GAIN_MAX   3
 #define REVERSE_LPF_MAX     31
 #define COARSE_GAIN_MAX     15
 #define ALC_H_FILTER_MAX    3
 #define ALC_V_FILTER_MAX    7
+#define CLAMP_STR_MAX       7
 #define CLAMP_POS_MIN       0
 #define CLAMP_POS_MAX       0x3fff
 

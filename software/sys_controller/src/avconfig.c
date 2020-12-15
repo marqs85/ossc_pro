@@ -63,6 +63,8 @@ int set_default_avconfig(int update_cc)
     adv7513_get_default_cfg(&tc.adv7513_cfg);
 #ifndef DExx_FW
     pcm186x_get_default_cfg(&tc.pcm_cfg);
+#else
+    tc.adv7513_cfg.i2s_fs = ADV_96KHZ;
 #endif
 
     if (update_cc)
