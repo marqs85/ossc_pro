@@ -541,6 +541,7 @@ void sys_toggle_power() {
 }
 
 void print_vm_stats() {
+    alt_timestamp_type ts = alt_timestamp();
     int row = 0;
     memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
@@ -574,6 +575,8 @@ void print_vm_stats() {
     }
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Firmware:");
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "v%u.%.2u @ " __DATE__, FW_VER_MAJOR, FW_VER_MINOR);
+    sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Uptime:");
+    sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%luh %lumin", (uint32_t)((ts/TIMER_0_FREQ)/3600), (uint32_t)((ts/TIMER_0_FREQ)/60));
     osd->osd_config.status_refresh = 1;
     osd->osd_row_color.mask = 0;
     osd->osd_sec_enable[0].mask = (1<<(row+1))-1;
@@ -593,6 +596,7 @@ void mainloop()
     vm_mult_config_t vm_conf;
     status_t status;
     avconfig_t *cur_avconfig;
+    alt_timestamp_type start_ts;
 
     enable_isl = 0;
     enable_hdmirx = 0;
@@ -601,6 +605,7 @@ void mainloop()
     cur_avconfig = get_current_avconfig();
 
     while (1) {
+        start_ts = alt_timestamp();
         target_avinput = avinput;
         read_controls();
         parse_control();
@@ -960,7 +965,7 @@ void mainloop()
 
         check_sdcard();
 
-        usleep(20000);
+        while (alt_timestamp() < start_ts + MAINLOOP_INTERVAL_US*(TIMER_0_FREQ/1000000)) {}
     }
 }
 
@@ -993,6 +998,9 @@ int main()
 
         sys_powered_on = 0;
         wait_powerup();
+
+        // Start system clock
+        alt_timestamp_start();
 
         sniprintf(row1, US2066_ROW_LEN+1, "OSSC Pro fw. %u.%.2u", FW_VER_MAJOR, FW_VER_MINOR);
         ui_disp_status(1);

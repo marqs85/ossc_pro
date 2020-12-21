@@ -49,6 +49,9 @@
 
 #include "priv/alt_busy_sleep.h"
 
+#include "altera_avalon_timer.h"
+#include "sys/alt_timestamp.h"
+
 unsigned int alt_busy_sleep (unsigned int us)
 {
 /*
@@ -57,13 +60,17 @@ unsigned int alt_busy_sleep (unsigned int us)
  * skipped to speed up simulation.
  */
 #ifndef ALT_SIM_OPTIMIZE
-  unsigned long i, loops;
+  /*unsigned long i, loops;
 
   // 1 loop >= 7 cyc
   loops = ((ALT_CPU_FREQ/1000000)*us)/120;
 
   for (i=7; i<loops; i++)
-    asm volatile ("nop");
+    asm volatile ("nop");*/
+
+    alt_timestamp_type start_ts = alt_timestamp();
+
+    while (alt_timestamp() < start_ts + us*(TIMER_0_FREQ/1000000)) {}
 #endif /* #ifndef ALT_SIM_OPTIMIZE */
   return 0;
 }

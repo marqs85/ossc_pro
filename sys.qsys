@@ -110,7 +110,7 @@
       }
       datum baseAddress
       {
-         value = "131104";
+         value = "131136";
          type = "String";
       }
    }
@@ -1180,7 +1180,7 @@
    enabled="1" />
  <module name="timer_0" kind="altera_avalon_timer" version="19.1" enabled="1">
   <parameter name="alwaysRun" value="false" />
-  <parameter name="counterSize" value="32" />
+  <parameter name="counterSize" value="64" />
   <parameter name="fixedPeriod" value="false" />
   <parameter name="period" value="1" />
   <parameter name="periodUnits" value="USEC" />
@@ -1223,7 +1223,7 @@
    start="pulpino_0.avalon_master_lsu"
    end="jtag_uart_0.avalon_jtag_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00020020" />
+  <parameter name="baseAddress" value="0x00020040" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
