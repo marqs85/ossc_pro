@@ -82,6 +82,7 @@ status_t update_avconfig() {
         (tc.mask_color != cc.mask_color) ||
         (tc.reverse_lpf != cc.reverse_lpf) ||
         (tc.lm_deint_mode != cc.lm_deint_mode) ||
+        (tc.nir_even_offset != cc.nir_even_offset) ||
         (tc.ypbpr_cs != cc.ypbpr_cs))
         status = (status < SC_CONFIG_CHANGE) ? SC_CONFIG_CHANGE : status;
 

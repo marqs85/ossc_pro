@@ -107,8 +107,9 @@ typedef union {
         uint8_t mask_color:3;
         uint8_t reverse_lpf:5;
         uint8_t lm_deint_mode:1;
+        uint8_t nir_even_offset:1;
         uint8_t ypbpr_cs:1;
-        uint32_t misc_rsv:22;
+        uint32_t misc_rsv:17;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } misc_config_reg;

@@ -228,7 +228,7 @@ isl51002_frontend u_isl_frontend (
     .vsync_i_polarity(isl_vsync_pol),
     .vsync_i_type(isl_vsync_type),
     .csc_enable(csc_enable),
-    .csc_cs(misc_config[13]),
+    .csc_cs(misc_config[14]),
     .hv_in_config(hv_in_config),
     .hv_in_config2(hv_in_config2),
     .hv_in_config3(hv_in_config3),

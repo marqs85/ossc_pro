@@ -246,6 +246,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     misc_config.mask_color = avconfig->mask_color;
     misc_config.reverse_lpf = avconfig->reverse_lpf;
     misc_config.lm_deint_mode = avconfig->lm_deint_mode;
+    misc_config.nir_even_offset = avconfig->nir_even_offset;
     misc_config.ypbpr_cs = avconfig->ypbpr_cs;
 
     sc->hv_in_config = hv_in_config;
@@ -576,7 +577,7 @@ void print_vm_stats() {
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Firmware:");
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "v%u.%.2u @ " __DATE__, FW_VER_MAJOR, FW_VER_MINOR);
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Uptime:");
-    sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%luh %lumin", (uint32_t)((ts/TIMER_0_FREQ)/3600), (uint32_t)((ts/TIMER_0_FREQ)/60));
+    sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%luh %lumin", (uint32_t)((ts/TIMER_0_FREQ)/3600), ((uint32_t)((ts/TIMER_0_FREQ)/60) % 60));
     osd->osd_config.status_refresh = 1;
     osd->osd_row_color.mask = 0;
     osd->osd_sec_enable[0].mask = (1<<(row+1))-1;

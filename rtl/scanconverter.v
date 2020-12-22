@@ -101,6 +101,7 @@ wire [2:0] MISC_MASK_COLOR = misc_config[6:4];
 wire [5:0] MISC_REV_LPF_STR = (misc_config[11:7] + 6'd16);
 wire MISC_REV_LPF_ENABLE = (misc_config[11:7] != 5'h0);
 wire MISC_LM_DEINT_MODE = misc_config[12];
+wire MISC_NIR_EVEN_OFFSET = misc_config[13];
 
 
 reg frame_change_sync1_reg, frame_change_sync2_reg, frame_change_prev;
@@ -205,16 +206,16 @@ always @(posedge PCLK_OUT_i) begin
 end
 
 // Postprocess pipeline structure
-// |    0     |    1     |    2    |    3    |    4    |    5    |
-// |----------|----------|---------|---------|---------|---------|
-// | SYNC/DE  |          |         |         |         |         |
-// | X/Y POS  |          |         |         |         |         |
-// |          |   MASK   |         |         |         |         |
-// |          |          | LINEBUF |         |         |         |
-// |          |          |         |  SLGEN  |         |         |
+//            1          2         3         4
+// |----------|----------|---------|---------|
+// | SYNC/DE  |          |         |         |
+// | X/Y POS  |          |         |         |
+// |          |   MASK   |         |         |
+// |          | LB_SETUP | LINEBUF |         |
+// |          |          |         |  SLGEN  |
 
 
-// Pipeline stage 0
+// Pipeline stage 1
 always @(posedge PCLK_OUT_i) begin
     HSYNC_pp[1] <= (h_cnt < H_SYNCLEN) ? 1'b0 : 1'b1;
     if (dst_fid == FID_ODD)
@@ -226,12 +227,22 @@ always @(posedge PCLK_OUT_i) begin
     if (h_cnt == H_SYNCLEN+H_BACKPORCH) begin
         if (v_cnt == V_SYNCLEN+V_BACKPORCH) begin
             ypos_pp[1] <= 0;
-            // Bob deinterlace adjusts linebuf start position and y_ctr on even fields
+            // Bob deinterlace adjusts linebuf start position and y_ctr for even source fields if
+            // output is progressive mode. Noninterlace restore as raw output mode is an exception
+            // which ignores LM deinterlace mode setting.
             if (~MISC_LM_DEINT_MODE & (Y_RPT > 0) & ~V_INTERLACED & (src_fid == FID_EVEN)) begin
                 ypos_lb <= Y_START_LB - 1'b1;
                 y_ctr <= ((Y_RPT+1'b1) >> 1);
             end else begin
-                ypos_lb <= (Y_SKIP & (dst_fid == FID_EVEN)) ? (Y_START_LB + 1'b1) : Y_START_LB;
+                if (Y_SKIP & (dst_fid == FID_EVEN)) begin
+                    // Linedrop mode and output interlaced
+                    ypos_lb <= Y_START_LB + 1'b1;
+                end else if ((((Y_RPT == 0) & ~V_INTERLACED) | ((Y_RPT > 0) & MISC_LM_DEINT_MODE)) & (src_fid == FID_EVEN)) begin
+                    // Adjust even field Y-offset for noninterlace restore
+                    ypos_lb <= Y_START_LB - MISC_NIR_EVEN_OFFSET;
+                end else begin
+                    ypos_lb <= Y_START_LB;
+                end
                 y_ctr <= 0;
             end
             xpos_lb_start <= (X_OFFSET < 10'sd0) ? 11'd0 : {1'b0, X_OFFSET};
@@ -269,7 +280,7 @@ always @(posedge PCLK_OUT_i) begin
     end
 end
 
-// Pipeline stages 1-
+// Pipeline stages 2-
 integer pp_idx;
 always @(posedge PCLK_OUT_i) begin
 
