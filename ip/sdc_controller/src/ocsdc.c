@@ -122,7 +122,7 @@ static void ocsdc_set_buswidth(struct ocsdc * dev, uint width) {
 /* Set clock prescalar value based on the required clock in HZ */
 static void ocsdc_set_clock(struct ocsdc * dev, uint clock)
 {
-	int clk_div = dev->clk_freq / (2.0 * clock) - 1;
+	int clk_div = dev->clk_freq / (2 * clock) - 1;
 
 	DBG_PRINTF("ocsdc_set_clock %d, div %d\n\r", clock, clk_div);
 	//software reset
@@ -254,8 +254,8 @@ static int ocsdc_init(struct mmc *mmc)
 	//clear all interrupts
 	ocsdc_write(dev, OCSDC_CMD_INT_STATUS, 0);
 	ocsdc_write(dev, OCSDC_DAT_INT_STATUS, 0);
-	//set clock to maximum (devide by 2)
-	ocsdc_set_clock(dev, dev->clk_freq/2);
+	//set clock to divide by 4
+	ocsdc_set_clock(dev, dev->clk_freq/4);
 
 	return 0;
 }
