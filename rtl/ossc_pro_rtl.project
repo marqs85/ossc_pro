@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="ossc_pro_rtl" InternalType="" Version="11000">
   <VirtualDirectory Name="ip">
+    <VirtualDirectory Name="osd_generator">
+      <File Name="../ip/osd_generator/osd_generator_top.sv"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="i2c_opencores">
       <File Name="../ip/i2c_opencores/i2c_opencores.v"/>
       <File Name="../ip/i2c_opencores/timescale.v"/>
@@ -8,45 +11,14 @@
       <File Name="../ip/i2c_opencores/i2c_master_top.v"/>
       <File Name="../ip/i2c_opencores/i2c_master_bit_ctrl.v"/>
       <File Name="../ip/i2c_opencores/i2c_master_defines.v"/>
-      <VirtualDirectory Name="HAL">
-        <VirtualDirectory Name="src">
-          <File Name="../ip/i2c_opencores/HAL/src/i2c_opencores.c"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="inc">
-          <File Name="../ip/i2c_opencores/HAL/inc/i2c_opencores.h"/>
-        </VirtualDirectory>
-      </VirtualDirectory>
-      <VirtualDirectory Name="inc">
-        <File Name="../ip/i2c_opencores/inc/i2c_opencores_regs.h"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="Docs">
-        <File Name="../ip/i2c_opencores/Docs/I2C_tests.c"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="sdc_controller">
       <File Name="../ip/sdc_controller/sdc_controller_top.v"/>
-      <VirtualDirectory Name="src">
-        <File Name="../ip/sdc_controller/src/mmc.c"/>
-        <File Name="../ip/sdc_controller/src/ocsdc.c"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="inc">
-        <File Name="../ip/sdc_controller/inc/mmc.h"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="config">
         <File Name="../ip/sdc_controller/config/generic_dpram.v"/>
         <File Name="../ip/sdc_controller/config/generic_fifo_dc_gray.v"/>
       </VirtualDirectory>
       <VirtualDirectory Name="SD-card-controller">
-        <VirtualDirectory Name="sw">
-          <VirtualDirectory Name="example">
-            <VirtualDirectory Name="src">
-              <File Name="../ip/sdc_controller/SD-card-controller/sw/example/src/mmc.c"/>
-              <File Name="../ip/sdc_controller/SD-card-controller/sw/example/src/ocsdc.c"/>
-              <File Name="../ip/sdc_controller/SD-card-controller/sw/example/src/mmc.h"/>
-              <File Name="../ip/sdc_controller/SD-card-controller/sw/example/src/sdc_example.c"/>
-            </VirtualDirectory>
-          </VirtualDirectory>
-        </VirtualDirectory>
         <VirtualDirectory Name="syn">
           <VirtualDirectory Name="quartus">
             <VirtualDirectory Name="src">
@@ -57,7 +29,6 @@
         <VirtualDirectory Name="rtl">
           <VirtualDirectory Name="verilog">
             <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_data_serial_host.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_defines.h"/>
             <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_clock_divider.v"/>
             <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/generic_dpram.v"/>
             <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_crc_7.v"/>
@@ -86,7 +57,6 @@
             <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/edge_detect_tb.sv"/>
             <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/wb_master_behavioral.v"/>
             <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/wb_bus_mon.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/wb_model_defines.h"/>
             <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sdModel.v"/>
             <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/bistable_domain_cross_tb.sv"/>
             <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_controller_wb_tb.sv"/>
@@ -104,9 +74,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="sc_config">
       <File Name="../ip/sc_config/sc_config_top.sv"/>
-      <VirtualDirectory Name="inc">
-        <File Name="../ip/sc_config/inc/sc_config_regs.h"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="hw_crc32_qsys">
       <File Name="../ip/hw_crc32_qsys/CRC_Component.v"/>
@@ -114,635 +81,6 @@
     <VirtualDirectory Name="pulpino_qsys">
       <File Name="../ip/pulpino_qsys/core_top.sv"/>
       <VirtualDirectory Name="pulpino">
-        <VirtualDirectory Name="sw">
-          <VirtualDirectory Name="apps">
-            <VirtualDirectory Name="compressed">
-              <File Name="../ip/pulpino_qsys/pulpino/sw/apps/compressed/main.c"/>
-            </VirtualDirectory>
-            <VirtualDirectory Name="imperio_tests">
-              <VirtualDirectory Name="testInterrupt">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/imperio_tests/testInterrupt/main.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testSPIMaster">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/imperio_tests/testSPIMaster/testSPIMaster.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testI2C">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/imperio_tests/testI2C/testI2C.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testGPIO">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/imperio_tests/testGPIO/testGPIO.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testUART">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/imperio_tests/testUART/testUART.c"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="freertos">
-              <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/main.c"/>
-              <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/FreeRTOSConfig.h"/>
-              <VirtualDirectory Name="Source">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/event_groups.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/croutine.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/list.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/queue.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/tasks.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/timers.c"/>
-                <VirtualDirectory Name="include">
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/FreeRTOS.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/StackMacros.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/mpu_wrappers.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/portable.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/croutine.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/timers.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/deprecated_definitions.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/projdefs.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/event_groups.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/task.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/semphr.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/list.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/include/queue.h"/>
-                </VirtualDirectory>
-                <VirtualDirectory Name="portable">
-                  <VirtualDirectory Name="MemMang">
-                    <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/portable/MemMang/heap_2.c"/>
-                    <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/portable/MemMang/heap_1.c"/>
-                    <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/portable/MemMang/heap_3.c"/>
-                    <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/portable/MemMang/heap_5.c"/>
-                    <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/portable/MemMang/heap_4.c"/>
-                  </VirtualDirectory>
-                  <VirtualDirectory Name="GCC">
-                    <VirtualDirectory Name="RI5CY">
-                      <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/portable/GCC/RI5CY/portmacro.h"/>
-                      <File Name="../ip/pulpino_qsys/pulpino/sw/apps/freertos/Source/portable/GCC/RI5CY/port.c"/>
-                    </VirtualDirectory>
-                  </VirtualDirectory>
-                </VirtualDirectory>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="ml_tests">
-              <VirtualDirectory Name="mlGivens">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGivens/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGivens/mlGivens.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGivens/mlGivens.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlBilat">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlBilat/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlBilat/mlBilat.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlBilat/mlBilat.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlHomErr">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlHomErr/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlHomErr/mlHomErr.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlHomErr/mlHomErr.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlRbf">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlRbf/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlRbf/mlRbf.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlRbf/mlRbf.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlGemm">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGemm/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGemm/mlGemm.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGemm/stimuli.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGemm/mlGemm.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlAxpy">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlAxpy/mlAxpy.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlAxpy/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlAxpy/mlAxpy.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlDotp">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlDotp/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlDotp/mlDotp.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlDotp/mlDotp.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlSvd">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlSvd/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlSvd/mlSvd.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlSvd/mlSvd.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="ml_shared">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/ml_shared/mlShared.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlSin">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlSin/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlSin/mlSin.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlSin/mlSin.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlGradDir">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGradDir/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGradDir/mlGradDir.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGradDir/mlGradDir.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlGrad">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGrad/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGrad/mlGrad.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGrad/mlGrad.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlLog">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlLog/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlLog/mlLog.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlLog/mlLog.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlChol">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlChol/mlChol.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlChol/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlChol/mlChol.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlGemv">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGemv/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGemv/mlGemv.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlGemv/mlGemv.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlQr">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlQr/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlQr/mlQr.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlQr/mlQr.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlWdotp">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlWdotp/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlWdotp/mlWdotp.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlWdotp/mlWdotp.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlHom">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlHom/mlHom.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlHom/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlHom/mlHom.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlFir">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlFir/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlFir/mlFir.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlFir/mlFir.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlButter">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlButter/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlButter/mlButter.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlButter/mlButter.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlSchur">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlSchur/mlSchur.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlSchur/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlSchur/mlSchur.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlDist">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlDist/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlDist/mlDist.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlDist/mlDist.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="mlDct">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlDct/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlDct/mlDct.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/ml_tests/mlDct/mlDct.h"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="fpga">
-              <VirtualDirectory Name="led_demo">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/fpga/led_demo/main.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="gpio_demo">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/fpga/gpio_demo/main.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="fpga_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/fpga/fpga_test/main.c"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="boot_code">
-              <File Name="../ip/pulpino_qsys/pulpino/sw/apps/boot_code/boot_code.c"/>
-            </VirtualDirectory>
-            <VirtualDirectory Name="riscv_tests">
-              <VirtualDirectory Name="testALU">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testALU/testALU_stimuli.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testALU/testALU.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testDivRem">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testDivRem/testDivRem.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testDivRem/stimuli.h"/>
-                <VirtualDirectory Name="stimuli">
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testDivRem/stimuli/stimuli_gen.c"/>
-                </VirtualDirectory>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testIRQ">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testIRQ/main.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testEvents">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testEvents/testEvents.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testCnt">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testCnt/testCnt.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testALUExt">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testALUExt/testALUExt.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testALUExt/testALUExt_stimuli.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testPriv">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testPriv/testPriv.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testCSR">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testCSR/testCSR_stimuli.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testCSR/testCSR.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testMUL">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testMUL/testMUL.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testMUL/stimuli.h"/>
-                <VirtualDirectory Name="stimuli">
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testMUL/stimuli/main.c"/>
-                </VirtualDirectory>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testBitManipulation">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testBitManipulation/testBitManipulation.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testBitManipulation/testBitManipulation_stimuli.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testBitManipulation/testBitManipulation_stimuli_riscv.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testClip">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testClip/testClip.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testClip/testClip_stimuli.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testDebug">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testDebug/main.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="includes">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/includes/riscv_test.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="basic">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/basic/basic.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testMisaligned">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testMisaligned/main.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="official">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/official/test_macros.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/official/riscv_test.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/official/test_print.c"/>
-                <VirtualDirectory Name="tests">
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/official/tests/test_macros.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/official/tests/riscv_test.h"/>
-                </VirtualDirectory>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testVecCmp">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testVecCmp/testVecCmp_stimuli_riscv.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testVecCmp/testVecCmp.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testExceptions">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testExceptions/main.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testShufflePack">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testShufflePack/testShufflePack.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testShufflePack/testShufflePack_stimuli_riscv.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testShufflePack/testShufflePack_stimuli.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testDotMul">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testDotMul/testDotMul_stimuli.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testDotMul/testDotMul_stimuli_riscv.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testDotMul/testDotMul.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testMacNorm">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testMacNorm/testMacNorm.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testMacNorm/testMacNorm_stimuli.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testFPU">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testFPU/mlShared.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testFPU/testFPU.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testFPU/testFPU.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testAddSubNorm">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testAddSubNorm/testAddSubNorm_stimuli.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testAddSubNorm/testAddSubNorm.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="testVecArith">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testVecArith/testVecArith_stimuli.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testVecArith/testVecArith.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/riscv_tests/testVecArith/testVecArith_stimuli_riscv.h"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="bench">
-              <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/crc32.c"/>
-              <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/main.c"/>
-              <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/common.h"/>
-              <VirtualDirectory Name="matmul">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/matmul/matmul8.cpp"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/matmul/matmul_impl.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/matmul/matmul16_test.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/matmul/matmul16.cpp"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/matmul/matmul32_test.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/matmul/matmul8_test.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/matmul/matmul32.cpp"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="aes_cbc">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/aes_cbc/aes_cbc.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/aes_cbc/aes_cbc_test.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="fft">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/fft/fft.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/fft/fft_test.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="sha">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/sha/sha_test.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/sha/sha.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/sha/sha.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="fir">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/fir/fir_test.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/fir/fir.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="keccak">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/keccak/keccak.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/keccak/keccak_test.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="fdctfst">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/fdctfst/fdctfst_test.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/fdctfst/fdctfst.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="conv2d">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/conv2d/conv2d.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/conv2d/conv2d_test.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="ipm">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/ipm/ipm_test.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/ipm/ipm.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/bench/ipm/ipm.h"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="helloworld">
-              <File Name="../ip/pulpino_qsys/pulpino/sw/apps/helloworld/helloworld.c"/>
-              <File Name="../ip/pulpino_qsys/pulpino/sw/apps/helloworld/helloworld.cpp"/>
-            </VirtualDirectory>
-            <VirtualDirectory Name="Arduino_tests">
-              <VirtualDirectory Name="PWM_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/Arduino_tests/PWM_test/PWM_test.cpp"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="SPI_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/Arduino_tests/SPI_test/SPI_test.cpp"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="PulseIn_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/Arduino_tests/PulseIn_test/PulseIn_test.cpp"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="GPIO_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/Arduino_tests/GPIO_test/GPIO_test.cpp"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="UART_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/Arduino_tests/UART_test/UART_test.cpp"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="shift_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/Arduino_tests/shift_test/shift_test.cpp"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="int_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/Arduino_tests/int_test/int_test.cpp"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="timer_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/Arduino_tests/timer_test/timer_test.cpp"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="wire_test">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/Arduino_tests/wire_test/wire_test.cpp"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="sequential_tests">
-              <VirtualDirectory Name="fibonacci">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fibonacci/fibonacci.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="bubblesort">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/bubblesort/bubblesort.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="non_separable_2d_filter">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/non_separable_2d_filter/non_separable_2d_filter.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="cnn_layer">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/cnn_layer/cnn_kernels_fused.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/cnn_layer/data_image.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/cnn_layer/cnn_layer.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/cnn_layer/config.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/cnn_layer/cnn_layer.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/cnn_layer/cnn_kernels.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="fft">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fft/kiss_fft.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fft/kiss_fft.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fft/fft_precomputed.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fft/kiss_fftr.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fft/_kiss_fft_guts.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fft/kiss_fftr.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fft/stimuli.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fft/main.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fft/expresp.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="crc32">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/crc32/crc_32.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/crc32/jrand.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/crc32/crc.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="sudokusolver">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/sudokusolver/sudokusolver.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/sudokusolver/sudokusolver.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="bitDescriptor">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/bitDescriptor/bitDescriptor.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="tracking-seq">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/tracking-seq/tracking.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/tracking-seq/image.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/tracking-seq/result.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/tracking-seq/tracking_functions.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/tracking-seq/tracking.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="motion_detection">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/img_10_10.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/test_20_20.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/conv_fast.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/motion_detection.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/img_40_40.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/test_5_5.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/motion_detection.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/img_20_20.h"/>
-                <VirtualDirectory Name="golden">
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/golden/test_omino_80_60.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/golden/background_80_60.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/motion_detection/golden/motion_detection.c"/>
-                </VirtualDirectory>
-              </VirtualDirectory>
-              <VirtualDirectory Name="stencil">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/stencil/stencil.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/stencil/stencil.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="gauss-2d">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/gauss-2d/gauss.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="fdtd-1d">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fdtd-1d/fdtd-1d.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="dct">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/dct/dct.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="matrixMul8">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul8/matrixMul.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul8/parMatrixMul8_stimuli.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="jacobi-1d-imper">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/jacobi-1d-imper/jacobi-1d-imper.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="fdct">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fdct/fdct.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/fdct/fdct.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="matrixMul8_dotp">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul8_dotp/matrixMul.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul8_dotp/matmul_kernels.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul8_dotp/dotMatrixMul8_stimuli.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="stencil_vect">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/stencil_vect/stencil_vect.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="convolution">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/convolution/data_image.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/convolution/conv_kernels.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/convolution/config.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/convolution/convolution.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/convolution/convolution.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="matrixMul32">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul32/matrixMul.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul32/parMatrixMul32_stimuli.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="matrixMul16">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul16/matrixMul.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul16/parMatrixMul16_stimuli.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="pooling">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/pooling/pooling.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/pooling/pool_kernels.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/pooling/config.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/pooling/pooling.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/pooling/data.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="rijndael">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/rijndael/aes.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/rijndael/aes.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/rijndael/aestab.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/rijndael/aesxam.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="matrixMul16_dotp">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul16_dotp/matrixMul.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul16_dotp/dotMatrixMul16_stimuli.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixMul16_dotp/matmul_kernels.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="matrixAdd">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixAdd/matrixAdd16.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixAdd/matrixAdd32.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixAdd/matrixAdd.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/matrixAdd/matrixAdd8.h"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="towerofhanoi">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/towerofhanoi/towerofhanoi.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="jacobi-2d-imper">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/jacobi-2d-imper/jacobi-2d-imper.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/apps/sequential_tests/jacobi-2d-imper/util.h"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-          </VirtualDirectory>
-          <VirtualDirectory Name="libs">
-            <VirtualDirectory Name="string_lib">
-              <VirtualDirectory Name="src">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/string_lib/src/qprintf.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="inc">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/string_lib/inc/string_lib.h"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="Arduino_lib">
-              <VirtualDirectory Name="separate_libs">
-                <VirtualDirectory Name="src">
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/separate_libs/src/Wire.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/separate_libs/src/twi.c"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/separate_libs/src/SPI.cpp"/>
-                </VirtualDirectory>
-                <VirtualDirectory Name="inc">
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/separate_libs/inc/Wire.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/separate_libs/inc/twi.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/separate_libs/inc/SPI.h"/>
-                </VirtualDirectory>
-              </VirtualDirectory>
-              <VirtualDirectory Name="core_libs">
-                <VirtualDirectory Name="src">
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/HardwareSerial.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/Stream.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/new.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/hooks.c"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/IPAddress.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/WInterrupts.c"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/abi.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/WMath.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/wiring.c"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/HardwareSerial0.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/Print.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/wiring_digital.c"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/WString.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/wiring_analog.c"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/wiring_shift.c"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/src/wiring_pulse.c"/>
-                </VirtualDirectory>
-                <VirtualDirectory Name="inc">
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/HardwareSerial_private.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/Server.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/Printable.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/Arduino.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/Client.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/IPAddress.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/HardwareSerial.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/wiring_private.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/Print.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/Udp.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/WCharacter.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/WString.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/new.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/binary.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/Stream.h"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/main.cpp"/>
-                  <File Name="../ip/pulpino_qsys/pulpino/sw/libs/Arduino_lib/core_libs/inc/pins_arduino.h"/>
-                </VirtualDirectory>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="math_fns_lib">
-              <VirtualDirectory Name="src">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/math_fns_lib/src/math_fns.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="inc">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/math_fns_lib/inc/math_fns.h"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="bench_lib">
-              <VirtualDirectory Name="src">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/bench_lib/src/bench.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="inc">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/bench_lib/inc/bench.h"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-            <VirtualDirectory Name="sys_lib">
-              <VirtualDirectory Name="src">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/src/timer.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/src/gpio.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/src/i2c.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/src/spi.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/src/utils.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/src/uart.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/src/int.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/src/exceptions.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="inc">
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/cpu_hal.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/gpio.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/pulpino.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/i2c.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/int.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/bar.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/event.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/spr-defs.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/utils.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/timer.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/uart.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/sw/libs/sys_lib/inc/spi.h"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-          </VirtualDirectory>
-        </VirtualDirectory>
         <VirtualDirectory Name="tb">
           <File Name="../ip/pulpino_qsys/pulpino/tb/uart.sv"/>
           <File Name="../ip/pulpino_qsys/pulpino/tb/if_spi_master.sv"/>
@@ -754,32 +92,6 @@
           <File Name="../ip/pulpino_qsys/pulpino/tb/tb_jtag_pkg.sv"/>
           <File Name="../ip/pulpino_qsys/pulpino/tb/tb_spi_pkg.sv"/>
           <File Name="../ip/pulpino_qsys/pulpino/tb/i2c_eeprom_model.sv"/>
-          <VirtualDirectory Name="mem_dpi">
-            <File Name="../ip/pulpino_qsys/pulpino/tb/mem_dpi/mem_dpi.c"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="jtag_dpi">
-            <File Name="../ip/pulpino_qsys/pulpino/tb/jtag_dpi/jtag_dpi.c"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="fpga">
-          <VirtualDirectory Name="sw">
-            <VirtualDirectory Name="apps">
-              <VirtualDirectory Name="spiload">
-                <File Name="../ip/pulpino_qsys/pulpino/fpga/sw/apps/spiload/arg_parsing.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/fpga/sw/apps/spiload/console_read.c"/>
-                <File Name="../ip/pulpino_qsys/pulpino/fpga/sw/apps/spiload/spiloader.h"/>
-                <File Name="../ip/pulpino_qsys/pulpino/fpga/sw/apps/spiload/main.c"/>
-              </VirtualDirectory>
-              <VirtualDirectory Name="gpio_access">
-                <File Name="../ip/pulpino_qsys/pulpino/fpga/sw/apps/gpio_access/main.c"/>
-              </VirtualDirectory>
-            </VirtualDirectory>
-          </VirtualDirectory>
-          <VirtualDirectory Name="rtl">
-            <File Name="../ip/pulpino_qsys/pulpino/fpga/rtl/clk_rst_gen.v"/>
-            <File Name="../ip/pulpino_qsys/pulpino/fpga/rtl/pulpino_wrap.v"/>
-            <File Name="../ip/pulpino_qsys/pulpino/fpga/rtl/pulpemu_top.v"/>
-          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="rtl">
           <File Name="../ip/pulpino_qsys/pulpino/rtl/axi2apb_wrap.sv"/>
@@ -857,16 +169,29 @@
   </VirtualDirectory>
   <Reconciliation>
     <Regexes/>
-    <Excludepaths/>
+    <Excludepaths>
+      <Path>db/</Path>
+      <Path>simulation/</Path>
+      <Path>sys/</Path>
+      <Path>greybox_tmp/</Path>
+    </Excludepaths>
     <Ignorefiles/>
     <Extensions>
-      <![CDATA[*.cpp;*.c;*.h;*.hpp;*.xrc;*.wxcp;*.fbp;*.v]]>
+      <![CDATA[*.v;*.sv;*.vhd]]>
     </Extensions>
-    <Topleveldir>/home/markus/Code/ossc_pro/rtl</Topleveldir>
+    <Topleveldir>../</Topleveldir>
   </Reconciliation>
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="rtl">
+    <VirtualDirectory Name="ic_frontends">
+      <VirtualDirectory Name="adv7611">
+        <File Name="ic_frontends/adv7611/adv7611_frontend.v"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="isl51002">
+        <File Name="ic_frontends/isl51002/isl51002_frontend.v"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
     <File Name="videogen.v"/>
     <File Name="scanconverter.v"/>
     <File Name="ir_rcv.v"/>
