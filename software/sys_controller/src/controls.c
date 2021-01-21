@@ -128,10 +128,10 @@ void parse_control()
     int prof_x10=0, ret=0, retval;
 
     if (remote_code)
-        printf("RC_CODE: 0x%.4lx\n", remote_code);
+        printf("RC_CODE: 0x%.4x\n", remote_code);
 
     if (btn_vec)
-        printf("BTN_CODE: 0x%.2lx\n", btn_vec);
+        printf("BTN_CODE: 0x%.2x\n", btn_vec);
 
     for (c = RC_BTN1; c < REMOTE_MAX_KEYS; c++) {
         if (remote_code == rc_keymap[c])

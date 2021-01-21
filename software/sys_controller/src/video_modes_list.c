@@ -82,7 +82,7 @@ const mode_data_t video_modes_default[] = {
     { "1920x1440_50",  HDMI_Unknown,     {1920, 1440,   55,  2592, 0, 1484,  336, 37,  200, 4,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },
     { "1920x1440_60",  HDMI_Unknown,     {1920, 1440,    0,  2080, 0, 1481,   80, 34,   32, 4,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {2991, 11, 27, 0, 0, 1, 0, 0, 3} },
     /* CVT 2560x1440 with reduced blanking and pixelrep */
-    { "2560x1440_60",  HDMI_Unknown,     {1280, 1440,    0,  1360, 0, 1481,   40, 33,   16, 5,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_2X, TX_1X,  4, {0} },
+    { "2560x1440_60",  HDMI_Unknown,     {1280, 1440,    0,  1360, 0, 1481,   40, 33,   16, 5,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_2X, TX_1X,  0, {2922,  4,  6, 256, 0, 1, 0, 0, 0} },
 };
 
 smp_preset_t smp_presets_default[] = {
@@ -432,4 +432,5 @@ const stdmode_t stdmode_idx_arr[] = {STDMODE_240p,
                                      STDMODE_1080p_60,
                                      STDMODE_1600x1200_60,
                                      STDMODE_1920x1200_60,
-                                     STDMODE_1920x1440_60};
+                                     STDMODE_1920x1440_60,
+                                     STDMODE_2560x1440_60};

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2019  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2019-2021  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -60,7 +60,7 @@
 
 #define ADV7610_IO_BASE 0x98
 #define ADV7610_CEC_BASE 0x80
-#define ADV7610_INFOFRAME_BASE 0x7c
+#define ADV7610_INFOFRAME_BASE 0x8c
 #define ADV7610_DPLL_BASE 0x4c
 #define ADV7610_KSV_BASE 0x64
 #define ADV7610_EDID_BASE 0x6c
@@ -81,18 +81,18 @@ unsigned char pro_edid_bin[] = {
   0x35, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xfd, 0x00, 0x2d,
   0x90, 0x0a, 0x96, 0x14, 0x01, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
   0x00, 0x00, 0x00, 0xfc, 0x00, 0x4f, 0x53, 0x53, 0x43, 0x20, 0x50, 0x72,
-  0x6f, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x01, 0x46, 0x02, 0x03, 0x36, 0xf2,
+  0x6f, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x01, 0x46, 0x02, 0x03, 0x40, 0xf2,
   0x50, 0x9f, 0x90, 0x14, 0x05, 0x20, 0x13, 0x04, 0x12, 0x03, 0x11, 0x02,
-  0x16, 0x07, 0x15, 0x06, 0x01, 0x23, 0x09, 0x57, 0x07, 0x78, 0x03, 0x0c,
-  0x00, 0x10, 0x00, 0xb8, 0x26, 0x2f, 0x01, 0x01, 0x01, 0x01, 0xff, 0xfc,
-  0x06, 0x16, 0x08, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe3, 0x05,
-  0x1f, 0x01, 0x01, 0x1d, 0x80, 0xd0, 0x72, 0x1c, 0x16, 0x20, 0x10, 0x2c,
-  0x25, 0x80, 0xba, 0x88, 0x21, 0x00, 0x00, 0x9e, 0x01, 0x1d, 0x80, 0x18,
-  0x71, 0x1c, 0x16, 0x20, 0x58, 0x2c, 0x25, 0x00, 0xba, 0x88, 0x21, 0x00,
-  0x00, 0x9e, 0x01, 0x1d, 0x00, 0xbc, 0x52, 0xd0, 0x1e, 0x20, 0xb8, 0x28,
-  0x55, 0x40, 0xba, 0x88, 0x21, 0x00, 0x00, 0x1e, 0x01, 0x1d, 0x00, 0x72,
-  0x51, 0xd0, 0x1e, 0x20, 0x6e, 0x28, 0x55, 0x00, 0xba, 0x88, 0x21, 0x00,
-  0x00, 0x1e, 0x00, 0x70
+  0x16, 0x07, 0x15, 0x06, 0x01, 0x29, 0x0f, 0x7f, 0x07, 0x17, 0x7f, 0xff,
+  0x3f, 0x7f, 0xff, 0x83, 0x4f, 0x00, 0x00, 0x78, 0x03, 0x0c, 0x00, 0x10,
+  0x00, 0xb8, 0x26, 0x2f, 0x01, 0x01, 0x01, 0x01, 0xff, 0xfc, 0x06, 0x16,
+  0x08, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe3, 0x05, 0x1f, 0x01,
+  0x01, 0x1d, 0x80, 0xd0, 0x72, 0x1c, 0x16, 0x20, 0x10, 0x2c, 0x25, 0x80,
+  0xba, 0x88, 0x21, 0x00, 0x00, 0x9e, 0x01, 0x1d, 0x80, 0x18, 0x71, 0x1c,
+  0x16, 0x20, 0x58, 0x2c, 0x25, 0x00, 0xba, 0x88, 0x21, 0x00, 0x00, 0x9e,
+  0x01, 0x1d, 0x00, 0xbc, 0x52, 0xd0, 0x1e, 0x20, 0xb8, 0x28, 0x55, 0x40,
+  0xba, 0x88, 0x21, 0x00, 0x00, 0x1e, 0x01, 0x1d, 0x00, 0x72, 0x51, 0xd0,
+  0x1e, 0x20, 0x6e, 0x0c
 };
 
 isl51002_dev isl_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
@@ -264,29 +264,37 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
 
 int init_emif()
 {
+    alt_timestamp_type start_ts;
+
     //usleep(100);
     sys_ctrl |= SCTRL_EMIF_HWRESET_N;
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     usleep(1000);
     sys_ctrl |= SCTRL_EMIF_SWRESET_N;
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+    start_ts = alt_timestamp();
     while (1) {
         sys_status = IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE);
         if (sys_status & (1<<SSTAT_MEMSTAT_INIT_DONE_BIT))
             break;
+        else if (alt_timestamp() >= start_ts + 100000*(TIMER_0_FREQ/1000000))
+            return -1;
     }
     if (((sys_status & SSTAT_MEMSTAT_MASK) >> SSTAT_MEMSTAT_OFFS) != 0x3) {
         printf("Mem calib fail: 0x%x\n", ((sys_status & SSTAT_MEMSTAT_MASK) >> SSTAT_MEMSTAT_OFFS));
-        return -1;
+        return -2;
     }
 
     // Place LPDDR2 into deep powerdown mode
     sys_ctrl |= (SCTRL_EMIF_POWERDN_MASK | SCTRL_EMIF_POWERDN_REQ);
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+    start_ts = alt_timestamp();
     while (1) {
         sys_status = IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE);
         if (sys_status & (1<<SSTAT_MEMSTAT_POWERDN_ACK_BIT))
             break;
+        else if (alt_timestamp() >= start_ts + 100000*(TIMER_0_FREQ/1000000))
+            return -3;
     }
 
     return 0;
@@ -409,24 +417,23 @@ int init_hw()
     us2066_init(&chardisp_dev);
 
     // Init ISL51002
-    /*sniprintf(row1, US2066_ROW_LEN+1, "Init ISL51002");
-    ui_disp_status(1);*/
     ret = isl_init(&isl_dev);
     if (ret != 0) {
-        printf("ISL51002 init fail\n");
+        sniprintf(row1, US2066_ROW_LEN+1, "ISL51002 init fail");
         return ret;
     }
 
+    // Init THS7353
     ret = ths7353_init(&ths_dev);
     if (ret != 0) {
-        printf("THS7353 init fail\n");
+        sniprintf(row1, US2066_ROW_LEN+1, "THS7353 init fail");
         return ret;
     }
 
-    // Init LPDDR2
+    // Init LPDDR2 interface
     ret = init_emif();
     if (ret != 0) {
-        printf("EMIF init fail\n");
+        sniprintf(row1, US2066_ROW_LEN+1, "EMIF init fail");
         return ret;
     }
 
@@ -435,8 +442,6 @@ int init_hw()
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
     // Init Si5351C
-    /*sniprintf(row1, US2066_ROW_LEN+1, "Init Si5351C");
-    ui_disp_status(1);*/
     si5351_init(&si_dev);
 
     //init ocsdc driver
@@ -445,21 +450,17 @@ int init_hw()
     sd_det = sd_det_prev = 0;
 
     // Init PCM1863
-    /*sniprintf(row1, US2066_ROW_LEN+1, "Init PCM1863");
-    ui_disp_status(1);*/
     ret = pcm186x_init(&pcm_dev);
     if (ret != 0) {
-        printf("PCM1863 init fail\n");
+        sniprintf(row1, US2066_ROW_LEN+1, "PCM1863 init fail");
         return ret;
     }
     //pcm_source_sel(PCM_INPUT1);
 
-    /*sniprintf(row1, US2066_ROW_LEN+1, "Init ADV7610");
-    ui_disp_status(1);*/
+    // Init ADV7610
     adv761x_init(&advrx_dev);
 
-    //sniprintf(row1, US2066_ROW_LEN+1, "Init ADV7513");
-    //ui_disp_status(1);
+    // Init ADV7513
     adv7513_init(&advtx_dev);
 
     /*check_flash();
@@ -508,7 +509,7 @@ void switch_audmux(uint8_t audmux_sel) {
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 }
 
-void switch_audsrc(audinput_t *audsrc_map, adv7513_audio_fmt_t *aud_tx_fmt) {
+void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
     uint8_t audsrc;
 
     if (avinput <= AV1_RGBCS)
@@ -523,7 +524,7 @@ void switch_audsrc(audinput_t *audsrc_map, adv7513_audio_fmt_t *aud_tx_fmt) {
     if (audsrc <= AUD_AV3_ANALOG)
         pcm186x_source_sel(&pcm_dev, audsrc);
 
-    *aud_tx_fmt = (audsrc == AUD_SPDIF) ? ADV_AUDIO_SPDIF : ADV_AUDIO_I2S;
+    *aud_tx_fmt = (audsrc == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
 }
 
 void switch_tp_mode(rc_code_t code) {
@@ -573,6 +574,10 @@ void print_vm_stats() {
         sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V total:");
         sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_out.timings.h_total, vmode_out.timings.v_total);
         row++;
+
+        sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Audio fmt/fs/CC/CA:");
+        sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%s/%u/%u/0x%x", (advtx_dev.cfg.audio_fmt == AUDIO_I2S) ? "I2S" : "SPDIF", advtx_dev.cfg.i2s_fs, advtx_dev.cfg.audio_cc_val, advtx_dev.cfg.audio_ca_val);
+        row++;
     }
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Firmware:");
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "v%u.%.2u @ " __DATE__, FW_VER_MAJOR, FW_VER_MINOR);
@@ -588,7 +593,7 @@ void mainloop()
 {
     int i, man_input_change;
     int mode, amode_match;
-    uint32_t pclk_hz, dotclk_hz, h_hz, v_hz_x100, pll_h_total, pll_h_total_prev=0;
+    uint32_t pclk_i_hz, pclk_o_hz, dotclk_hz, h_hz, v_hz_x100, pll_h_total, pll_h_total_prev=0;
     ths_channel_t target_ths_ch;
     ths_input_t target_ths_input;
     isl_input_t target_isl_input=0;
@@ -710,7 +715,7 @@ void mainloop()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE);
+            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_SPDIF);
 
             ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, THS_LPF_BYPASS);
 
@@ -736,7 +741,7 @@ void mainloop()
 
             adv761x_enable_power(&advrx_dev, enable_hdmirx);
 
-            switch_audsrc(cur_avconfig->audio_src_map, &cur_avconfig->adv7513_cfg.audio_fmt);
+            switch_audsrc(cur_avconfig->audio_src_map, &cur_avconfig->hdmitx_cfg.audio_fmt);
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
@@ -750,10 +755,13 @@ void mainloop()
         if (enable_tp) {
             if (tp_stdmode_idx != target_tp_stdmode_idx) {
                 get_standard_mode((unsigned)target_tp_stdmode_idx, &vm_conf, &vmode_in, &vmode_out);
-                if (vmode_out.si_pclk_mult > 0)
+                if (vmode_out.si_pclk_mult > 0) {
                     si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, si_dev.xtal_freq, vmode_out.si_pclk_mult, vmode_out.si_ms_conf.outdiv);
-                else
+                    pclk_o_hz = vmode_out.si_pclk_mult*si_dev.xtal_freq;
+                } else {
                     si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, &vmode_out.si_ms_conf);
+                    pclk_o_hz = (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_max ? vmode_out.timings.v_hz_max : 60))/(1+vmode_out.timings.interlaced);
+                }
 
                 update_osd_size(&vmode_out);
                 update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
@@ -795,7 +803,7 @@ void mainloop()
                         v_hz_x100 = 0;
 #else
                     v_hz_x100 = (100*27000000UL)/isl_dev.ss.pcnt_frame;
-                    h_hz = (100*27000000UL)/((100*isl_dev.ss.pcnt_frame)/isl_dev.ss.v_total);
+                    h_hz = (100*27000000UL)/((100*isl_dev.ss.pcnt_frame*(1+isl_dev.ss.interlace_flag))/isl_dev.ss.v_total);
 #endif
 
                     memset(&vmode_in, 0, sizeof(mode_data_t));
@@ -826,11 +834,12 @@ void mainloop()
 
                         pll_h_total = (vm_conf.h_skip+1) * vmode_in.timings.h_total + (((vm_conf.h_skip+1) * vmode_in.timings.h_total_adj * 5 + 50) / 100);
 
-                        pclk_hz = h_hz * pll_h_total;
+                        pclk_i_hz = h_hz * pll_h_total;
                         dotclk_hz = estimate_dotclk(&vmode_in, h_hz);
+                        pclk_o_hz = vmode_out.si_pclk_mult ? vmode_out.si_pclk_mult*pclk_i_hz : (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_max ? vmode_out.timings.v_hz_max : 60))/(1+vmode_out.timings.interlaced);
                         printf("H: %u.%.2ukHz V: %u.%.2uHz\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10, (v_hz_x100/100), (v_hz_x100%100));
                         printf("Estimated source dot clock: %lu.%.2uMHz\n", (dotclk_hz+5000)/1000000, ((dotclk_hz+5000)%1000000)/10000);
-                        printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_hz, vmode_out.si_pclk_mult*pclk_hz);
+                        printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_i_hz, pclk_o_hz);
 
                         isl_source_setup(&isl_dev, pll_h_total);
 
@@ -846,7 +855,7 @@ void mainloop()
                             si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &vmode_out.si_ms_conf);
                             sys_ctrl |= SCTRL_ADAPT_LM;
                         } else {
-                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vmode_out.si_pclk_mult, 0);
+                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_i_hz, vmode_out.si_pclk_mult, 0);
                             sys_ctrl &= ~SCTRL_ADAPT_LM;
                         }
 
@@ -926,15 +935,16 @@ void mainloop()
                                                                                             advrx_dev.ss.v_polarity ? '+' : '-');
                         ui_disp_status(1);
 
-                        pclk_hz = h_hz * advrx_dev.ss.h_total;
-                        printf("H: %u.%.2ukHz V: %u.%.2uHz PCLK_IN: %luHz\n\n", h_hz/1000, (((h_hz%1000)+5)/10), (v_hz_x100/100), (v_hz_x100%100), pclk_hz);
+                        pclk_i_hz = h_hz * advrx_dev.ss.h_total;
+                        pclk_o_hz = vmode_out.si_pclk_mult ? vmode_out.si_pclk_mult*pclk_i_hz : (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_max ? vmode_out.timings.v_hz_max : 60))/(1+vmode_out.timings.interlaced);
+                        printf("H: %u.%.2ukHz V: %u.%.2uHz PCLK_IN: %luHz\n\n", h_hz/1000, (((h_hz%1000)+5)/10), (v_hz_x100/100), (v_hz_x100%100), pclk_i_hz);
 
                         // Setup Si5351
                         if (amode_match) {
                             si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, &vmode_out.si_ms_conf);
                             sys_ctrl |= SCTRL_ADAPT_LM;
                         } else {
-                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_hz, vmode_out.si_pclk_mult, 0);
+                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_CLKIN, pclk_i_hz, vmode_out.si_pclk_mult, 0);
                             sys_ctrl &= ~SCTRL_ADAPT_LM;
                         }
 
@@ -956,11 +966,24 @@ void mainloop()
                 advrx_dev.pclk_hz = 0;
             }
 
-            adv761x_update_config(&advrx_dev, &cur_avconfig->adv761x_cfg);
+            // Set TX config to match RX status
+            if (cur_avconfig->audio_src_map[3] == AUD_AV4_DIGITAL) {
+                cur_avconfig->hdmitx_cfg.audio_fmt = (adv761x_get_audio_sample_type(&advrx_dev) == IEC60958_SAMPLE_LPCM) ? AUDIO_I2S : AUDIO_SPDIF;
+                cur_avconfig->hdmitx_cfg.i2s_fs = adv761x_get_i2s_fs(&advrx_dev);
+                cur_avconfig->hdmitx_cfg.audio_cc_val = adv761x_get_audio_cc(&advrx_dev);
+                cur_avconfig->hdmitx_cfg.audio_ca_val = adv761x_get_audio_ca(&advrx_dev);
+                if (!!(sys_ctrl & SCTRL_HDMIRX_SPDIF) != cur_avconfig->hdmitx_cfg.audio_fmt) {
+                    sys_ctrl &= ~SCTRL_HDMIRX_SPDIF;
+                    if (cur_avconfig->hdmitx_cfg.audio_fmt == AUDIO_SPDIF)
+                        sys_ctrl |= SCTRL_HDMIRX_SPDIF;
+                    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+                }
+            }
+            adv761x_update_config(&advrx_dev, &cur_avconfig->hdmirx_cfg);
         }
 
         adv7513_check_hpd_power(&advtx_dev);
-        adv7513_update_config(&advtx_dev, &cur_avconfig->adv7513_cfg);
+        adv7513_update_config(&advtx_dev, &cur_avconfig->hdmitx_cfg);
 
         pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);
 
@@ -986,10 +1009,14 @@ int main()
 {
     int ret;
 
+    // Start system clock
+    alt_timestamp_start();
+
     while (1) {
         ret = init_hw();
         if (ret != 0) {
-            sniprintf(row2, US2066_ROW_LEN+1, "failed (%d)", ret);
+            sniprintf(row2, US2066_ROW_LEN+1, "Error code: %d", ret);
+            printf("%s\n%s\n", row1, row2);
             us2066_display_on(&chardisp_dev);
             ui_disp_status(1);
             while (1) {}
@@ -1000,7 +1027,7 @@ int main()
         sys_powered_on = 0;
         wait_powerup();
 
-        // Start system clock
+        // Restart system clock
         alt_timestamp_start();
 
         sniprintf(row1, US2066_ROW_LEN+1, "OSSC Pro fw. %u.%.2u", FW_VER_MAJOR, FW_VER_MINOR);

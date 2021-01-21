@@ -58,6 +58,9 @@
     <File Name="inc/av_controller.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ic_drivers">
+    <VirtualDirectory Name="common">
+      <File Name="ic_drivers/common/hdmi.h"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="adv761x">
       <File Name="ic_drivers/adv761x/adv761x_regs.h"/>
       <File Name="ic_drivers/adv761x/adv761x.h"/>

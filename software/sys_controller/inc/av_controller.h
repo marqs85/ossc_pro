@@ -41,6 +41,7 @@
 #define SCTRL_VGTP_ENABLE       (1<<12)
 #define SCTRL_CSC_ENABLE        (1<<13)
 #define SCTRL_ADAPT_LM          (1<<14)
+#define SCTRL_HDMIRX_SPDIF      (1<<15)
 
 // sys_status
 #define SSTAT_MEMSTAT_MASK              0x0000000f
@@ -82,7 +83,7 @@ void switch_input(rc_code_t code, btn_vec_t pb_vec);
 
 void switch_audmux(uint8_t audmux_sel);
 
-void switch_audsrc(audinput_t *audsrc_map, adv7513_audio_fmt_t *aud_tx_fmt);
+void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
 
 void switch_tp_mode(rc_code_t code);
 

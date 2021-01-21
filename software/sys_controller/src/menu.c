@@ -83,11 +83,12 @@ static const char *sl_method_desc[] = { LNG("Multiplication","Multiplication"), 
 static const char *sl_type_desc[] = { LNG("Horizontal","ﾖｺ"), LNG("Vertical","ﾀﾃ"), "Horiz. + Vert.", "Custom" };
 static const char *sl_id_desc[] = { LNG("Top","ｳｴ"), LNG("Bottom","ｼﾀ") };
 #ifdef DExx_FW
-static const char *audio_fs_desc[] = { "24bit/48kHz", "24bit/96kHz" };
+static const char *audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz" };
+static const char *audio_src_desc[] = { "AV1 (analog)", "SPDIF" };
 #else
-static const char *audio_fs_desc[] = { "24bit/48kHz", "24bit/96kHz", "24bit/192kHz" };
-#endif
+static const char *audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz", "24bit/192kHz" };
 static const char *audio_src_desc[] = { "AV1 (analog)", "AV2 (analog)", "AV3 (analog)", "SPDIF", "AV4 (digital)" };
+#endif
 static const char *audio_sr_desc[] = { "Off", "On (4.0)", "On (5.1)", "On (7.1)" };
 static const char *audmux_sel_desc[] = { "AV3 input", "AV1 output" };
 static const char *lt_desc[] = { "Top-left", "Center", "Bottom-right" };
@@ -113,10 +114,10 @@ static void value_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u",
 static void value16_disp(uint16_t *v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", *v); }
 static void signed_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d", (int8_t)(v-SIGNED_NUMVAL_ZERO)); }
 static void lt_disp(uint8_t v) { strncpy(menu_row2, lt_desc[v], US2066_ROW_LEN+1); }
-#ifndef DExx_FW
+#ifdef INC_PCM186X
 static void aud_db_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d dB", ((int8_t)v-PCM_GAIN_0DB)); }
-static void audio_src_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", audio_src_desc[v]); }
 #endif
+static void audio_src_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", audio_src_desc[v]); }
 //static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes[v].name, US2066_ROW_LEN+1); }
 //static void link_av_desc (avinput_t v) { strncpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
 //static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
@@ -185,9 +186,9 @@ MENU(menu_isl_sync_opt, P99_PROTECT({
     { "H-PLL Loop Gain",                        OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.pll_loop_gain, OPT_NOWRAP, 0, PLL_LOOP_GAIN_MAX, value_disp } } },
 }))
 
-#ifndef DExx_FW
+#ifdef INC_ADV761X
 MENU(menu_adv_video_opt, P99_PROTECT({
-    { "Default RGB range",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.adv761x_cfg.default_rgb_range,    OPT_WRAP,   SETTING_ITEM(adv761x_rgb_range_desc) } } },
+    { "Default RGB range",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmirx_cfg.default_rgb_range,    OPT_WRAP,   SETTING_ITEM(adv761x_rgb_range_desc) } } },
 }))
 #endif
 
@@ -226,7 +227,7 @@ MENU(menu_output, P99_PROTECT({
     { "Adaptive LM priority",                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.adapt_lm,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
     { "LM deinterlace mode",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lm_deint_mode,   OPT_WRAP, SETTING_ITEM(lm_deint_mode_desc) } } },
     { "NI restore Y offset",                   OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.nir_even_offset, OPT_NOWRAP, 0, 1, value_disp } } },
-    { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.adv7513_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM(tx_mode_desc) } } },
+    { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM(tx_mode_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 }))
 
@@ -257,17 +258,19 @@ MENU(menu_compatibility, P99_PROTECT({
 }))
 
 MENU(menu_audio, P99_PROTECT({
-#ifdef DExx_FW
-    { "Sampling format",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.adv7513_cfg.i2s_fs,  OPT_WRAP, SETTING_ITEM(audio_fs_desc) } } },
-#else
-    { "Sampling format",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.pcm_cfg.fs,      OPT_WRAP, SETTING_ITEM(audio_fs_desc) } } },
-    { "Quad stereo",                            OPT_AVCONFIG_SELECTION,  { .sel = { &tc.adv7513_cfg.i2s_chcfg, OPT_WRAP, SETTING_ITEM(audio_sr_desc) } } },
+    { "Sampling format",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.audio_fmt,  OPT_WRAP, SETTING_ITEM(audio_fmt_desc) } } },
+    { "Quad stereo",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.i2s_stereo_cfg, OPT_WRAP, SETTING_ITEM(audio_sr_desc) } } },
+#ifdef INC_PCM186X
     { "Pre-ADC gain",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.pcm_cfg.gain,    OPT_NOWRAP, PCM_GAIN_M12DB, PCM_GAIN_12DB, aud_db_disp } } },
+#endif
+#ifndef DExx_FW
     { "AV1 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[0], OPT_NOWRAP, 0, 3, audio_src_disp } } },
     { "AV2 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[1], OPT_NOWRAP, 1, 3, audio_src_disp } } },
     { "AV3 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[2], OPT_NOWRAP, 1, 3, audio_src_disp } } },
     { "AV4 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[3], OPT_NOWRAP, 1, 4, audio_src_disp } } },
     { "3.5mm jack assign",                      OPT_AVCONFIG_SELECTION,  { .sel = { &tc.audmux_sel,     OPT_WRAP, SETTING_ITEM(audmux_sel_desc) } } },
+#else
+    { "AV1 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[0], OPT_NOWRAP, 0, 1, audio_src_disp } } },
 #endif
 }))
 
@@ -293,7 +296,7 @@ MENU(menu_settings, P99_PROTECT({
 MENU(menu_main, P99_PROTECT({
     { "AV1-3 video in opt.>",                   OPT_SUBMENU,            { .sub = { &menu_isl_video_opt, NULL, NULL } } },
     { "AV1-3 sync opt.    >",                   OPT_SUBMENU,            { .sub = { &menu_isl_sync_opt, NULL, NULL } } },
-#ifndef DExx_FW
+#ifdef INC_ADV761X
     { "AV4 video in opt.  >",                   OPT_SUBMENU,            { .sub = { &menu_adv_video_opt, NULL, NULL } } },
 #endif
     { "Pure LM opt.       >",                   OPT_SUBMENU,            { .sub = { &menu_pure_lm, NULL, NULL } } },

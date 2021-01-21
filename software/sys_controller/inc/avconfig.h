@@ -24,9 +24,16 @@
 #include "sysconfig.h"
 #include "av_controller.h"
 #include "isl51002.h"
+#ifdef INC_ADV7513
 #include "adv7513.h"
-#ifndef DExx_FW
+#endif
+#ifdef INC_SII1136
+#include "sii1136.h"
+#endif
+#ifdef INC_ADV761X
 #include "adv761x.h"
+#endif
+#ifdef INC_PCM186X
 #include "pcm186x.h"
 #endif
 
@@ -120,10 +127,18 @@ typedef struct {
     audinput_t audio_src_map[4];
     uint8_t reverse_lpf;
     uint8_t default_vic;
+    uint8_t audio_fmt;
     isl51002_config isl_cfg __attribute__ ((aligned (4)));
-    adv7513_config adv7513_cfg __attribute__ ((aligned (4)));
-#ifndef DExx_FW
-    adv761x_config adv761x_cfg __attribute__ ((aligned (4)));
+#ifdef INC_ADV7513
+    adv7513_config hdmitx_cfg __attribute__ ((aligned (4)));
+#endif
+#ifdef INC_SII1136
+    sii1136_config hdmitx_cfg __attribute__ ((aligned (4)));
+#endif
+#ifdef INC_ADV761X
+    adv761x_config hdmirx_cfg __attribute__ ((aligned (4)));
+#endif
+#ifdef INC_PCM186X
     pcm186x_config pcm_cfg __attribute__ ((aligned (4)));
 #endif
 } __attribute__((packed)) avconfig_t;

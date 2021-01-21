@@ -17,7 +17,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-`define PO_RESET_WIDTH 270
+`define PO_RESET_WIDTH 27000
 `define PCB1P3_SI_FIX
 
 module ossc_pro (
@@ -121,6 +121,7 @@ wire audmux_sel = sys_ctrl[11];
 wire testpattern_enable = sys_ctrl[12];
 wire csc_enable = sys_ctrl[13];
 wire adap_lm = sys_ctrl[14];
+wire hdmirx_spdif = sys_ctrl[15];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -130,7 +131,7 @@ wire [7:0] ir_code_cnt;
 
 wire pclk_capture, pclk_out;
 
-reg [8:0] po_reset_ctr = 0;
+reg [15:0] po_reset_ctr = 0;
 reg po_reset_n = 1'b0;
 
 wire pll_locked;
@@ -368,7 +369,7 @@ end
 assign HDMITX_I2S_BCK_o = capture_sel ? HDMIRX_I2S_BCK_i : PCM_I2S_BCK_i;
 assign HDMITX_I2S_WS_o = capture_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
 assign HDMITX_I2S_DATA_o = capture_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
-assign HDMITX_SPDIF_o = SPDIF_EXT_i;
+assign HDMITX_SPDIF_o = hdmirx_spdif ? HDMIRX_AP_i : SPDIF_EXT_i;
 
 assign AUDMUX_o = ~audmux_sel;
 
@@ -463,7 +464,7 @@ sys sys_inst (
     .sc_config_0_sc_if_misc_config_o        (misc_config),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
-    .osd_generator_0_osd_if_vclk            (SI_PCLK_i),
+    .osd_generator_0_osd_if_vclk            (PCLK_sc),
     .osd_generator_0_osd_if_xpos            (xpos),
     .osd_generator_0_osd_if_ypos            (ypos),
     .osd_generator_0_osd_if_osd_enable      (osd_enable),

@@ -22,6 +22,10 @@
 
 #include "system.h"
 
+#define INC_ADV7513
+#define INC_ADV761X
+#define INC_PCM186X
+
 //#define I2C_DEBUG
 #define I2CA_BASE I2C_OPENCORES_0_BASE
 

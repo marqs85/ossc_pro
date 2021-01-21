@@ -3,7 +3,7 @@
 create_clock -period 27MHz -name clk27 [get_ports CLK27_i]
 
 create_clock -period 165MHz -name pclk_isl [get_ports ISL_PCLK_i]
-create_clock -period 165MHz -name pclk_si [get_ports SI_PCLK_i]
+create_clock -period 185MHz -name pclk_si [get_ports SI_PCLK_i]
 create_clock -period 165MHz -name si_clk_extra [get_ports SI_CLK_EXTRA_i]
 create_clock -period 165MHz -name pclk_hdmirx [get_ports HDMIRX_PCLK_i]
 

@@ -200,6 +200,7 @@ BSP_ROOT_DIR := ../sys_controller_bsp/
 
 # List of application specific include directories, library directories and library names
 APP_INCLUDE_DIRS += inc
+APP_INCLUDE_DIRS += ic_drivers/common
 APP_INCLUDE_DIRS += ic_drivers/isl51002
 APP_INCLUDE_DIRS += ic_drivers/ths7353
 APP_INCLUDE_DIRS += ic_drivers/us2066

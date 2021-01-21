@@ -43,8 +43,14 @@ const avconfig_t tc_default = {
     .pm_ad_576p = 0,
     .sl_altern = 1,
     .adapt_lm = 1,
+#ifndef DExx_FW
     .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL},
+#else
+    .audio_src_map = {AUD_AV1_ANALOG, 0, 0, 0},
+#endif
 };
+
+const HDMI_i2s_fs_t audio_fmt_iec_map[] = {IEC60958_FS_48KHZ, IEC60958_FS_96KHZ, IEC60958_FS_192KHZ};
 
 int reset_target_avconfig() {
     set_default_avconfig(0);
@@ -60,11 +66,18 @@ int set_default_avconfig(int update_cc)
 {
     memcpy(&tc, &tc_default, sizeof(avconfig_t));
     isl_get_default_cfg(&tc.isl_cfg);
-    adv7513_get_default_cfg(&tc.adv7513_cfg);
-#ifndef DExx_FW
+#ifdef INC_ADV7513
+    adv7513_get_default_cfg(&tc.hdmitx_cfg);
+#endif
+#ifdef INC_SII1136
+    sii1136_get_default_cfg(&tc.hdmitx_cfg);
+#endif
+#ifdef INC_PCM186X
     pcm186x_get_default_cfg(&tc.pcm_cfg);
-#else
-    tc.adv7513_cfg.i2s_fs = ADV_96KHZ;
+#endif
+
+#ifdef DExx_FW
+    tc.hdmitx_cfg.i2s_fs = FS_96KHZ;
 #endif
 
     if (update_cc)
@@ -114,15 +127,18 @@ status_t update_avconfig() {
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)
         switch_audmux(tc.audmux_sel);
-    if (memcmp(tc.audio_src_map, cc.audio_src_map, 4*sizeof(audinput_t)))
-        switch_audsrc(tc.audio_src_map, &tc.adv7513_cfg.audio_fmt);
 #endif
+    if (memcmp(tc.audio_src_map, cc.audio_src_map, 4*sizeof(audinput_t)))
+        switch_audsrc(tc.audio_src_map, &tc.hdmitx_cfg.audio_fmt);
 
     memcpy(&cc, &tc, sizeof(avconfig_t));
 
-#ifndef DExx_FW
-    cc.adv7513_cfg.i2s_fs = cc.pcm_cfg.fs;
+#ifdef INC_PCM186X
+    cc.pcm_cfg.fs = cc.audio_fmt;
 #endif
+    cc.hdmitx_cfg.i2s_fs = audio_fmt_iec_map[cc.audio_fmt];
+    cc.hdmitx_cfg.audio_cc_val = CC_2CH;
+    cc.hdmitx_cfg.audio_ca_val = CA_2p0;
 
     return status;
 }
