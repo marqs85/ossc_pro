@@ -1,11 +1,11 @@
-# 
+#
 # request TCL package from ACDS 16.1
-# 
+#
 package require -exact qsys 16.1
 
-# 
+#
 # module
-# 
+#
 set_module_property DESCRIPTION "OSD generator"
 set_module_property NAME osd_generator
 #set_module_property VERSION 18.0
@@ -29,9 +29,9 @@ set_module_property REPORT_HIERARCHY false
 #set_parameter_property USE_MEMORY_BLOCKS UNITS None
 #set_parameter_property USE_MEMORY_BLOCKS HDL_PARAMETER true
 
-# 
+#
 # file sets
-# 
+#
 add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
 set_fileset_property QUARTUS_SYNTH TOP_LEVEL osd_generator_top
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
@@ -44,19 +44,19 @@ set_fileset_property SIM_VERILOG ENABLE_FILE_OVERWRITE_MODE false
 set_fileset_property SIM_VERILOG TOP_LEVEL osd_generator_top
 add_fileset_file osd_generator_top.sv VERILOG PATH osd_generator_top.sv
 
-# 
+#
 # parameters
-# 
+#
 
 
-# 
+#
 # display items
-# 
+#
 
 
-# 
+#
 # connection point clock_sink
-# 
+#
 add_interface clock_sink clock end
 set_interface_property clock_sink clockRate 0
 set_interface_property clock_sink ENABLED true
@@ -68,9 +68,9 @@ set_interface_property clock_sink SVD_ADDRESS_GROUP ""
 add_interface_port clock_sink clk_i clk Input 1
 
 
-# 
+#
 # connection point reset_sink
-# 
+#
 add_interface reset_sink reset end
 set_interface_property reset_sink associatedClock clock_sink
 set_interface_property reset_sink synchronousEdges DEASSERT
@@ -83,9 +83,9 @@ set_interface_property reset_sink SVD_ADDRESS_GROUP ""
 add_interface_port reset_sink rst_i reset Input 1
 
 
-# 
+#
 # connection point avalon_s
-# 
+#
 add_interface avalon_s avalon end
 set_interface_property avalon_s addressUnits WORDS
 set_interface_property avalon_s associatedClock clock_sink
@@ -123,9 +123,9 @@ set_interface_assignment avalon_s embeddedsw.configuration.isNonVolatileStorage 
 set_interface_assignment avalon_s embeddedsw.configuration.isPrintableDevice 0
 
 
-# 
+#
 # connection point bus
-# 
+#
 #add_sv_interface bus osd_if
 
 # Setting the parameter property to add SV interface parameters
@@ -140,9 +140,9 @@ set_interface_assignment avalon_s embeddedsw.configuration.isPrintableDevice 0
 #add_fileset_file osd_if.sv SYSTEM_VERILOG PATH osd_if.sv SYSTEMVERILOG_INTERFACE
 
 
-# 
+#
 # connection point osd_if
-# 
+#
 add_interface osd_if conduit end
 set_interface_property osd_if associatedClock ""
 set_interface_property osd_if associatedReset ""
@@ -153,7 +153,7 @@ set_interface_property osd_if CMSIS_SVD_VARIABLES ""
 set_interface_property osd_if SVD_ADDRESS_GROUP ""
 
 add_interface_port osd_if vclk vclk Input 1
-add_interface_port osd_if xpos xpos Input 11
+add_interface_port osd_if xpos xpos Input 12
 add_interface_port osd_if ypos ypos Input 11
 add_interface_port osd_if osd_enable osd_enable Output 1
 add_interface_port osd_if osd_color osd_color Output 2

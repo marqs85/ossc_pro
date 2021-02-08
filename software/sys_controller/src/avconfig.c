@@ -77,7 +77,7 @@ int set_default_avconfig(int update_cc)
 #endif
 
 #ifdef DExx_FW
-    tc.hdmitx_cfg.i2s_fs = FS_96KHZ;
+    tc.hdmitx_cfg.i2s_fs = IEC60958_FS_96KHZ;
 #endif
 
     if (update_cc)

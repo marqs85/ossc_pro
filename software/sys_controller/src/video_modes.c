@@ -47,8 +47,8 @@ void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
     uint32_t val, bp_extra;
 
     val = vmode->timings.h_synclen * h_mult;
-    if (val >= (1<<9)) {
-        vmode->timings.h_synclen = (1<<9)-1;
+    if (val >= (1<<8)) {
+        vmode->timings.h_synclen = (1<<8)-1;
         bp_extra = val - vmode->timings.h_synclen;
     } else {
         vmode->timings.h_synclen = val;
@@ -120,11 +120,11 @@ int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config
     avconfig_t* cc = get_current_avconfig();
     memset(vm_out, 0, sizeof(mode_data_t));
 
-    const ad_mode_id_t pm_ad_240p_map[] = {-1, ADMODE_480p, ADMODE_720p_60, ADMODE_1280x1024_60, ADMODE_1080i_60_LB, ADMODE_1080p_60_LB, ADMODE_1080p_60_CR, ADMODE_1600x1200_60, ADMODE_1920x1200_60, ADMODE_1920x1440_60};
-    const ad_mode_id_t pm_ad_288p_map[] = {-1, ADMODE_576p, ADMODE_1080i_50_CR, ADMODE_1080p_50_CR, ADMODE_1920x1200_50, ADMODE_1920x1440_50};
-    const ad_mode_id_t pm_ad_480i_map[] = {-1, ADMODE_240p, ADMODE_1280x1024_60, ADMODE_1080i_60_LB, ADMODE_1080p_60_LB, ADMODE_1920x1440_60};
+    const ad_mode_id_t pm_ad_240p_map[] = {-1, ADMODE_480p, ADMODE_720p_60, ADMODE_1280x1024_60, ADMODE_1080i_60_LB, ADMODE_1080p_60_LB, ADMODE_1080p_60_CR, ADMODE_1600x1200_60, ADMODE_1920x1200_60, ADMODE_1920x1440_60, ADMODE_2560x1440_60};
+    const ad_mode_id_t pm_ad_288p_map[] = {-1, ADMODE_576p, ADMODE_1080i_50_CR, ADMODE_1080p_50_CR, ADMODE_1920x1200_50, ADMODE_1920x1440_50, ADMODE_2560x1440_50};
+    const ad_mode_id_t pm_ad_480i_map[] = {-1, ADMODE_240p, ADMODE_1280x1024_60, ADMODE_1080i_60_LB, ADMODE_1080p_60_LB, ADMODE_1920x1440_60, ADMODE_2560x1440_60};
     const ad_mode_id_t pm_ad_576i_map[] = {-1, ADMODE_288p, ADMODE_1080i_50_CR, ADMODE_1080p_50_CR};
-    const ad_mode_id_t pm_ad_480p_map[] = {-1, ADMODE_240p, ADMODE_1280x1024_60, ADMODE_1080i_60_LB, ADMODE_1080p_60_LB, ADMODE_1920x1440_60};
+    const ad_mode_id_t pm_ad_480p_map[] = {-1, ADMODE_240p, ADMODE_1280x1024_60, ADMODE_1080i_60_LB, ADMODE_1080p_60_LB, ADMODE_1920x1440_60, ADMODE_2560x1440_60};
     const ad_mode_id_t pm_ad_576p_map[] = {-1, ADMODE_288p, ADMODE_1920x1200_50};
 
     const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
@@ -203,8 +203,8 @@ int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config
             vm_conf->x_offset = ((vm_out->timings.h_active-vm_in->timings.h_active*(vm_conf->x_rpt+1))/2) + adaptive_modes[i].x_offset_i;
             vm_conf->x_start_lb = (vm_conf->x_offset >= 0) ? 0 : (-vm_conf->x_offset / (vm_conf->x_rpt+1));
             vm_conf->x_size = vm_in->timings.h_active*(vm_conf->x_rpt+1);
-            if (vm_conf->x_size >= 2048)
-                vm_conf->x_size = 2047;
+            if (vm_conf->x_size >= 4096)
+                vm_conf->x_size = 4095;
             if (vm_conf->y_rpt == (uint8_t)(-1)) {
                 vm_conf->y_start_lb = ((vm_in->timings.v_active - (vm_out->timings.v_active*2))/2) + adaptive_modes[i].y_offset_i*2;
                 vm_conf->y_offset = -vm_conf->y_start_lb/2;

@@ -44,7 +44,7 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 42
+#define FW_VER_MINOR 43
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -212,8 +212,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     // Set input params
     hv_in_config.h_total = vm_in->timings.h_total;
     hv_in_config.h_active = vm_in->timings.h_active;
-    hv_in_config.h_backporch = vm_in->timings.h_backporch;
-    hv_in_config2.h_synclen = vm_in->timings.h_synclen;
+    hv_in_config.h_synclen = vm_in->timings.h_synclen;
+    hv_in_config2.h_backporch = vm_in->timings.h_backporch;
     hv_in_config2.v_active = vm_in->timings.v_active;
     hv_in_config3.v_backporch = vm_in->timings.v_backporch;
     hv_in_config3.v_synclen = vm_in->timings.v_synclen;
@@ -224,8 +224,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     // Set output params
     hv_out_config.h_total = vm_out->timings.h_total;
     hv_out_config.h_active = vm_out->timings.h_active;
-    hv_out_config.h_backporch = vm_out->timings.h_backporch;
-    hv_out_config2.h_synclen = vm_out->timings.h_synclen;
+    hv_out_config.h_synclen = vm_out->timings.h_synclen;
+    hv_out_config2.h_backporch = vm_out->timings.h_backporch;
     hv_out_config2.v_total = vm_out->timings.v_total;
     hv_out_config2.v_active = vm_out->timings.v_active;
     hv_out_config3.v_backporch = vm_out->timings.v_backporch;
@@ -235,8 +235,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
 
     xy_out_config.x_size = vm_conf->x_size;
     xy_out_config.y_size = vm_conf->y_size;
-    xy_out_config.x_offset = vm_conf->x_offset;
-    xy_out_config2.y_offset = vm_conf->y_offset;
+    xy_out_config.y_offset = vm_conf->y_offset;
+    xy_out_config2.x_offset = vm_conf->x_offset;
     xy_out_config2.x_start_lb = vm_conf->x_start_lb;
     xy_out_config2.y_start_lb = vm_conf->y_start_lb;
     xy_out_config2.x_rpt = vm_conf->x_rpt;
@@ -461,7 +461,11 @@ int init_hw()
     adv761x_init(&advrx_dev);
 
     // Init ADV7513
-    adv7513_init(&advtx_dev);
+    ret = adv7513_init(&advtx_dev);
+    if (ret != 0) {
+        sniprintf(row1, US2066_ROW_LEN+1, "ADV7513 init fail");
+        return ret;
+    }
 
     /*check_flash();
     ret = read_flash(0, 100, buf);

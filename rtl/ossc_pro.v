@@ -164,7 +164,8 @@ wire resync_strobe = resync_strobe_sync2_reg;
 assign LED_o = sys_poweron ? {adap_lm, (ir_code == 0), (resync_led_ctr != 0)} : 3'b001;
 //assign LED_o = {emif_status_init_done, emif_status_cal_success, emif_status_cal_fail};
 
-wire [10:0] xpos, ypos;
+wire [11:0] xpos;
+wire [10:0] ypos;
 wire osd_enable;
 wire [1:0] osd_color;
 

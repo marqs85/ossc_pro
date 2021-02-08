@@ -48,7 +48,7 @@ module scanconverter (
     output HSYNC_o,
     output VSYNC_o,
     output DE_o,
-    output [10:0] xpos_o,
+    output [11:0] xpos_o,
     output [10:0] ypos_o,
     output reg resync_strobe
 );
@@ -68,30 +68,30 @@ localparam PP_SLGEN_END         = PP_SLGEN_START + PP_SLGEN_LENGTH;
 localparam PP_PL_END            = PP_SLGEN_END;
 
 wire [11:0] H_TOTAL = hv_out_config[11:0];
-wire [10:0] H_ACTIVE = hv_out_config[22:12];
-wire [8:0] H_BACKPORCH = hv_out_config[31:23];
-wire [8:0] H_SYNCLEN = hv_out_config2[8:0];
+wire [11:0] H_ACTIVE = hv_out_config[23:12];
+wire [7:0] H_SYNCLEN = hv_out_config[31:24];
+wire [8:0] H_BACKPORCH = hv_out_config2[8:0];
 
 wire V_INTERLACED = hv_out_config2[31];
 wire [10:0] V_TOTAL = hv_out_config2[19:9] >> V_INTERLACED;
 wire [10:0] V_ACTIVE = hv_out_config2[30:20];
-wire [8:0] V_BACKPORCH = hv_out_config3[8:0];
-wire [3:0] V_SYNCLEN = hv_out_config3[12:9];
+wire [3:0] V_SYNCLEN = hv_out_config3[3:0];
+wire [8:0] V_BACKPORCH = hv_out_config3[12:4];
 
 wire [10:0] V_STARTLINE = hv_out_config3[23:13];
 
 wire [10:0] V_STARTLINE_PREV = (V_STARTLINE == 0) ? (V_TOTAL-1) : (V_STARTLINE-1);
 
-wire [10:0] X_SIZE = xy_out_config[10:0];
-wire [10:0] Y_SIZE = xy_out_config[21:11];
-wire signed [9:0] X_OFFSET = xy_out_config[31:22];
-wire signed [8:0] Y_OFFSET = xy_out_config2[8:0];
+wire [11:0] X_SIZE = xy_out_config[11:0];
+wire [10:0] Y_SIZE = xy_out_config[22:12];
+wire signed [9:0] X_OFFSET = xy_out_config2[9:0];
+wire signed [8:0] Y_OFFSET = xy_out_config[31:23];
 
-wire [7:0] X_START_LB = xy_out_config2[16:9];
-wire signed [6:0] Y_START_LB = {xy_out_config2[22], xy_out_config2[22:17]};
+wire [7:0] X_START_LB = xy_out_config2[17:10];
+wire signed [6:0] Y_START_LB = {xy_out_config2[23], xy_out_config2[23:18]};
 
-wire [2:0] X_RPT = xy_out_config2[25:23];
-wire [2:0] Y_RPT = xy_out_config2[28:26];
+wire [2:0] X_RPT = xy_out_config2[26:24];
+wire [2:0] Y_RPT = xy_out_config2[29:27];
 
 wire Y_SKIP = (Y_RPT == 3'(-1));
 wire [1:0] Y_STEP = Y_SKIP+1'b1;
@@ -129,7 +129,7 @@ reg [7:0] B_pp[PP_LINEBUF_END:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg HSYNC_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg VSYNC_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg DE_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
-reg [10:0] xpos_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
+reg [11:0] xpos_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg [10:0] ypos_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg mask_enable_pp[PP_LINEBUF_START:PP_SLGEN_START] /* synthesis ramstyle = "logic" */;
 

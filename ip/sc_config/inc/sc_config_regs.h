@@ -53,15 +53,15 @@ typedef union {
 typedef union {
     struct {
         uint16_t h_total:12;
-        uint16_t h_active:11;
-        uint16_t h_backporch:9;
+        uint16_t h_active:12;
+        uint16_t h_synclen:8;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } hv_config_reg;
 
 typedef union {
     struct {
-        uint16_t h_synclen:9;
+        uint16_t h_backporch:9;
         uint16_t v_total:11;
         uint16_t v_active:11;
         uint8_t interlaced:1;
@@ -71,8 +71,8 @@ typedef union {
 
 typedef union {
     struct {
-        uint16_t v_backporch:9;
         uint8_t v_synclen:4;
+        uint16_t v_backporch:9;
         uint16_t v_startline:11;
         uint8_t h_skip:4;
         uint8_t h_sample_sel:4;
@@ -82,21 +82,21 @@ typedef union {
 
 typedef union {
     struct {
-        uint16_t x_size:11;
+        uint16_t x_size:12;
         uint16_t y_size:11;
-        int16_t x_offset:10;
+        int16_t y_offset:9;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } xy_config_reg;
 
 typedef union {
     struct {
-        int16_t y_offset:9;
+        int16_t x_offset:10;
         uint8_t x_start_lb:8;
         int8_t y_start_lb:6;
         uint8_t x_rpt:3;
         uint8_t y_rpt:3;
-        uint8_t xy_rsv:3;
+        uint8_t xy_rsv:2;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } xy_config2_reg;
