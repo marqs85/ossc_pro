@@ -207,31 +207,31 @@ typedef enum {
 } smp_mode_t;
 
 typedef struct {
-    uint16_t h_active:13;
-    uint16_t v_active:11;
+    uint16_t h_active;
+    uint16_t v_active;
     uint8_t v_hz_max;
     uint16_t h_total;
-    uint8_t  h_total_adj:5;
-    uint16_t v_total:11;
-    uint16_t h_backporch:9;
-    uint16_t v_backporch:9;
-    uint16_t h_synclen:9;
-    uint8_t v_synclen:4;
-    uint8_t interlaced:1;
-} __attribute__((packed)) sync_timings_t;
+    uint8_t  h_total_adj;
+    uint16_t v_total;
+    uint16_t h_backporch;
+    uint16_t v_backporch;
+    uint16_t h_synclen;
+    uint8_t v_synclen;
+    uint8_t interlaced;
+} sync_timings_t;
 
 typedef struct {
     char name[14];
-    HDMI_vic_t vic:8;
+    HDMI_vic_t vic;
     sync_timings_t timings;
     uint8_t sampler_phase;
-    video_type type:4;
-    video_group group:4;
+    video_type type;
+    video_group group;
     mode_flags flags;
-    HDMI_pixelrep_t tx_pixelrep:2;
-    HDMI_pixelrep_t hdmitx_pixr_ifr:2;
+    HDMI_pixelrep_t tx_pixelrep;
+    HDMI_pixelrep_t hdmitx_pixr_ifr;
     // for generation from 27MHz clock
-    uint8_t si_pclk_mult:4;
+    uint8_t si_pclk_mult;
     si5351_ms_config_t si_ms_conf;
 } mode_data_t;
 
@@ -241,8 +241,8 @@ typedef struct {
     sync_timings_t timings_i;
     uint8_t h_skip;
     uint8_t sampler_phase;
-    video_type type:4;
-    video_group group:4;
+    video_type type;
+    video_group group;
 } smp_preset_t;
 
 typedef struct {

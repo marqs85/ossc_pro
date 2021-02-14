@@ -150,6 +150,6 @@ typedef struct {
     misc_config_reg misc_config;
     sl_config_reg sl_config;
     sl_config2_reg sl_config2;
-} __attribute__((packed, __may_alias__)) sc_regs;
+} sc_regs;
 
 #endif //SC_CONFIG_REGS_H_

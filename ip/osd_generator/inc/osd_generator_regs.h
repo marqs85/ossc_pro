@@ -56,6 +56,6 @@ typedef struct {
     osd_config_reg osd_config;
     osd_enable_color_reg osd_sec_enable[OSD_CHAR_SECTIONS];
     osd_enable_color_reg osd_row_color;
-} __attribute__((packed, __may_alias__)) osd_regs;
+} osd_regs;
 
 #endif //OSD_GENERATOR_REGS_H_
