@@ -36,6 +36,12 @@ create_generated_clock -name pclk_si_out -master_clock pclk_si -source [get_port
 #create_generated_clock -name pclk_isl_out -master_clock pclk_isl_postmux -source $clkmux_output -multiply_by 1 $pclk_out_port -add
 #create_generated_clock -name pclk_hdmirx_out -master_clock pclk_hdmirx_postmux -source $clkmux_output -multiply_by 1 $pclk_out_port -add
 
+# specify div2 capture and output clocks
+set pclk_capture_div_pin [get_pins pclk_capture_div2|q]
+create_generated_clock -name pclk_isl_postmux_div2 -master_clock pclk_isl_postmux -source $clkmux_output -divide_by 2 $pclk_capture_div_pin
+create_generated_clock -name pclk_hdmirx_postmux_div2 -master_clock pclk_hdmirx_postmux -source $clkmux_output -divide_by 2 $pclk_capture_div_pin -add
+set pclk_si_div_pin [get_pins pclk_out_div2|q]
+create_generated_clock -name pclk_si_div2 -master_clock pclk_si -source [get_ports SI_PCLK_i] -divide_by 2 $pclk_si_div_pin
 
 derive_clock_uncertainty
 
@@ -46,8 +52,11 @@ set_clock_groups -asynchronous -group \
                             {clk27} \
                             {clk108 sd_clk} \
                             {pclk_isl pclk_isl_postmux} \
+                            {pclk_isl_postmux_div2} \
                             {pclk_hdmirx pclk_hdmirx_postmux} \
+                            {pclk_hdmirx_postmux_div2} \
                             {pclk_si pclk_si_out} \
+                            {pclk_si_div2} \
                             {si_clk_extra} \
                             {bck_hdmirx bck_pcm bck_out}
 

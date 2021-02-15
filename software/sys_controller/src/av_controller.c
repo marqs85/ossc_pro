@@ -161,6 +161,64 @@ extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 static const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4", "Last used" };
 
+typedef struct {
+    uint32_t ctrl;
+    uint32_t status;
+    uint32_t irq;
+    uint32_t words;
+    uint32_t h_active;
+    uint32_t v_active_f0;
+    uint32_t v_active_f1;
+    uint32_t h_total;
+    uint32_t v_total_f0;
+    uint32_t v_total_f1;
+} vip_cvi_ii_regs;
+
+typedef struct {
+    uint32_t ctrl;
+    uint32_t status;
+    uint32_t irq;
+    uint32_t vmode_match;
+    uint32_t banksel;
+    uint32_t mode_ctrl;
+    uint32_t h_active;
+    uint32_t v_active;
+    uint32_t v_active_f1;
+    uint32_t h_frontporch;
+    uint32_t h_synclen;
+    uint32_t h_blank;
+    uint32_t v_frontporch;
+    uint32_t v_synclen;
+    uint32_t v_blank;
+    uint32_t v_frontporch_f0;
+    uint32_t v_synclen_f0;
+    uint32_t v_blank_f0;
+    uint32_t active_start;
+    uint32_t v_blank_start;
+    uint32_t fid_r;
+    uint32_t fid_f;
+    uint32_t vid_std;
+    uint32_t sof_sample;
+    uint32_t sof_line;
+    uint32_t vco_div;
+    uint32_t anc_line;
+    uint32_t anc_line_f0;
+    uint32_t h_polarity;
+    uint32_t v_polarity;
+    uint32_t valid;
+} vip_cvo_ii_regs;
+
+typedef struct {
+    uint32_t ctrl;
+    uint32_t status;
+    uint32_t irq;
+} vip_generic_regs;
+
+volatile vip_cvi_ii_regs *vip_cvi = (volatile vip_cvi_ii_regs*)0x00024000;
+volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)0x00025000;
+volatile vip_generic_regs *vip_dli = (volatile vip_generic_regs*)0x00026000;
+
+
 void ui_disp_menu(uint8_t osd_mode)
 {
     uint8_t menu_page;
@@ -248,6 +306,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     misc_config.lm_deint_mode = avconfig->lm_deint_mode;
     misc_config.nir_even_offset = avconfig->nir_even_offset;
     misc_config.ypbpr_cs = avconfig->ypbpr_cs;
+    misc_config.vip_enable = avconfig->vip_enable;
 
     sc->hv_in_config = hv_in_config;
     sc->hv_in_config2 = hv_in_config2;
@@ -260,6 +319,25 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     sc->misc_config = misc_config;
     sc->sl_config = sl_config;
     sc->sl_config2 = sl_config2;
+
+    vip_cvi->ctrl = avconfig->vip_enable;
+    vip_dli->ctrl = avconfig->vip_enable;
+    vip_cvo->ctrl = avconfig->vip_enable;
+
+    vip_cvo->banksel = 0;
+    vip_cvo->valid = 0;
+    vip_cvo->mode_ctrl = 0;
+    vip_cvo->h_active = vm_out->timings.h_active;
+    vip_cvo->v_active = vm_out->timings.v_active;
+    vip_cvo->h_synclen = vm_out->timings.h_synclen;
+    vip_cvo->v_synclen = vm_out->timings.v_synclen;
+    vip_cvo->h_frontporch = vm_out->timings.h_total-vm_out->timings.h_active-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
+    vip_cvo->v_frontporch = vm_out->timings.v_total-vm_out->timings.v_active-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
+    vip_cvo->h_blank = vm_out->timings.h_total-vm_out->timings.h_active;
+    vip_cvo->v_blank = vm_out->timings.v_total-vm_out->timings.v_active;
+    vip_cvo->h_polarity = 0;
+    vip_cvo->v_polarity = 0;
+    vip_cvo->valid = 1;
 }
 
 int init_emif()
@@ -477,6 +555,10 @@ int init_hw()
     set_default_avconfig(1);
     set_default_keymap();
     init_menu();
+
+    vip_cvi->ctrl = 0;
+    vip_dli->ctrl = 0;
+    vip_cvo->ctrl = 0;
 
     return 0;
 }

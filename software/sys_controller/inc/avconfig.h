@@ -128,6 +128,7 @@ typedef struct {
     uint8_t reverse_lpf;
     uint8_t default_vic;
     uint8_t audio_fmt;
+    uint8_t vip_enable;
     isl51002_config isl_cfg __attribute__ ((aligned (4)));
 #ifdef INC_ADV7513
     adv7513_config hdmitx_cfg __attribute__ ((aligned (4)));

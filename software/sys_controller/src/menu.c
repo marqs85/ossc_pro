@@ -226,6 +226,7 @@ MENU(menu_adap_lm, P99_PROTECT({
 MENU(menu_output, P99_PROTECT({
     { "Adaptive LM priority",                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.adapt_lm,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
     { "LM deinterlace mode",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lm_deint_mode,   OPT_WRAP, SETTING_ITEM(lm_deint_mode_desc) } } },
+    { "VIP enable",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.vip_enable,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "NI restore Y offset",                   OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.nir_even_offset, OPT_NOWRAP, 0, 1, value_disp } } },
     { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM(tx_mode_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
