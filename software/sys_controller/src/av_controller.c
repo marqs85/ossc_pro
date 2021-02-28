@@ -956,6 +956,14 @@ void mainloop()
                         update_osd_size(&vmode_out);
                         update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
 
+                        // Force CVO restart upon mode change
+                        if (cur_avconfig->vip_enable) {
+                            usleep(100000);
+                            vip_cvo->ctrl = 0;
+                            usleep(100000);
+                            vip_cvo->ctrl = 1;
+                        }
+
                         // Setup VIC and pixel repetition
                         adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
                     }
@@ -966,7 +974,7 @@ void mainloop()
 
             }
 
-            isl_update_config(&isl_dev, &cur_avconfig->isl_cfg);
+            isl_update_config(&isl_dev, &cur_avconfig->isl_cfg, 0);
         } else if (enable_hdmirx) {
             if (adv761x_check_activity(&advrx_dev)) {
                 if (advrx_dev.sync_active) {

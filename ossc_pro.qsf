@@ -129,7 +129,7 @@ set_global_assignment -name USE_SIGNALTAP_FILE output_files/ossc_pro_io.stp
 set_global_assignment -name GENERATE_RBF_FILE ON
 
 
-set_global_assignment -name OPTIMIZATION_MODE BALANCED
+set_global_assignment -name OPTIMIZATION_MODE "AGGRESSIVE PERFORMANCE"
 
 #memory stuff here
 
@@ -144,23 +144,6 @@ set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "3 ms" -section_id tbench
 set_global_assignment -name EDA_TEST_BENCH_FILE rtl/tb/tbench.sv -section_id tbench
 set_global_assignment -name EDA_TEST_BENCH_FILE rtl/tb/lpddr2model/mobile_ddr2.v -section_id tbench
 
-set_global_assignment -name VERILOG_FILE rtl/ic_frontends/isl51002/isl51002_frontend.v
-set_global_assignment -name VERILOG_FILE rtl/ic_frontends/adv7611/adv7611_frontend.v
-set_global_assignment -name VERILOG_FILE rtl/scanconverter.v
-set_global_assignment -name VERILOG_FILE rtl/videogen.v
-set_global_assignment -name VERILOG_FILE rtl/ir_rcv.v
-set_global_assignment -name SDC_FILE ossc_pro.sdc
-set_global_assignment -name QIP_FILE sys/synthesis/sys.qip
-set_global_assignment -name SIP_FILE sys/simulation/sys.sip
-set_global_assignment -name QIP_FILE software/sys_controller/mem_init/meminit.qip
-set_global_assignment -name SIP_FILE software/sys_controller/mem_init/meminit.sip
-set_global_assignment -name VERILOG_FILE rtl/ossc_pro.v
-set_global_assignment -name SIGNALTAP_FILE output_files/ossc_pro_io.stp
-set_global_assignment -name QIP_FILE rtl/linebuf.qip
-set_global_assignment -name QIP_FILE rtl/char_array.qip
-set_global_assignment -name QIP_FILE rtl/char_rom.qip
-set_global_assignment -name QIP_FILE rtl/dc_fifo_in.qip
-set_global_assignment -name QIP_FILE rtl/dc_fifo_out.qip
 
 set_global_assignment -name FLOW_ENABLE_POWER_ANALYZER ON
 set_global_assignment -name POWER_DEFAULT_INPUT_IO_TOGGLE_RATE "12.5 %"
@@ -624,4 +607,22 @@ set_global_assignment -name UNIPHY_SEQUENCER_DQS_CONFIG_ENABLE ON
 set_global_assignment -name SMART_RECOMPILE ON
 
 set_global_assignment -name SEED 2
+set_global_assignment -name SDC_FILE ossc_pro.sdc
+set_global_assignment -name QIP_FILE sys/synthesis/sys.qip
+set_global_assignment -name SDC_FILE afi_half_clk.sdc
+set_global_assignment -name VERILOG_FILE rtl/ic_frontends/isl51002/isl51002_frontend.v
+set_global_assignment -name VERILOG_FILE rtl/ic_frontends/adv7611/adv7611_frontend.v
+set_global_assignment -name VERILOG_FILE rtl/scanconverter.v
+set_global_assignment -name VERILOG_FILE rtl/videogen.v
+set_global_assignment -name VERILOG_FILE rtl/ir_rcv.v
+set_global_assignment -name SIP_FILE sys/simulation/sys.sip
+set_global_assignment -name QIP_FILE software/sys_controller/mem_init/meminit.qip
+set_global_assignment -name SIP_FILE software/sys_controller/mem_init/meminit.sip
+set_global_assignment -name VERILOG_FILE rtl/ossc_pro.v
+set_global_assignment -name SIGNALTAP_FILE output_files/ossc_pro_io.stp
+set_global_assignment -name QIP_FILE rtl/linebuf.qip
+set_global_assignment -name QIP_FILE rtl/char_array.qip
+set_global_assignment -name QIP_FILE rtl/char_rom.qip
+set_global_assignment -name QIP_FILE rtl/dc_fifo_in.qip
+set_global_assignment -name QIP_FILE rtl/dc_fifo_out.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

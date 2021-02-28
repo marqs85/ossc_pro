@@ -210,7 +210,7 @@
       }
       datum baseAddress
       {
-         value = "268435456";
+         value = "0";
          type = "String";
       }
    }
@@ -623,7 +623,7 @@
   <parameter name="H_FRONT_PORCH" value="88" />
   <parameter name="H_SYNC_LENGTH" value="44" />
   <parameter name="INTERLACED" value="0" />
-  <parameter name="LOW_LATENCY" value="0" />
+  <parameter name="LOW_LATENCY" value="1" />
   <parameter name="NO_OF_CHANNELS" value="1" />
   <parameter name="NO_OF_MODES" value="1" />
   <parameter name="NUMBER_OF_COLOUR_PLANES" value="3" />
@@ -667,7 +667,7 @@
   <parameter name="MA_READ_MASTER_BURST_TARGET" value="32" />
   <parameter name="MA_READ_MASTER_FIFO_DEPTH" value="64" />
   <parameter name="MEM_BASE_ADDR" value="0" />
-  <parameter name="MEM_PORT_WIDTH" value="128" />
+  <parameter name="MEM_PORT_WIDTH" value="256" />
   <parameter name="MOTION_BLEED" value="1" />
   <parameter name="MOTION_BPS" value="7" />
   <parameter name="MOTION_READ_MASTER_BURST_TARGET" value="32" />
@@ -709,9 +709,9 @@
   <parameter name="MAX_HEIGHT" value="1080" />
   <parameter name="MAX_SYMBOLS_PER_PACKET" value="10" />
   <parameter name="MAX_WIDTH" value="1920" />
-  <parameter name="MEM_BASE_ADDR" value="16777216" />
-  <parameter name="MEM_BUFFER_OFFSET" value="16777216" />
-  <parameter name="MEM_PORT_WIDTH" value="128" />
+  <parameter name="MEM_BASE_ADDR" value="33554432" />
+  <parameter name="MEM_BUFFER_OFFSET" value="33554432" />
+  <parameter name="MEM_PORT_WIDTH" value="256" />
   <parameter name="MULTI_FRAME_DELAY" value="1" />
   <parameter name="NUMBER_OF_COLOR_PLANES" value="3" />
   <parameter name="PIXELS_IN_PARALLEL" value="2" />
@@ -723,7 +723,7 @@
   <parameter name="REPEAT_FRAMES" value="1" />
   <parameter name="TEST_INIT" value="0" />
   <parameter name="USER_PACKETS_MAX_STORAGE" value="0" />
-  <parameter name="USE_BUFFER_OFFSET" value="0" />
+  <parameter name="USE_BUFFER_OFFSET" value="1" />
   <parameter name="WRITER_RUNTIME_CONTROL" value="0" />
   <parameter name="WRITE_BURST_TARGET" value="32" />
   <parameter name="WRITE_FIFO_DEPTH" value="64" />
@@ -830,7 +830,7 @@
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
   <parameter name="AUTO_PD_CYCLES" value="0" />
   <parameter name="AUTO_POWERDN_EN" value="false" />
-  <parameter name="AVL_DATA_WIDTH_PORT" value="32,128,32,32,32,32" />
+  <parameter name="AVL_DATA_WIDTH_PORT" value="256,128,32,32,32,32" />
   <parameter name="AVL_MAX_SIZE" value="32" />
   <parameter name="BYTE_ENABLE" value="true" />
   <parameter name="C2P_WRITE_CLOCK_ADD_PHASE" value="0.0" />
@@ -886,7 +886,7 @@
   <parameter name="ENABLE_NON_DES_CAL_TEST" value="false" />
   <parameter name="ENABLE_SEQUENCER_MARGINING_ON_BY_DEFAULT" value="false" />
   <parameter name="ENABLE_USER_ECC" value="false" />
-  <parameter name="EXPORT_AFI_HALF_CLK" value="false" />
+  <parameter name="EXPORT_AFI_HALF_CLK" value="true" />
   <parameter name="EXTRA_SETTINGS" value="" />
   <parameter name="FIX_READ_LATENCY" value="8" />
   <parameter name="FORCED_NON_LDC_ADDR_CMD_MEM_CK_INVERT" value="false" />
@@ -917,7 +917,7 @@
   <parameter name="MEM_CK_PHASE" value="0.0" />
   <parameter name="MEM_CK_WIDTH" value="1" />
   <parameter name="MEM_CLK_EN_WIDTH" value="1" />
-  <parameter name="MEM_CLK_FREQ" value="300.0" />
+  <parameter name="MEM_CLK_FREQ" value="333.0" />
   <parameter name="MEM_CLK_FREQ_MAX" value="533.333" />
   <parameter name="MEM_COL_ADDR_WIDTH" value="9" />
   <parameter name="MEM_CS_WIDTH" value="1" />
@@ -963,7 +963,7 @@
   <parameter name="NUM_DLL_SHARING_INTERFACES" value="1" />
   <parameter name="NUM_EXTRA_REPORT_PATH" value="10" />
   <parameter name="NUM_OCT_SHARING_INTERFACES" value="1" />
-  <parameter name="NUM_OF_PORTS" value="2" />
+  <parameter name="NUM_OF_PORTS" value="1" />
   <parameter name="NUM_PLL_SHARING_INTERFACES" value="1" />
   <parameter name="OCT_SHARING_MODE" value="None" />
   <parameter name="P2C_READ_CLOCK_ADD_PHASE" value="0.0" />
@@ -1111,7 +1111,7 @@
   <parameter name="TRACKING_WATCH_TEST" value="false" />
   <parameter name="TREFI" value="35100" />
   <parameter name="TRFC" value="350" />
-  <parameter name="USER_DEBUG_LEVEL" value="1" />
+  <parameter name="USER_DEBUG_LEVEL" value="0" />
   <parameter name="USE_AXI_ADAPTOR" value="false" />
   <parameter name="USE_FAKE_PHY" value="false" />
   <parameter name="USE_MEM_CLK_FREQ" value="false" />
@@ -1157,7 +1157,7 @@
   <parameter name="initMemContent" value="false" />
   <parameter name="initializationFileName" value="onchip_mem.hex" />
   <parameter name="instanceID" value="NONE" />
-  <parameter name="memorySize" value="65536" />
+  <parameter name="memorySize" value="32768" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
   <parameter name="resetrequest_enabled" value="true" />
   <parameter name="simAllowMRAMContentsFile" value="false" />
@@ -1530,15 +1530,6 @@
    kind="avalon"
    version="20.1"
    start="pulpino_0.avalon_master_lsu"
-   end="mem_if_lpddr2_emif_0.avl_0">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x10000000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="20.1"
-   start="pulpino_0.avalon_master_lsu"
    end="alt_vip_cl_cvi_0.control">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00024000" />
@@ -1620,7 +1611,7 @@
    kind="avalon"
    version="20.1"
    start="alt_vip_cl_dil_0.edi_read_master"
-   end="mem_if_lpddr2_emif_0.avl_1">
+   end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
@@ -1647,7 +1638,7 @@
    kind="avalon"
    version="20.1"
    start="alt_vip_cl_dil_0.ma_read_master"
-   end="mem_if_lpddr2_emif_0.avl_1">
+   end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
@@ -1683,7 +1674,7 @@
    kind="avalon"
    version="20.1"
    start="alt_vip_cl_vfb_0.mem_master_rd"
-   end="mem_if_lpddr2_emif_0.avl_1">
+   end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
@@ -1692,7 +1683,7 @@
    kind="avalon"
    version="20.1"
    start="alt_vip_cl_vfb_0.mem_master_wr"
-   end="mem_if_lpddr2_emif_0.avl_1">
+   end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
@@ -1701,7 +1692,7 @@
    kind="avalon"
    version="20.1"
    start="alt_vip_cl_dil_0.motion_read_master"
-   end="mem_if_lpddr2_emif_0.avl_1">
+   end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
@@ -1710,7 +1701,7 @@
    kind="avalon"
    version="20.1"
    start="alt_vip_cl_dil_0.motion_write_master"
-   end="mem_if_lpddr2_emif_0.avl_1">
+   end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
@@ -1719,7 +1710,7 @@
    kind="avalon"
    version="20.1"
    start="alt_vip_cl_dil_0.write_master"
-   end="mem_if_lpddr2_emif_0.avl_1">
+   end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
@@ -1739,6 +1730,71 @@
    version="20.1"
    start="alt_vip_cl_cvi_0.dout_0"
    end="alt_vip_cl_dil_0.din" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="alt_vip_cl_dil_0.av_st_clock" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="alt_vip_cl_cvi_0.main_clock" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="alt_vip_cl_cvo_0.main_clock" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="alt_vip_cl_vfb_0.main_clock" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="mem_if_lpddr2_emif_0.mp_cmd_clk_0" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_0" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_1" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_2" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_3" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_0" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_1" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_2" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_half_clk"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_3" />
  <connection kind="clock" version="20.1" start="clk_27.clk" end="jtag_uart_0.clk" />
  <connection kind="clock" version="20.1" start="clk_27.clk" end="pio_0.clk" />
  <connection kind="clock" version="20.1" start="clk_27.clk" end="pio_1.clk" />
@@ -1784,21 +1840,6 @@
    kind="clock"
    version="20.1"
    start="clk_27.clk"
-   end="mem_if_lpddr2_emif_0.mp_cmd_clk_0" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="clk_27.clk"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_0" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="clk_27.clk"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_0" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="clk_27.clk"
    end="mem_if_lpddr2_emif_0.pll_ref_clk" />
  <connection kind="clock" version="20.1" start="clk_27.clk" end="pll_0.refclk" />
  <connection
@@ -1810,57 +1851,12 @@
    kind="clock"
    version="20.1"
    start="pll_0.outclk0"
-   end="alt_vip_cl_dil_0.av_st_clock" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk0"
    end="intel_generic_serial_flash_interface_top_0.clk" />
  <connection
    kind="clock"
    version="20.1"
    start="pll_0.outclk0"
    end="mm_clock_crossing_bridge_0.m0_clk" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk0"
-   end="alt_vip_cl_cvo_0.main_clock" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk0"
-   end="alt_vip_cl_vfb_0.main_clock" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk0"
-   end="alt_vip_cl_cvi_0.main_clock" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk0"
-   end="mem_if_lpddr2_emif_0.mp_cmd_clk_1" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk0"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_2" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk0"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_3" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk0"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_2" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk0"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_3" />
  <connection
    kind="clock"
    version="20.1"
@@ -1918,8 +1914,68 @@
  <connection
    kind="reset"
    version="20.1"
-   start="clk_27.clk_reset"
+   start="mem_if_lpddr2_emif_0.afi_reset"
    end="alt_vip_cl_dil_0.av_st_reset" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="alt_vip_cl_cvi_0.main_reset" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="alt_vip_cl_cvo_0.main_reset" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="alt_vip_cl_vfb_0.main_reset" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="mem_if_lpddr2_emif_0.mp_cmd_reset_n_0" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_0" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_1" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_2" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_3" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_0" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_1" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_2" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="mem_if_lpddr2_emif_0.afi_reset"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_3" />
  <connection
    kind="reset"
    version="20.1"
@@ -1935,61 +1991,6 @@
    version="20.1"
    start="clk_27.clk_reset"
    end="mm_clock_crossing_bridge_0.m0_reset" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="alt_vip_cl_cvi_0.main_reset" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="alt_vip_cl_vfb_0.main_reset" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="alt_vip_cl_cvo_0.main_reset" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="mem_if_lpddr2_emif_0.mp_cmd_reset_n_0" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="mem_if_lpddr2_emif_0.mp_cmd_reset_n_1" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_0" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_2" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_3" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_0" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_2" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_3" />
  <connection
    kind="reset"
    version="20.1"

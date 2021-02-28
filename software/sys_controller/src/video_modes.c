@@ -249,7 +249,7 @@ int get_pure_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *
     mode_flags target_lm;
     uint8_t pt_only = 0;
     uint8_t nonsampled_h_mult = 0, nonsampled_v_mult = 0;
-    uint8_t upsample2x = vm_in->timings.h_total ? 0 : 1;
+    uint8_t upsample2x = vm_in->timings.h_total ? 0 : cc->upsample2x;
 
     // one for each video_group
     uint8_t* group_ptr[] = { &pt_only, &cc->pm_240p, &cc->pm_240p, &cc->pm_384p, &cc->pm_480i, &cc->pm_480i, &cc->pm_480p, &cc->pm_480p, &cc->pm_1080i };
