@@ -927,6 +927,14 @@ void mainloop()
                         printf("Estimated source dot clock: %lu.%.2uMHz\n", (dotclk_hz+5000)/1000000, ((dotclk_hz+5000)%1000000)/10000);
                         printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_i_hz, pclk_o_hz);
 
+                        // CEA-770.3 HDTV modes use tri-level syncs which have twice the width of bi-level syncs of corresponding CEA-861 modes
+                        if ((vmode_in.type & VIDEO_HDTV) && (target_isl_sync == SYNC_SOG)) {
+                            vmode_in.timings.h_synclen *= 2;
+                            isl_dev.sync_trilevel = 1;
+                        } else {
+                            isl_dev.sync_trilevel = 0;
+                        }
+
                         isl_source_setup(&isl_dev, pll_h_total);
 
                         isl_set_afe_bw(&isl_dev, dotclk_hz);

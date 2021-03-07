@@ -57,8 +57,10 @@
 #define ALC_H_FILTER_MAX    3
 #define ALC_V_FILTER_MAX    7
 #define CLAMP_STR_MAX       7
-#define CLAMP_POS_MIN       0
-#define CLAMP_POS_MAX       0x3fff
+#define CLAMP_POS_MIN       1
+#define CLAMP_POS_MAX       250
+#define CLAMP_WIDTH_MIN     1
+#define CLAMP_WIDTH_MAX     100
 
 #define SL_MODE_MAX         2
 #define SL_TYPE_MAX         2

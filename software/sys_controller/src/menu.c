@@ -113,6 +113,7 @@ static void pixels_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG(
 static void value_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", v); }
 static void value16_disp(uint16_t *v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", *v); }
 static void signed_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d", (int8_t)(v-SIGNED_NUMVAL_ZERO)); }
+static void pct_x10_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%u%%", (v/10), (v%10) ); }
 static void lt_disp(uint8_t v) { strncpy(menu_row2, lt_desc[v], US2066_ROW_LEN+1); }
 #ifdef INC_PCM186X
 static void aud_db_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d dB", ((int8_t)v-PCM_GAIN_0DB)); }
@@ -167,8 +168,8 @@ MENU(menu_isl_video_opt, P99_PROTECT({
     { LNG("G/Y gain","G/Y ｹﾞｲﾝ"),               OPT_AVCONFIG_NUMVAL_U16,  { .num_u16 = { &tc.isl_cfg.col.g_gain, 0, 0x3FF, value16_disp } } },
     { LNG("B/Pb gain","B/Pb ｹﾞｲﾝ"),             OPT_AVCONFIG_NUMVAL_U16,  { .num_u16 = { &tc.isl_cfg.col.b_gain, 0, 0x3FF, value16_disp } } },
     { "Clamp strength",                         OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.clamp_str,      OPT_NOWRAP, 0, CLAMP_STR_MAX, value_disp } } },
-    { "Clamp/ALC position",                     OPT_AVCONFIG_NUMVAL_U16,  { .num_u16 = { &tc.isl_cfg.clamp_alc_start,  CLAMP_POS_MIN, CLAMP_POS_MAX, value16_disp } } },
-    { "Clamp width",                            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.clamp_alc_width,      OPT_NOWRAP, 0, 0xff, pixels_disp } } },
+    { "Clamp/ALC position",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.clamp_alc_start_pct_x10,  OPT_NOWRAP, CLAMP_POS_MIN, CLAMP_POS_MAX, pct_x10_disp } } },
+    { "Clamp width",                            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.clamp_alc_width_pct_x10,  OPT_NOWRAP, CLAMP_WIDTH_MIN, CLAMP_WIDTH_MAX, pct_x10_disp } } },
     { "Clamp/ALC on coast",                     OPT_AVCONFIG_SELECTION, { .sel = { &tc.isl_cfg.coast_clamp,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "Auto level ctl (ALC)",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.isl_cfg.alc_enable,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "ALC V filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_v_filter,  OPT_NOWRAP, 0, ALC_V_FILTER_MAX, alc_v_filter_disp } } },
