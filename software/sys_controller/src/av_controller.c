@@ -212,11 +212,20 @@ typedef struct {
     uint32_t ctrl;
     uint32_t status;
     uint32_t irq;
+    uint32_t width;
+    uint32_t height;
+} vip_scl_ii_regs;
+
+typedef struct {
+    uint32_t ctrl;
+    uint32_t status;
+    uint32_t irq;
 } vip_generic_regs;
 
 volatile vip_cvi_ii_regs *vip_cvi = (volatile vip_cvi_ii_regs*)0x00024000;
 volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)0x00025000;
 volatile vip_generic_regs *vip_dli = (volatile vip_generic_regs*)0x00026000;
+volatile vip_scl_ii_regs *vip_scl = (volatile vip_scl_ii_regs*)0x00027000;
 
 
 void ui_disp_menu(uint8_t osd_mode)
@@ -322,7 +331,11 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
 
     vip_cvi->ctrl = avconfig->vip_enable;
     vip_dli->ctrl = avconfig->vip_enable;
+    vip_scl->ctrl = avconfig->vip_enable;
     vip_cvo->ctrl = avconfig->vip_enable;
+
+    vip_scl->width = vm_out->timings.h_active;
+    vip_scl->height = vm_out->timings.v_active;
 
     vip_cvo->banksel = 0;
     vip_cvo->valid = 0;
@@ -558,6 +571,7 @@ int init_hw()
 
     vip_cvi->ctrl = 0;
     vip_dli->ctrl = 0;
+    vip_scl->ctrl = 0;
     vip_cvo->ctrl = 0;
 
     return 0;

@@ -37,7 +37,7 @@
 
 
 set_global_assignment -name FAMILY "Cyclone V"
-set_global_assignment -name DEVICE 5CEFA5F23C8
+set_global_assignment -name DEVICE 5CEFA5F23C7
 set_global_assignment -name TOP_LEVEL_ENTITY ossc_pro
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 17.1.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:23:54  SEPTEMBER 01, 2019"
@@ -129,7 +129,7 @@ set_global_assignment -name USE_SIGNALTAP_FILE output_files/ossc_pro_io.stp
 set_global_assignment -name GENERATE_RBF_FILE ON
 
 
-set_global_assignment -name OPTIMIZATION_MODE "AGGRESSIVE PERFORMANCE"
+set_global_assignment -name OPTIMIZATION_MODE BALANCED
 
 #memory stuff here
 
@@ -607,9 +607,12 @@ set_global_assignment -name UNIPHY_SEQUENCER_DQS_CONFIG_ENABLE ON
 set_global_assignment -name SMART_RECOMPILE ON
 
 set_global_assignment -name SEED 2
+
+
+
+
 set_global_assignment -name SDC_FILE ossc_pro.sdc
 set_global_assignment -name QIP_FILE sys/synthesis/sys.qip
-set_global_assignment -name SDC_FILE afi_half_clk.sdc
 set_global_assignment -name VERILOG_FILE rtl/ic_frontends/isl51002/isl51002_frontend.v
 set_global_assignment -name VERILOG_FILE rtl/ic_frontends/adv7611/adv7611_frontend.v
 set_global_assignment -name VERILOG_FILE rtl/scanconverter.v

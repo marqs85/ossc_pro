@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "21";
+         value = "22";
          type = "int";
       }
    }
@@ -72,11 +72,32 @@
          type = "String";
       }
    }
-   element alt_vip_cl_vfb_0
+   element alt_vip_cl_scl_0
    {
       datum _sortIndex
       {
          value = "20";
+         type = "int";
+      }
+   }
+   element alt_vip_cl_scl_0.control
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "159744";
+         type = "String";
+      }
+   }
+   element alt_vip_cl_vfb_0
+   {
+      datum _sortIndex
+      {
+         value = "21";
          type = "int";
       }
    }
@@ -443,9 +464,9 @@
 }
 ]]></parameter>
  <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
- <parameter name="device" value="5CEFA5F23C8" />
+ <parameter name="device" value="5CEFA5F23C7" />
  <parameter name="deviceFamily" value="Cyclone V" />
- <parameter name="deviceSpeedGrade" value="8" />
+ <parameter name="deviceSpeedGrade" value="7" />
  <parameter name="fabricMode" value="QSYS" />
  <parameter name="generateLegacySim" value="false" />
  <parameter name="generationId" value="0" />
@@ -562,9 +583,9 @@
    enabled="1">
   <parameter name="ACCEPT_COLOURS_IN_SEQ" value="0" />
   <parameter name="ANC_DEPTH" value="1" />
-  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
-  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BPS" value="8" />
   <parameter name="CLOCKS_ARE_SAME" value="0" />
   <parameter name="COLOUR_PLANES_ARE_IN_PARALLEL" value="1" />
@@ -598,9 +619,9 @@
   <parameter name="ACCEPT_SYNC" value="0" />
   <parameter name="ANC_LINE" value="0" />
   <parameter name="AP_LINE" value="0" />
-  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
-  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BPS" value="8" />
   <parameter name="CLOCKS_ARE_SAME" value="0" />
   <parameter name="COLOUR_PLANES_ARE_IN_PARALLEL" value="1" />
@@ -645,8 +666,8 @@
    kind="alt_vip_cl_dil"
    version="20.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
-  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BITS_PER_SYMBOL" value="8" />
   <parameter name="BOB_BEHAVIOUR" value="FRAME_FOR_FIELD" />
   <parameter name="CADENCE_ALGORITHM_NAME" value="CADENCE_32_22_VOF" />
@@ -663,11 +684,11 @@
   <parameter name="INCOMING_VIDEO_IS_YCBCR" value="0" />
   <parameter name="MAX_HEIGHT" value="1080" />
   <parameter name="MAX_SYMBOLS_PER_PACKET" value="10" />
-  <parameter name="MAX_WIDTH" value="2048" />
+  <parameter name="MAX_WIDTH" value="1920" />
   <parameter name="MA_READ_MASTER_BURST_TARGET" value="32" />
   <parameter name="MA_READ_MASTER_FIFO_DEPTH" value="64" />
   <parameter name="MEM_BASE_ADDR" value="0" />
-  <parameter name="MEM_PORT_WIDTH" value="256" />
+  <parameter name="MEM_PORT_WIDTH" value="128" />
   <parameter name="MOTION_BLEED" value="1" />
   <parameter name="MOTION_BPS" value="7" />
   <parameter name="MOTION_READ_MASTER_BURST_TARGET" value="32" />
@@ -685,12 +706,64 @@
   <parameter name="WRITE_MASTER_FIFO_DEPTH" value="64" />
  </module>
  <module
+   name="alt_vip_cl_scl_0"
+   kind="alt_vip_cl_scl"
+   version="20.1"
+   enabled="1">
+  <parameter name="ALGORITHM_NAME" value="POLYPHASE" />
+  <parameter name="ALWAYS_DOWNSCALE" value="0" />
+  <parameter name="ARE_IDENTICAL" value="0" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
+  <parameter name="BITS_PER_SYMBOL" value="8" />
+  <parameter name="DEFAULT_EDGE_THRESH" value="7" />
+  <parameter name="DEFAULT_LOWER_BLUR" value="0" />
+  <parameter name="DEFAULT_UPPER_BLUR" value="0" />
+  <parameter name="ENABLE_FIR" value="0" />
+  <parameter name="EXTRA_PIPELINING" value="0" />
+  <parameter name="FAMILY" value="Cyclone V" />
+  <parameter name="H_BANKS" value="1" />
+  <parameter name="H_COEFF_FILE"><![CDATA[<enter file name (including full path)>]]></parameter>
+  <parameter name="H_FRACTION_BITS" value="7" />
+  <parameter name="H_FUNCTION" value="LANCZOS_2" />
+  <parameter name="H_INTEGER_BITS" value="1" />
+  <parameter name="H_PHASES" value="16" />
+  <parameter name="H_SIGNED" value="1" />
+  <parameter name="H_SYMMETRIC" value="0" />
+  <parameter name="H_TAPS" value="8" />
+  <parameter name="IS_420" value="0" />
+  <parameter name="IS_422" value="0" />
+  <parameter name="LIMITED_READBACK" value="1" />
+  <parameter name="LOAD_AT_RUNTIME" value="0" />
+  <parameter name="MAX_IN_HEIGHT" value="1080" />
+  <parameter name="MAX_IN_WIDTH" value="1920" />
+  <parameter name="MAX_OUT_HEIGHT" value="1440" />
+  <parameter name="MAX_OUT_WIDTH" value="2560" />
+  <parameter name="NO_BLANKING" value="0" />
+  <parameter name="PIXELS_IN_PARALLEL" value="2" />
+  <parameter name="PRESERVE_BITS" value="0" />
+  <parameter name="RUNTIME_CONTROL" value="1" />
+  <parameter name="SYMBOLS_IN_PAR" value="3" />
+  <parameter name="SYMBOLS_IN_SEQ" value="1" />
+  <parameter name="USER_PACKET_FIFO_DEPTH" value="0" />
+  <parameter name="USER_PACKET_SUPPORT" value="PASSTHROUGH" />
+  <parameter name="V_BANKS" value="1" />
+  <parameter name="V_COEFF_FILE"><![CDATA[<enter file name (including full path)>]]></parameter>
+  <parameter name="V_FRACTION_BITS" value="7" />
+  <parameter name="V_FUNCTION" value="LANCZOS_2" />
+  <parameter name="V_INTEGER_BITS" value="1" />
+  <parameter name="V_PHASES" value="16" />
+  <parameter name="V_SIGNED" value="1" />
+  <parameter name="V_SYMMETRIC" value="0" />
+  <parameter name="V_TAPS" value="8" />
+ </module>
+ <module
    name="alt_vip_cl_vfb_0"
    kind="alt_vip_cl_vfb"
    version="20.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
-  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BITS_PER_SYMBOL" value="8" />
   <parameter name="BURST_ALIGNMENT" value="1" />
   <parameter name="CLOCKS_ARE_SEPARATE" value="0" />
@@ -706,12 +779,12 @@
   <parameter name="IS_SYNC_MASTER" value="0" />
   <parameter name="IS_SYNC_SLAVE" value="0" />
   <parameter name="LINE_BASED_BUFFERING" value="0" />
-  <parameter name="MAX_HEIGHT" value="1080" />
+  <parameter name="MAX_HEIGHT" value="1440" />
   <parameter name="MAX_SYMBOLS_PER_PACKET" value="10" />
-  <parameter name="MAX_WIDTH" value="1920" />
+  <parameter name="MAX_WIDTH" value="2560" />
   <parameter name="MEM_BASE_ADDR" value="33554432" />
   <parameter name="MEM_BUFFER_OFFSET" value="33554432" />
-  <parameter name="MEM_PORT_WIDTH" value="256" />
+  <parameter name="MEM_PORT_WIDTH" value="128" />
   <parameter name="MULTI_FRAME_DELAY" value="1" />
   <parameter name="NUMBER_OF_COLOR_PLANES" value="3" />
   <parameter name="PIXELS_IN_PARALLEL" value="2" />
@@ -747,8 +820,8 @@
    kind="intel_generic_serial_flash_interface_top"
    version="20.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
-  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="CHIP_SELECT_BYPASS" value="false" />
   <parameter name="CHIP_SELS" value="1" />
   <parameter name="DEBUG_OPTION" value="0" />
@@ -797,9 +870,9 @@
    kind="altera_jtag_avalon_master"
    version="20.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
-  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="COMPONENT_CLOCK" value="0" />
   <parameter name="FAST_VER" value="0" />
   <parameter name="FIFO_DEPTHS" value="2" />
@@ -826,11 +899,11 @@
   <parameter name="ALTMEMPHY_COMPATIBLE_MODE" value="false" />
   <parameter name="AP_MODE" value="false" />
   <parameter name="AP_MODE_EN" value="0" />
-  <parameter name="AUTO_DEVICE" value="5CEFA5F23C8" />
-  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="AUTO_PD_CYCLES" value="0" />
   <parameter name="AUTO_POWERDN_EN" value="false" />
-  <parameter name="AVL_DATA_WIDTH_PORT" value="256,128,32,32,32,32" />
+  <parameter name="AVL_DATA_WIDTH_PORT" value="128,128,32,32,32,32" />
   <parameter name="AVL_MAX_SIZE" value="32" />
   <parameter name="BYTE_ENABLE" value="true" />
   <parameter name="C2P_WRITE_CLOCK_ADD_PHASE" value="0.0" />
@@ -886,7 +959,7 @@
   <parameter name="ENABLE_NON_DES_CAL_TEST" value="false" />
   <parameter name="ENABLE_SEQUENCER_MARGINING_ON_BY_DEFAULT" value="false" />
   <parameter name="ENABLE_USER_ECC" value="false" />
-  <parameter name="EXPORT_AFI_HALF_CLK" value="true" />
+  <parameter name="EXPORT_AFI_HALF_CLK" value="false" />
   <parameter name="EXTRA_SETTINGS" value="" />
   <parameter name="FIX_READ_LATENCY" value="8" />
   <parameter name="FORCED_NON_LDC_ADDR_CMD_MEM_CK_INVERT" value="false" />
@@ -912,7 +985,7 @@
   <parameter name="MEM_ATCL" value="0" />
   <parameter name="MEM_AUTO_LEVELING_MODE" value="true" />
   <parameter name="MEM_BANKADDR_WIDTH" value="3" />
-  <parameter name="MEM_BL" value="4" />
+  <parameter name="MEM_BL" value="16" />
   <parameter name="MEM_BT" value="Sequential" />
   <parameter name="MEM_CK_PHASE" value="0.0" />
   <parameter name="MEM_CK_WIDTH" value="1" />
@@ -1064,7 +1137,7 @@
   <parameter name="SEQ_MODE" value="0" />
   <parameter name="SKIP_MEM_INIT" value="false" />
   <parameter name="SOPC_COMPAT_RESET" value="false" />
-  <parameter name="SPEED_GRADE" value="8" />
+  <parameter name="SPEED_GRADE" value="7" />
   <parameter name="STARVE_LIMIT" value="10" />
   <parameter name="SYS_INFO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="TIMING_BOARD_AC_EYE_REDUCTION_H" value="0.0" />
@@ -1215,7 +1288,7 @@
  <module name="pll_0" kind="altera_pll" version="20.1" enabled="1">
   <parameter name="debug_print_output" value="false" />
   <parameter name="debug_use_rbc_taf_method" value="false" />
-  <parameter name="device" value="5CEFA5F23C8" />
+  <parameter name="device" value="5CEFA5F23C7" />
   <parameter name="device_family" value="Cyclone V" />
   <parameter name="gui_active_clk" value="false" />
   <parameter name="gui_actual_output_clock_frequency0" value="0 MHz" />
@@ -1329,10 +1402,10 @@
   <parameter name="gui_fractional_cout" value="32" />
   <parameter name="gui_mif_generate" value="false" />
   <parameter name="gui_multiply_factor" value="1" />
-  <parameter name="gui_number_of_clocks" value="1" />
+  <parameter name="gui_number_of_clocks" value="2" />
   <parameter name="gui_operation_mode" value="direct" />
   <parameter name="gui_output_clock_frequency0" value="108.0" />
-  <parameter name="gui_output_clock_frequency1" value="100.0" />
+  <parameter name="gui_output_clock_frequency1" value="148.5" />
   <parameter name="gui_output_clock_frequency10" value="100.0" />
   <parameter name="gui_output_clock_frequency11" value="100.0" />
   <parameter name="gui_output_clock_frequency12" value="100.0" />
@@ -1557,6 +1630,15 @@
    kind="avalon"
    version="20.1"
    start="pulpino_0.avalon_master_lsu"
+   end="alt_vip_cl_scl_0.control">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x00027000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="20.1"
+   start="pulpino_0.avalon_master_lsu"
    end="mm_clock_crossing_bridge_0.s0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x02000000" />
@@ -1724,77 +1806,17 @@
    kind="avalon_streaming"
    version="20.1"
    start="alt_vip_cl_dil_0.dout"
+   end="alt_vip_cl_scl_0.din" />
+ <connection
+   kind="avalon_streaming"
+   version="20.1"
+   start="alt_vip_cl_scl_0.dout"
    end="alt_vip_cl_vfb_0.din" />
  <connection
    kind="avalon_streaming"
    version="20.1"
    start="alt_vip_cl_cvi_0.dout_0"
    end="alt_vip_cl_dil_0.din" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="alt_vip_cl_dil_0.av_st_clock" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="alt_vip_cl_cvi_0.main_clock" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="alt_vip_cl_cvo_0.main_clock" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="alt_vip_cl_vfb_0.main_clock" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="mem_if_lpddr2_emif_0.mp_cmd_clk_0" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_0" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_1" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_2" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_3" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_0" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_1" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_2" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_half_clk"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_3" />
  <connection kind="clock" version="20.1" start="clk_27.clk" end="jtag_uart_0.clk" />
  <connection kind="clock" version="20.1" start="clk_27.clk" end="pio_0.clk" />
  <connection kind="clock" version="20.1" start="clk_27.clk" end="pio_1.clk" />
@@ -1863,6 +1885,56 @@
    start="pll_0.outclk0"
    end="sdc_controller_0.sd_clk_i" />
  <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="alt_vip_cl_dil_0.av_st_clock" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="alt_vip_cl_cvi_0.main_clock" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="alt_vip_cl_scl_0.main_clock" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="alt_vip_cl_vfb_0.main_clock" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="alt_vip_cl_cvo_0.main_clock" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="mem_if_lpddr2_emif_0.mp_cmd_clk_0" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_0" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_clk_1" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_0" />
+ <connection
+   kind="clock"
+   version="20.1"
+   start="pll_0.outclk1"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_clk_1" />
+ <connection
    kind="interrupt"
    version="20.1"
    start="pulpino_0.interrupt_receiver"
@@ -1914,68 +1986,8 @@
  <connection
    kind="reset"
    version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
+   start="clk_27.clk_reset"
    end="alt_vip_cl_dil_0.av_st_reset" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="alt_vip_cl_cvi_0.main_reset" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="alt_vip_cl_cvo_0.main_reset" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="alt_vip_cl_vfb_0.main_reset" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="mem_if_lpddr2_emif_0.mp_cmd_reset_n_0" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_0" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_1" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_2" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_3" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_0" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_1" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_2" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="mem_if_lpddr2_emif_0.afi_reset"
-   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_3" />
  <connection
    kind="reset"
    version="20.1"
@@ -1991,6 +2003,51 @@
    version="20.1"
    start="clk_27.clk_reset"
    end="mm_clock_crossing_bridge_0.m0_reset" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="clk_27.clk_reset"
+   end="alt_vip_cl_cvi_0.main_reset" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="clk_27.clk_reset"
+   end="alt_vip_cl_scl_0.main_reset" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="clk_27.clk_reset"
+   end="alt_vip_cl_vfb_0.main_reset" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="clk_27.clk_reset"
+   end="alt_vip_cl_cvo_0.main_reset" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="clk_27.clk_reset"
+   end="mem_if_lpddr2_emif_0.mp_cmd_reset_n_0" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="clk_27.clk_reset"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_0" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="clk_27.clk_reset"
+   end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_1" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="clk_27.clk_reset"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_0" />
+ <connection
+   kind="reset"
+   version="20.1"
+   start="clk_27.clk_reset"
+   end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_1" />
  <connection
    kind="reset"
    version="20.1"
