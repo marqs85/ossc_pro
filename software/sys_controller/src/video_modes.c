@@ -217,6 +217,7 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
     mode_data_t *freerun_preset = NULL;
     ad_mode_data_t *ad_preset;
     smp_preset_t *smp_preset;
+    uint8_t h_skip = 0;
     avconfig_t* cc = get_current_avconfig();
     memset(vm_out, 0, sizeof(mode_data_t));
 
@@ -260,6 +261,8 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
     if (cc->scl_framelock == SCL_FL_ON) {
         if (get_framelock_config(vm_in, target_ad_id_list, target_sm_list, vm_out, &ad_preset) < 0)
             freerun_preset = (target_ad_id_list[0][0] != (ad_mode_id_t)-1) ? (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][0]]] : (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][1]]];
+        else
+            h_skip = smp_presets_default[ad_preset->smp_preset_id].h_skip;
     } else if (cc->scl_framelock == SCL_FL_OFF_50HZ) {
         freerun_preset = (target_ad_id_list[0][0] != (ad_mode_id_t)-1) ? (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][0]]] : (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][1]]];
     } else if (cc->scl_framelock == SCL_FL_OFF_60HZ) {
@@ -278,7 +281,8 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
 
                 if ((vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
                     (vm_in->timings.v_total <= (smp_preset->timings_i.v_total+LINECNT_MAX_TOLERANCE)) &&
-                    (smp_preset->timings_i.v_hz_max && (vm_in->timings.v_hz_max <= smp_preset->timings_i.v_hz_max)) &&
+                    (vm_in->timings.v_total > (smp_preset->timings_i.v_total-LINECNT_MAX_TOLERANCE)) &&
+                    (!smp_preset->timings_i.v_hz_max || (vm_in->timings.v_hz_max <= smp_preset->timings_i.v_hz_max)) &&
                     (target_sm_list[smp_preset->group] == smp_preset->sm))
                 {
                     vm_in->timings.h_active = smp_preset->timings_i.h_active;
@@ -293,6 +297,8 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
                     vm_in->type = smp_preset->type;
                     strncpy(vm_in->name, smp_preset->name, 14);
 
+                    h_skip = smp_preset->h_skip;
+
                     break;
                 }
             }
@@ -305,6 +311,7 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
     }
 
     memset(vm_conf, 0, sizeof(vm_mult_config_t));
+    vm_conf->h_skip = h_skip;
 
     const unsigned aspect_map[][2] = {{4, 3},
                                        {16, 9},
