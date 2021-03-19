@@ -125,6 +125,7 @@ typedef enum {
 } stdmode_t;
 
 typedef enum {
+    /* Generic */
     SMPPRESET_GEN_720x240    = 0,
     SMPPRESET_GEN_960x240,
     SMPPRESET_GEN_1280x240,
@@ -147,9 +148,23 @@ typedef enum {
     SMPPRESET_GEN_1707x480_WS,
     SMPPRESET_GEN_720x576,
     SMPPRESET_GEN_1536x576,
+    /* DTV / PC */
+    SMPPRESET_DTV480I,
+    SMPPRESET_DTV480I_WS,
+    SMPPRESET_DTV576I,
+    SMPPRESET_DTV576I_WS,
     SMPPRESET_VGA480P60,
     SMPPRESET_DTV480P,
     SMPPRESET_DTV480P_WS,
+    SMPPRESET_DTV576P,
+    SMPPRESET_DTV576P_WS,
+    SMPPRESET_DTV720P50,
+    SMPPRESET_DTV720P60,
+    SMPPRESET_DTV1080I50,
+    SMPPRESET_DTV1080I60,
+    SMPPRESET_DTV1080P50,
+    SMPPRESET_DTV1080P60,
+    /* console-specific */
     SMPPRESET_SNES_256x240,
     SMPPRESET_SNES_512x240,
     SMPPRESET_MD_256x224,
@@ -187,9 +202,16 @@ typedef enum {
 typedef enum {
     SM_GEN_4_3      = 0,
     SM_GEN_16_9,
+    SM_OPT_DTV480I,
+    SM_OPT_DTV480I_WS,
+    SM_OPT_DTV576I,
+    SM_OPT_DTV576I_WS,
     SM_OPT_DTV480P,
     SM_OPT_DTV480P_WS,
     SM_OPT_VGA480P60,
+    SM_OPT_DTV576P,
+    SM_OPT_DTV576P_WS,
+    SM_OPT_PC_HDTV,
     SM_OPT_SNES_256COL,
     SM_OPT_SNES_512COL,
     SM_OPT_MD_256COL,
@@ -273,6 +295,8 @@ typedef struct {
 void set_default_vm_table();
 
 uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz);
+
+int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf, int *framelock);
 
 int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf);
 

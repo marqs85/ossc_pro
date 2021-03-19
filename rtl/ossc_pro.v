@@ -123,7 +123,7 @@ wire isl_vsync_type = sys_ctrl[10];
 wire audmux_sel = sys_ctrl[11];
 wire testpattern_enable = sys_ctrl[12];
 wire csc_enable = sys_ctrl[13];
-wire adap_lm = sys_ctrl[14];
+wire framelock = sys_ctrl[14];
 wire hdmirx_spdif = sys_ctrl[15];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
@@ -167,11 +167,11 @@ wire resync_strobe_i;
 wire resync_strobe = resync_strobe_sync2_reg;
 
 //BGR
-assign LED_o = sys_poweron ? {adap_lm, (ir_code == 0), (resync_led_ctr != 0)} : 3'b001;
+assign LED_o = sys_poweron ? {framelock, (ir_code == 0), (resync_led_ctr != 0)} : 3'b001;
 //assign LED_o = {emif_status_init_done, emif_status_cal_success, emif_status_cal_fail};
 
-wire [11:0] xpos, xpos_sc;
-wire [10:0] ypos, ypos_sc;
+wire [11:0] xpos_sc;
+wire [10:0] ypos_sc;
 wire osd_enable;
 wire [1:0] osd_color;
 
@@ -336,8 +336,6 @@ assign HDMITX_PCLK_o = pclk_out;
 
 // VIP
 wire vip_select = misc_config[15];
-reg [11:0] xpos_vip;
-reg [10:0] ypos_vip;
 
 always @(posedge pclk_capture) begin
     pclk_capture_div2 <= pclk_capture_div2 ^ 1'b1;
@@ -419,32 +417,12 @@ wire VSYNC_vip = VIP_VSYNC_o;
 wire DE_vip = VIP_DE_o;
 `endif // PIXPAR2
 
-assign xpos = vip_select ? xpos_vip : xpos_sc;
-assign ypos = vip_select ? ypos_vip : ypos_sc;
-
-reg v_start;
-reg HSYNC_vip_prev, VSYNC_vip_prev;
+reg VSYNC_vip_prev;
+wire vip_frame_start = VSYNC_vip_prev & ~VSYNC_vip;
 
 always @(posedge pclk_out) begin
-    if (VSYNC_vip_prev & ~VSYNC_vip) begin
-        xpos_vip <= 0;
-        ypos_vip <= 0;
-        v_start <= 0;
-    end else if (HSYNC_vip_prev & ~HSYNC_vip) begin
-        xpos_vip <= 0;
-        if (v_start)
-            ypos_vip <= ypos_vip + 1'b1;
-    end else if (DE_vip) begin
-        v_start <= 1;
-        xpos_vip <= xpos_vip + 1'b1;
-    end
-
-    HSYNC_vip_prev <= HSYNC_vip;
     VSYNC_vip_prev <= VSYNC_vip;
 end
-`else // VIP
-assign xpos = xpos_sc;
-assign ypos = ypos_sc;
 `endif // VIP
 
 // output data assignment (2 stages and launch on negedge for timing closure)
@@ -465,15 +443,12 @@ always @(posedge pclk_out) begin
             {R_out, G_out, B_out} <= 24'hffffff;
         end
     end else begin
-        if (vip_select)
-            {R_out, G_out, B_out} <= {R_vip, G_vip, B_vip};
-        else
-            {R_out, G_out, B_out} <= {R_sc, G_sc, B_sc};
+        {R_out, G_out, B_out} <= {R_sc, G_sc, B_sc};
     end
 
-    HSYNC_out <= vip_select ? HSYNC_vip : HSYNC_sc;
-    VSYNC_out <= vip_select ? VSYNC_vip : VSYNC_sc;
-    DE_out <= vip_select ? DE_vip : DE_sc;
+    HSYNC_out <= HSYNC_sc;
+    VSYNC_out <= VSYNC_sc;
+    DE_out <= DE_sc;
 end
 
 always @(negedge pclk_out) begin
@@ -590,8 +565,8 @@ sys sys_inst (
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
     .osd_generator_0_osd_if_vclk            (PCLK_sc),
-    .osd_generator_0_osd_if_xpos            (xpos),
-    .osd_generator_0_osd_if_ypos            (ypos),
+    .osd_generator_0_osd_if_xpos            (xpos_sc),
+    .osd_generator_0_osd_if_ypos            (ypos_sc),
     .osd_generator_0_osd_if_osd_enable      (osd_enable),
     .osd_generator_0_osd_if_osd_color       (osd_color),
     .mem_if_lpddr2_emif_0_global_reset_reset_n     (emif_hwreset_n_sync2_reg),
@@ -677,6 +652,11 @@ scanconverter scanconverter_inst (
     .sl_config(sl_config),
     .sl_config2(sl_config2),
     .testpattern_enable(testpattern_enable),
+    .ext_sync_mode(vip_select),
+    .ext_frame_change_i(vip_frame_start),
+    .ext_R_i(R_vip),
+    .ext_G_i(G_vip),
+    .ext_B_i(B_vip),
     .PCLK_o(PCLK_sc),
     .R_o(R_sc),
     .G_o(G_sc),

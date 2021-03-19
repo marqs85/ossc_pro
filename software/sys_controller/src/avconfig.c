@@ -42,7 +42,12 @@ const avconfig_t tc_default = {
     .pm_ad_480p = 4,
     .pm_ad_576p = 0,
     .sl_altern = 1,
-    .adapt_lm = 1,
+    .oper_mode = 1,
+    .scl_out_mode = 4,
+    .scl_alg = 1,
+    .scl_dil_alg = 2,
+    .sm_scl_480i_576i = 1,
+    .sm_scl_480p = 1,
 #ifndef DExx_FW
     .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL},
 #else
@@ -97,7 +102,8 @@ status_t update_avconfig() {
         (tc.lm_deint_mode != cc.lm_deint_mode) ||
         (tc.nir_even_offset != cc.nir_even_offset) ||
         (tc.ypbpr_cs != cc.ypbpr_cs) ||
-        (tc.vip_enable != cc.vip_enable))
+        (tc.scl_alg != cc.scl_alg) ||
+        (tc.scl_dil_alg != cc.scl_dil_alg))
         status = (status < SC_CONFIG_CHANGE) ? SC_CONFIG_CHANGE : status;
 
     if ((tc.pm_240p != cc.pm_240p) ||
@@ -120,9 +126,16 @@ status_t update_avconfig() {
         (tc.sm_ad_480i_576i != cc.sm_ad_480i_576i) ||
         (tc.sm_ad_480p != cc.sm_ad_480p) ||
         (tc.sm_ad_576p != cc.sm_ad_576p) ||
-        (tc.adapt_lm != cc.adapt_lm) ||
+        (tc.oper_mode != cc.oper_mode) ||
         (tc.upsample2x != cc.upsample2x) ||
-        (tc.default_vic != cc.default_vic))
+        (tc.default_vic != cc.default_vic) ||
+        (tc.scl_out_mode != cc.scl_out_mode) ||
+        (tc.scl_framelock != cc.scl_framelock) ||
+        (tc.scl_aspect != cc.scl_aspect) ||
+        (tc.sm_scl_240p_288p != cc.sm_scl_240p_288p) ||
+        (tc.sm_scl_480i_576i != cc.sm_scl_480i_576i) ||
+        (tc.sm_scl_480p != cc.sm_scl_480p) ||
+        (tc.sm_scl_576p != cc.sm_scl_576p))
         status = (status < MODE_CHANGE) ? MODE_CHANGE : status;
 
 #ifndef DExx_FW

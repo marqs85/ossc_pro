@@ -41,6 +41,11 @@ module scanconverter (
     input [31:0] sl_config,
     input [31:0] sl_config2,
     input testpattern_enable,
+    input ext_sync_mode,
+    input ext_frame_change_i,
+    input [7:0] ext_R_i,
+    input [7:0] ext_G_i,
+    input [7:0] ext_B_i,
     output PCLK_o,
     output [7:0] R_o,
     output [7:0] G_o,
@@ -62,7 +67,10 @@ localparam PP_PL_START          = 1;
 localparam PP_LINEBUF_START     = PP_PL_START + 1;
 localparam PP_LINEBUF_LENGTH    = 1;
 localparam PP_LINEBUF_END       = PP_LINEBUF_START + PP_LINEBUF_LENGTH;
-localparam PP_SLGEN_START       = PP_LINEBUF_END;
+localparam PP_SRCSEL_START      = PP_LINEBUF_END;
+localparam PP_SRCSEL_LENGTH     = 1;
+localparam PP_SRCSEL_END        = PP_SRCSEL_START + PP_SRCSEL_LENGTH;
+localparam PP_SLGEN_START       = PP_SRCSEL_END;
 localparam PP_SLGEN_LENGTH      = 1;
 localparam PP_SLGEN_END         = PP_SLGEN_START + PP_SLGEN_LENGTH;
 localparam PP_PL_END            = PP_SLGEN_END;
@@ -179,7 +187,10 @@ end
 
 // H/V counters
 always @(posedge PCLK_OUT_i) begin
-    if (~frame_change_prev & frame_change & ((v_cnt != V_STARTLINE_PREV) & (v_cnt != V_STARTLINE))) begin
+    if (ext_sync_mode & ext_frame_change_i) begin
+        h_cnt <= PP_SRCSEL_START; // compensate pipeline delays
+        v_cnt <= 0;
+    end else if (~ext_sync_mode & ~frame_change_prev & frame_change & ((v_cnt != V_STARTLINE_PREV) & (v_cnt != V_STARTLINE))) begin
         h_cnt <= 0;
         v_cnt <= V_STARTLINE;
         src_fid <= (~interlaced_in_i | (V_STARTLINE < (V_TOTAL/2))) ? FID_ODD : FID_EVEN;
@@ -206,13 +217,13 @@ always @(posedge PCLK_OUT_i) begin
 end
 
 // Postprocess pipeline structure
-//            1          2         3         4
-// |----------|----------|---------|---------|
-// | SYNC/DE  |          |         |         |
-// | X/Y POS  |          |         |         |
-// |          |   MASK   |         |         |
-// |          | LB_SETUP | LINEBUF |         |
-// |          |          |         |  SLGEN  |
+//            1          2         3         4         5
+// |----------|----------|---------|---------|---------|
+// | SYNC/DE  |          |         |         |         |
+// | X/Y POS  |          |         |         |         |
+// |          |   MASK   |         |         |         |
+// |          | LB_SETUP | LINEBUF |         |         |
+// |          |          |         | SRCSEL  |  SLGEN  |
 
 
 // Pipeline stage 1
@@ -305,9 +316,13 @@ always @(posedge PCLK_OUT_i) begin
         mask_enable_pp[pp_idx] <= mask_enable_pp[pp_idx-1];
     end
 
-    R_pp[PP_SLGEN_END] <= testpattern_enable ? (xpos_pp[PP_SLGEN_START] ^ ypos_pp[PP_SLGEN_START]) : (mask_enable_pp[PP_SLGEN_START] ? 8'h00 : R_linebuf);
-    G_pp[PP_SLGEN_END] <= testpattern_enable ? (xpos_pp[PP_SLGEN_START] ^ ypos_pp[PP_SLGEN_START]) : (mask_enable_pp[PP_SLGEN_START] ? 8'h00 : G_linebuf);
-    B_pp[PP_SLGEN_END] <= testpattern_enable ? (xpos_pp[PP_SLGEN_START] ^ ypos_pp[PP_SLGEN_START]) : (mask_enable_pp[PP_SLGEN_START] ? 8'h00 : B_linebuf);
+    R_pp[PP_SRCSEL_END] <= ext_sync_mode ? ext_R_i : R_linebuf;
+    G_pp[PP_SRCSEL_END] <= ext_sync_mode ? ext_G_i : G_linebuf;
+    B_pp[PP_SRCSEL_END] <= ext_sync_mode ? ext_B_i : B_linebuf;
+
+    R_pp[PP_SLGEN_END] <= testpattern_enable ? (xpos_pp[PP_SLGEN_START] ^ ypos_pp[PP_SLGEN_START]) : (mask_enable_pp[PP_SLGEN_START] ? 8'h00 : R_pp[PP_SRCSEL_END]);
+    G_pp[PP_SLGEN_END] <= testpattern_enable ? (xpos_pp[PP_SLGEN_START] ^ ypos_pp[PP_SLGEN_START]) : (mask_enable_pp[PP_SLGEN_START] ? 8'h00 : G_pp[PP_SRCSEL_END]);
+    B_pp[PP_SLGEN_END] <= testpattern_enable ? (xpos_pp[PP_SLGEN_START] ^ ypos_pp[PP_SLGEN_START]) : (mask_enable_pp[PP_SLGEN_START] ? 8'h00 : B_pp[PP_SRCSEL_END]);
 end
 
 // Output

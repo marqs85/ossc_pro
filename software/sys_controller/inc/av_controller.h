@@ -40,7 +40,7 @@
 #define SCTRL_AUDMUX_SEL        (1<<11)
 #define SCTRL_VGTP_ENABLE       (1<<12)
 #define SCTRL_CSC_ENABLE        (1<<13)
-#define SCTRL_ADAPT_LM          (1<<14)
+#define SCTRL_FRAMELOCK         (1<<14)
 #define SCTRL_HDMIRX_SPDIF      (1<<15)
 
 // sys_status
