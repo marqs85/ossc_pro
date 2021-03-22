@@ -282,6 +282,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     sl_config2_reg sl_config2 = {.data=0x00000000};
 
     int vip_enable = (avconfig->oper_mode == OPERMODE_SCALER);
+    uint32_t h_blank, v_blank, h_frontporch, v_frontporch;
 
     // Set input params
     hv_in_config.h_total = vm_in->timings.h_total;
@@ -360,20 +361,35 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     vip_scl_pp->width = vm_conf->x_size;
     vip_scl_pp->height = vm_conf->y_size;
 
-    vip_cvo->banksel = 0;
-    vip_cvo->valid = 0;
-    vip_cvo->mode_ctrl = 0;
-    vip_cvo->h_active = vm_conf->x_size;
-    vip_cvo->v_active = vm_conf->y_size;
-    vip_cvo->h_synclen = vm_out->timings.h_synclen;
-    vip_cvo->v_synclen = vm_out->timings.v_synclen;
-    vip_cvo->h_frontporch = vm_out->timings.h_total-vm_conf->x_size-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
-    vip_cvo->v_frontporch = vm_out->timings.v_total-vm_conf->y_size-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
-    vip_cvo->h_blank = vm_out->timings.h_total-vm_conf->x_size;
-    vip_cvo->v_blank = vm_out->timings.v_total-vm_conf->y_size;
-    vip_cvo->h_polarity = 0;
-    vip_cvo->v_polarity = 0;
-    vip_cvo->valid = 1;
+    h_blank = vm_out->timings.h_total-vm_conf->x_size;
+    v_blank = vm_out->timings.v_total-vm_conf->y_size;
+    h_frontporch = h_blank-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
+    v_frontporch = v_blank-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
+
+    if ((vip_cvo->h_active != vm_conf->x_size) ||
+        (vip_cvo->v_active != vm_conf->y_size) ||
+        (vip_cvo->h_synclen != vm_out->timings.h_synclen) ||
+        (vip_cvo->v_synclen != vm_out->timings.v_synclen) ||
+        (vip_cvo->h_frontporch != h_frontporch) ||
+        (vip_cvo->v_frontporch != v_frontporch) ||
+        (vip_cvo->h_blank != h_blank) ||
+        (vip_cvo->v_blank != v_blank))
+    {
+        vip_cvo->banksel = 0;
+        vip_cvo->valid = 0;
+        vip_cvo->mode_ctrl = 0;
+        vip_cvo->h_active = vm_conf->x_size;
+        vip_cvo->v_active = vm_conf->y_size;
+        vip_cvo->h_synclen = vm_out->timings.h_synclen;
+        vip_cvo->v_synclen = vm_out->timings.v_synclen;
+        vip_cvo->h_frontporch = h_frontporch;
+        vip_cvo->v_frontporch = v_frontporch;
+        vip_cvo->h_blank = h_blank;
+        vip_cvo->v_blank = v_blank;
+        vip_cvo->h_polarity = 0;
+        vip_cvo->v_polarity = 0;
+        vip_cvo->valid = 1;
+    }
 }
 
 int init_emif()
@@ -520,9 +536,11 @@ int init_hw()
 {
     int ret;
 
-    // unreset hw
+    // reset hw
+    sys_ctrl = 0;
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     usleep(400000);
-    sys_ctrl = SCTRL_ISL_RESET_N|SCTRL_HDMIRX_RESET_N;
+    sys_ctrl |= SCTRL_ISL_RESET_N|SCTRL_HDMIRX_RESET_N;
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
     I2C_init(I2CA_BASE,ALT_CPU_FREQ, 400000);
@@ -893,7 +911,7 @@ void mainloop()
                 update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
-                //sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c @ %uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', vmode_out.timings.v_hz_max);
+                //sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c @ %uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : '\0', vmode_out.timings.v_hz_max);
                 sniprintf(row2, US2066_ROW_LEN+1, "Test: %s", vmode_out.name);
                 ui_disp_status(1);
 
@@ -1018,13 +1036,13 @@ void mainloop()
                         update_osd_size(&vmode_out);
                         update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
 
-                        // Force CVO restart upon mode change
-                        if (oper_mode == OPERMODE_SCALER) {
+                        // Force CVO restart upon mode change (may be needed for stability)
+                        /*if (oper_mode == OPERMODE_SCALER) {
                             usleep(100000);
                             vip_cvo->ctrl = 0;
                             usleep(100000);
                             vip_cvo->ctrl = 1;
-                        }
+                        }*/
 
                         // Setup VIC and pixel repetition
                         adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
@@ -1058,7 +1076,7 @@ void mainloop()
                         v_hz_x100 *= 2;
 
                     memset(&vmode_in, 0, sizeof(mode_data_t));
-                    sniprintf(vmode_in.name, 14, "%ux%u%c", advrx_dev.ss.h_active, (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : ' ');
+                    sniprintf(vmode_in.name, 14, "%ux%u%c", advrx_dev.ss.h_active, (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active;
                     vmode_in.timings.v_active = advrx_dev.ss.v_active;
                     vmode_in.timings.v_hz_max = (v_hz_x100+50)/100;

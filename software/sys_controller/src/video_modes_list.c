@@ -126,6 +126,12 @@ smp_preset_t smp_presets_default[] = {
     /* DTV 576i */
     { "576i",         SM_OPT_DTV576I,    { 720,  288,   55,   864, 0,  625,   69, 19,   63, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_576I },
     { "576i wide",    SM_OPT_DTV576I_WS, { 720,  288,   55,   864, 0,  625,   69, 19,   63, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_576I },
+    /* 384p: Sega Model 2 */
+    { "384p",         SM_OPT_PC_HDTV,    { 496,  384,    0,   640, 0,  423,   50, 29,   62, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_384P },
+    /* 720x400@70Hz, VGA Mode 3+/7+ */
+    { "720x400_70",   SM_OPT_PC_HDTV,    { 720,  400,   75,   900, 0,  449,   64, 34,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,    GROUP_384P },
+    /* 640x400@70Hz, VGA Mode 13h */
+    { "640x400_70",   SM_OPT_PC_HDTV,    { 640,  400,   75,   800, 0,  449,   48, 34,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,    GROUP_384P },
     /* VESA 640x480_60 */
     { "640x480_60",   SM_OPT_VGA480P60,  { 640,  480,   65,   800, 0,  525,   48, 33,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     /* DTV 480p */

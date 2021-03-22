@@ -17,6 +17,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -213,7 +214,7 @@ int get_framelock_config(mode_data_t *vm_in, ad_mode_id_t target_ad_id_list[][2]
 
 int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf, int *framelock)
 {
-    int i;
+    int i, diff_lines, mindiff_id, mindiff_lines=1000;
     mode_data_t *freerun_preset = NULL;
     ad_mode_data_t *ad_preset;
     smp_preset_t *smp_preset;
@@ -252,7 +253,7 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
     smp_mode_t target_sm_list[] = { SM_OPT_PC_HDTV,                         // GROUP_NONE
                                     sm_240p_288p_map[cc->sm_scl_240p_288p], // GROUP_240P
                                     sm_240p_288p_map[cc->sm_scl_240p_288p], // GROUP_288P
-                                    -1,                                     // GROUP_384P
+                                    SM_OPT_PC_HDTV,                         // GROUP_384P
                                     sm_480i_map[cc->sm_scl_480i_576i],      // GROUP_480I
                                     sm_576i_map[cc->sm_scl_480i_576i],      // GROUP_576I
                                     sm_480p_map[cc->sm_scl_480p],           // GROUP_480P
@@ -281,31 +282,38 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
                 smp_preset = &smp_presets_default[i];
 
                 if ((vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
-                    (vm_in->timings.v_total <= (smp_preset->timings_i.v_total+LINECNT_MAX_TOLERANCE)) &&
-                    (vm_in->timings.v_total > (smp_preset->timings_i.v_total-LINECNT_MAX_TOLERANCE)) &&
                     (!smp_preset->timings_i.v_hz_max || (vm_in->timings.v_hz_max <= smp_preset->timings_i.v_hz_max)) &&
                     (target_sm_list[smp_preset->group] == smp_preset->sm))
                 {
-                    vm_in->timings.h_active = smp_preset->timings_i.h_active;
-                    vm_in->timings.v_active = smp_preset->timings_i.v_active;
-                    vm_in->timings.h_synclen = smp_preset->timings_i.h_synclen;
-                    vm_in->timings.v_synclen = smp_preset->timings_i.v_synclen;
-                    vm_in->timings.h_backporch = smp_preset->timings_i.h_backporch;
-                    vm_in->timings.v_backporch = smp_preset->timings_i.v_backporch;
-                    vm_in->timings.h_total = smp_preset->timings_i.h_total;
-                    vm_in->timings.h_total_adj = smp_preset->timings_i.h_total_adj;
-                    vm_in->sampler_phase = smp_preset->sampler_phase;
-                    vm_in->type = smp_preset->type;
-                    strncpy(vm_in->name, smp_preset->name, 14);
+                    diff_lines = abs(vm_in->timings.v_total - smp_preset->timings_i.v_total);
 
-                    h_skip = smp_preset->h_skip;
+                    if (diff_lines < mindiff_lines) {
+                        mindiff_id = i;
+                        mindiff_lines = diff_lines;
+                    }
 
-                    break;
+                    if (mindiff_lines == 0)
+                        break;
                 }
             }
 
-            if (i==sizeof(smp_presets_default)/sizeof(smp_preset_t))
+            if (mindiff_lines >= 1000)
                 return -1;
+
+            smp_preset = &smp_presets_default[mindiff_id];
+            vm_in->timings.h_active = smp_preset->timings_i.h_active;
+            vm_in->timings.v_active = smp_preset->timings_i.v_active;
+            vm_in->timings.h_synclen = smp_preset->timings_i.h_synclen;
+            vm_in->timings.v_synclen = smp_preset->timings_i.v_synclen;
+            vm_in->timings.h_backporch = smp_preset->timings_i.h_backporch;
+            vm_in->timings.v_backporch = smp_preset->timings_i.v_backporch;
+            vm_in->timings.h_total = smp_preset->timings_i.h_total;
+            vm_in->timings.h_total_adj = smp_preset->timings_i.h_total_adj;
+            vm_in->sampler_phase = smp_preset->sampler_phase;
+            vm_in->type = smp_preset->type;
+            strncpy(vm_in->name, smp_preset->name, 14);
+
+            h_skip = smp_preset->h_skip;
         }
 
         memcpy(vm_out, freerun_preset, sizeof(mode_data_t));
@@ -794,6 +802,8 @@ int get_pure_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *
                         break;
                 }
             }
+
+            sniprintf(vm_out->name, 14, "%s x%u", vm_in->name, vm_conf->y_rpt+1);
 
             // Line5x format
             if (vm_conf->y_rpt == 4) {
