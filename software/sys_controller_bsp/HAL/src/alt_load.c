@@ -51,9 +51,9 @@
 extern alt_u32 __flash_rwdata_start __attribute__((section(".data")));
 extern alt_u32 __ram_rwdata_start __attribute__((section(".data")));
 extern alt_u32 __ram_rwdata_end __attribute__((section(".data")));
-extern alt_u32 __flash_rodata_start __attribute__((section(".data")));
+/*extern alt_u32 __flash_rodata_start __attribute__((section(".data")));
 extern alt_u32 __ram_rodata_start __attribute__((section(".data")));
-extern alt_u32 __ram_rodata_end __attribute__((section(".data")));
+extern alt_u32 __ram_rodata_end __attribute__((section(".data")));*/
 extern alt_u32 __flash_exceptions_start __attribute__((section(".data")));  
 extern alt_u32 __ram_exceptions_start __attribute__((section(".data")));
 extern alt_u32 __ram_exceptions_end __attribute__((section(".data")));
@@ -86,9 +86,9 @@ void alt_load (void)
    * Copy the .rodata section.
    */
 
-  alt_load_section (&__flash_rodata_start, 
+  /*alt_load_section (&__flash_rodata_start,
 		                &__ram_rodata_start,
-		                &__ram_rodata_end);
+		                &__ram_rodata_end);*/
   
   /*
    * Now ensure that the caches are in synch.

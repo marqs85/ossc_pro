@@ -46,6 +46,14 @@ SECTIONS
         _endtext = .;
     }  > flash_imem
 
+    .rodata : {
+        . = ALIGN(4);
+        *(.rodata);
+        *(.rodata.*)
+        *(.srodata);
+        *(.srodata.*)
+    } > flash_imem
+
     /*--------------------------------------------------------------------*/
     /* Global constructor/destructor segement                             */
     /*--------------------------------------------------------------------*/
@@ -72,18 +80,6 @@ SECTIONS
       KEEP (*(.fini_array ))
       PROVIDE_HIDDEN (__fini_array_end = .);
     } > dataram
-
-    .rodata : AT ( LOADADDR (.text) + SIZEOF (.text) ) {
-        PROVIDE (__ram_rodata_start = ABSOLUTE(.));
-        . = ALIGN(4);
-        *(.rodata);
-        *(.rodata.*)
-        *(.srodata);
-        *(.srodata.*)
-        PROVIDE (__ram_rodata_end = ABSOLUTE(.));
-    } > dataram
-
-    PROVIDE (__flash_rodata_start = LOADADDR(.rodata));
 
     .data : AT ( LOADADDR (.rodata) + SIZEOF (.rodata) ) {
         PROVIDE (__ram_rwdata_start = ABSOLUTE(.));
