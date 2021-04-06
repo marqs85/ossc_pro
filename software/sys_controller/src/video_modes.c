@@ -214,7 +214,7 @@ int get_framelock_config(mode_data_t *vm_in, ad_mode_id_t target_ad_id_list[][2]
 
 int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf, int *framelock)
 {
-    int i, diff_lines, mindiff_id, mindiff_lines=1000;
+    int i, diff_lines, mindiff_id, mindiff_lines=1000, gen_width_limit=0;
     mode_data_t *freerun_preset = NULL;
     ad_mode_data_t *ad_preset;
     smp_preset_t *smp_preset;
@@ -224,7 +224,7 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
 
     const ad_mode_id_t pm_scl_map[][2] = {{-1, ADMODE_480p},
                                          {ADMODE_576p, -1},
-                                         {-1, ADMODE_720p_60},
+                                         {ADMODE_720p_50, ADMODE_720p_60},
                                          {-1, ADMODE_1280x1024_60},
                                          {ADMODE_1080p_50_CR, ADMODE_1080p_60_LB},
                                          {-1, ADMODE_1600x1200_60},
@@ -242,6 +242,11 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
     const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_OPT_DTV576I};
     const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VGA480P60};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_OPT_DTV576P};
+
+    unsigned aspect_map[][2] = {{4, 3},
+                                {16, 9},
+                                {8, 7},
+                                {0, 0}};
 
     ad_mode_id_t target_ad_id_list[9][2];
     for (i=0; i<9; i++) {
@@ -276,6 +281,11 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
     } else {
         *framelock = 0;
 
+        if (cc->scl_aspect < 4)
+            gen_width_limit = (aspect_map[cc->scl_aspect][0]*freerun_preset->timings.v_active)/aspect_map[cc->scl_aspect][1];
+        else
+            gen_width_limit = 0;
+
         // Go through sampling presets and find closest one for analog sources
         if (!vm_in->timings.h_total) {
             for (i=0; i<sizeof(smp_presets_default)/sizeof(smp_preset_t); i++) {
@@ -290,6 +300,10 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
                     if (diff_lines < mindiff_lines) {
                         mindiff_id = i;
                         mindiff_lines = diff_lines;
+                    } else if (diff_lines == mindiff_lines) {
+                        // Find closest sampling width that does not exceed output active
+                        if (smp_preset->timings_i.h_active <= gen_width_limit)
+                            mindiff_id = i;
                     }
 
                     if (mindiff_lines == 0)
@@ -322,10 +336,8 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
     memset(vm_conf, 0, sizeof(vm_mult_config_t));
     vm_conf->h_skip = h_skip;
 
-    const unsigned aspect_map[][2] = {{4, 3},
-                                       {16, 9},
-                                       {8, 7},
-                                       {vm_in->timings.h_active, vm_in->timings.v_active}};
+    aspect_map[3][0] = vm_in->timings.h_active;
+    aspect_map[3][1] = vm_in->timings.v_active;
 
     // Calculate size and position based on aspect ratio
     if (cc->scl_aspect < 4) {

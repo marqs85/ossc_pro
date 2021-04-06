@@ -152,6 +152,9 @@ typedef struct {
     uint8_t sm_scl_480i_576i;
     uint8_t sm_scl_480p;
     uint8_t sm_scl_576p;
+#ifdef INC_THS7353
+    uint8_t syncmux_stc;
+#endif
     isl51002_config isl_cfg __attribute__ ((aligned (4)));
 #ifdef INC_ADV7513
     adv7513_config hdmitx_cfg __attribute__ ((aligned (4)));

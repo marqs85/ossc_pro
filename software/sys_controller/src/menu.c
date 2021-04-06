@@ -55,8 +55,7 @@ static const char *video_lpf_desc[] = { LNG("Auto","ｵｰﾄ"), LNG("Off","ｵ�
 static const char *ypbpr_cs_desc[] = { "Rec. 601", "Rec. 709" };
 static const char *s480p_mode_desc[] = { LNG("Auto","ｵｰﾄ"), "DTV 480p", "VESA 640x480@60" };
 static const char *s400p_mode_desc[] = { "VGA 640x400@70", "VGA 720x400@70" };
-static const char *sync_lpf_desc[] = { LNG("2.5MHz (max)","2.5MHz (ｻｲﾀﾞｲ)"), LNG("10MHz (med)","10MHz (ﾁｭｳｲ)"), LNG("33MHz (min)","33MHz (ｻｲｼｮｳ)"), LNG("Off","ｵﾌ") };
-static const char *stc_lpf_desc[] = { "4.8MHz (HDTV/PC)", "0.5MHz (SDTV)", "1.7MHz (EDTV)" };
+static const char *syncmux_stc_desc[] = { "Off", "On (5MHz LPF)", "On (2.5MHz LPF)", "On (0.5MHz LPF)" };
 static const char *l3_mode_desc[] = { LNG("Generic 16:9","ｼﾞｪﾈﾘｯｸ 16:9"), LNG("Generic 4:3","ｼﾞｪﾈﾘｯｸ 4:3"), LNG("512x240 optim.","512x240 ｻｲﾃｷｶ."), LNG("384x240 optim.","384x240 ｻｲﾃｷｶ."), LNG("320x240 optim.","320x240 ｻｲﾃｷｶ."), LNG("256x240 optim.","256x240 ｻｲﾃｷｶ.") };
 static const char *l2l4l5_mode_desc[] = { LNG("Generic 4:3","ｼﾞｪﾈﾘｯｸ 4:3"), LNG("512x240 optim.","512x240 ｻｲﾃｷｶ."), LNG("384x240 optim.","384x240 ｻｲﾃｷｶ."), LNG("320x240 optim.","320x240 ｻｲﾃｷｶ."), LNG("256x240 optim.","256x240 ｻｲﾃｷｶ.") };
 static const char *l5_fmt_desc[] = { "1920x1080", "1600x1200", "1920x1200" };
@@ -189,8 +188,11 @@ MENU(menu_isl_video_opt, P99_PROTECT({
 MENU(menu_isl_sync_opt, P99_PROTECT({
     //{ LNG("Analog sync LPF","ｱﾅﾛｸﾞﾄﾞｳｷ LPF"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sync_lpf,    OPT_WRAP,   SETTING_ITEM(sync_lpf_desc) } } },
     //{ "Analog STC LPF",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.stc_lpf,    OPT_WRAP,   SETTING_ITEM(stc_lpf_desc) } } },
-    { LNG("Analog sync Vth","ｱﾅﾛｸﾞﾄﾞｳｷ Vth"),    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.sog_vth,    OPT_NOWRAP, 0, SYNC_VTH_MAX, sog_vth_disp } } },
+    { LNG("Analog sync Vth","ｱﾅﾛｸﾞﾄﾞｳｷ Vth"),    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.sog_vth,     OPT_NOWRAP, 0, SYNC_VTH_MAX, sog_vth_disp } } },
     { "TTL Hsync Vth",                          OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.hsync_vth,    OPT_NOWRAP, 0, SYNC_VTH_MAX, hsync_vth_disp } } },
+#ifdef INC_THS7353
+    { "Analog sync pre-STC",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.syncmux_stc,         OPT_WRAP,   SETTING_ITEM(syncmux_stc_desc) } } },
+#endif
     { "Sync glitch filt len",                   OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.sync_gf,     OPT_WRAP, 0, 15, sync_gf_disp } } },
     { "H-PLL Pre-Coast",                        OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.pre_coast,   OPT_NOWRAP, 0, PLL_COAST_MAX, lines_disp } } },
     { "H-PLL Post-Coast",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.post_coast,  OPT_NOWRAP, 0, PLL_COAST_MAX, lines_disp } } },

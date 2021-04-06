@@ -22,6 +22,7 @@
 
 #include "system.h"
 
+#define INC_THS7353
 #define INC_ADV7513
 #define INC_ADV761X
 #define INC_PCM186X

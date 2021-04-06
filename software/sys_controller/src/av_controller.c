@@ -226,11 +226,18 @@ typedef struct {
     uint32_t mode;
 } vip_dli_ii_regs;
 
+typedef struct {
+    uint32_t ctrl;
+    uint32_t status;
+    uint32_t irq;
+} vip_vfb_ii_regs;
+
 volatile vip_cvi_ii_regs *vip_cvi = (volatile vip_cvi_ii_regs*)0x00024000;
 volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)0x00025000;
 volatile vip_dli_ii_regs *vip_dli = (volatile vip_dli_ii_regs*)0x00026000;
 volatile vip_scl_ii_regs *vip_scl_nn = (volatile vip_scl_ii_regs*)0x00027000;
 volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)0x00028000;
+volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)0x00029000;
 
 
 void ui_disp_menu(uint8_t osd_mode)
@@ -341,6 +348,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     vip_dli->ctrl = vip_enable;
     vip_scl_nn->ctrl = vip_enable;
     vip_scl_pp->ctrl = vip_enable;
+    vip_fb->ctrl = vip_enable;
     vip_cvo->ctrl = vip_enable;
 
     if (avconfig->scl_dil_alg == 0) {
@@ -356,7 +364,12 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
         vip_scl_nn->height = vm_conf->y_size;
     } else {
         vip_scl_nn->width = vm_in->timings.h_active;
-        vip_scl_nn->height = vm_in->timings.v_active*(vm_in->timings.interlaced+1);
+
+        // Pre-scale height by 2 for 240p/288p when using Lanczos as main algorithm
+        if (!vm_in->timings.interlaced && (vm_in->timings.v_active < 300))
+            vip_scl_nn->height = vm_in->timings.v_active*2;
+        else
+            vip_scl_nn->height = vm_in->timings.v_active*(vm_in->timings.interlaced+1);
     }
     vip_scl_pp->width = vm_conf->x_size;
     vip_scl_pp->height = vm_conf->y_size;
@@ -536,8 +549,8 @@ int init_hw()
 {
     int ret;
 
-    // reset hw
-    sys_ctrl = 0;
+    // reset hw except memory controller
+    sys_ctrl = (SCTRL_EMIF_HWRESET_N|SCTRL_EMIF_SWRESET_N);
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     usleep(400000);
     sys_ctrl |= SCTRL_ISL_RESET_N|SCTRL_HDMIRX_RESET_N;
@@ -610,12 +623,6 @@ int init_hw()
     set_default_keymap();
     init_menu();
 
-    vip_cvi->ctrl = 0;
-    vip_dli->ctrl = 0;
-    vip_scl_nn->ctrl = 0;
-    vip_scl_pp->ctrl = 0;
-    vip_cvo->ctrl = 0;
-
     return 0;
 }
 
@@ -640,6 +647,10 @@ void switch_input(rc_code_t code, btn_vec_t pb_vec) {
 
     if (pb_vec & PB_BTN0)
         avinput = next_input;
+}
+
+void set_syncmux_biasmode(uint8_t syncmux_stc) {
+    ths7353_set_input_biasmode(&ths_dev, syncmux_stc ? THS_BIAS_STC_MID : THS_BIAS_AC, (3-syncmux_stc), (3-syncmux_stc));
 }
 
 void switch_audmux(uint8_t audmux_sel) {
@@ -861,7 +872,7 @@ void mainloop()
 
             sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_SPDIF);
 
-            ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, THS_LPF_BYPASS);
+            ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, cur_avconfig->syncmux_stc ? THS_BIAS_STC_MID : THS_BIAS_AC, (3-cur_avconfig->syncmux_stc), (3-cur_avconfig->syncmux_stc));
 
             if (enable_isl) {
                 isl_source_sel(&isl_dev, target_isl_input, target_isl_sync, target_format);
@@ -1237,5 +1248,13 @@ int main()
         us2066_display_on(&chardisp_dev);
 
         mainloop();
+
+        // Disable VIP on powerdown
+        vip_cvi->ctrl = 0;
+        vip_dli->ctrl = 0;
+        vip_scl_nn->ctrl = 0;
+        vip_scl_pp->ctrl = 0;
+        vip_fb->ctrl = 0;
+        vip_cvo->ctrl = 0;
     }
 }

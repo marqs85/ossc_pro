@@ -190,6 +190,7 @@ typedef enum {
     ADMODE_288p,
     ADMODE_480p,
     ADMODE_576p,
+    ADMODE_720p_50,
     ADMODE_720p_60,
     ADMODE_1280x1024_60,
     ADMODE_1080i_50_CR,

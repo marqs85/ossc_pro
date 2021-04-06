@@ -81,6 +81,8 @@ void ui_disp_status(uint8_t refresh_osd_timer);
 
 void switch_input(rc_code_t code, btn_vec_t pb_vec);
 
+void set_syncmux_biasmode(uint8_t syncmux_stc);
+
 void switch_audmux(uint8_t audmux_sel);
 
 void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);

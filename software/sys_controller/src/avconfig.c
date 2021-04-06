@@ -46,7 +46,6 @@ const avconfig_t tc_default = {
     .scl_out_mode = 4,
     .scl_alg = 1,
     .scl_dil_alg = 2,
-    .sm_scl_480i_576i = 1,
     .sm_scl_480p = 1,
 #ifndef DExx_FW
     .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL},
@@ -141,6 +140,10 @@ status_t update_avconfig() {
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)
         switch_audmux(tc.audmux_sel);
+#endif
+#ifdef INC_THS7353
+    if (tc.syncmux_stc != cc.syncmux_stc)
+        set_syncmux_biasmode(tc.syncmux_stc);
 #endif
     if (memcmp(tc.audio_src_map, cc.audio_src_map, 4*sizeof(audinput_t)))
         switch_audsrc(tc.audio_src_map, &tc.hdmitx_cfg.audio_fmt);

@@ -122,6 +122,19 @@
          type = "int";
       }
    }
+   element alt_vip_cl_vfb_0.control
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "167936";
+         type = "String";
+      }
+   }
    element clk_27
    {
       datum _sortIndex
@@ -841,7 +854,7 @@
   <parameter name="BURST_ALIGNMENT" value="1" />
   <parameter name="CLOCKS_ARE_SEPARATE" value="0" />
   <parameter name="COLOR_PLANES_ARE_IN_PARALLEL" value="1" />
-  <parameter name="CONTROLLED_DROP_REPEAT" value="0" />
+  <parameter name="CONTROLLED_DROP_REPEAT" value="1" />
   <parameter name="DROP_FRAMES" value="1" />
   <parameter name="DROP_INVALID_FIELDS" value="1" />
   <parameter name="DROP_REPEAT_USER" value="0" />
@@ -870,7 +883,7 @@
   <parameter name="TEST_INIT" value="0" />
   <parameter name="USER_PACKETS_MAX_STORAGE" value="0" />
   <parameter name="USE_BUFFER_OFFSET" value="1" />
-  <parameter name="WRITER_RUNTIME_CONTROL" value="0" />
+  <parameter name="WRITER_RUNTIME_CONTROL" value="1" />
   <parameter name="WRITE_BURST_TARGET" value="32" />
   <parameter name="WRITE_FIFO_DEPTH" value="64" />
  </module>
@@ -1715,6 +1728,15 @@
    end="alt_vip_cl_scl_1.control">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00028000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="20.1"
+   start="pulpino_0.avalon_master_lsu"
+   end="alt_vip_cl_vfb_0.control">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x00029000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
