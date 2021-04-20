@@ -28,7 +28,7 @@
 // sys_ctrl
 #define SCTRL_POWER_ON          (1<<0)
 #define SCTRL_ISL_RESET_N       (1<<1)
-#define SCTRL_HDMIRX_RESET_N    (1<<2)
+#define SCTRL_HDMI_RESET_N      (1<<2)
 #define SCTRL_EMIF_HWRESET_N    (1<<3)
 #define SCTRL_EMIF_SWRESET_N    (1<<4)
 #define SCTRL_EMIF_POWERDN_REQ  (1<<5)
@@ -68,6 +68,12 @@ typedef enum {
     AV_LAST         = 14
 } avinput_t;
 
+#ifdef DExx_FW
+typedef enum {
+    AUD_AV1_ANALOG  = 0,
+    AUD_SPDIF       = 1,
+} audinput_t;
+#else
 typedef enum {
     AUD_AV1_ANALOG  = 0,
     AUD_AV2_ANALOG  = 1,
@@ -75,6 +81,7 @@ typedef enum {
     AUD_SPDIF       = 3,
     AUD_AV4_DIGITAL = 4,
 } audinput_t;
+#endif
 
 void ui_disp_menu(uint8_t osd_mode);
 void ui_disp_status(uint8_t refresh_osd_timer);

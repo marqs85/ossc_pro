@@ -148,6 +148,9 @@ typedef struct {
     uint8_t scl_aspect;
     uint8_t scl_alg;
     uint8_t scl_dil_alg;
+#ifdef VIP
+    uint8_t scl_dil_motion_shift;
+#endif
     uint8_t sm_scl_240p_288p;
     uint8_t sm_scl_480i_576i;
     uint8_t sm_scl_480p;

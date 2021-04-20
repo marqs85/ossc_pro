@@ -169,7 +169,7 @@ int get_framelock_config(mode_data_t *vm_in, ad_mode_id_t target_ad_id_list[][2]
             mode_preset = (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[smp_preset->group][j]]];
 
             if (((vm_in->timings.v_total == smp_preset->timings_i.v_total) && (vm_in->timings.v_total == mode_preset->timings.v_total)) &&
-                (!vm_in->timings.h_total || ((vm_in->timings.h_total == smp_preset->timings_i.h_total) && (vm_in->timings.h_total == mode_preset->timings.h_total))) &&
+                ((!vm_in->timings.h_total || (vm_in->timings.h_total == smp_preset->timings_i.h_total)) && (smp_preset->timings_i.h_total == mode_preset->timings.h_total)) &&
                 (vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
                 (vm_in->timings.h_total || (target_sm_list[smp_preset->group] == smp_preset->sm)))
             {
@@ -214,7 +214,7 @@ int get_framelock_config(mode_data_t *vm_in, ad_mode_id_t target_ad_id_list[][2]
 
 int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf, int *framelock)
 {
-    int i, diff_lines, mindiff_id, mindiff_lines=1000, gen_width_limit=0;
+    int i, diff_lines, mindiff_id=0, mindiff_lines=1000, gen_width_limit=0;
     mode_data_t *freerun_preset = NULL;
     ad_mode_data_t *ad_preset;
     smp_preset_t *smp_preset;
@@ -281,10 +281,13 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
     } else {
         *framelock = 0;
 
-        if (cc->scl_aspect < 4)
+        if (cc->scl_aspect < 4) {
             gen_width_limit = (aspect_map[cc->scl_aspect][0]*freerun_preset->timings.v_active)/aspect_map[cc->scl_aspect][1];
-        else
+            if (gen_width_limit > freerun_preset->timings.h_active)
+                gen_width_limit = freerun_preset->timings.h_active;
+        } else {
             gen_width_limit = 0;
+        }
 
         // Go through sampling presets and find closest one for analog sources
         if (!vm_in->timings.h_total) {
@@ -304,10 +307,10 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
                         // Find closest sampling width that does not exceed output active
                         if (smp_preset->timings_i.h_active <= gen_width_limit)
                             mindiff_id = i;
-                    }
-
-                    if (mindiff_lines == 0)
+                    } else if (diff_lines > mindiff_lines) {
+                        // Break out if suitable mode already found
                         break;
+                    }
                 }
             }
 

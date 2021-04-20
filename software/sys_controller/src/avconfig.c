@@ -46,6 +46,9 @@ const avconfig_t tc_default = {
     .scl_out_mode = 4,
     .scl_alg = 1,
     .scl_dil_alg = 2,
+#ifdef VIP
+    .scl_dil_motion_shift = 3,
+#endif
     .sm_scl_480p = 1,
 #ifndef DExx_FW
     .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL},
@@ -102,7 +105,11 @@ status_t update_avconfig() {
         (tc.nir_even_offset != cc.nir_even_offset) ||
         (tc.ypbpr_cs != cc.ypbpr_cs) ||
         (tc.scl_alg != cc.scl_alg) ||
-        (tc.scl_dil_alg != cc.scl_dil_alg))
+        (tc.scl_dil_alg != cc.scl_dil_alg)
+#ifdef VIP
+        || (tc.scl_dil_motion_shift != cc.scl_dil_motion_shift)
+#endif
+       )
         status = (status < SC_CONFIG_CHANGE) ? SC_CONFIG_CHANGE : status;
 
     if ((tc.pm_240p != cc.pm_240p) ||
