@@ -109,7 +109,7 @@ uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz) {
     }
 }
 
-int get_framelock_config(mode_data_t *vm_in, ad_mode_id_t target_ad_id_list[][2], smp_mode_t target_sm_list[], mode_data_t *vm_out, ad_mode_data_t **ad_preset_o) {
+int get_framelock_config(mode_data_t *vm_in, ad_mode_id_t target_ad_id_list[], smp_mode_t target_sm_list[], mode_data_t *vm_out, ad_mode_data_t **ad_preset_o) {
     int i, j;
     ad_mode_data_t *ad_preset;
     smp_preset_t *smp_preset;
@@ -126,7 +126,7 @@ int get_framelock_config(mode_data_t *vm_in, ad_mode_id_t target_ad_id_list[][2]
         if (((ad_preset->v_total_override && (vm_in->timings.v_total == ad_preset->v_total_override)) || (!ad_preset->v_total_override && (vm_in->timings.v_total == smp_preset->timings_i.v_total))) &&
             (!vm_in->timings.h_total || (vm_in->timings.h_total == smp_preset->timings_i.h_total)) &&
             (vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
-            ((target_ad_id_list[smp_preset->group][0] == ad_preset->id) || (target_ad_id_list[smp_preset->group][1] == ad_preset->id)) &&
+            (target_ad_id_list[smp_preset->group] == ad_preset->id) &&
             (vm_in->timings.h_total || (target_sm_list[smp_preset->group] == smp_preset->sm)))
         {
             if (!vm_in->timings.h_active)
@@ -165,47 +165,45 @@ int get_framelock_config(mode_data_t *vm_in, ad_mode_id_t target_ad_id_list[][2]
         if (smp_preset->timings_i.v_hz_max && (vm_in->timings.v_hz_max > smp_preset->timings_i.v_hz_max))
             continue;
 
-        for (j=0; j<2; j++) {
-            mode_preset = (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[smp_preset->group][j]]];
+        mode_preset = (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[smp_preset->group]]];
 
-            if (((vm_in->timings.v_total == smp_preset->timings_i.v_total) && (vm_in->timings.v_total == mode_preset->timings.v_total)) &&
-                ((!vm_in->timings.h_total || (vm_in->timings.h_total == smp_preset->timings_i.h_total)) && (smp_preset->timings_i.h_total == mode_preset->timings.h_total)) &&
-                (vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
-                (vm_in->timings.h_total || (target_sm_list[smp_preset->group] == smp_preset->sm)))
-            {
-                if (!vm_in->timings.h_active)
-                    vm_in->timings.h_active = smp_preset->timings_i.h_active;
-                if (!vm_in->timings.v_active)
-                    vm_in->timings.v_active = smp_preset->timings_i.v_active;
-                if ((!vm_in->timings.h_synclen) || (!vm_in->timings.h_backporch))
-                    vm_in->timings.h_synclen = smp_preset->timings_i.h_synclen;
-                if (!vm_in->timings.v_synclen)
-                    vm_in->timings.v_synclen = smp_preset->timings_i.v_synclen;
-                if (!vm_in->timings.h_backporch)
-                    vm_in->timings.h_backporch = smp_preset->timings_i.h_backporch;
-                if (!vm_in->timings.v_backporch)
-                    vm_in->timings.v_backporch = smp_preset->timings_i.v_backporch;
-                vm_in->timings.h_total = smp_preset->timings_i.h_total;
-                vm_in->timings.h_total_adj = smp_preset->timings_i.h_total_adj;
-                vm_in->sampler_phase = smp_preset->sampler_phase;
-                vm_in->type = smp_preset->type;
-                if (vm_in->name[0] == 0)
-                    strncpy(vm_in->name, smp_preset->name, 14);
+        if (((vm_in->timings.v_total == smp_preset->timings_i.v_total) && (vm_in->timings.v_total == mode_preset->timings.v_total)) &&
+            ((!vm_in->timings.h_total || (vm_in->timings.h_total == smp_preset->timings_i.h_total)) && (smp_preset->timings_i.h_total == mode_preset->timings.h_total)) &&
+            (vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
+            (vm_in->timings.h_total || (target_sm_list[smp_preset->group] == smp_preset->sm)))
+        {
+            if (!vm_in->timings.h_active)
+                vm_in->timings.h_active = smp_preset->timings_i.h_active;
+            if (!vm_in->timings.v_active)
+                vm_in->timings.v_active = smp_preset->timings_i.v_active;
+            if ((!vm_in->timings.h_synclen) || (!vm_in->timings.h_backporch))
+                vm_in->timings.h_synclen = smp_preset->timings_i.h_synclen;
+            if (!vm_in->timings.v_synclen)
+                vm_in->timings.v_synclen = smp_preset->timings_i.v_synclen;
+            if (!vm_in->timings.h_backporch)
+                vm_in->timings.h_backporch = smp_preset->timings_i.h_backporch;
+            if (!vm_in->timings.v_backporch)
+                vm_in->timings.v_backporch = smp_preset->timings_i.v_backporch;
+            vm_in->timings.h_total = smp_preset->timings_i.h_total;
+            vm_in->timings.h_total_adj = smp_preset->timings_i.h_total_adj;
+            vm_in->sampler_phase = smp_preset->sampler_phase;
+            vm_in->type = smp_preset->type;
+            if (vm_in->name[0] == 0)
+                strncpy(vm_in->name, smp_preset->name, 14);
 
-                memcpy(vm_out, mode_preset, sizeof(mode_data_t));
-                memset(&vm_out->si_ms_conf, 0, sizeof(si5351_ms_config_t));
+            memcpy(vm_out, mode_preset, sizeof(mode_data_t));
+            memset(&vm_out->si_ms_conf, 0, sizeof(si5351_ms_config_t));
 
-                if (vm_in->timings.interlaced && !mode_preset->timings.interlaced) {
-                    vm_out->si_pclk_mult = 2;
-                } else if (vm_in->timings.interlaced && !mode_preset->timings.interlaced) {
-                    vm_out->si_pclk_mult = 1;
-                    vm_out->si_ms_conf.outdiv = 1;
-                } else {
-                    vm_out->si_pclk_mult = 1;
-                }
-
-                return 1;
+            if (vm_in->timings.interlaced && !mode_preset->timings.interlaced) {
+                vm_out->si_pclk_mult = 2;
+            } else if (vm_in->timings.interlaced && !mode_preset->timings.interlaced) {
+                vm_out->si_pclk_mult = 1;
+                vm_out->si_ms_conf.outdiv = 1;
+            } else {
+                vm_out->si_pclk_mult = 1;
             }
+
+            return 1;
         }
     }
 
@@ -214,7 +212,7 @@ int get_framelock_config(mode_data_t *vm_in, ad_mode_id_t target_ad_id_list[][2]
 
 int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf, int *framelock)
 {
-    int i, diff_lines, mindiff_id=0, mindiff_lines=1000, gen_width_limit=0;
+    int i, mode_hz_index, diff_lines, mindiff_id=0, mindiff_lines=1000, gen_width_limit=0;
     mode_data_t *freerun_preset = NULL;
     ad_mode_data_t *ad_preset;
     smp_preset_t *smp_preset;
@@ -222,15 +220,16 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
     avconfig_t* cc = get_current_avconfig();
     memset(vm_out, 0, sizeof(mode_data_t));
 
-    const ad_mode_id_t pm_scl_map[][2] = {{-1, ADMODE_480p},
-                                         {ADMODE_576p, -1},
-                                         {ADMODE_720p_50, ADMODE_720p_60},
-                                         {-1, ADMODE_1280x1024_60},
-                                         {ADMODE_1080p_50_CR, ADMODE_1080p_60_LB},
-                                         {-1, ADMODE_1600x1200_60},
-                                         {ADMODE_1920x1200_50, ADMODE_1920x1200_60},
-                                         {ADMODE_1920x1440_50, ADMODE_1920x1440_60},
-                                         {ADMODE_2560x1440_50, ADMODE_2560x1440_60}};
+    // {50Hz, 60Hz, 100Hz, 120Hz} id array for each output resolution
+    const ad_mode_id_t pm_scl_map[][4] = {{-1, ADMODE_480p, -1, -1},
+                                         {ADMODE_576p, -1, -1, -1},
+                                         {ADMODE_720p_50, ADMODE_720p_60, ADMODE_720p_100, ADMODE_720p_120},
+                                         {-1, ADMODE_1280x1024_60, -1, -1},
+                                         {ADMODE_1080p_50_CR, ADMODE_1080p_60_LB, ADMODE_1080p_100, ADMODE_1080p_120},
+                                         {-1, ADMODE_1600x1200_60, -1, -1},
+                                         {ADMODE_1920x1200_50, ADMODE_1920x1200_60, -1, -1},
+                                         {ADMODE_1920x1440_50, ADMODE_1920x1440_60, -1, -1},
+                                         {ADMODE_2560x1440_50, ADMODE_2560x1440_60, -1, -1}};
 
     const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
                                           SM_OPT_SNES_256COL, SM_OPT_SNES_512COL,
@@ -248,10 +247,24 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
                                 {8, 7},
                                 {0, 0}};
 
-    ad_mode_id_t target_ad_id_list[9][2];
+    if (vm_in->timings.v_hz_max < 55)
+        mode_hz_index = 0;
+    else if (vm_in->timings.v_hz_max < 75)
+        mode_hz_index = 1;
+    else if (vm_in->timings.v_hz_max < 110)
+        mode_hz_index = 2;
+    else
+        mode_hz_index = 3;
+
+    if ((cc->scl_framelock == SCL_FL_ON_2X) && (mode_hz_index < 2))
+        mode_hz_index += 2;
+    else if ((cc->scl_framelock >= SCL_FL_OFF_50HZ) && (pm_scl_map[cc->scl_out_mode][cc->scl_framelock-SCL_FL_OFF_50HZ] != (ad_mode_id_t)-1))
+        mode_hz_index = cc->scl_framelock-SCL_FL_OFF_50HZ;
+
+    ad_mode_id_t target_ad_id_list[9];
     for (i=0; i<9; i++) {
-        target_ad_id_list[i][0] = pm_scl_map[cc->scl_out_mode][0];
-        target_ad_id_list[i][1] = pm_scl_map[cc->scl_out_mode][1];
+        target_ad_id_list[i] = pm_scl_map[cc->scl_out_mode][mode_hz_index];
+        target_ad_id_list[i] = pm_scl_map[cc->scl_out_mode][mode_hz_index];
     }
 
 
@@ -265,21 +278,25 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *v
                                     sm_576p_map[cc->sm_scl_576p],           // GROUP_576P
                                     SM_OPT_PC_HDTV};                        // GROUP_1080I
 
-    if (cc->scl_framelock == SCL_FL_ON) {
-        if (get_framelock_config(vm_in, target_ad_id_list, target_sm_list, vm_out, &ad_preset) < 0)
-            freerun_preset = (target_ad_id_list[0][0] != (ad_mode_id_t)-1) ? (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][0]]] : (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][1]]];
-        else
-            h_skip = smp_presets_default[ad_preset->smp_preset_id].h_skip;
-    } else if (cc->scl_framelock == SCL_FL_OFF_50HZ) {
-        freerun_preset = (target_ad_id_list[0][0] != (ad_mode_id_t)-1) ? (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][0]]] : (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][1]]];
-    } else if (cc->scl_framelock == SCL_FL_OFF_60HZ) {
-        freerun_preset = (target_ad_id_list[0][1] != (ad_mode_id_t)-1) ? (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][1]]] : (mode_data_t*)&video_modes_default[ad_mode_id_map[target_ad_id_list[0][0]]];
-    }
-
-    if (!freerun_preset) {
+    if ((cc->scl_framelock <= SCL_FL_ON_2X) && (get_framelock_config(vm_in, target_ad_id_list, target_sm_list, vm_out, &ad_preset) >= 0)) {
         *framelock = 1;
+        h_skip = smp_presets_default[ad_preset->smp_preset_id].h_skip;
     } else {
         *framelock = 0;
+    }
+
+    if (*framelock == 0) {
+        // Use lowest available vertical frequency if preferred is not available
+        if (pm_scl_map[cc->scl_out_mode][mode_hz_index] == (ad_mode_id_t)-1) {
+            for (i=0; i<4; i++) {
+                if (pm_scl_map[cc->scl_out_mode][i] != (ad_mode_id_t)-1) {
+                    mode_hz_index = i;
+                    break;
+                }
+            }
+        }
+
+        freerun_preset = (mode_data_t*)&video_modes_default[ad_mode_id_map[pm_scl_map[cc->scl_out_mode][mode_hz_index]]];
 
         if (cc->scl_aspect < 4) {
             gen_width_limit = (aspect_map[cc->scl_aspect][0]*freerun_preset->timings.v_active)/aspect_map[cc->scl_aspect][1];
@@ -393,15 +410,15 @@ int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config
     const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VGA480P60};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3};
 
-    ad_mode_id_t target_ad_id_list[][2] = { {-1, -1},
-                                            {pm_ad_240p_map[cc->pm_ad_240p], -1},
-                                            {pm_ad_288p_map[cc->pm_ad_288p], -1},
-                                            {-1, -1},
-                                            {pm_ad_480i_map[cc->pm_ad_480i], -1},
-                                            {pm_ad_576i_map[cc->pm_ad_576i], -1},
-                                            {pm_ad_480p_map[cc->pm_ad_480p], -1},
-                                            {pm_ad_576p_map[cc->pm_ad_576p], -1},
-                                            {-1, -1}};
+    ad_mode_id_t target_ad_id_list[] = { -1,                                // GROUP_NONE
+                                         pm_ad_240p_map[cc->pm_ad_240p],    // GROUP_240P
+                                         pm_ad_288p_map[cc->pm_ad_288p],    // GROUP_288P
+                                         -1,                                // GROUP_384P
+                                         pm_ad_480i_map[cc->pm_ad_480i],    // GROUP_480I
+                                         pm_ad_576i_map[cc->pm_ad_576i],    // GROUP_576I
+                                         pm_ad_480p_map[cc->pm_ad_480p],    // GROUP_480P
+                                         pm_ad_576p_map[cc->pm_ad_576p],    // GROUP_576P
+                                         -1};                               // GROUP_1080I
 
     smp_mode_t target_sm_list[] = { -1,                                     // GROUP_NONE
                                     sm_240p_288p_map[cc->sm_ad_240p_288p],  // GROUP_240P

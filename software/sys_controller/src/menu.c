@@ -101,7 +101,7 @@ static const char *av3_alt_rgb_desc[] = { "Off", "AV1", "AV2" };
 static const char *adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char *oper_mode_desc[] = { "Pure LM", "Adaptive LM", "Scaler" };
 static const char *scl_out_mode_desc[] = { "720x480 (60Hz)", "720x576 (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)" };
-static const char *scl_framelock_desc[] = { "On", "Off (50Hz)", "Off (60Hz)" };
+static const char *scl_framelock_desc[] = { "On", "On (2x Hz)", "Off (closest Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
 static const char *scl_aspect_desc[] = { "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
 static const char *scl_alg_desc[] = { "Nearest", "Lanczos3" };
 #ifdef DEBUG

@@ -61,7 +61,10 @@ const mode_data_t video_modes_default[] = {
     { "800x600_60",    HDMI_Unknown,     { 800,  600,   65,  1056, 0,  628,   88, 23,  128, 4,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },
     /* CEA 720p modes */
     { "720p_50",       HDMI_720p50,      {1280,  720,   55,  1980, 0,  750,  220, 20,   40, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3712, 0, 1, 1024, 0, 1, 0, 0, 0} },
-    { "720p_60",       HDMI_720p60,      {1280,  720,    0,  1650, 0,  750,  220, 20,   40, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3712, 0, 1, 1024, 0, 1, 0, 0, 0} },
+    { "720p_60",       HDMI_720p60,      {1280,  720,   65,  1650, 0,  750,  220, 20,   40, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3712, 0, 1, 1024, 0, 1, 0, 0, 0} },
+    /* 720p 100/120Hz (CVT-RB) */
+    { "720p_100",      HDMI_Unknown,     {1280,  720,  110,  1440, 0,  755,   80, 27,   32, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3731, 40, 72, 544, 0, 4, 0, 0, 0} },
+    { "720p_120",      HDMI_Unknown,     {1280,  720,    0,  1440, 0,  763,   80, 35,   32, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3235, 10, 18, 256, 0, 1, 0, 0, 0} },
     /* VESA XGA,1280x960 and SXGA modes */
     { "1024x768_60",   HDMI_Unknown,     {1024,  768,   65,  1344, 0,  806,  160, 29,  136, 6,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },
     { "1280x960_60",   HDMI_Unknown,     {1280,  960,   65,  1800, 0, 1000,  312, 36,  112, 3,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  4, {0} },
@@ -73,8 +76,9 @@ const mode_data_t video_modes_default[] = {
     { "1080i_60",      HDMI_1080i60,     {1920,  540,    0,  2200, 0, 1125,  148, 15,   44, 5,  1},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  (MODE_PT | MODE_L2),                                                      TX_1X, TX_1X,  0, {3712, 0, 1, 1024, 0, 1, 0, 0, 0} },
     { "1080p_50",      HDMI_1080p50,     {1920, 1080,   55,  2640, 0, 1125,  148, 36,   44, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3712, 0, 1, 256, 0, 1, 0, 0, 0} },
     { "1080p_60",      HDMI_1080p60,     {1920, 1080,   65,  2200, 0, 1125,  148, 36,   44, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3712, 0, 1, 256, 0, 1, 0, 0, 0} },
-    /* 1080p @ 120Hz (CVT-RB) with pixelrep */
-    { "1080p_120",     HDMI_Unknown,     {960 , 1080,    0,  1040, 0, 1144,   40, 36,   28, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_2X, TX_1X,  0, {3544, 32, 36, 256, 0, 1, 0, 0, 0} },
+    /* 1080p 100/120Hz (CVT-RB) */
+    { "1080p_100",     HDMI_Unknown,     {1920, 1080,  110,  2080, 0, 1133,   80, 45,   32, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3953, 7, 9, 0, 0, 1, 0, 0, 3} },
+    { "1080p_120",     HDMI_Unknown,     {1920, 1080,    0,  2080, 0, 1144,   80, 56,   32, 5,  0},  DEFAULT_SAMPLER_PHASE,  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {4901, 25, 27, 0, 0, 1, 0, 0, 3} },
     /* VESA UXGA mode */
     { "1600x1200_60",  HDMI_Unknown,     {1600, 1200,   65,  2160, 0, 1250,  304, 46,  192, 3,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  6, {0} },
     /* CVT 1920x1200 modes (60Hz with reduced blanking) */
@@ -256,9 +260,11 @@ const ad_mode_data_t adaptive_modes[] = {
 
     /* Generic 525-line interlace modes */
     { ADMODE_240p,                       SMPPRESET_GEN_720x480i, 525,  0, 0,  0, 0,  {8015,   127,   175,  8032, 0, 4,  0, 0, 0} },
+    { ADMODE_720p_120,                   SMPPRESET_GEN_1280x480i,525,  0, 0,  0, 0,  {3609,    67,   325,   256, 0, 1,  0, 0, 0} },
     { ADMODE_1280x1024_60,               SMPPRESET_GEN_1280x480i,525,  0, 3,  0, 0,  {4128,   608,  2625,   544, 0, 4,  0, 0, 0} },
     { ADMODE_1080i_60_LB,                SMPPRESET_GEN_1280x480i,525,  0, 1,  0, 0,  {4129,    69,    91,  1024, 0, 1,  0, 0, 0} },
     { ADMODE_1080p_60_LB,                SMPPRESET_GEN_1280x480i,525,  0, 3,  0, 0,  {4129,    69,    91,   256, 0, 1,  0, 0, 0} },
+    { ADMODE_1080p_120,                  SMPPRESET_GEN_1280x480i,525,  0, 0,  0, 0,  {5438,   398,  1575,     0, 0, 1,  0, 0, 3} },
     { ADMODE_1920x1440_60,               SMPPRESET_GEN_1920x480i,525,  0, 5,  0, 0,  {2055,  3277,  4725,     0, 0, 1,  0, 0, 3} },
     { ADMODE_2560x1440_60,               SMPPRESET_GEN_1920x480i,525,  0, 5,  0, 0,  {2845, 46259, 61425,     0, 0, 1,  0, 0, 3} },
 
@@ -531,12 +537,16 @@ const stdmode_t ad_mode_id_map[] = {STDMODE_240p,
                                     STDMODE_576p,
                                     STDMODE_720p_50,
                                     STDMODE_720p_60,
+                                    STDMODE_720p_100,
+                                    STDMODE_720p_120,
                                     STDMODE_1280x1024_60,
                                     STDMODE_1080i_50,
                                     STDMODE_1080i_60,
                                     STDMODE_1080p_50,
                                     STDMODE_1080p_60,
                                     STDMODE_1080p_60,
+                                    STDMODE_1080p_100,
+                                    STDMODE_1080p_120,
                                     STDMODE_1600x1200_60,
                                     STDMODE_1920x1200_50,
                                     STDMODE_1920x1200_60,
