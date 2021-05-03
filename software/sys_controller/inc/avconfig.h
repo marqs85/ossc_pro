@@ -147,18 +147,18 @@ typedef struct {
     uint8_t reverse_lpf;
     uint8_t default_vic;
     uint8_t audio_fmt;
+#ifdef VIP
     uint8_t scl_out_mode;
     uint8_t scl_framelock;
     uint8_t scl_aspect;
     uint8_t scl_alg;
     uint8_t scl_dil_alg;
-#ifdef VIP
     uint8_t scl_dil_motion_shift;
-#endif
     uint8_t sm_scl_240p_288p;
     uint8_t sm_scl_480i_576i;
     uint8_t sm_scl_480p;
     uint8_t sm_scl_576p;
+#endif
 #ifdef INC_THS7353
     uint8_t syncmux_stc;
 #endif

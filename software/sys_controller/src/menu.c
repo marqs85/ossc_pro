@@ -240,19 +240,19 @@ MENU(menu_adap_lm, P99_PROTECT({
     { LNG("576p mode","576pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_576p,      OPT_WRAP, SETTING_ITEM(sm_ad_576p_desc) } } },
 }))
 
+#ifdef VIP
 MENU(menu_scaler, P99_PROTECT({
     { "Output resolution",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_out_mode,    OPT_WRAP, SETTING_ITEM(scl_out_mode_desc) } } },
     { "Framelock",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_framelock,   OPT_WRAP, SETTING_ITEM(scl_framelock_desc) } } },
     { "Aspect ratio",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_aspect,      OPT_WRAP, SETTING_ITEM(scl_aspect_desc) } } },
     { "Scaling algorithm",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_alg,         OPT_WRAP, SETTING_ITEM(scl_alg_desc) } } },
     { "Deinterlace mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_dil_alg,     OPT_WRAP, SETTING_ITEM(scl_dil_alg_desc) } } },
-#if defined(VIP) && defined(DEBUG)
     { "Motion shift",                           OPT_AVCONFIG_NUMVALUE, { .num = { &tc.scl_dil_motion_shift,     OPT_NOWRAP, 0, 7, value_disp } } },
-#endif
     { LNG("240p/288p mode","240p/288pﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_240p_288p, OPT_WRAP, SETTING_ITEM(sm_scl_240p_288p_desc) } } },
     { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480i_576i, OPT_WRAP, SETTING_ITEM(sm_scl_480i_576i_desc) } } },
     { LNG("480p mode","480pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480p,      OPT_WRAP, SETTING_ITEM(sm_scl_480p_desc) } } },
 }))
+#endif
 
 MENU(menu_output, P99_PROTECT({
     { "Operating mode",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.oper_mode,       OPT_WRAP, SETTING_ITEM(oper_mode_desc) } } },
@@ -332,7 +332,9 @@ MENU(menu_main, P99_PROTECT({
 #endif
     { "Pure LM opt.       >",                   OPT_SUBMENU,            { .sub = { &menu_pure_lm, NULL, NULL } } },
     { "Adapt. LM opt.     >",                   OPT_SUBMENU,            { .sub = { &menu_adap_lm, NULL, NULL } } },
+#ifdef VIP
     { "Scaler opt.        >",                   OPT_SUBMENU,            { .sub = { &menu_scaler, NULL, NULL } } },
+#endif
     { LNG("Output opt.    >","ｼｭﾂﾘｮｸｵﾌﾟｼｮﾝ  >"),  OPT_SUBMENU,            { .sub = { &menu_output, NULL, NULL } } },
     //{ LNG("Scanline opt.  >","ｽｷｬﾝﾗｲﾝｵﾌﾟｼｮﾝ >"),  OPT_SUBMENU,            { .sub = { &menu_scanlines, NULL, NULL } } },
     //{ LNG("Post-proc.     >","ｱﾄｼｮﾘ         >"),  OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },

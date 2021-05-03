@@ -155,12 +155,14 @@ avinput_t avinput, target_avinput;
 unsigned tp_stdmode_idx, target_tp_stdmode_idx;
 
 mode_data_t vmode_in, vmode_out;
+vm_proc_config_t vm_conf;
 
 char row1[US2066_ROW_LEN+1], row2[US2066_ROW_LEN+1];
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 static const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4", "Last used" };
 
+#ifdef VIP
 typedef struct {
     uint32_t ctrl;
     uint32_t status;
@@ -238,6 +240,7 @@ volatile vip_dli_ii_regs *vip_dli = (volatile vip_dli_ii_regs*)0x00026000;
 volatile vip_scl_ii_regs *vip_scl_nn = (volatile vip_scl_ii_regs*)0x00027000;
 volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)0x00028000;
 volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)0x00029000;
+#endif
 
 
 void ui_disp_menu(uint8_t osd_mode)
@@ -274,7 +277,7 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
     }
 }
 
-void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t *vm_conf, avconfig_t *avconfig)
+void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf, avconfig_t *avconfig)
 {
     hv_config_reg hv_in_config = {.data=0x00000000};
     hv_config2_reg hv_in_config2 = {.data=0x00000000};
@@ -297,8 +300,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     hv_in_config.h_synclen = vm_in->timings.h_synclen;
     hv_in_config2.h_backporch = vm_in->timings.h_backporch;
     hv_in_config2.v_active = vm_in->timings.v_active;
-    hv_in_config3.v_backporch = vm_in->timings.v_backporch;
     hv_in_config3.v_synclen = vm_in->timings.v_synclen;
+    hv_in_config3.v_backporch = vm_in->timings.v_backporch;
     hv_in_config2.interlaced = vm_in->timings.interlaced;
     hv_in_config3.h_skip = vm_conf->h_skip;
     hv_in_config3.h_sample_sel = vm_conf->h_skip / 2; // TODO: fix
@@ -310,8 +313,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     hv_out_config2.h_backporch = vm_out->timings.h_backporch;
     hv_out_config2.v_total = vm_out->timings.v_total;
     hv_out_config2.v_active = vm_out->timings.v_active;
-    hv_out_config3.v_backporch = vm_out->timings.v_backporch;
     hv_out_config3.v_synclen = vm_out->timings.v_synclen;
+    hv_out_config3.v_backporch = vm_out->timings.v_backporch;
     hv_out_config2.interlaced = vm_out->timings.interlaced;
     hv_out_config3.v_startline = vm_conf->framesync_line;
 
@@ -344,6 +347,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
     sc->sl_config = sl_config;
     sc->sl_config2 = sl_config2;
 
+#ifdef VIP
     vip_cvi->ctrl = vip_enable;
     vip_dli->ctrl = vip_enable;
     vip_scl_nn->ctrl = vip_enable;
@@ -361,9 +365,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
         vip_dli->mode = 0;
     }
 
-#ifdef DEBUG
     vip_dli->motion_shift = avconfig->scl_dil_motion_shift;
-#endif
 
     if (avconfig->scl_alg == 0) {
         vip_scl_nn->width = vm_conf->x_size;
@@ -409,6 +411,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_mult_config_t 
         vip_cvo->v_polarity = 0;
         vip_cvo->valid = 1;
     }
+#endif
 }
 
 int init_emif()
@@ -710,6 +713,8 @@ void print_vm_stats() {
         if (!enable_tp) {
             sniprintf((char*)osd->osd_array.data[row][0], OSD_CHAR_COLS, "Input preset:");
             sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%s", vmode_in.name);
+            sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Refresh rate:");
+            sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%u.%.2uHz", vmode_in.timings.v_hz_x100/100, vmode_in.timings.v_hz_x100%100);
             sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V synclen:");
             sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_in.timings.h_synclen, vmode_in.timings.v_synclen);
             sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V backporch:");
@@ -724,6 +729,8 @@ void print_vm_stats() {
 
         sniprintf((char*)osd->osd_array.data[row][0], OSD_CHAR_COLS, "Output mode:");
         sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%s", vmode_out.name);
+        sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Refresh rate:");
+        sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%u.%.2uHz (%s)", vmode_out.timings.v_hz_x100/100, vmode_out.timings.v_hz_x100%100, vm_conf.framelock ? "lock" : "unlock");
         sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V synclen:");
         sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_out.timings.h_synclen, vmode_out.timings.v_synclen);
         sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V backporch:");
@@ -750,16 +757,15 @@ void print_vm_stats() {
 
 void mainloop()
 {
-    int i, man_input_change, framelock;
+    int i, man_input_change;
     char op_status[4];
     oper_mode_t oper_mode;
-    uint32_t pclk_i_hz, pclk_o_hz, dotclk_hz, h_hz, v_hz_x100, pll_h_total, pll_h_total_prev=0;
+    uint32_t pclk_i_hz, pclk_o_hz, dotclk_hz, h_hz, pll_h_total, pll_h_total_prev=0;
     ths_channel_t target_ths_ch;
     ths_input_t target_ths_input;
     isl_input_t target_isl_input=0;
     video_sync target_isl_sync=0;
     video_format target_format=0;
-    vm_mult_config_t vm_conf;
     status_t status;
     avconfig_t *cur_avconfig;
     si5351_clk_src si_clk_src;
@@ -921,14 +927,13 @@ void mainloop()
                     pclk_o_hz = vmode_out.si_pclk_mult*si_dev.xtal_freq;
                 } else {
                     si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, &vmode_out.si_ms_conf);
-                    pclk_o_hz = (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_max ? vmode_out.timings.v_hz_max : 60))/(1+vmode_out.timings.interlaced);
+                    pclk_o_hz = (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_x100/100))>>vmode_out.timings.interlaced;
                 }
 
                 update_osd_size(&vmode_out);
                 update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
-                //sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c @ %uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : '\0', vmode_out.timings.v_hz_max);
                 sniprintf(row2, US2066_ROW_LEN+1, "Test: %s", vmode_out.name);
                 ui_disp_status(1);
 
@@ -952,6 +957,7 @@ void mainloop()
 
             if (isl_dev.sync_active) {
                 if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status2.pcnt_frame) || (status == MODE_CHANGE)) {
+                    memset(&vmode_in, 0, sizeof(mode_data_t));
 
 #ifdef ISL_MEAS_HZ
                     if (isl_dev.sm.h_period_x16 > 0)
@@ -959,17 +965,15 @@ void mainloop()
                     else
                         h_hz = 0;
                     if ((isl_dev.sm.h_period_x16 > 0) && (isl_dev.ss.v_total > 0))
-                        v_hz_x100 = (16*5*isl_dev.xtal_freq)/((isl_dev.sm.h_period_x16 * isl_dev.ss.v_total) / (100/5));
+                        vmode_in.timings.v_hz_x100 = (16*5*isl_dev.xtal_freq)/((isl_dev.sm.h_period_x16 * isl_dev.ss.v_total) / (100/5));
                     else
-                        v_hz_x100 = 0;
+                        vmode_in.timings.v_hz_x100 = 0;
 #else
-                    v_hz_x100 = (100*27000000UL)/isl_dev.ss.pcnt_frame;
+                    vmode_in.timings.v_hz_x100 = (100*27000000UL)/isl_dev.ss.pcnt_frame;
                     h_hz = (100*27000000UL)/((100*isl_dev.ss.pcnt_frame*(1+isl_dev.ss.interlace_flag))/isl_dev.ss.v_total);
 #endif
 
-                    memset(&vmode_in, 0, sizeof(mode_data_t));
                     vmode_in.timings.h_synclen = isl_dev.sm.h_synclen_x16 / 16;
-                    vmode_in.timings.v_hz_max = (v_hz_x100+50)/100;
                     vmode_in.timings.v_total = isl_dev.ss.v_total;
                     vmode_in.timings.interlaced = isl_dev.ss.interlace_flag;
 
@@ -980,38 +984,39 @@ void mainloop()
                         if (oper_mode == OPERMODE_INVALID)
                             oper_mode = (get_pure_lm_mode(&vmode_in, &vmode_out, &vm_conf) == 0) ? OPERMODE_PURE_LM : OPERMODE_INVALID;
                     } else {
-                        oper_mode = (get_scaler_mode(&vmode_in, &vmode_out, &vm_conf, &framelock) == 0) ? OPERMODE_SCALER : OPERMODE_INVALID;
+#ifdef VIP
+                        oper_mode = (get_scaler_mode(&vmode_in, &vmode_out, &vm_conf) == 0) ? OPERMODE_SCALER : OPERMODE_INVALID;
+#else
+                        oper_mode = OPERMODE_INVALID;
+#endif
                     }
 
-                    if (oper_mode == OPERMODE_PURE_LM) {
+                    if (oper_mode == OPERMODE_PURE_LM)
                         sniprintf(op_status, 4, "x%u", (int8_t)vm_conf.y_rpt+1);
-                        framelock = 1;
-                    } else if (oper_mode == OPERMODE_ADAPT_LM) {
+                    else if (oper_mode == OPERMODE_ADAPT_LM)
                         sniprintf(op_status, 4, "x%ua", (int8_t)vm_conf.y_rpt+1);
-                        framelock = 1;
-                    } else if (oper_mode == OPERMODE_SCALER) {
+                    else if (oper_mode == OPERMODE_SCALER)
                         sniprintf(op_status, 4, "SCL");
-                    }
 
                     if (oper_mode != OPERMODE_INVALID) {
                         printf("\nInput: %s -> Output: %s (opermode %d)\n", vmode_in.name, vmode_out.name, oper_mode);
 
                         sniprintf(row1, US2066_ROW_LEN+1, "%-9s %4u-%c %s", avinput_str[avinput], isl_dev.ss.v_total, isl_dev.ss.interlace_flag ? 'i' : 'p', op_status);
-                        sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
-                                                                                            (v_hz_x100/100),
-                                                                                            (v_hz_x100%100),
+                        sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %u.%.2uHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
+                                                                                            (vmode_in.timings.v_hz_x100/100),
+                                                                                            (vmode_in.timings.v_hz_x100%100),
                                                                                             isl_dev.ss.h_polarity ? '-' : '+',
                                                                                             (target_isl_sync == SYNC_HV) ? (isl_dev.ss.v_polarity ? '-' : '+') : (isl_dev.ss.sog_trilevel ? '3' : ' '));
                         ui_disp_status(1);
 
                         pll_h_total = (vm_conf.h_skip+1) * vmode_in.timings.h_total + (((vm_conf.h_skip+1) * vmode_in.timings.h_total_adj * 5 + 50) / 100);
 
-                        si_clk_src = framelock ? SI_CLKIN : SI_XTAL;
+                        si_clk_src = vm_conf.framelock ? SI_CLKIN : SI_XTAL;
                         pclk_i_hz = h_hz * pll_h_total;
                         dotclk_hz = estimate_dotclk(&vmode_in, h_hz);
-                        pclk_o_hz = vmode_out.si_pclk_mult ? vmode_out.si_pclk_mult*((si_clk_src == SI_CLKIN) ? pclk_i_hz : si_dev.xtal_freq) : (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_max ? vmode_out.timings.v_hz_max : 60))/(1+vmode_out.timings.interlaced);
-                        printf("H: %u.%.2ukHz V: %u.%.2uHz\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10, (v_hz_x100/100), (v_hz_x100%100));
-                        printf("Estimated source dot clock: %lu.%.2uMHz\n", (dotclk_hz+5000)/1000000, ((dotclk_hz+5000)%1000000)/10000);
+                        pclk_o_hz = vmode_out.si_pclk_mult ? vmode_out.si_pclk_mult*((si_clk_src == SI_CLKIN) ? pclk_i_hz : si_dev.xtal_freq) : (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_x100/100))>>vmode_out.timings.interlaced;
+                        printf("H: %lu.%.2lukHz V: %u.%.2uHz\n", (h_hz+5)/1000, ((h_hz+5)%1000)/10, (vmode_in.timings.v_hz_x100/100), (vmode_in.timings.v_hz_x100%100));
+                        printf("Estimated source dot clock: %lu.%.2luMHz\n", (dotclk_hz+5000)/1000000, ((dotclk_hz+5000)%1000000)/10000);
                         printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_i_hz, pclk_o_hz);
 
                         // CEA-770.3 HDTV modes use tri-level syncs which have twice the width of bi-level syncs of corresponding CEA-861 modes
@@ -1037,7 +1042,7 @@ void mainloop()
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, si_clk_src, pclk_i_hz, vmode_out.si_pclk_mult, vmode_out.si_ms_conf.outdiv);
 
-                        if (framelock)
+                        if (vm_conf.framelock)
                             sys_ctrl |= SCTRL_FRAMELOCK;
                         else
                             sys_ctrl &= ~SCTRL_FRAMELOCK;
@@ -1086,17 +1091,17 @@ void mainloop()
 
             if (advrx_dev.sync_active) {
                 if (adv761x_get_sync_stats(&advrx_dev) || (status == MODE_CHANGE)) {
+                    memset(&vmode_in, 0, sizeof(mode_data_t));
+
                     h_hz = advrx_dev.pclk_hz/advrx_dev.ss.h_total;
-                    v_hz_x100 = (((h_hz*10000)/advrx_dev.ss.v_total)+50)/100;
+                    vmode_in.timings.v_hz_x100 = (((h_hz*10000)/advrx_dev.ss.v_total)+50)/100;
 
                     if (advrx_dev.ss.interlace_flag)
-                        v_hz_x100 *= 2;
+                        vmode_in.timings.v_hz_x100 *= 2;
 
-                    memset(&vmode_in, 0, sizeof(mode_data_t));
                     sniprintf(vmode_in.name, 14, "%ux%u%c", advrx_dev.ss.h_active, (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active;
                     vmode_in.timings.v_active = advrx_dev.ss.v_active;
-                    vmode_in.timings.v_hz_max = (v_hz_x100+50)/100;
                     vmode_in.timings.h_total = advrx_dev.ss.h_total;
                     vmode_in.timings.v_total = advrx_dev.ss.v_total;
                     vmode_in.timings.h_backporch = advrx_dev.ss.h_backporch;
@@ -1113,34 +1118,35 @@ void mainloop()
                         if (oper_mode == OPERMODE_INVALID)
                             oper_mode = (get_pure_lm_mode(&vmode_in, &vmode_out, &vm_conf) == 0) ? OPERMODE_PURE_LM : OPERMODE_INVALID;
                     } else {
-                        oper_mode = (get_scaler_mode(&vmode_in, &vmode_out, &vm_conf, &framelock) == 0) ? OPERMODE_SCALER : OPERMODE_INVALID;
+#ifdef VIP
+                        oper_mode = (get_scaler_mode(&vmode_in, &vmode_out, &vm_conf) == 0) ? OPERMODE_SCALER : OPERMODE_INVALID;
+#else
+                        oper_mode = OPERMODE_INVALID;
+#endif
                     }
 
-                    if (oper_mode == OPERMODE_PURE_LM) {
+                    if (oper_mode == OPERMODE_PURE_LM)
                         sniprintf(op_status, 4, "x%u", (int8_t)vm_conf.y_rpt+1);
-                        framelock = 1;
-                    } else if (oper_mode == OPERMODE_ADAPT_LM) {
+                    else if (oper_mode == OPERMODE_ADAPT_LM)
                         sniprintf(op_status, 4, "x%ua", (int8_t)vm_conf.y_rpt+1);
-                        framelock = 1;
-                    } else if (oper_mode == OPERMODE_SCALER) {
+                    else if (oper_mode == OPERMODE_SCALER)
                         sniprintf(op_status, 4, "SCL");
-                    }
 
                     if (oper_mode != OPERMODE_INVALID) {
                         printf("\nInput: %s -> Output: %s (opermode %d)\n", vmode_in.name, vmode_out.name, oper_mode);
 
                         sniprintf(row1, US2066_ROW_LEN+1, "%s %s %s", avinput_str[avinput], vmode_in.name, op_status);
-                        sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %lu.%.2luHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
-                                                                                            (v_hz_x100/100),
-                                                                                            (v_hz_x100%100),
+                        sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %u.%.2uHz %c%c", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
+                                                                                            (vmode_in.timings.v_hz_x100/100),
+                                                                                            (vmode_in.timings.v_hz_x100%100),
                                                                                             advrx_dev.ss.h_polarity ? '+' : '-',
                                                                                             advrx_dev.ss.v_polarity ? '+' : '-');
                         ui_disp_status(1);
 
-                        si_clk_src = framelock ? SI_CLKIN : SI_XTAL;
+                        si_clk_src = vm_conf.framelock ? SI_CLKIN : SI_XTAL;
                         pclk_i_hz = h_hz * advrx_dev.ss.h_total;
-                        pclk_o_hz = vmode_out.si_pclk_mult ? vmode_out.si_pclk_mult*((si_clk_src == SI_CLKIN) ? pclk_i_hz : si_dev.xtal_freq) : (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_max ? vmode_out.timings.v_hz_max : 60))/(1+vmode_out.timings.interlaced);
-                        printf("H: %u.%.2ukHz V: %u.%.2uHz PCLK_IN: %luHz\n\n", h_hz/1000, (((h_hz%1000)+5)/10), (v_hz_x100/100), (v_hz_x100%100), pclk_i_hz);
+                        pclk_o_hz = vmode_out.si_pclk_mult ? vmode_out.si_pclk_mult*((si_clk_src == SI_CLKIN) ? pclk_i_hz : si_dev.xtal_freq) : (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_x100/100))>>vmode_out.timings.interlaced;
+                        printf("H: %u.%.2ukHz V: %u.%.2uHz PCLK_IN: %luHz\n\n", h_hz/1000, (((h_hz%1000)+5)/10), (vmode_in.timings.v_hz_x100/100), (vmode_in.timings.v_hz_x100%100), pclk_i_hz);
 
                         // Setup Si5351
                         if (vmode_out.si_pclk_mult == 0)
@@ -1148,7 +1154,7 @@ void mainloop()
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, si_clk_src, pclk_i_hz, vmode_out.si_pclk_mult, vmode_out.si_ms_conf.outdiv);
 
-                        if (framelock)
+                        if (vm_conf.framelock)
                             sys_ctrl |= SCTRL_FRAMELOCK;
                         else
                             sys_ctrl &= ~SCTRL_FRAMELOCK;
@@ -1255,6 +1261,7 @@ int main()
 
         mainloop();
 
+#ifdef VIP
         // Disable VIP on powerdown
         vip_cvi->ctrl = 0;
         vip_dli->ctrl = 0;
@@ -1262,5 +1269,6 @@ int main()
         vip_scl_pp->ctrl = 0;
         vip_fb->ctrl = 0;
         vip_cvo->ctrl = 0;
+#endif
     }
 }

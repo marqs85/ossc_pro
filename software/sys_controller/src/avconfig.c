@@ -43,13 +43,13 @@ const avconfig_t tc_default = {
     .pm_ad_576p = 0,
     .sl_altern = 1,
     .oper_mode = 1,
+#ifdef VIP
     .scl_out_mode = 4,
     .scl_alg = 1,
     .scl_dil_alg = 2,
-#ifdef VIP
     .scl_dil_motion_shift = 3,
-#endif
     .sm_scl_480p = 1,
+#endif
 #ifndef DExx_FW
     .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL},
 #else
@@ -103,11 +103,11 @@ status_t update_avconfig() {
         (tc.reverse_lpf != cc.reverse_lpf) ||
         (tc.lm_deint_mode != cc.lm_deint_mode) ||
         (tc.nir_even_offset != cc.nir_even_offset) ||
-        (tc.ypbpr_cs != cc.ypbpr_cs) ||
-        (tc.scl_alg != cc.scl_alg) ||
-        (tc.scl_dil_alg != cc.scl_dil_alg)
+        (tc.ypbpr_cs != cc.ypbpr_cs)
 #ifdef VIP
-        || (tc.scl_dil_motion_shift != cc.scl_dil_motion_shift)
+        || (tc.scl_alg != cc.scl_alg) ||
+        (tc.scl_dil_alg != cc.scl_dil_alg) ||
+        (tc.scl_dil_motion_shift != cc.scl_dil_motion_shift)
 #endif
        )
         status = (status < SC_CONFIG_CHANGE) ? SC_CONFIG_CHANGE : status;
@@ -134,14 +134,17 @@ status_t update_avconfig() {
         (tc.sm_ad_576p != cc.sm_ad_576p) ||
         (tc.oper_mode != cc.oper_mode) ||
         (tc.upsample2x != cc.upsample2x) ||
-        (tc.default_vic != cc.default_vic) ||
-        (tc.scl_out_mode != cc.scl_out_mode) ||
+        (tc.default_vic != cc.default_vic)
+#ifdef VIP
+        || (tc.scl_out_mode != cc.scl_out_mode) ||
         (tc.scl_framelock != cc.scl_framelock) ||
         (tc.scl_aspect != cc.scl_aspect) ||
         (tc.sm_scl_240p_288p != cc.sm_scl_240p_288p) ||
         (tc.sm_scl_480i_576i != cc.sm_scl_480i_576i) ||
         (tc.sm_scl_480p != cc.sm_scl_480p) ||
-        (tc.sm_scl_576p != cc.sm_scl_576p))
+        (tc.sm_scl_576p != cc.sm_scl_576p)
+#endif
+        )
         status = (status < MODE_CHANGE) ? MODE_CHANGE : status;
 
 #ifndef DExx_FW
