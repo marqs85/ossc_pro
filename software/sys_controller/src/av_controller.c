@@ -163,6 +163,16 @@ extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 static const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4", "Last used" };
 
 #ifdef VIP
+#include "scl_pp_coeffs.c"
+
+const pp_coeff* scl_pp_coeff_list[][2] = {{&pp_coeff_nearest, NULL},
+                                          {&pp_coeff_lanczos3, NULL},
+                                          {&pp_coeff_lanczos4, NULL},
+                                          {&pp_coeff_lanczos2, &pp_coeff_lanczos3},
+                                          {&pp_coeff_lanczos3, &pp_coeff_lanczos4},
+                                          {&pp_coeff_sl_sharp, NULL}};
+int scl_loaded_pp_coeff = -1;
+
 typedef struct {
     uint32_t ctrl;
     uint32_t status;
@@ -216,6 +226,15 @@ typedef struct {
     uint32_t irq;
     uint32_t width;
     uint32_t height;
+    uint32_t edge_thold;
+    uint32_t reserved[2];
+    uint32_t h_coeff_wbank;
+    uint32_t h_coeff_rbank;
+    uint32_t v_coeff_wbank;
+    uint32_t v_coeff_rbank;
+    uint32_t h_phase;
+    uint32_t v_phase;
+    int32_t coeff_data[4];
 } vip_scl_ii_regs;
 
 typedef struct {
@@ -237,8 +256,7 @@ typedef struct {
 volatile vip_cvi_ii_regs *vip_cvi = (volatile vip_cvi_ii_regs*)0x00024000;
 volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)0x00025000;
 volatile vip_dli_ii_regs *vip_dli = (volatile vip_dli_ii_regs*)0x00026000;
-volatile vip_scl_ii_regs *vip_scl_nn = (volatile vip_scl_ii_regs*)0x00027000;
-volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)0x00028000;
+volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)0x00027000;
 volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)0x00029000;
 #endif
 
@@ -279,6 +297,8 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
 
 void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf, avconfig_t *avconfig)
 {
+    int vip_enable, scl_ea, p, t;
+
     hv_config_reg hv_in_config = {.data=0x00000000};
     hv_config2_reg hv_in_config2 = {.data=0x00000000};
     hv_config3_reg hv_in_config3 = {.data=0x00000000};
@@ -291,7 +311,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     sl_config_reg sl_config = {.data=0x00000000};
     sl_config2_reg sl_config2 = {.data=0x00000000};
 
-    int vip_enable = (avconfig->oper_mode == OPERMODE_SCALER);
+    vip_enable = (avconfig->oper_mode == OPERMODE_SCALER);
     uint32_t h_blank, v_blank, h_frontporch, v_frontporch;
 
     // Set input params
@@ -350,10 +370,15 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 #ifdef VIP
     vip_cvi->ctrl = vip_enable;
     vip_dli->ctrl = vip_enable;
-    vip_scl_nn->ctrl = vip_enable;
-    vip_scl_pp->ctrl = vip_enable;
+    scl_ea = !!scl_pp_coeff_list[avconfig->scl_alg][1];
+    vip_scl_pp->ctrl = vip_enable ? (scl_ea<<1)|1 : 0;
     vip_fb->ctrl = vip_enable;
     vip_cvo->ctrl = vip_enable;
+
+    if (!vip_enable) {
+        scl_loaded_pp_coeff = -1;
+        return;
+    }
 
     if (avconfig->scl_dil_alg == 0) {
         vip_dli->mode = (1<<1);
@@ -367,18 +392,36 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
     vip_dli->motion_shift = avconfig->scl_dil_motion_shift;
 
-    if (avconfig->scl_alg == 0) {
-        vip_scl_nn->width = vm_conf->x_size;
-        vip_scl_nn->height = vm_conf->y_size;
-    } else {
-        vip_scl_nn->width = vm_in->timings.h_active;
+    if (avconfig->scl_alg != scl_loaded_pp_coeff) {
+        for (p=0; p<16; p++) {
+            for (t=0; t<4; t++)
+                vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0]->v[0][p][t];
 
-        // Pre-scale height by 2 for 240p/288p when using Lanczos as main algorithm
-        if (!vm_in->timings.interlaced && (vm_in->timings.v_active < 300))
-            vip_scl_nn->height = vm_in->timings.v_active*2;
-        else
-            vip_scl_nn->height = vm_in->timings.v_active*(vm_in->timings.interlaced+1);
+            vip_scl_pp->h_phase = p;
+
+            for (t=0; t<4; t++)
+                vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0]->v[1][p][t];
+
+            vip_scl_pp->v_phase = p;
+
+            if (scl_ea) {
+                for (t=0; t<4; t++)
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1]->v[0][p][t];
+
+                vip_scl_pp->h_phase = p+(1<<15);
+
+                for (t=0; t<4; t++)
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1]->v[1][p][t];
+
+                vip_scl_pp->v_phase = p+(1<<15);
+            }
+        }
+
+        scl_loaded_pp_coeff = avconfig->scl_alg;
     }
+
+    vip_scl_pp->edge_thold = avconfig->scl_edge_thold;
+
     vip_scl_pp->width = vm_conf->x_size;
     vip_scl_pp->height = vm_conf->y_size;
 
@@ -934,7 +977,8 @@ void mainloop()
                 update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 
-                sniprintf(row2, US2066_ROW_LEN+1, "Test: %s", vmode_out.name);
+                //sniprintf(row2, US2066_ROW_LEN+1, "Test: %s", vmode_out.name);
+                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c %u.%.2uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', (vmode_out.timings.v_hz_x100/100), (vmode_out.timings.v_hz_x100%100));
                 ui_disp_status(1);
 
                 tp_stdmode_idx = target_tp_stdmode_idx;
@@ -1265,10 +1309,10 @@ int main()
         // Disable VIP on powerdown
         vip_cvi->ctrl = 0;
         vip_dli->ctrl = 0;
-        vip_scl_nn->ctrl = 0;
         vip_scl_pp->ctrl = 0;
         vip_fb->ctrl = 0;
         vip_cvo->ctrl = 0;
+        scl_loaded_pp_coeff = -1;
 #endif
     }
 }

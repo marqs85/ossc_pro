@@ -46,6 +46,7 @@ const avconfig_t tc_default = {
 #ifdef VIP
     .scl_out_mode = 4,
     .scl_alg = 1,
+    .scl_edge_thold = 7,
     .scl_dil_alg = 2,
     .scl_dil_motion_shift = 3,
     .sm_scl_480p = 1,
@@ -106,6 +107,7 @@ status_t update_avconfig() {
         (tc.ypbpr_cs != cc.ypbpr_cs)
 #ifdef VIP
         || (tc.scl_alg != cc.scl_alg) ||
+        (tc.scl_edge_thold != cc.scl_edge_thold) ||
         (tc.scl_dil_alg != cc.scl_dil_alg) ||
         (tc.scl_dil_motion_shift != cc.scl_dil_motion_shift)
 #endif

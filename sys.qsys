@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "23";
+         value = "22";
          type = "int";
       }
    }
@@ -93,32 +93,11 @@
          type = "String";
       }
    }
-   element alt_vip_cl_scl_1
-   {
-      datum _sortIndex
-      {
-         value = "21";
-         type = "int";
-      }
-   }
-   element alt_vip_cl_scl_1.control
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-      datum baseAddress
-      {
-         value = "163840";
-         type = "String";
-      }
-   }
    element alt_vip_cl_vfb_0
    {
       datum _sortIndex
       {
-         value = "22";
+         value = "21";
          type = "int";
       }
    }
@@ -744,7 +723,7 @@
    kind="alt_vip_cl_scl"
    version="20.1"
    enabled="1">
-  <parameter name="ALGORITHM_NAME" value="NEAREST_NEIGHBOUR" />
+  <parameter name="ALGORITHM_NAME" value="EDGE_ADAPT" />
   <parameter name="ALWAYS_DOWNSCALE" value="0" />
   <parameter name="ARE_IDENTICAL" value="0" />
   <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
@@ -764,11 +743,11 @@
   <parameter name="H_PHASES" value="16" />
   <parameter name="H_SIGNED" value="1" />
   <parameter name="H_SYMMETRIC" value="0" />
-  <parameter name="H_TAPS" value="8" />
+  <parameter name="H_TAPS" value="4" />
   <parameter name="IS_420" value="0" />
   <parameter name="IS_422" value="0" />
   <parameter name="LIMITED_READBACK" value="1" />
-  <parameter name="LOAD_AT_RUNTIME" value="0" />
+  <parameter name="LOAD_AT_RUNTIME" value="1" />
   <parameter name="MAX_IN_HEIGHT" value="1080" />
   <parameter name="MAX_IN_WIDTH" value="1920" />
   <parameter name="MAX_OUT_HEIGHT" value="1440" />
@@ -789,59 +768,7 @@
   <parameter name="V_PHASES" value="16" />
   <parameter name="V_SIGNED" value="1" />
   <parameter name="V_SYMMETRIC" value="0" />
-  <parameter name="V_TAPS" value="8" />
- </module>
- <module
-   name="alt_vip_cl_scl_1"
-   kind="alt_vip_cl_scl"
-   version="20.1"
-   enabled="1">
-  <parameter name="ALGORITHM_NAME" value="POLYPHASE" />
-  <parameter name="ALWAYS_DOWNSCALE" value="0" />
-  <parameter name="ARE_IDENTICAL" value="0" />
-  <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
-  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
-  <parameter name="BITS_PER_SYMBOL" value="8" />
-  <parameter name="DEFAULT_EDGE_THRESH" value="7" />
-  <parameter name="DEFAULT_LOWER_BLUR" value="0" />
-  <parameter name="DEFAULT_UPPER_BLUR" value="0" />
-  <parameter name="ENABLE_FIR" value="0" />
-  <parameter name="EXTRA_PIPELINING" value="0" />
-  <parameter name="FAMILY" value="Cyclone V" />
-  <parameter name="H_BANKS" value="1" />
-  <parameter name="H_COEFF_FILE"><![CDATA[<enter file name (including full path)>]]></parameter>
-  <parameter name="H_FRACTION_BITS" value="7" />
-  <parameter name="H_FUNCTION" value="LANCZOS_3" />
-  <parameter name="H_INTEGER_BITS" value="1" />
-  <parameter name="H_PHASES" value="16" />
-  <parameter name="H_SIGNED" value="1" />
-  <parameter name="H_SYMMETRIC" value="0" />
-  <parameter name="H_TAPS" value="8" />
-  <parameter name="IS_420" value="0" />
-  <parameter name="IS_422" value="0" />
-  <parameter name="LIMITED_READBACK" value="1" />
-  <parameter name="LOAD_AT_RUNTIME" value="0" />
-  <parameter name="MAX_IN_HEIGHT" value="1080" />
-  <parameter name="MAX_IN_WIDTH" value="1920" />
-  <parameter name="MAX_OUT_HEIGHT" value="1440" />
-  <parameter name="MAX_OUT_WIDTH" value="2560" />
-  <parameter name="NO_BLANKING" value="0" />
-  <parameter name="PIXELS_IN_PARALLEL" value="2" />
-  <parameter name="PRESERVE_BITS" value="0" />
-  <parameter name="RUNTIME_CONTROL" value="1" />
-  <parameter name="SYMBOLS_IN_PAR" value="3" />
-  <parameter name="SYMBOLS_IN_SEQ" value="1" />
-  <parameter name="USER_PACKET_FIFO_DEPTH" value="0" />
-  <parameter name="USER_PACKET_SUPPORT" value="PASSTHROUGH" />
-  <parameter name="V_BANKS" value="1" />
-  <parameter name="V_COEFF_FILE"><![CDATA[<enter file name (including full path)>]]></parameter>
-  <parameter name="V_FRACTION_BITS" value="7" />
-  <parameter name="V_FUNCTION" value="LANCZOS_3" />
-  <parameter name="V_INTEGER_BITS" value="1" />
-  <parameter name="V_PHASES" value="16" />
-  <parameter name="V_SIGNED" value="1" />
-  <parameter name="V_SYMMETRIC" value="0" />
-  <parameter name="V_TAPS" value="8" />
+  <parameter name="V_TAPS" value="4" />
  </module>
  <module
    name="alt_vip_cl_vfb_0"
@@ -1725,15 +1652,6 @@
    kind="avalon"
    version="20.1"
    start="pulpino_0.avalon_master_lsu"
-   end="alt_vip_cl_scl_1.control">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00028000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="20.1"
-   start="pulpino_0.avalon_master_lsu"
    end="alt_vip_cl_vfb_0.control">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00029000" />
@@ -1915,11 +1833,6 @@
    kind="avalon_streaming"
    version="20.1"
    start="alt_vip_cl_scl_0.dout"
-   end="alt_vip_cl_scl_1.din" />
- <connection
-   kind="avalon_streaming"
-   version="20.1"
-   start="alt_vip_cl_scl_1.dout"
    end="alt_vip_cl_vfb_0.din" />
  <connection
    kind="avalon_streaming"
@@ -2018,11 +1931,6 @@
    version="20.1"
    start="pll_0.outclk1"
    end="alt_vip_cl_cvo_0.main_clock" />
- <connection
-   kind="clock"
-   version="20.1"
-   start="pll_0.outclk1"
-   end="alt_vip_cl_scl_1.main_clock" />
  <connection
    kind="clock"
    version="20.1"
@@ -2137,11 +2045,6 @@
    version="20.1"
    start="clk_27.clk_reset"
    end="alt_vip_cl_cvo_0.main_reset" />
- <connection
-   kind="reset"
-   version="20.1"
-   start="clk_27.clk_reset"
-   end="alt_vip_cl_scl_1.main_reset" />
  <connection
    kind="reset"
    version="20.1"
