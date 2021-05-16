@@ -1,0 +1,12 @@
+#ifndef FILE_H_
+#define FILE_H_
+
+#include "ff.h"
+
+FRESULT file_mount();
+FRESULT file_open(FIL* fil, char* path);
+FRESULT file_close(FIL* fil);
+TCHAR* file_get_string(FIL* fil, char* buff, int len);
+FRESULT scan_files (char* path);
+
+#endif
