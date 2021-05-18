@@ -45,12 +45,14 @@
     <File Name="src/flash.c"/>
     <File Name="src/controls.c"/>
     <File Name="src/avconfig.c"/>
-    <File Name="src/av_controller.c"/>
+    <File Name="av_controller.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="config">
+    <File Name="config/sysconfig.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="inc">
     <File Name="inc/video_modes.h"/>
     <File Name="inc/utils.h"/>
-    <File Name="inc/sysconfig.h"/>
     <File Name="inc/menu.h"/>
     <File Name="inc/flash.h"/>
     <File Name="inc/controls.h"/>

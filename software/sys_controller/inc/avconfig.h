@@ -153,8 +153,14 @@ typedef struct {
     uint8_t scl_aspect;
     uint8_t scl_alg;
     uint8_t scl_edge_thold;
-    uint8_t scl_dil_alg;
     uint8_t scl_dil_motion_shift;
+#ifndef VIP_DIL_B
+    uint8_t scl_dil_alg;
+#else
+    uint8_t scl_dil_motion_scale;
+    uint8_t scl_dil_cadence_detect_enable;
+    uint8_t scl_dil_visualize_motion;
+#endif
     uint8_t sm_scl_240p_288p;
     uint8_t sm_scl_480i_576i;
     uint8_t sm_scl_480p;

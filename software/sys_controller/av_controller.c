@@ -163,7 +163,7 @@ extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 static const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4", "Last used" };
 
 #ifdef VIP
-#include "scl_pp_coeffs.c"
+#include "src/scl_pp_coeffs.c"
 
 const pp_coeff* scl_pp_coeff_list[][2] = {{&pp_coeff_nearest, NULL},
                                           {&pp_coeff_lanczos3, NULL},

@@ -47,8 +47,14 @@ const avconfig_t tc_default = {
     .scl_out_mode = 4,
     .scl_alg = 1,
     .scl_edge_thold = 7,
-    .scl_dil_alg = 2,
     .scl_dil_motion_shift = 3,
+#ifndef VIP_DIL_B
+    .scl_dil_alg = 2,
+#else
+    .scl_dil_motion_scale = 125,
+    .scl_dil_cadence_detect_enable = 0,
+    .scl_dil_visualize_motion = 0,
+#endif
     .sm_scl_480p = 1,
 #endif
 #ifndef DExx_FW
@@ -108,8 +114,14 @@ status_t update_avconfig() {
 #ifdef VIP
         || (tc.scl_alg != cc.scl_alg) ||
         (tc.scl_edge_thold != cc.scl_edge_thold) ||
-        (tc.scl_dil_alg != cc.scl_dil_alg) ||
         (tc.scl_dil_motion_shift != cc.scl_dil_motion_shift)
+#ifndef VIP_DIL_B
+        || (tc.scl_dil_alg != cc.scl_dil_alg)
+#else
+        || (tc.scl_dil_motion_scale != cc.scl_dil_motion_scale) ||
+        (tc.scl_dil_cadence_detect_enable != cc.scl_dil_cadence_detect_enable) ||
+        (tc.scl_dil_visualize_motion != cc.scl_dil_visualize_motion)
+#endif
 #endif
        )
         status = (status < SC_CONFIG_CHANGE) ? SC_CONFIG_CHANGE : status;

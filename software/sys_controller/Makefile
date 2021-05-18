@@ -142,7 +142,7 @@ ACDS_VERSION := 14.1
 ELF := sys_controller.elf
 
 # Paths to C, C++, and assembly source files.
-C_SRCS += src/av_controller.c
+C_SRCS += av_controller.c
 C_SRCS += src/avconfig.c
 C_SRCS += src/utils.c
 C_SRCS += src/controls.c
@@ -199,6 +199,7 @@ SYS_LIB :=
 BSP_ROOT_DIR := ../sys_controller_bsp/
 
 # List of application specific include directories, library directories and library names
+APP_INCLUDE_DIRS += config
 APP_INCLUDE_DIRS += inc
 APP_INCLUDE_DIRS += ic_drivers/common
 APP_INCLUDE_DIRS += ic_drivers/isl51002
