@@ -174,6 +174,7 @@ const pp_coeff* scl_pp_coeff_list[][2] = {{&pp_coeff_nearest, NULL},
                                           {&pp_coeff_lanczos3, &pp_coeff_lanczos4},
                                           {&pp_coeff_sl_sharp, NULL}};
 int scl_loaded_pp_coeff = -1;
+#define PP_COEFF_SIZE  (sizeof(scl_pp_coeff_list) / sizeof((scl_pp_coeff_list)[0]))
 
 typedef struct {
     uint32_t ctrl;
@@ -301,6 +302,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 {
     int vip_enable, scl_ea, p, t, n;
     int v0,v1,v2,v3;
+    char coeff_filename[16];
 
     hv_config_reg hv_in_config = {.data=0x00000000};
     hv_config2_reg hv_in_config2 = {.data=0x00000000};
@@ -373,7 +375,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 #ifdef VIP
     vip_cvi->ctrl = vip_enable;
     vip_dli->ctrl = vip_enable;
-    scl_ea = (avconfig->scl_alg > 5) ? 0 : !!scl_pp_coeff_list[avconfig->scl_alg][1];
+    scl_ea = (avconfig->scl_alg >= PP_COEFF_SIZE) ? 0 : !!scl_pp_coeff_list[avconfig->scl_alg][1];
     vip_scl_pp->ctrl = vip_enable ? (scl_ea<<1)|1 : 0;
     vip_fb->ctrl = vip_enable;
     vip_cvo->ctrl = vip_enable;
@@ -396,8 +398,9 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_dli->motion_shift = avconfig->scl_dil_motion_shift;
 
     if (avconfig->scl_alg != scl_loaded_pp_coeff) {
-        if (avconfig->scl_alg == 6) { // Custom
-            if (!file_open(&file, "scaler.txt" )) {
+        if (avconfig->scl_alg >= PP_COEFF_SIZE) { // Custom
+            snprintf(coeff_filename, sizeof(coeff_filename), "scaler%d.txt", (avconfig->scl_alg + 1 - PP_COEFF_SIZE) );
+            if (!file_open(&file, coeff_filename)) {
                 t = 0;
                 p = 0;
                 while (file_get_string(&file, char_buff, sizeof(char_buff))) {
