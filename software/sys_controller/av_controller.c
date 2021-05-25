@@ -36,7 +36,7 @@
 #include "controls.h"
 #include "menu.h"
 #include "mmc.h"
-#include "ff.h"
+#include "file.h"
 #include "si5351.h"
 #include "adv7513.h"
 #include "adv761x.h"
@@ -138,7 +138,6 @@ volatile osd_regs *osd = (volatile osd_regs*)OSD_GENERATOR_0_BASE;
 struct mmc *mmc_dev;
 struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq);
 
-FATFS fs;
 FRESULT res;
 
 uint16_t sys_ctrl;
@@ -165,6 +164,9 @@ static const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV
 #ifdef VIP
 #include "src/scl_pp_coeffs.c"
 
+FIL file;
+char char_buff[256];
+
 const pp_coeff* scl_pp_coeff_list[][2] = {{&pp_coeff_nearest, NULL},
                                           {&pp_coeff_lanczos3, NULL},
                                           {&pp_coeff_lanczos4, NULL},
@@ -172,6 +174,7 @@ const pp_coeff* scl_pp_coeff_list[][2] = {{&pp_coeff_nearest, NULL},
                                           {&pp_coeff_lanczos3, &pp_coeff_lanczos4},
                                           {&pp_coeff_sl_sharp, NULL}};
 int scl_loaded_pp_coeff = -1;
+#define PP_COEFF_SIZE  (sizeof(scl_pp_coeff_list) / sizeof((scl_pp_coeff_list)[0]))
 
 typedef struct {
     uint32_t ctrl;
@@ -297,7 +300,9 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
 
 void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf, avconfig_t *avconfig)
 {
-    int vip_enable, scl_ea, p, t;
+    int vip_enable, scl_ea, p, t, n;
+    int v0,v1,v2,v3;
+    char coeff_filename[16];
 
     hv_config_reg hv_in_config = {.data=0x00000000};
     hv_config2_reg hv_in_config2 = {.data=0x00000000};
@@ -370,7 +375,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 #ifdef VIP
     vip_cvi->ctrl = vip_enable;
     vip_dli->ctrl = vip_enable;
-    scl_ea = !!scl_pp_coeff_list[avconfig->scl_alg][1];
+    scl_ea = (avconfig->scl_alg >= PP_COEFF_SIZE) ? 0 : !!scl_pp_coeff_list[avconfig->scl_alg][1];
     vip_scl_pp->ctrl = vip_enable ? (scl_ea<<1)|1 : 0;
     vip_fb->ctrl = vip_enable;
     vip_cvo->ctrl = vip_enable;
@@ -393,27 +398,55 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_dli->motion_shift = avconfig->scl_dil_motion_shift;
 
     if (avconfig->scl_alg != scl_loaded_pp_coeff) {
-        for (p=0; p<16; p++) {
-            for (t=0; t<4; t++)
-                vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0]->v[0][p][t];
+        if (avconfig->scl_alg >= PP_COEFF_SIZE) { // Custom
+            snprintf(coeff_filename, sizeof(coeff_filename), "scaler%d.txt", (avconfig->scl_alg + 1 - PP_COEFF_SIZE) );
+            if (!file_open(&file, coeff_filename)) {
+                t = 0;
+                p = 0;
+                while (file_get_string(&file, char_buff, sizeof(char_buff))) {
+                    n = sscanf(char_buff, "%d,%d,%d,%d", &v0, &v1, &v2, &v3);
+                    if (n == 4) {
+                        vip_scl_pp->coeff_data[0] = v0;
+                        vip_scl_pp->coeff_data[1] = v1;
+                        vip_scl_pp->coeff_data[2] = v2;
+                        vip_scl_pp->coeff_data[3] = v3;
 
-            vip_scl_pp->h_phase = p;
+                        if (!t) vip_scl_pp->h_phase = p;
+                        else    vip_scl_pp->v_phase = p;
 
-            for (t=0; t<4; t++)
-                vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0]->v[1][p][t];
-
-            vip_scl_pp->v_phase = p;
-
-            if (scl_ea) {
+                        if (++p == 16) {
+                            p = 0;
+                            if (++t == 2) {
+                                break;
+                            }
+                        }
+                    }
+                }
+                file_close(&file);
+            }
+        } else {
+            for (p=0; p<16; p++) {
                 for (t=0; t<4; t++)
-                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1]->v[0][p][t];
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0]->v[0][p][t];
 
-                vip_scl_pp->h_phase = p+(1<<15);
+                vip_scl_pp->h_phase = p;
 
                 for (t=0; t<4; t++)
-                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1]->v[1][p][t];
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0]->v[1][p][t];
 
-                vip_scl_pp->v_phase = p+(1<<15);
+                vip_scl_pp->v_phase = p;
+
+                if (scl_ea) {
+                    for (t=0; t<4; t++)
+                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1]->v[0][p][t];
+
+                    vip_scl_pp->h_phase = p+(1<<15);
+
+                    for (t=0; t<4; t++)
+                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1]->v[1][p][t];
+
+                    vip_scl_pp->v_phase = p+(1<<15);
+                }
             }
         }
 
@@ -495,37 +528,6 @@ int init_emif()
     return 0;
 }
 
-FRESULT scan_files (
-    char* path        /* Start node to be scanned (***also used as work area***) */
-)
-{
-    FRESULT res;
-    DIR dir;
-    UINT i;
-    static FILINFO fno;
-
-
-    res = f_opendir(&dir, path);                       /* Open the directory */
-    if (res == FR_OK) {
-        for (;;) {
-            res = f_readdir(&dir, &fno);                   /* Read a directory item */
-            if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
-            if (fno.fattrib & AM_DIR) {                    /* It is a directory */
-                i = strlen(path);
-                sprintf(&path[i], "/%s", fno.fname);
-                res = scan_files(path);                    /* Enter the directory */
-                if (res != FR_OK) break;
-                path[i] = 0;
-            } else {                                       /* It is a file. */
-                printf("%s/%s\n", path, fno.fname);
-            }
-        }
-        f_closedir(&dir);
-    }
-
-    return res;
-}
-
 int init_sdcard() {
     int err = mmc_init(mmc_dev);
 
@@ -570,6 +572,8 @@ int init_sdcard() {
             strcpy(buff, "/");
             res = scan_files(buff);
         }*/
+
+        file_mount();
     }
 
     return 0;
