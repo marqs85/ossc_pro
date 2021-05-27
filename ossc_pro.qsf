@@ -189,14 +189,14 @@ set_location_assignment PIN_D19 -to EXT_IO_B_io[6]
 set_location_assignment PIN_C20 -to EXT_IO_B_io[5]
 set_location_assignment PIN_E19 -to EXT_IO_B_io[4]
 set_location_assignment PIN_D21 -to EXT_IO_B_io[3]
-set_location_assignment PIN_G21 -to EXT_IO_B_io[1]
-set_location_assignment PIN_E21 -to EXT_IO_B_io[2]
+set_location_assignment PIN_G21 -to EXT_IO_B_io[2]
+set_location_assignment PIN_E21 -to EXT_IO_B_io[1]
 set_location_assignment PIN_H21 -to EXT_IO_B_io[0]
 set_location_assignment PIN_U21 -to EXT_IO_A_io[5]
 set_location_assignment PIN_U16 -to EXT_IO_A_io[4]
 set_location_assignment PIN_V18 -to EXT_IO_A_io[3]
-set_location_assignment PIN_V21 -to EXT_IO_A_io[1]
-set_location_assignment PIN_V16 -to EXT_IO_A_io[2]
+set_location_assignment PIN_V21 -to EXT_IO_A_io[2]
+set_location_assignment PIN_V16 -to EXT_IO_A_io[1]
 set_location_assignment PIN_W16 -to EXT_IO_A_io[0]
 set_location_assignment PIN_AB11 -to FPGA_PCLK1x_o
 set_location_assignment PIN_Y20 -to HDMIRX_AP_i
@@ -606,7 +606,7 @@ set_global_assignment -name UNIPHY_SEQUENCER_DQS_CONFIG_ENABLE ON
 
 set_global_assignment -name SMART_RECOMPILE ON
 
-set_global_assignment -name SEED 2
+set_global_assignment -name SEED 1
 
 
 
@@ -628,4 +628,5 @@ set_global_assignment -name QIP_FILE rtl/char_array.qip
 set_global_assignment -name QIP_FILE rtl/char_rom.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_in.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_out.qip
+
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
