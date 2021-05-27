@@ -18,7 +18,7 @@
 //
 
 `define PO_RESET_WIDTH 27000
-`define PCB1P3_SI_FIX
+//`define PCB_1P3
 
 `define VIP
 `define PIXPAR2
@@ -331,7 +331,11 @@ end
 // output clock assignment
 wire PCLK_sc;
 assign pclk_out = PCLK_sc;
+`ifdef PCB_1P3
 assign HDMITX_PCLK_o = pclk_out;
+`else
+assign HDMITX_PCLK_o = ~pclk_out;
+`endif
 
 
 // VIP
@@ -451,10 +455,12 @@ always @(posedge pclk_out) begin
     DE_out <= DE_sc;
 end
 
+// PCB v1.3 uses ADV7513 and has crosstalk issue with R[0] while v1.4- use SiI1136
+`ifdef PCB_1P3
 always @(negedge pclk_out) begin
-`ifdef PCB1P3_SI_FIX
     HDMITX_R_o <= {R_out[7:1], 1'b0};
 `else
+always @(posedge pclk_out) begin
     HDMITX_R_o <= R_out;
 `endif
     HDMITX_G_o <= G_out;
@@ -472,8 +478,11 @@ assign HDMITX_SPDIF_o = hdmirx_spdif ? HDMIRX_AP_i : SPDIF_EXT_i;
 
 assign AUDMUX_o = ~audmux_sel;
 
-//assign EXT_IO_io = BTN_i[0] ? {29{1'b1}} : {29{1'b0}};
-assign LS_DIR_o = 2'b00;
+// 0=input 1=output
+assign LS_DIR_o = 2'b11;
+
+assign EXT_IO_A_io = {6{&btn_sync2_reg}};
+assign EXT_IO_B_io = {32{&btn_sync2_reg}};
 
 // Power-on reset pulse generation (seems to be needed for booting from flash)
 always @(posedge CLK27_i)

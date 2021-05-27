@@ -76,7 +76,7 @@
    {
       datum _sortIndex
       {
-         value = "20";
+         value = "21";
          type = "int";
       }
    }
@@ -97,7 +97,7 @@
    {
       datum _sortIndex
       {
-         value = "21";
+         value = "20";
          type = "int";
       }
    }
@@ -792,9 +792,9 @@
   <parameter name="IS_SYNC_MASTER" value="0" />
   <parameter name="IS_SYNC_SLAVE" value="0" />
   <parameter name="LINE_BASED_BUFFERING" value="0" />
-  <parameter name="MAX_HEIGHT" value="1440" />
+  <parameter name="MAX_HEIGHT" value="1200" />
   <parameter name="MAX_SYMBOLS_PER_PACKET" value="10" />
-  <parameter name="MAX_WIDTH" value="2560" />
+  <parameter name="MAX_WIDTH" value="1920" />
   <parameter name="MEM_BASE_ADDR" value="33554432" />
   <parameter name="MEM_BUFFER_OFFSET" value="33554432" />
   <parameter name="MEM_PORT_WIDTH" value="128" />
@@ -1822,18 +1822,18 @@
  <connection
    kind="avalon_streaming"
    version="20.1"
-   start="alt_vip_cl_vfb_0.dout"
-   end="alt_vip_cl_cvo_0.din" />
+   start="alt_vip_cl_dil_0.dout"
+   end="alt_vip_cl_vfb_0.din" />
  <connection
    kind="avalon_streaming"
    version="20.1"
-   start="alt_vip_cl_dil_0.dout"
+   start="alt_vip_cl_vfb_0.dout"
    end="alt_vip_cl_scl_0.din" />
  <connection
    kind="avalon_streaming"
    version="20.1"
    start="alt_vip_cl_scl_0.dout"
-   end="alt_vip_cl_vfb_0.din" />
+   end="alt_vip_cl_cvo_0.din" />
  <connection
    kind="avalon_streaming"
    version="20.1"

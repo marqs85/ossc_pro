@@ -88,12 +88,21 @@ set_false_path -from [get_ports {HDMIRX_INT_N_i}]
 set_false_path -to [get_ports {HDMIRX_RESET_N_o}]
 
 # ADV7513 (0ns video clock delay adjustment)
-set hdmitx_dmin -1.9
-set hdmitx_dmax -0.2
+#set hdmitx_dmin -1.9
+#set hdmitx_dmax -0.2
+#set hdmitx_data_outputs [get_ports {HDMITX_R_o* HDMITX_G_o* HDMITX_B_o* HDMITX_HSYNC_o HDMITX_VSYNC_o HDMITX_DE_o}]
+#foreach_in_collection c [get_clocks pclk_*_out] {
+#    set_output_delay -clock $c -min $hdmitx_dmin $hdmitx_data_outputs -add_delay
+#    set_output_delay -clock $c -max $hdmitx_dmax $hdmitx_data_outputs -add_delay
+#}
+
+# SiI1136
+set hdmitx_dmin -0.45
+set hdmitx_dmax 1.36
 set hdmitx_data_outputs [get_ports {HDMITX_R_o* HDMITX_G_o* HDMITX_B_o* HDMITX_HSYNC_o HDMITX_VSYNC_o HDMITX_DE_o}]
 foreach_in_collection c [get_clocks pclk_*_out] {
-    set_output_delay -clock $c -min $hdmitx_dmin $hdmitx_data_outputs -add_delay
-    set_output_delay -clock $c -max $hdmitx_dmax $hdmitx_data_outputs -add_delay
+    set_output_delay -clock $c -clock_fall -min $hdmitx_dmin $hdmitx_data_outputs -add_delay
+    set_output_delay -clock $c -clock_fall -max $hdmitx_dmax $hdmitx_data_outputs -add_delay
 }
 
 set_output_delay -clock bck_out -min $hdmitx_dmin [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay

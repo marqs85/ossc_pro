@@ -44,13 +44,15 @@
 #include "video_modes.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 43
+#define FW_VER_MINOR 44
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
 #define ADV7513_EDID_BASE 0x7e
 #define ADV7513_PKTMEM_BASE 0x70
 #define ADV7513_CEC_BASE 0x78
+
+#define SII1136_BASE (0x76>>1)
 
 #define ISL51002_BASE (0x9A>>1)
 #define THS7353_BASE (0x58>>1)
@@ -120,11 +122,18 @@ adv761x_dev advrx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                          .edid = pro_edid_bin,
                          .edid_len = sizeof(pro_edid_bin)};
 
+#ifdef INC_ADV7513
 adv7513_dev advtx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                          .main_base = ADV7513_MAIN_BASE,
                          .edid_base = ADV7513_EDID_BASE,
                          .pktmem_base = ADV7513_PKTMEM_BASE,
                          .cec_base = ADV7513_CEC_BASE};
+#endif
+
+#ifdef INC_SII1136
+sii1136_dev siitx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                         .i2c_addr = SII1136_BASE};
+#endif
 
 pcm186x_dev pcm_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                        .i2c_addr = PCM1863_BASE};
@@ -661,12 +670,21 @@ int init_hw()
     // Init ADV7610
     adv761x_init(&advrx_dev);
 
-    // Init ADV7513
+    // Init HDMI TX
+#ifdef INC_ADV7513
     ret = adv7513_init(&advtx_dev);
     if (ret != 0) {
         sniprintf(row1, US2066_ROW_LEN+1, "ADV7513 init fail");
         return ret;
     }
+#endif
+#ifdef INC_SII1136
+    ret = sii1136_init(&siitx_dev);
+    if (ret != 0) {
+        sniprintf(row1, US2066_ROW_LEN+1, "SII1136 init fail");
+        return ret;
+    }
+#endif
 
     /*check_flash();
     ret = read_flash(0, 100, buf);
@@ -789,7 +807,7 @@ void print_vm_stats() {
         row++;
 
         sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Audio fmt/fs/CC/CA:");
-        sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%s/%u/%u/0x%x", (advtx_dev.cfg.audio_fmt == AUDIO_I2S) ? "I2S" : "SPDIF", advtx_dev.cfg.i2s_fs, advtx_dev.cfg.audio_cc_val, advtx_dev.cfg.audio_ca_val);
+        //sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%s/%u/%u/0x%x", (advtx_dev.cfg.audio_fmt == AUDIO_I2S) ? "I2S" : "SPDIF", advtx_dev.cfg.i2s_fs, advtx_dev.cfg.audio_cc_val, advtx_dev.cfg.audio_ca_val);
         row++;
     }
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Firmware:");
@@ -979,8 +997,12 @@ void mainloop()
 
                 update_osd_size(&vmode_out);
                 update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+#ifdef INC_ADV7513
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
-
+#endif
+#ifdef INC_SII1136
+                sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
+#endif
                 //sniprintf(row2, US2066_ROW_LEN+1, "Test: %s", vmode_out.name);
                 sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c %u.%.2uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', (vmode_out.timings.v_hz_x100/100), (vmode_out.timings.v_hz_x100%100));
                 ui_disp_status(1);
@@ -1115,7 +1137,12 @@ void mainloop()
                         }*/
 
                         // Setup VIC and pixel repetition
+#ifdef INC_ADV7513
                         adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
+#endif
+#ifdef INC_SII1136
+                        sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
+#endif
                     }
                 } else if (status == SC_CONFIG_CHANGE) {
                     update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
@@ -1216,7 +1243,12 @@ void mainloop()
                         adv761x_set_input_cs(&advrx_dev);
 
                         // Setup VIC and pixel repetition
+#ifdef INC_ADV7513
                         adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
+#endif
+#ifdef INC_SII1136
+                        sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
+#endif
                     }
                 } else if (status == SC_CONFIG_CHANGE) {
                     update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
@@ -1241,8 +1273,13 @@ void mainloop()
             adv761x_update_config(&advrx_dev, &cur_avconfig->hdmirx_cfg);
         }
 
+#ifdef INC_ADV7513
         adv7513_check_hpd_power(&advtx_dev);
         adv7513_update_config(&advtx_dev, &cur_avconfig->hdmitx_cfg);
+#endif
+#ifdef INC_SII1136
+        sii1136_update_config(&siitx_dev, &cur_avconfig->hdmitx_cfg);
+#endif
 
         pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);
 
@@ -1306,6 +1343,10 @@ int main()
         pcm186x_enable_power(&pcm_dev, 1);
 
         us2066_display_on(&chardisp_dev);
+
+#ifdef INC_SII1136
+        sii1136_enable_power(&siitx_dev, 1);
+#endif
 
         mainloop();
 
