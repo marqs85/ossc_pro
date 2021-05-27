@@ -205,7 +205,7 @@ int get_framelock_config(mode_data_t *vm_in, stdmode_t mode_id_list[], smp_mode_
 
             if (vm_in->timings.interlaced && !mode_preset->timings.interlaced) {
                 vm_out->si_pclk_mult = 2;
-            } else if (vm_in->timings.interlaced && !mode_preset->timings.interlaced) {
+            } else if (!vm_in->timings.interlaced && mode_preset->timings.interlaced) {
                 vm_out->si_pclk_mult = 1;
                 vm_out->si_ms_conf.outdiv = 1;
             } else {
