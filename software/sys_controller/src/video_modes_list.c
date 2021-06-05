@@ -82,10 +82,10 @@ const mode_data_t video_modes_default[] = {
     /* VESA UXGA mode */
     { "1600x1200_60",  HDMI_Unknown,     {1600, 1200,   6000,  2160, 0, 1250,  304, 46,  192, 3,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  6, {0} },
     /* CVT 1920x1200 modes (60Hz with reduced blanking) */
-    { "1920x1200_50",  HDMI_Unknown,     {1920, 1200,   5000,  2560, 0, 1238,  320, 29,  200, 6,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },
+    { "1920x1200_50",  HDMI_Unknown,     {1920, 1200,   5000,  2560, 0, 1238,  320, 29,  200, 6,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {2488, 8, 9, 0, 0, 1, 0, 0, 3} },
     { "1920x1200_60",  HDMI_Unknown,     {1920, 1200,   6000,  2080, 0, 1235,   80, 26,   32, 6,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {2408, 8, 27, 0, 0, 1, 0, 0, 3} },
     /* CVT 1920x1440 modes (60Hz with reduced blanking) */
-    { "1920x1440_50",  HDMI_Unknown,     {1920, 1440,   5000,  2592, 0, 1484,  336, 37,  200, 4,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  1, {0} },
+    { "1920x1440_50",  HDMI_Unknown,     {1920, 1440,   5000,  2592, 0, 1484,  336, 37,  200, 4,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3133, 17, 27, 0, 0, 1, 0, 0, 3} },
     { "1920x1440_60",  HDMI_Unknown,     {1920, 1440,   6000,  2080, 0, 1481,   80, 34,   32, 4,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {2991, 11, 27, 0, 0, 1, 0, 0, 3} },
     /* 2560x1440 (CVT-RB) */
     { "2560x1440_50",  HDMI_Unknown,     {2560, 1440,   5000,  2720, 0, 1474,   80, 26,   32, 5,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  TX_1X, TX_1X,  0, {3285, 1, 3, 0, 0, 1, 0, 0, 3} },
@@ -158,8 +158,8 @@ smp_preset_t smp_presets_default[] = {
     { "SNES 256x240", SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  262,   39, 14,   25, 3,  0},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "SNES 512x240", SM_OPT_SNES_512COL,{ 512,  240,      0,   682, 0,  262,   78, 14,   50, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     /* MD */
-    { "MD 256x224",   SM_OPT_MD_256COL,  { 256,  224,      0,   342, 0,  262,   39, 24,   25, 3,  0},  2,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
-    { "MD 320x224",   SM_OPT_MD_320COL,  { 320,  224,      0,   427,10,  262,   52, 24,   31, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
+    { "MD 256x224",   SM_OPT_MD_256COL,  { 256,  224,      0,   342, 0,  262,   39, 24,   25, 3,  0},  4,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
+    { "MD 320x224",   SM_OPT_MD_320COL,  { 320,  224,      0,   427,10,  262,   52, 24,   31, 3,  0},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     /* PSX */
     { "PSX 256x240",  SM_OPT_PSX_256COL, { 256,  240,      0,   341, 6,  263,   37, 14,   25, 3,  0},  9,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "PSX 320x240",  SM_OPT_PSX_320COL, { 320,  240,      0,   426,12,  263,   47, 14,   31, 3,  0},  7,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
@@ -367,6 +367,7 @@ const fl_config_t framelock_configs[] = {
     { STDMODE_1600x1200_60,     SMPPRESET_SNES_256x240,   0,  {3356, 12572, 44671,     0, 0, 1,  0, 0, 3} },
     { STDMODE_1920x1200_60,     SMPPRESET_SNES_256x240,   0,  {3168, 13920, 44671,     0, 0, 1,  0, 0, 3} },
     { STDMODE_1920x1440_60,     SMPPRESET_SNES_256x240,   0,  {3901, 17597, 44671,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_2560x1440_60,     SMPPRESET_SNES_256x240,   0,  {5259, 16139, 44671,     0, 0, 1,  0, 0, 3} },
 
     /* SNES 512x240 modes (NTSC) */
     { STDMODE_480p,             SMPPRESET_SNES_512x240,   0,  {4812,  3344, 16244,  3712, 0, 1,  0, 0, 0} },
@@ -377,26 +378,29 @@ const fl_config_t framelock_configs[] = {
     { STDMODE_1600x1200_60,     SMPPRESET_SNES_512x240,   0,  {3356, 12572, 44671,     0, 0, 1,  0, 0, 3} },
     { STDMODE_1920x1200_60,     SMPPRESET_SNES_512x240,   0,  {3168, 13920, 44671,     0, 0, 1,  0, 0, 3} },
     { STDMODE_1920x1440_60,     SMPPRESET_SNES_512x240,   0,  {3901, 17597, 44671,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_2560x1440_60,     SMPPRESET_SNES_512x240,   0,  {5259, 16139, 44671,     0, 0, 1,  0, 0, 3} },
 
     /* MD 256x224 modes (NTSC) */
-    { STDMODE_480p,             SMPPRESET_MD_256x224,     0,  {6619,  2536,  3144,  3744, 0, 4,  0, 0, 0} },
-    { STDMODE_720p_60,          SMPPRESET_MD_256x224,     0,  {6559,   281,  2489,  1024, 0, 1,  0, 0, 0} },
-    { STDMODE_1280x1024_60,     SMPPRESET_MD_256x224,     0,  {6556, 17636, 22401,   544, 0, 4,  0, 0, 0} },
-    { STDMODE_1080i_60,         SMPPRESET_MD_256x224,     0,  {6559,   281,  2489,  1024, 0, 1,  0, 0, 0} },
-    { STDMODE_1080p_60,         SMPPRESET_MD_256x224,     0,  {6559,   281,  2489,   256, 0, 1,  0, 0, 0} },
-    { STDMODE_1600x1200_60,     SMPPRESET_MD_256x224,     0,  {4630,  1562,  2489,     0, 0, 1,  0, 0, 3} },
-    { STDMODE_1920x1200_60,     SMPPRESET_MD_256x224,     0,  {4380,  2596,  3537,     0, 0, 1,  0, 0, 3} },
-    { STDMODE_1920x1440_60,     SMPPRESET_MD_256x224,     0,  {5355, 21439, 67203,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_480p,             SMPPRESET_MD_256x224,     0,  {3767,    88,  1048,  3744, 0, 4,  0, 0, 0} },
+    { STDMODE_720p_60,          SMPPRESET_MD_256x224,     0,  {3730,  1662,  2489,  1024, 0, 1,  0, 0, 0} },
+    { STDMODE_1280x1024_60,     SMPPRESET_MD_256x224,     0,  {3729, 10169, 37335,   544, 0, 4,  0, 0, 0} },
+    { STDMODE_1080i_60,         SMPPRESET_MD_256x224,     0,  {3730,  1662,  2489,  1024, 0, 1,  0, 0, 0} },
+    { STDMODE_1080p_60,         SMPPRESET_MD_256x224,     0,  {3730,  1662,  2489,   256, 0, 1,  0, 0, 0} },
+    { STDMODE_1600x1200_60,     SMPPRESET_MD_256x224,     0,  {2573,  1435,  2489,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_1920x1200_60,     SMPPRESET_MD_256x224,     0,  {2423,   755,  1179,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_1920x1440_60,     SMPPRESET_MD_256x224,     0,  {3008,  8768, 22401,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_2560x1440_60,     SMPPRESET_MD_256x224,     0,  {4091, 13189, 22401,     0, 0, 1,  0, 0, 3} },
 
     /* MD 320x224 modes (NTSC) */
-    { STDMODE_480p,             SMPPRESET_MD_320x224,     0,  {8046,    88,   524,  3744, 0, 4,  0, 0, 0} },
-    { STDMODE_720p_60,          SMPPRESET_MD_320x224,     0,  {7973,   835,  2489,  1024, 0, 1,  0, 0, 0} },
-    { STDMODE_1280x1024_60,     SMPPRESET_MD_320x224,     0,  {7970, 20338, 37335,   544, 0, 4,  0, 0, 0} },
-    { STDMODE_1080i_60,         SMPPRESET_MD_320x224,     0,  {7973,   835,  2489,  1024, 0, 1,  0, 0, 0} },
-    { STDMODE_1080p_60,         SMPPRESET_MD_320x224,     0,  {7973,   835,  2489,   256, 0, 1,  0, 0, 0} },
-    { STDMODE_1600x1200_60,     SMPPRESET_MD_320x224,     0,  {5659,   381,  2489,     0, 0, 1,  0, 0, 3} },
-    { STDMODE_1920x1200_60,     SMPPRESET_MD_320x224,     0,  {5359,   331,  1179,     0, 0, 1,  0, 0, 3} },
-    { STDMODE_1920x1440_60,     SMPPRESET_MD_320x224,     0,  {6528, 17536, 22401,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_480p,             SMPPRESET_MD_320x224,     0,  {3767,    88,  1048,  3744, 0, 4,  0, 0, 0} },
+    { STDMODE_720p_60,          SMPPRESET_MD_320x224,     0,  {3730,  1662,  2489,  1024, 0, 1,  0, 0, 0} },
+    { STDMODE_1280x1024_60,     SMPPRESET_MD_320x224,     0,  {3729, 10169, 37335,   544, 0, 4,  0, 0, 0} },
+    { STDMODE_1080i_60,         SMPPRESET_MD_320x224,     0,  {3730,  1662,  2489,  1024, 0, 1,  0, 0, 0} },
+    { STDMODE_1080p_60,         SMPPRESET_MD_320x224,     0,  {3730,  1662,  2489,   256, 0, 1,  0, 0, 0} },
+    { STDMODE_1600x1200_60,     SMPPRESET_MD_320x224,     0,  {2573,  1435,  2489,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_1920x1200_60,     SMPPRESET_MD_320x224,     0,  {2423,   755,  1179,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_1920x1440_60,     SMPPRESET_MD_320x224,     0,  {3008,  8768, 22401,     0, 0, 1,  0, 0, 3} },
+    { STDMODE_2560x1440_60,     SMPPRESET_MD_320x224,     0,  {4091, 13189, 22401,     0, 0, 1,  0, 0, 3} },
 
     /* PSX 256x240 modes (NTSC) */
     { STDMODE_480p,             SMPPRESET_PSX_256x240,    0,  {3759,499651,897619,  3744, 0, 4,  1, 0, 0} },
@@ -407,6 +411,7 @@ const fl_config_t framelock_configs[] = {
     { STDMODE_1600x1200_60,     SMPPRESET_PSX_256x240,    0,  {2568,133480,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1200_60,     SMPPRESET_PSX_256x240,    0,  {2418,427530,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1440_60,     SMPPRESET_PSX_256x240,    0,  {3002,178354,897619,     0, 0, 1,  1, 0, 3} },
+    { STDMODE_2560x1440_60,     SMPPRESET_PSX_256x240,    0,  {4083,440375,897619,     0, 0, 1,  1, 0, 3} },
 
     /* PSX 320x240 modes (NTSC) */
     { STDMODE_480p,             SMPPRESET_PSX_320x240,    0,  {3759,499651,897619,  3744, 0, 4,  1, 0, 0} },
@@ -417,6 +422,7 @@ const fl_config_t framelock_configs[] = {
     { STDMODE_1600x1200_60,     SMPPRESET_PSX_320x240,    0,  {2568,133480,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1200_60,     SMPPRESET_PSX_320x240,    0,  {2418,427530,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1440_60,     SMPPRESET_PSX_320x240,    0,  {3002,178354,897619,     0, 0, 1,  1, 0, 3} },
+    { STDMODE_2560x1440_60,     SMPPRESET_PSX_320x240,    0,  {4083,440375,897619,     0, 0, 1,  1, 0, 3} },
 
     /* PSX 384x240 modes (NTSC) */
     { STDMODE_480p,             SMPPRESET_PSX_384x240,    0,  {3759,499651,897619,  3744, 0, 4,  1, 0, 0} },
@@ -427,6 +433,7 @@ const fl_config_t framelock_configs[] = {
     { STDMODE_1600x1200_60,     SMPPRESET_PSX_384x240,    0,  {2568,133480,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1200_60,     SMPPRESET_PSX_384x240,    0,  {2418,427530,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1440_60,     SMPPRESET_PSX_384x240,    0,  {3002,178354,897619,     0, 0, 1,  1, 0, 3} },
+    { STDMODE_2560x1440_60,     SMPPRESET_PSX_384x240,    0,  {4083,440375,897619,     0, 0, 1,  1, 0, 3} },
 
     /* PSX 512x240 modes (NTSC) */
     { STDMODE_480p,             SMPPRESET_PSX_512x240,    0,  {3759,499651,897619,  3744, 0, 4,  1, 0, 0} },
@@ -437,6 +444,7 @@ const fl_config_t framelock_configs[] = {
     { STDMODE_1600x1200_60,     SMPPRESET_PSX_512x240,    0,  {2568,133480,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1200_60,     SMPPRESET_PSX_512x240,    0,  {2418,427530,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1440_60,     SMPPRESET_PSX_512x240,    0,  {3002,178354,897619,     0, 0, 1,  1, 0, 3} },
+    { STDMODE_2560x1440_60,     SMPPRESET_PSX_512x240,    0,  {4083,440375,897619,     0, 0, 1,  1, 0, 3} },
 
     /* PSX 640x240 modes (NTSC) */
     { STDMODE_480p,             SMPPRESET_PSX_640x240,    0,  {3759,499651,897619,  3744, 0, 4,  1, 0, 0} },
@@ -447,6 +455,7 @@ const fl_config_t framelock_configs[] = {
     { STDMODE_1600x1200_60,     SMPPRESET_PSX_640x240,    0,  {2568,133480,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1200_60,     SMPPRESET_PSX_640x240,    0,  {2418,427530,897619,     0, 0, 1,  1, 0, 3} },
     { STDMODE_1920x1440_60,     SMPPRESET_PSX_640x240,    0,  {3002,178354,897619,     0, 0, 1,  1, 0, 3} },
+    { STDMODE_2560x1440_60,     SMPPRESET_PSX_640x240,    0,  {4083,440375,897619,     0, 0, 1,  1, 0, 3} },
 
     /* Saturn 320x240 modes (NTSC) */
     { STDMODE_480p,             SMPPRESET_SAT_320x240,    0,  {8033,276890,448678,  3744, 0, 4,  0, 0, 0} },
