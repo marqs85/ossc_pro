@@ -118,51 +118,54 @@ int get_framelock_config(mode_data_t *vm_in, stdmode_t mode_id_list[], smp_mode_
     // Check adaptive LM presets first
     for (i=0; i<sizeof(framelock_configs)/sizeof(fl_config_t); i++) {
         fl_config = (fl_config_t*)&framelock_configs[i];
-        smp_preset = &smp_presets_default[fl_config->smp_preset_id];
 
-        if (smp_preset->timings_i.v_hz_x100 && (vm_in->timings.v_hz_x100 > smp_preset->timings_i.v_hz_x100))
-            continue;
+        for (j=fl_config->smp_preset_id_first; j<=fl_config->smp_preset_id_last; j++) {
+            smp_preset = &smp_presets_default[j];
 
-        if ((mode_id_list[smp_preset->group] == fl_config->mode_id) &&
-            ((fl_config->v_total_override && (vm_in->timings.v_total == fl_config->v_total_override)) || (!fl_config->v_total_override && (vm_in->timings.v_total == smp_preset->timings_i.v_total))) &&
-            (!vm_in->timings.h_total || (vm_in->timings.h_total == smp_preset->timings_i.h_total)) &&
-            (vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
-            (vm_in->timings.h_total || (target_sm_list[smp_preset->group] == smp_preset->sm)))
-        {
-            /* Skip config if higher generic mode samplerate is preferred and available.
-             * Currently used for selecting between 1080p line4x/5x.
-             * TODO: improve check robustness */
-            if (high_samplerate_priority && (fl_config->mode_id == framelock_configs[i+1].mode_id))
+            if (smp_preset->timings_i.v_hz_x100 && (vm_in->timings.v_hz_x100 > smp_preset->timings_i.v_hz_x100))
                 continue;
 
-            if (!vm_in->timings.h_active)
-                vm_in->timings.h_active = smp_preset->timings_i.h_active;
-            if (!vm_in->timings.v_active)
-                vm_in->timings.v_active = smp_preset->timings_i.v_active;
-            if ((!vm_in->timings.h_synclen) || (!vm_in->timings.h_backporch))
-                vm_in->timings.h_synclen = smp_preset->timings_i.h_synclen;
-            if (!vm_in->timings.v_synclen)
-                vm_in->timings.v_synclen = smp_preset->timings_i.v_synclen;
-            if (!vm_in->timings.h_backporch)
-                vm_in->timings.h_backporch = smp_preset->timings_i.h_backporch;
-            if (!vm_in->timings.v_backporch)
-                vm_in->timings.v_backporch = smp_preset->timings_i.v_backporch;
-            vm_in->timings.h_total = smp_preset->timings_i.h_total;
-            vm_in->timings.h_total_adj = smp_preset->timings_i.h_total_adj;
-            vm_in->sampler_phase = smp_preset->sampler_phase;
-            vm_in->type = smp_preset->type;
-            vm_in->group = smp_preset->group;
-            if (vm_in->name[0] == 0)
-                strncpy(vm_in->name, smp_preset->name, 14);
+            if ((mode_id_list[smp_preset->group] == fl_config->mode_id) &&
+                ((fl_config->v_total_override && (vm_in->timings.v_total == fl_config->v_total_override)) || (!fl_config->v_total_override && (vm_in->timings.v_total == smp_preset->timings_i.v_total))) &&
+                (!vm_in->timings.h_total || (vm_in->timings.h_total == smp_preset->timings_i.h_total)) &&
+                (vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
+                (vm_in->timings.h_total || (target_sm_list[smp_preset->group] == smp_preset->sm)))
+            {
+                /* Skip config if higher generic mode samplerate is preferred and available.
+                 * Currently used for selecting between 1080p line4x/5x.
+                 * TODO: improve check robustness */
+                if (high_samplerate_priority && (fl_config->mode_id == framelock_configs[i+1].mode_id))
+                    continue;
 
-            memcpy(vm_out, &video_modes_default[fl_config->mode_id], sizeof(mode_data_t));
+                if (!vm_in->timings.h_active)
+                    vm_in->timings.h_active = smp_preset->timings_i.h_active;
+                if (!vm_in->timings.v_active)
+                    vm_in->timings.v_active = smp_preset->timings_i.v_active;
+                if ((!vm_in->timings.h_synclen) || (!vm_in->timings.h_backporch))
+                    vm_in->timings.h_synclen = smp_preset->timings_i.h_synclen;
+                if (!vm_in->timings.v_synclen)
+                    vm_in->timings.v_synclen = smp_preset->timings_i.v_synclen;
+                if (!vm_in->timings.h_backporch)
+                    vm_in->timings.h_backporch = smp_preset->timings_i.h_backporch;
+                if (!vm_in->timings.v_backporch)
+                    vm_in->timings.v_backporch = smp_preset->timings_i.v_backporch;
+                vm_in->timings.h_total = smp_preset->timings_i.h_total;
+                vm_in->timings.h_total_adj = smp_preset->timings_i.h_total_adj;
+                vm_in->sampler_phase = smp_preset->sampler_phase;
+                vm_in->type = smp_preset->type;
+                vm_in->group = smp_preset->group;
+                if (vm_in->name[0] == 0)
+                    strncpy(vm_in->name, smp_preset->name, 14);
 
-            vm_out->si_pclk_mult = 0;
-            memcpy(&vm_out->si_ms_conf, &fl_config->si_ms_conf, sizeof(si5351_ms_config_t));
+                memcpy(vm_out, &video_modes_default[fl_config->mode_id], sizeof(mode_data_t));
 
-            vm_conf->h_skip = smp_preset->h_skip;
+                vm_out->si_pclk_mult = 0;
+                memcpy(&vm_out->si_ms_conf, &fl_config->si_ms_conf, sizeof(si5351_ms_config_t));
 
-            return 0;
+                vm_conf->h_skip = smp_preset->h_skip;
+
+                return 0;
+            }
         }
     }
 

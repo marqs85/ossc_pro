@@ -181,8 +181,8 @@ typedef enum {
     SMPPRESET_PSX_512x240,
     SMPPRESET_PSX_640x240,
     SMPPRESET_SAT_320x240,
-    SMPPRESET_SAT_352x240,
     SMPPRESET_SAT_640x240,
+    SMPPRESET_SAT_352x240,
     SMPPRESET_SAT_704x240,
     SMPPRESET_N64_320x240,
     SMPPRESET_N64_640x240,
@@ -264,7 +264,8 @@ typedef struct {
 
 typedef struct {
     stdmode_t mode_id;
-    smp_preset_id_t smp_preset_id;
+    smp_preset_id_t smp_preset_id_first;
+    smp_preset_id_t smp_preset_id_last;
     uint16_t v_total_override;
     si5351_ms_config_t si_ms_conf;
 } fl_config_t;

@@ -38,6 +38,8 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
+    <File Name="src/scl_pp_coeffs.c"/>
+    <File Name="src/file.c"/>
     <File Name="src/video_modes_list.c"/>
     <File Name="src/video_modes.c"/>
     <File Name="src/utils.c"/>
@@ -51,6 +53,7 @@
     <File Name="config/sysconfig.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="inc">
+    <File Name="inc/file.h"/>
     <File Name="inc/video_modes.h"/>
     <File Name="inc/utils.h"/>
     <File Name="inc/menu.h"/>
@@ -60,6 +63,11 @@
     <File Name="inc/av_controller.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ic_drivers">
+    <VirtualDirectory Name="sii1136">
+      <File Name="ic_drivers/sii1136/sii1136_regs.h"/>
+      <File Name="ic_drivers/sii1136/sii1136.h"/>
+      <File Name="ic_drivers/sii1136/sii1136.c"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="common">
       <File Name="ic_drivers/common/hdmi.h"/>
     </VirtualDirectory>
