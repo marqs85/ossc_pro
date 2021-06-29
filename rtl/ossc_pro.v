@@ -115,7 +115,7 @@ wire hdmirx_reset_n = sys_ctrl[2];
 wire emif_hwreset_n = sys_ctrl[3];
 wire emif_swreset_n = sys_ctrl[4];
 wire emif_powerdn_req = sys_ctrl[5];
-wire emif_powerdn_mask = sys_ctrl[6];
+wire vip_reset_n = sys_ctrl[6];
 wire capture_sel = sys_ctrl[7];
 wire isl_hsync_pol = sys_ctrl[8];
 wire isl_vsync_pol = sys_ctrl[9];
@@ -138,7 +138,7 @@ reg pclk_capture_div2, pclk_out_div2;
 reg [15:0] po_reset_ctr = 0;
 reg po_reset_n = 1'b0;
 
-wire pll_locked;
+wire pll_locked, emif_pll_locked;
 
 `ifdef SIMULATION
 wire sys_reset_n = (po_reset_n & pll_locked);
@@ -156,7 +156,7 @@ wire sd_detect = ~SD_DETECT_i;
 wire cvi_overflow, cvo_underflow;
 
 wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
-wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 25'h0, sd_detect, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
+wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
 wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2;
 wire [31:0] misc_config, sl_config, sl_config2;
@@ -584,8 +584,9 @@ sys sys_inst (
     .mem_if_lpddr2_emif_0_status_local_cal_success (emif_status_cal_success),
     .mem_if_lpddr2_emif_0_status_local_cal_fail    (emif_status_cal_fail),
     .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_req  (emif_powerdn_req),
-    .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_chip (emif_powerdn_mask),
+    .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_chip (1'b1),
     .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_ack  (emif_status_powerdn_ack),
+    .mem_if_lpddr2_emif_0_pll_sharing_pll_locked               (emif_pll_locked),
     .memory_mem_ca                                 (DDR_CA_o),
     .memory_mem_ck                                 (DDR_CK_o_p),
     .memory_mem_ck_n                               (DDR_CK_o_n),
@@ -596,6 +597,7 @@ sys sys_inst (
     .memory_mem_dqs                                (DDR_DQS_io_p),
     .memory_mem_dqs_n                              (DDR_DQS_io_n),
     .oct_rzqin                                     (DDR_RZQ_i),
+    .vip_reset_reset_n                             (vip_reset_n),
     .alt_vip_cl_cvi_0_clocked_video_vid_clk                    (
 `ifdef PIXPAR2
     pclk_capture_div2

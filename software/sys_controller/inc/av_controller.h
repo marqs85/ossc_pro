@@ -32,7 +32,7 @@
 #define SCTRL_EMIF_HWRESET_N    (1<<3)
 #define SCTRL_EMIF_SWRESET_N    (1<<4)
 #define SCTRL_EMIF_POWERDN_REQ  (1<<5)
-#define SCTRL_EMIF_POWERDN_MASK (1<<6)
+#define SCTRL_VIP_RESET_N       (1<<6)
 #define SCTRL_CAPTURE_SEL       (1<<7)
 #define SCTRL_ISL_HS_POL        (1<<8)
 #define SCTRL_ISL_VS_POL        (1<<9)
@@ -44,11 +44,12 @@
 #define SCTRL_HDMIRX_SPDIF      (1<<15)
 
 // sys_status
-#define SSTAT_MEMSTAT_MASK              0x0000000f
-#define SSTAT_MEMSTAT_OFFS              0
-#define SSTAT_MEMSTAT_INIT_DONE_BIT     0
-#define SSTAT_MEMSTAT_POWERDN_ACK_BIT   3
-#define SSTAT_SD_DETECT_BIT             4
+#define SSTAT_EMIF_STAT_MASK            0x00000007
+#define SSTAT_EMIF_STAT_OFFS            0
+#define SSTAT_EMIF_STAT_INIT_DONE_BIT   0
+#define SSTAT_EMIF_POWERDN_ACK_BIT      3
+#define SSTAT_EMIF_PLL_LOCKED           4
+#define SSTAT_SD_DETECT_BIT             5
 
 typedef enum {
     AV_TESTPAT      = 0,

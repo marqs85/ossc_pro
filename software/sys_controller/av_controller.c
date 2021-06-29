@@ -177,6 +177,8 @@ FIL file;
 char char_buff[256];
 
 const pp_coeff* scl_pp_coeff_list[][2] = {{&pp_coeff_nearest, NULL},
+                                          {&pp_coeff_nearest, NULL},
+                                          {&pp_coeff_nearest, NULL},
                                           {&pp_coeff_lanczos3, NULL},
                                           {&pp_coeff_lanczos4, NULL},
                                           {&pp_coeff_lanczos2, &pp_coeff_lanczos3},
@@ -503,35 +505,42 @@ int init_emif()
 {
     alt_timestamp_type start_ts;
 
-    //usleep(100);
     sys_ctrl |= SCTRL_EMIF_HWRESET_N;
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
-    usleep(1000);
+    start_ts = alt_timestamp();
+    while (1) {
+        sys_status = IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE);
+        if (sys_status & (1<<SSTAT_EMIF_PLL_LOCKED))
+            break;
+        else if (alt_timestamp() >= start_ts + 100000*(TIMER_0_FREQ/1000000))
+            return -1;
+    }
+
     sys_ctrl |= SCTRL_EMIF_SWRESET_N;
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     start_ts = alt_timestamp();
     while (1) {
         sys_status = IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE);
-        if (sys_status & (1<<SSTAT_MEMSTAT_INIT_DONE_BIT))
+        if (sys_status & (1<<SSTAT_EMIF_STAT_INIT_DONE_BIT))
             break;
         else if (alt_timestamp() >= start_ts + 100000*(TIMER_0_FREQ/1000000))
-            return -1;
+            return -2;
     }
-    if (((sys_status & SSTAT_MEMSTAT_MASK) >> SSTAT_MEMSTAT_OFFS) != 0x3) {
-        printf("Mem calib fail: 0x%x\n", ((sys_status & SSTAT_MEMSTAT_MASK) >> SSTAT_MEMSTAT_OFFS));
-        return -2;
+    if (((sys_status & SSTAT_EMIF_STAT_MASK) >> SSTAT_EMIF_STAT_OFFS) != 0x3) {
+        printf("Mem calib fail: 0x%x\n", ((sys_status & SSTAT_EMIF_STAT_MASK) >> SSTAT_EMIF_STAT_OFFS));
+        return -3;
     }
 
     // Place LPDDR2 into deep powerdown mode
-    sys_ctrl |= (SCTRL_EMIF_POWERDN_MASK | SCTRL_EMIF_POWERDN_REQ);
+    sys_ctrl |= (SCTRL_EMIF_POWERDN_REQ);
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     start_ts = alt_timestamp();
     while (1) {
         sys_status = IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE);
-        if (sys_status & (1<<SSTAT_MEMSTAT_POWERDN_ACK_BIT))
+        if (sys_status & (1<<SSTAT_EMIF_POWERDN_ACK_BIT))
             break;
         else if (alt_timestamp() >= start_ts + 100000*(TIMER_0_FREQ/1000000))
-            return -3;
+            return -4;
     }
 
     return 0;
@@ -614,11 +623,11 @@ int init_hw()
 {
     int ret;
 
-    // reset hw except memory controller
-    sys_ctrl = (SCTRL_EMIF_HWRESET_N|SCTRL_EMIF_SWRESET_N);
+    // reset hw
+    sys_ctrl = 0x00;
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     usleep(400000);
-    sys_ctrl |= SCTRL_ISL_RESET_N|SCTRL_HDMI_RESET_N;
+    sys_ctrl |= SCTRL_VIP_RESET_N|SCTRL_ISL_RESET_N|SCTRL_HDMI_RESET_N;
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
     I2C_init(I2CA_BASE,ALT_CPU_FREQ, 400000);
