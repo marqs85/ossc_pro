@@ -45,7 +45,7 @@ const avconfig_t tc_default = {
     .oper_mode = 1,
 #ifdef VIP
     .scl_out_mode = 4,
-    .scl_alg = 1,
+    .scl_alg = 3,
     .scl_edge_thold = 7,
     .scl_dil_motion_shift = 3,
 #ifndef VIP_DIL_B
@@ -112,8 +112,7 @@ status_t update_avconfig() {
         (tc.nir_even_offset != cc.nir_even_offset) ||
         (tc.ypbpr_cs != cc.ypbpr_cs)
 #ifdef VIP
-        || (tc.scl_alg != cc.scl_alg) ||
-        (tc.scl_edge_thold != cc.scl_edge_thold) ||
+        || (tc.scl_edge_thold != cc.scl_edge_thold) ||
         (tc.scl_dil_motion_shift != cc.scl_dil_motion_shift)
 #ifndef VIP_DIL_B
         || (tc.scl_dil_alg != cc.scl_dil_alg)
@@ -150,7 +149,8 @@ status_t update_avconfig() {
         (tc.upsample2x != cc.upsample2x) ||
         (tc.default_vic != cc.default_vic)
 #ifdef VIP
-        || (tc.scl_out_mode != cc.scl_out_mode) ||
+        || (tc.scl_alg != cc.scl_alg) ||
+        (tc.scl_out_mode != cc.scl_out_mode) ||
         (tc.scl_framelock != cc.scl_framelock) ||
         (tc.scl_aspect != cc.scl_aspect) ||
         (tc.sm_scl_240p_288p != cc.sm_scl_240p_288p) ||

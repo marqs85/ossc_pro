@@ -227,7 +227,8 @@ int get_framelock_config(mode_data_t *vm_in, stdmode_t mode_id_list[], smp_mode_
 #ifdef VIP
 int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
 {
-    int i, mode_hz_index, diff_lines, mindiff_id=0, mindiff_lines=1000, gen_width_limit=0;
+    int i, mode_hz_index, diff_lines, mindiff_id=0, mindiff_lines=1000, gen_width_limit=0, allow_x_inc, allow_y_inc, int_scl_x=1, int_scl_y=1, src_crop;
+    int32_t error_cur=1, error_x_inc=0, error_y_inc=0;
     mode_data_t *freerun_preset = NULL;
     smp_preset_t *smp_preset;
     avconfig_t* cc = get_current_avconfig();
@@ -310,7 +311,7 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *v
 
         freerun_preset = (mode_data_t*)&video_modes_default[pm_scl_map[cc->scl_out_mode][mode_hz_index]];
 
-        if (cc->scl_aspect < 4) {
+        if (cc->scl_aspect < 3) {
             gen_width_limit = (aspect_map[cc->scl_aspect][0]*freerun_preset->timings.v_active)/aspect_map[cc->scl_aspect][1];
             if (gen_width_limit > freerun_preset->timings.h_active)
                 gen_width_limit = freerun_preset->timings.h_active;
@@ -369,25 +370,86 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *v
     aspect_map[3][0] = vm_in->timings.h_active;
     aspect_map[3][1] = vm_in->timings.v_active;
 
+    // Return error if input H/V active is zero for whatever reason
+    if (!vm_in->timings.h_active || !vm_in->timings.v_active)
+        return -1;
+
     // Calculate size and position based on aspect ratio
-    if (cc->scl_aspect < 4) {
-        if (vm_out->timings.v_active*aspect_map[cc->scl_aspect][0] <= vm_out->timings.h_active*aspect_map[cc->scl_aspect][1]) {
-            // Pillarbox
-            vm_conf->y_size = vm_out->timings.v_active;
-            vm_conf->x_size = (aspect_map[cc->scl_aspect][0]*vm_out->timings.v_active)/aspect_map[cc->scl_aspect][1];
-            vm_conf->x_offset = (vm_out->timings.h_active - vm_conf->x_size)/2;
-        } else {
-            // Letterbox
-            vm_conf->x_size = vm_out->timings.h_active;
-            vm_conf->y_size = (aspect_map[cc->scl_aspect][1]*vm_out->timings.h_active)/aspect_map[cc->scl_aspect][0];
-            vm_conf->y_offset = (vm_out->timings.v_active - vm_conf->y_size)/2;
+    if (cc->scl_alg < 2) { // Integer
+        // Integer scale incrementally in horizontal or vertical direction depending which results to more correct aspect ratio
+        while (1) {
+            if (cc->scl_aspect < 4) {
+                error_cur = ((1000*int_scl_x*vm_in->timings.h_active)/aspect_map[cc->scl_aspect][0]) - ((1000*int_scl_y*vm_in->timings.v_active)/aspect_map[cc->scl_aspect][1]);
+                error_x_inc = ((1000*(int_scl_x+1)*vm_in->timings.h_active)/aspect_map[cc->scl_aspect][0]) - ((1000*int_scl_y*vm_in->timings.v_active)/aspect_map[cc->scl_aspect][1]);
+                error_y_inc = ((1000*(int_scl_y+1)*vm_in->timings.v_active)/aspect_map[cc->scl_aspect][1]) - ((1000*int_scl_x*vm_in->timings.h_active)/aspect_map[cc->scl_aspect][0]);
+            }
+
+            // Up to 1/8 horizontally or vertically allowed to be cropped when overscanning enabled
+            allow_x_inc = cc->scl_alg ? (7*(int_scl_x+1)*vm_in->timings.h_active <= 8*vm_out->timings.h_active) : ((int_scl_x+1)*vm_in->timings.h_active <= vm_out->timings.h_active);
+            allow_y_inc = cc->scl_alg ? (7*(int_scl_y+1)*vm_in->timings.v_active <= 8*vm_out->timings.v_active) : ((int_scl_y+1)*vm_in->timings.v_active <= vm_out->timings.v_active);
+
+            if (!allow_x_inc && !allow_y_inc) {
+                break;
+            } else if (allow_x_inc && allow_y_inc) {
+                if (abs(error_x_inc) < abs(error_y_inc))
+                    int_scl_x++;
+                else
+                    int_scl_y++;
+            } else if (allow_x_inc) {
+                if (abs(error_x_inc) < abs(error_cur))
+                    int_scl_x++;
+                else
+                    break;
+            } else { // allow_y_inc
+                if (abs(error_y_inc) < abs(error_cur))
+                    int_scl_y++;
+                else
+                    break;
+            }
         }
-    } else {
-        vm_conf->x_size = vm_out->timings.h_active;
-        vm_conf->y_size = vm_out->timings.v_active;
+
+        vm_conf->x_size = int_scl_x*vm_in->timings.h_active;
+        vm_conf->y_size = int_scl_y*vm_in->timings.v_active;
+
+        if (vm_conf->x_size > vm_out->timings.h_active) {
+            error_cur = vm_conf->x_size - vm_out->timings.h_active;
+            src_crop = (error_cur % int_scl_x) ? ((error_cur/int_scl_x)+1) : (error_cur/int_scl_x);
+            vm_in->timings.h_active -= src_crop;
+            vm_in->timings.h_backporch += src_crop/2;
+            vm_conf->x_size = int_scl_x*vm_in->timings.h_active;
+        }
+        if (vm_conf->y_size > vm_out->timings.v_active) {
+            error_cur = vm_conf->y_size - vm_out->timings.v_active;
+            src_crop = (error_cur % int_scl_y) ? ((error_cur/int_scl_y)+1) : (error_cur/int_scl_y);
+            vm_in->timings.v_active -= src_crop;
+            vm_in->timings.v_backporch += src_crop/2;
+            vm_conf->y_size = int_scl_y*vm_in->timings.v_active;
+        }
+
+        vm_conf->x_offset = (vm_out->timings.h_active - vm_conf->x_size)/2;
+        vm_conf->y_offset = (vm_out->timings.v_active - vm_conf->y_size)/2;
+
+        printf("\nint_scl_x: %d int_scl_y: %d", int_scl_x, int_scl_y);
+    } else { // Scale to aspect
+        if (cc->scl_aspect < 4) {
+            if (vm_out->timings.v_active*aspect_map[cc->scl_aspect][0] <= vm_out->timings.h_active*aspect_map[cc->scl_aspect][1]) {
+                // Pillarbox
+                vm_conf->y_size = vm_out->timings.v_active;
+                vm_conf->x_size = (aspect_map[cc->scl_aspect][0]*vm_out->timings.v_active)/aspect_map[cc->scl_aspect][1];
+                vm_conf->x_offset = (vm_out->timings.h_active - vm_conf->x_size)/2;
+            } else {
+                // Letterbox
+                vm_conf->x_size = vm_out->timings.h_active;
+                vm_conf->y_size = (aspect_map[cc->scl_aspect][1]*vm_out->timings.h_active)/aspect_map[cc->scl_aspect][0];
+                vm_conf->y_offset = (vm_out->timings.v_active - vm_conf->y_size)/2;
+            }
+        } else {
+            vm_conf->x_size = vm_out->timings.h_active;
+            vm_conf->y_size = vm_out->timings.v_active;
+        }
     }
 
-    printf("x_offset: %d, x_size: %u\ny_offset: %d, y_size: %u\n", vm_conf->x_offset, vm_conf->x_size, vm_conf->y_offset, vm_conf->y_size);
+    printf("\nx_size: %u, y_size: %u\nx_offset: %d, y_offset: %d\n", vm_conf->x_size, vm_conf->y_size, vm_conf->x_offset, vm_conf->y_offset);
 
     return 0;
 }

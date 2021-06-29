@@ -103,7 +103,7 @@ static const char *oper_mode_desc[] = { "Pure LM", "Adaptive LM", "Scaler" };
 static const char *scl_out_mode_desc[] = { "720x480 (60Hz)", "720x576 (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)" };
 static const char *scl_framelock_desc[] = { "On", "On (2x Hz)", "Off (closest Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
 static const char *scl_aspect_desc[] = { "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
-static const char *scl_alg_desc[] = { "Nearest", "Lanczos3", "Lanczos4", "Lanczos2&3", "Lanczos3&4", "SL sharp", "Custom scaler1.txt", "Custom scaler2.txt" };
+static const char *scl_alg_desc[] = { "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos4", "Lanczos2&3", "Lanczos3&4", "SL sharp", "Custom scaler1.txt", "Custom scaler2.txt" };
 #ifndef VIP_DIL_B
 #ifdef DEBUG
 static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Visualize motion" };
@@ -111,7 +111,7 @@ static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Vi
 static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive" };
 #endif
 #endif
-static const char *sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "N64 320col", "N64 640col" };
+static const char *sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col" };
 static const char *sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i" };
 static const char *sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480@60" };
 static const char *sm_scl_576p_desc[] = { "Generic", "DTV 576p" };
