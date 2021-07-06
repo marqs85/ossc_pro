@@ -115,7 +115,7 @@ wire hdmirx_reset_n = sys_ctrl[2];
 wire emif_hwreset_n = sys_ctrl[3];
 wire emif_swreset_n = sys_ctrl[4];
 wire emif_powerdn_req = sys_ctrl[5];
-wire vip_reset_n = sys_ctrl[6];
+wire emif_mpfe_reset_n = sys_ctrl[6];
 wire capture_sel = sys_ctrl[7];
 wire isl_hsync_pol = sys_ctrl[8];
 wire isl_vsync_pol = sys_ctrl[9];
@@ -167,7 +167,7 @@ wire resync_strobe_i;
 wire resync_strobe = resync_strobe_sync2_reg;
 
 //BGR
-assign LED_o = sys_poweron ? {framelock, (ir_code == 0), (resync_led_ctr != 0)} : 3'b001;
+assign LED_o = sys_poweron ? {framelock, (ir_code == 0), (resync_led_ctr != 0)} : {2'b00, ~resync_led_ctr[23]};
 //assign LED_o = {emif_status_init_done, emif_status_cal_success, emif_status_cal_fail};
 
 wire [11:0] xpos_sc;
@@ -494,10 +494,18 @@ begin
 end
 
 always @(posedge CLK27_i) begin
-    if (~resync_strobe_prev & resync_strobe) begin
-        resync_led_ctr <= {24{1'b1}};
-    end else if (resync_led_ctr > 0) begin
-        resync_led_ctr <= resync_led_ctr - 1'b1;
+    if (sys_poweron) begin
+        if (~resync_strobe_prev & resync_strobe) begin
+            resync_led_ctr <= {24{1'b1}};
+        end else if (resync_led_ctr > 0) begin
+            resync_led_ctr <= resync_led_ctr - 1'b1;
+        end
+    end else begin
+        if (pll_locked) begin
+            resync_led_ctr <= {24{1'b0}};
+        end else begin
+            resync_led_ctr <= resync_led_ctr - 1'b1;
+        end
     end
 
     resync_strobe_sync1_reg <= resync_strobe_i;
@@ -587,6 +595,7 @@ sys sys_inst (
     .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_chip (1'b1),
     .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_ack  (emif_status_powerdn_ack),
     .mem_if_lpddr2_emif_0_pll_sharing_pll_locked               (emif_pll_locked),
+    .mem_if_lpddr2_emif_0_mpfe_reset_reset_n       (emif_mpfe_reset_n),
     .memory_mem_ca                                 (DDR_CA_o),
     .memory_mem_ck                                 (DDR_CK_o_p),
     .memory_mem_ck_n                               (DDR_CK_o_n),
@@ -596,8 +605,9 @@ sys sys_inst (
     .memory_mem_dq                                 (DDR_DQ_io),
     .memory_mem_dqs                                (DDR_DQS_io_p),
     .memory_mem_dqs_n                              (DDR_DQS_io_n),
-    .oct_rzqin                                     (DDR_RZQ_i),
-    .vip_reset_reset_n                             (vip_reset_n),
+    .oct_rzqin                                     (DDR_RZQ_i)
+`ifdef VIP
+    ,
     .alt_vip_cl_cvi_0_clocked_video_vid_clk                    (
 `ifdef PIXPAR2
     pclk_capture_div2
@@ -637,6 +647,7 @@ sys sys_inst (
     .alt_vip_cl_cvo_0_clocked_video_vid_f                      (),
     .alt_vip_cl_cvo_0_clocked_video_vid_h                      (),
     .alt_vip_cl_cvo_0_clocked_video_vid_v                      ()
+`endif
 );
 
 scanconverter scanconverter_inst (

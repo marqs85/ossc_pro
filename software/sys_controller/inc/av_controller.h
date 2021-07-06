@@ -32,7 +32,7 @@
 #define SCTRL_EMIF_HWRESET_N    (1<<3)
 #define SCTRL_EMIF_SWRESET_N    (1<<4)
 #define SCTRL_EMIF_POWERDN_REQ  (1<<5)
-#define SCTRL_VIP_RESET_N       (1<<6)
+#define SCTRL_EMIF_MPFE_RESET_N (1<<6)
 #define SCTRL_CAPTURE_SEL       (1<<7)
 #define SCTRL_ISL_HS_POL        (1<<8)
 #define SCTRL_ISL_VS_POL        (1<<9)

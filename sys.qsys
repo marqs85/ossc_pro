@@ -535,6 +535,11 @@
    type="reset"
    dir="end" />
  <interface
+   name="mem_if_lpddr2_emif_0_mpfe_reset"
+   internal="reset_bridge_0.in_reset"
+   type="reset"
+   dir="end" />
+ <interface
    name="mem_if_lpddr2_emif_0_pll_sharing"
    internal="mem_if_lpddr2_emif_0.pll_sharing"
    type="conduit"
@@ -602,11 +607,6 @@
    internal="sdc_controller_0.sd_clk_o"
    type="clock"
    dir="start" />
- <interface
-   name="vip_reset"
-   internal="reset_bridge_0.in_reset"
-   type="reset"
-   dir="end" />
  <module
    name="alt_vip_cl_cvi_0"
    kind="alt_vip_cl_cvi"
