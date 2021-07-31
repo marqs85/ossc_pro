@@ -47,7 +47,9 @@
  * Specifying __attribute__((section(".data"))) will force these
  * in .data. (CASE:258384.)
  */
-
+extern alt_u32 __flash_text_bram_start __attribute__((section(".data")));
+extern alt_u32 __ram_text_start __attribute__((section(".data")));
+extern alt_u32 __ram_text_end __attribute__((section(".data")));
 extern alt_u32 __flash_rwdata_start __attribute__((section(".data")));
 extern alt_u32 __ram_rwdata_start __attribute__((section(".data")));
 extern alt_u32 __ram_rwdata_end __attribute__((section(".data")));
@@ -66,6 +68,14 @@ extern alt_u32 __ram_exceptions_end __attribute__((section(".data")));
 
 void alt_load (void)
 {
+  /*
+   * Copy the .text_bram section.
+   */
+
+  alt_load_section (&__flash_text_bram_start,
+		               &__ram_text_start,
+		               &__ram_text_end);
+
   /* 
    * Copy the .rwdata section. 
    */

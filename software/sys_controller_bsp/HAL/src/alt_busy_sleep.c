@@ -52,7 +52,7 @@
 #include "altera_avalon_timer.h"
 #include "sys/alt_timestamp.h"
 
-unsigned int alt_busy_sleep (unsigned int us)
+unsigned int __attribute__((noinline, __section__(".text_bram"))) alt_busy_sleep (unsigned int us)
 {
 /*
  * Only delay if ALT_SIM_OPTIMIZE is not defined; i.e., if software

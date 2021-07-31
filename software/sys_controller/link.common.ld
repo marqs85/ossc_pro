@@ -81,7 +81,16 @@ SECTIONS
       PROVIDE_HIDDEN (__fini_array_end = .);
     } > dataram
 
-    .data : AT ( LOADADDR (.rodata) + SIZEOF (.rodata) ) {
+    .text_bram : AT ( LOADADDR (.rodata) + SIZEOF (.rodata) ) {
+        PROVIDE (__ram_text_start = ABSOLUTE(.));
+        . = ALIGN(4);
+        *(.text_bram);
+        PROVIDE (__ram_text_end = ABSOLUTE(.));
+    } > dataram
+
+    PROVIDE (__flash_text_bram_start = LOADADDR(.text_bram));
+
+    .data : AT ( LOADADDR (.text_bram) + SIZEOF (.text_bram) ) {
         PROVIDE (__ram_rwdata_start = ABSOLUTE(.));
         . = ALIGN(4);
         sdata  =  .;

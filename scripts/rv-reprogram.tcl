@@ -32,6 +32,16 @@ set claim_path [claim_service master $master_service_path mylib]
 puts "Halting CPU"
 master_write_32 $claim_path 0x0 0x10000
 
+#write enable
+master_write_32 $claim_path $flash_cmd_setting 0x00000006
+master_write_32 $claim_path $flash_cmd_ctrl 0x1
+
+#write status register (clear BP)
+master_write_32 $claim_path $flash_cmd_setting 0x00001001
+#master_write_32 $claim_path $flash_cmd_write_data_0 0x0000005c
+master_write_32 $claim_path $flash_cmd_write_data_0 0x00000000
+master_write_32 $claim_path $flash_cmd_ctrl 0x1
+
 puts "Erasing $num_sectors flash sectors"
 master_write_32 $claim_path $flash_cmd_setting 0x00000006
 master_write_32 $claim_path $flash_cmd_ctrl 0x1

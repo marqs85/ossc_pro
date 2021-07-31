@@ -42,9 +42,10 @@
 #include "adv761x.h"
 #include "sc_config_regs.h"
 #include "video_modes.h"
+#include "flash.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 44
+#define FW_VER_MINOR 45
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -140,6 +141,8 @@ pcm186x_dev pcm_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
 
 us2066_dev chardisp_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                            .i2c_addr = US2066_BASE};
+
+flash_ctrl_dev flashctrl_dev = {.regs = (volatile gen_flash_if_regs*)INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_CSR_BASE};
 
 volatile sc_regs *sc = (volatile sc_regs*)SC_CONFIG_0_BASE;
 volatile osd_regs *osd = (volatile osd_regs*)OSD_GENERATOR_0_BASE;
@@ -1316,6 +1319,9 @@ int main()
 
     // Start system clock
     alt_timestamp_start();
+
+    // Write-protect flash
+    flash_write_protect(&flashctrl_dev, 1);
 
     while (1) {
         ret = init_hw();
