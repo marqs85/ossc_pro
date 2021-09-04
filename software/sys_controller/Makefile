@@ -150,6 +150,7 @@ C_SRCS += src/menu.c
 C_SRCS += src/video_modes.c
 C_SRCS += src/file.c
 C_SRCS += src/flash.c
+C_SRCS += src/firmware.c
 C_SRCS += ic_drivers/isl51002/isl51002.c
 C_SRCS += ic_drivers/ths7353/ths7353.c
 C_SRCS += ic_drivers/us2066/us2066.c

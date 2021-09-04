@@ -38,6 +38,7 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
+    <File Name="src/firmware.c"/>
     <File Name="src/scl_pp_coeffs.c"/>
     <File Name="src/file.c"/>
     <File Name="src/video_modes_list.c"/>
@@ -53,6 +54,7 @@
     <File Name="config/sysconfig.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="inc">
+    <File Name="inc/firmware.h"/>
     <File Name="inc/file.h"/>
     <File Name="inc/video_modes.h"/>
     <File Name="inc/utils.h"/>

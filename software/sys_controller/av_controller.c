@@ -43,6 +43,7 @@
 #include "sc_config_regs.h"
 #include "video_modes.h"
 #include "flash.h"
+#include "firmware.h"
 
 #define FW_VER_MAJOR 0
 #define FW_VER_MINOR 45
@@ -143,6 +144,8 @@ us2066_dev chardisp_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                            .i2c_addr = US2066_BASE};
 
 flash_ctrl_dev flashctrl_dev = {.regs = (volatile gen_flash_if_regs*)INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_CSR_BASE};
+
+rem_update_dev rem_reconfig_dev = {.regs = (volatile rem_update_regs*)0x00023400};
 
 volatile sc_regs *sc = (volatile sc_regs*)SC_CONFIG_0_BASE;
 volatile osd_regs *osd = (volatile osd_regs*)OSD_GENERATOR_0_BASE;

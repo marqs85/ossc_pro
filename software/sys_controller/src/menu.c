@@ -22,6 +22,7 @@
 #include "av_controller.h"
 #include "avconfig.h"
 #include "controls.h"
+#include "firmware.h"
 #include "us2066.h"
 
 #define MAX_MENU_DEPTH 3
@@ -332,7 +333,7 @@ MENU(menu_settings, P99_PROTECT({
     { "OSD",                                    OPT_AVCONFIG_SELECTION, { .sel = { &osd_enable_pre,   OPT_WRAP,   SETTING_ITEM(osd_enable_desc) } } },
     { "OSD status disp.",                       OPT_AVCONFIG_SELECTION, { .sel = { &osd_status_timeout_pre,   OPT_WRAP,   SETTING_ITEM(osd_status_desc) } } },
     //{     "<Import sett.  >",                     OPT_FUNC_CALL,        { .fun = { import_userdata, NULL } } },
-    //{ LNG("<Fw. update    >","<ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ>"), OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
+    { LNG("<Fw. update    >","<ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ>"), OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
 }))
 
 
