@@ -251,7 +251,8 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *v
                                           SM_OPT_MD_256COL, SM_OPT_MD_320COL,
                                           SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
-                                          SM_OPT_N64_320COL, SM_OPT_N64_640COL};
+                                          SM_OPT_N64_320COL, SM_OPT_N64_640COL,
+                                          SM_OPT_NG_320COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_OPT_DTV480I};
     const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_OPT_DTV576I};
     const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VGA480P60};
@@ -480,7 +481,8 @@ int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config
                                           SM_OPT_MD_256COL, SM_OPT_MD_320COL,
                                           SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
-                                          SM_OPT_N64_320COL, SM_OPT_N64_640COL};
+                                          SM_OPT_N64_320COL, SM_OPT_N64_640COL,
+                                          SM_OPT_NG_320COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480I, SM_OPT_DTV480I_WS};
     const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV576I, SM_OPT_DTV576I};
     const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VGA480P60};

@@ -186,6 +186,7 @@ typedef enum {
     SMPPRESET_SAT_704x240,
     SMPPRESET_N64_320x240,
     SMPPRESET_N64_640x240,
+    SMPPRESET_NG_320x224,
 } smp_preset_id_t;
 
 typedef enum {
@@ -216,6 +217,7 @@ typedef enum {
     SM_OPT_SAT_704COL,
     SM_OPT_N64_320COL,
     SM_OPT_N64_640COL,
+    SM_OPT_NG_320COL,
 } smp_mode_t;
 
 typedef struct {

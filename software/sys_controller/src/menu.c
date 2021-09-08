@@ -71,7 +71,7 @@ static const char *pm_ad_480i_desc[] = { "Skip", "720x240 (240p rest.)", "1280x1
 static const char *pm_ad_576i_desc[] = { "Skip", "720x288 (288p rest.)", "1080i (288p rest+L2x)", "1920x1080 (Dint+L4x)" };
 static const char *pm_ad_480p_desc[] = { "Skip", "720x240 (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)", "2560x1440 (Line3x)" };
 static const char *pm_ad_576p_desc[] = { "Skip", "720x288 (Line drop)", "1920x1200 (Line2x)" };
-static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col" };
+static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col" };
 static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9" };
 static const char *sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480@60" };
 static const char *sm_ad_576p_desc[] = { "Generic 4:3" };
@@ -112,7 +112,7 @@ static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Vi
 static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive" };
 #endif
 #endif
-static const char *sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col" };
+static const char *sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col" };
 static const char *sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i" };
 static const char *sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480@60" };
 static const char *sm_scl_576p_desc[] = { "Generic", "DTV 576p" };
