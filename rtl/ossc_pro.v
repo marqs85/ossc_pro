@@ -641,12 +641,17 @@ sys sys_inst (
     .alt_vip_cl_cvo_0_clocked_video_underflow                  (cvo_underflow),
     .alt_vip_cl_cvo_0_clocked_video_vid_mode_change            (),
     .alt_vip_cl_cvo_0_clocked_video_vid_std                    (),
+    .alt_vip_cl_cvo_0_clocked_video_vid_vcoclk_div             (),
+    .alt_vip_cl_cvo_0_clocked_video_vid_sof_locked             (),
+    .alt_vip_cl_cvo_0_clocked_video_vid_sof                    (),
     .alt_vip_cl_cvo_0_clocked_video_vid_datavalid              (VIP_DE_o),
     .alt_vip_cl_cvo_0_clocked_video_vid_v_sync                 (VIP_VSYNC_o),
     .alt_vip_cl_cvo_0_clocked_video_vid_h_sync                 (VIP_HSYNC_o),
     .alt_vip_cl_cvo_0_clocked_video_vid_f                      (),
     .alt_vip_cl_cvo_0_clocked_video_vid_h                      (),
-    .alt_vip_cl_cvo_0_clocked_video_vid_v                      ()
+    .alt_vip_cl_cvo_0_clocked_video_vid_v                      (),
+    .alt_vip_cl_cvo_0_genlock_sof_locked                       (1'b1),
+    .alt_vip_cl_cvo_0_genlock_sof                              (frame_change_capt)
 `endif
 );
 

@@ -547,6 +547,11 @@
    internal="alt_vip_cl_cvo_0.clocked_video"
    type="conduit"
    dir="end" />
+ <interface
+   name="alt_vip_cl_cvo_0_genlock"
+   internal="alt_vip_cl_cvo_0.genlock"
+   type="conduit"
+   dir="end" />
  <interface name="clk" internal="clk_27.clk_in" type="clock" dir="end" />
  <interface
    name="i2c_opencores_0_export"
@@ -681,7 +686,7 @@
    version="20.1"
    enabled="1">
   <parameter name="ACCEPT_COLOURS_IN_SEQ" value="0" />
-  <parameter name="ACCEPT_SYNC" value="0" />
+  <parameter name="ACCEPT_SYNC" value="1" />
   <parameter name="ANC_LINE" value="0" />
   <parameter name="AP_LINE" value="0" />
   <parameter name="AUTO_DEVICE" value="5CEFA5F23C7" />
@@ -702,7 +707,7 @@
   <parameter name="FIFO_DEPTH" value="1024" />
   <parameter name="F_FALLING_EDGE" value="0" />
   <parameter name="F_RISING_EDGE" value="0" />
-  <parameter name="GENERATE_SYNC" value="0" />
+  <parameter name="GENERATE_SYNC" value="1" />
   <parameter name="H_ACTIVE_PIXELS" value="1920" />
   <parameter name="H_BACK_PORCH" value="148" />
   <parameter name="H_BLANK" value="0" />
@@ -1609,6 +1614,15 @@
   <parameter name="timeoutPulseOutput" value="false" />
   <parameter name="watchdogPulse" value="2" />
  </module>
+ <connection
+   kind="avalon"
+   version="20.1"
+   start="sdc_controller_0.avalon_m"
+   end="mem_if_lpddr2_emif_0.avl_1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x10000000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
  <connection
    kind="avalon"
    version="20.1"
