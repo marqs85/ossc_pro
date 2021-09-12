@@ -18,6 +18,7 @@
     </Plugin>
   </Plugins>
   <VirtualDirectory Name="tools">
+    <File Name="create_fw_img.c"/>
     <File Name="bin2hex.c"/>
   </VirtualDirectory>
   <Description/>

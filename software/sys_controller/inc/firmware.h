@@ -17,34 +17,47 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef FLASH_H_
-#define FLASH_H_
+#ifndef FIRMWARE_H_
+#define FIRMWARE_H_
 
-#include "alt_types.h"
 #include "sysconfig.h"
 
-#define FLASH_SECTOR_SIZE 65536
+#define FW_KEY_SIZE 8
+#define FW_SUFFIX_MAX_SIZE 16
 
 typedef struct {
-    uint32_t ctrl;
-    uint32_t baud_rate;
-    uint32_t cs_delay;
-    uint32_t read_capture;
-    uint32_t oper_mode;
-    uint32_t read_instr;
-    uint32_t write_instr;
-    uint32_t flash_cmd_cfg;
-    uint32_t flash_cmd_ctrl;
-    uint32_t flash_cmd_addr;
-    uint32_t flash_cmd_wrdata[2];
-    uint32_t flash_cmd_rddata[2];
-} gen_flash_if_regs;
+    uint32_t size;
+    uint32_t target_offset;
+    uint32_t crc;
+} fw_image_info;
+
+/* numbers in little-endian */
+typedef struct {
+    char key[FW_KEY_SIZE];
+    uint8_t fw_version_major;
+    uint8_t fw_version_minor;
+    char fw_suffix[FW_SUFFIX_MAX_SIZE];
+    uint32_t num_images;
+    fw_image_info image_info[8]; // max 8 images
+    uint32_t hdr_crc;
+} fw_header;
 
 typedef struct {
-    volatile gen_flash_if_regs *regs;
-    uint32_t flash_size;
-} flash_ctrl_dev;
+    uint32_t reg_trig_cnd;
+    uint32_t wdog_timeout;
+    uint32_t wdog_enable;
+    uint32_t image_addr;
+    uint32_t cfg_mode;
+    uint32_t reset_timer;
+    uint32_t reconfig_start;
+} rem_update_regs;
 
-void flash_write_protect(flash_ctrl_dev *dev, int enable);
+typedef struct {
+    volatile rem_update_regs *regs;
+} rem_update_dev;
 
-#endif /* FLASH_H_ */
+int fw_update();
+
+void fw_update_commit(fw_header *hdr);
+
+#endif /* FIRMWARE_H_ */
