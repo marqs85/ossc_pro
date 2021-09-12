@@ -43,15 +43,15 @@ master_write_32 $claim_path $flash_cmd_write_data_0 0x00000000
 master_write_32 $claim_path $flash_cmd_ctrl 0x1
 
 puts "Erasing $num_sectors flash sectors"
-master_write_32 $claim_path $flash_cmd_setting 0x00000006
-master_write_32 $claim_path $flash_cmd_ctrl 0x1
-master_write_32 $claim_path $flash_cmd_setting 0x000003D8
-set addr $flash_imem_base
+set addr $flash_imem_offset
 for {set i 0} {$i<$num_sectors} {incr i} {
-    master_write_32 $claim_path $flash_cmd_addr_register $flash_imem_offset
+    master_write_32 $claim_path $flash_cmd_setting 0x00000006
+    master_write_32 $claim_path $flash_cmd_ctrl 0x1
+    master_write_32 $claim_path $flash_cmd_setting 0x000003D8
+    master_write_32 $claim_path $flash_cmd_addr_register $addr
     master_write_32 $claim_path $flash_cmd_ctrl 0x1
     set addr [expr $addr + $flash_secsize]
-    after 2
+    after 500
 }
 
 puts "Writing flash"
