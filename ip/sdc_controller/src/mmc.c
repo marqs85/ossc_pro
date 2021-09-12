@@ -402,11 +402,8 @@ retry_scr:
 		case 1:
 			mmc->version = SD_VERSION_1_10;
 			break;
-		case 2:
-			mmc->version = SD_VERSION_2;
-			break;
 		default:
-			mmc->version = SD_VERSION_1_0;
+			mmc->version = SD_VERSION_2;
 			break;
 	}
 

@@ -285,7 +285,7 @@ struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq)
 	mmc.f_min = priv.clk_freq/6; /*maximum clock division 64 */
 	mmc.f_max = priv.clk_freq/2; /*minimum clock division 2 */
 	mmc.voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
-	mmc.host_caps = MMC_MODE_4BIT;//MMC_MODE_HS | MMC_MODE_HS_52MHz | MMC_MODE_4BIT;
+	mmc.host_caps = MMC_MODE_HS | MMC_MODE_HS_52MHz; //MMC_MODE_4BIT does not work reliably
 
 	mmc.b_max = 256;
 
