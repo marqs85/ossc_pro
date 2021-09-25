@@ -42,7 +42,7 @@ const avconfig_t tc_default = {
     .pm_ad_480p = 4,
     .pm_ad_576p = 0,
     .sl_altern = 1,
-    .oper_mode = 1,
+    .lm_mode = 1,
 #ifdef VIP
     .scl_out_mode = 4,
     .scl_alg = 3,
@@ -145,6 +145,7 @@ status_t update_avconfig() {
         (tc.sm_ad_480i_576i != cc.sm_ad_480i_576i) ||
         (tc.sm_ad_480p != cc.sm_ad_480p) ||
         (tc.sm_ad_576p != cc.sm_ad_576p) ||
+        (tc.lm_mode != cc.lm_mode) ||
         (tc.oper_mode != cc.oper_mode) ||
         (tc.upsample2x != cc.upsample2x) ||
         (tc.default_vic != cc.default_vic)

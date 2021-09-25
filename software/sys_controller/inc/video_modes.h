@@ -21,9 +21,10 @@
 #define VIDEO_MODES_H_
 
 #include <stdint.h>
+#include "sysconfig.h"
 #include "si5351.h"
 #include "hdmi.h"
-#include "sysconfig.h"
+#include "avconfig.h"
 
 #define H_TOTAL_MIN 300
 #define H_TOTAL_MAX 2800
@@ -42,13 +43,6 @@
 #define V_ACTIVE_MAX 1200
 
 #define DEFAULT_SAMPLER_PHASE 0
-
-typedef enum {
-    FORMAT_RGBS = 0,
-    FORMAT_RGBHV = 1,
-    FORMAT_RGsB = 2,
-    FORMAT_YPbPr = 3
-} video_format;
 
 typedef enum {
     VIDEO_SDTV      = (1<<0),
@@ -220,6 +214,13 @@ typedef enum {
     SM_OPT_NG_320COL,
 } smp_mode_t;
 
+typedef enum {
+    OPERMODE_PURE_LM      = 0,
+    OPERMODE_ADAPT_LM     = 1,
+    OPERMODE_SCALER       = 2,
+    OPERMODE_INVALID      = 255,
+} oper_mode_t;
+
 typedef struct {
     stdmode_t stdmode_id;
     uint8_t y_rpt;
@@ -291,11 +292,13 @@ void set_default_vm_table();
 
 uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz);
 
-int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
+oper_mode_t get_operating_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
 
-int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
+int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
 
-int get_pure_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
+int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
+
+int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
 
 int get_standard_mode(unsigned stdmode_idx_arr_idx, vm_proc_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
 

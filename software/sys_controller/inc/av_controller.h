@@ -22,7 +22,7 @@
 
 #include "sysconfig.h"
 #include "controls.h"
-#include "video_modes.h"
+#include "hdmi.h"
 #include "osd_generator_regs.h"
 
 // sys_ctrl

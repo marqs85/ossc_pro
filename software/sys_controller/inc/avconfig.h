@@ -79,13 +79,6 @@ typedef enum {
 } status_t;
 
 typedef enum {
-    OPERMODE_PURE_LM      = 0,
-    OPERMODE_ADAPT_LM     = 1,
-    OPERMODE_SCALER       = 2,
-    OPERMODE_INVALID      = 255,
-} oper_mode_t;
-
-typedef enum {
     SCL_FL_ON           = 0,
     SCL_FL_ON_2X        = 1,
     SCL_FL_OFF_CLOSEST  = 2,
@@ -127,6 +120,7 @@ typedef struct {
     uint8_t sm_ad_480i_576i;
     uint8_t sm_ad_480p;
     uint8_t sm_ad_576p;
+    uint8_t lm_mode;
     uint8_t oper_mode;
     uint8_t lm_deint_mode;
     uint8_t nir_even_offset;

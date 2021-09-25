@@ -109,6 +109,26 @@ uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz) {
     }
 }
 
+oper_mode_t get_operating_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf) {
+    oper_mode_t mode;
+
+    if (cc->oper_mode == 1) {
+#ifdef VIP
+        mode = (get_scaler_mode(cc, vm_in, vm_out, vm_conf) == 0) ? OPERMODE_SCALER : OPERMODE_INVALID;
+#else
+        mode = OPERMODE_INVALID;
+#endif
+    } else if (cc->lm_mode == 0) {
+        mode = (get_pure_lm_mode(cc, vm_in, vm_out, vm_conf) == 0) ? OPERMODE_PURE_LM : OPERMODE_INVALID;
+    } else {
+        mode = (get_adaptive_lm_mode(cc, vm_in, vm_out, vm_conf) == 0) ? OPERMODE_ADAPT_LM : OPERMODE_INVALID;
+        if (mode == OPERMODE_INVALID)
+            mode = (get_pure_lm_mode(cc, vm_in, vm_out, vm_conf) == 0) ? OPERMODE_PURE_LM : OPERMODE_INVALID;
+    }
+
+    return mode;
+}
+
 int get_framelock_config(mode_data_t *vm_in, stdmode_t mode_id_list[], smp_mode_t target_sm_list[], uint8_t high_samplerate_priority, mode_data_t *vm_out, vm_proc_config_t *vm_conf) {
     int i, j;
     fl_config_t *fl_config;
@@ -225,13 +245,12 @@ int get_framelock_config(mode_data_t *vm_in, stdmode_t mode_id_list[], smp_mode_
 }
 
 #ifdef VIP
-int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
+int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
 {
     int i, mode_hz_index, diff_lines, mindiff_id=0, mindiff_lines=1000, gen_width_limit=0, allow_x_inc, allow_y_inc, int_scl_x=1, int_scl_y=1, src_crop;
     int32_t error_cur=1, error_x_inc=0, error_y_inc=0;
     mode_data_t *freerun_preset = NULL;
     smp_preset_t *smp_preset;
-    avconfig_t* cc = get_current_avconfig();
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
@@ -456,12 +475,11 @@ int get_scaler_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *v
 }
 #endif
 
-int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
+int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
 {
     int32_t v_linediff;
     int16_t x_offset_i=0, y_offset_i=0;
     uint32_t in_interlace_mult, out_interlace_mult, vtotal_ref;
-    avconfig_t* cc = get_current_avconfig();
     memset(vm_out, 0, sizeof(mode_data_t));
 
     const ad_mode_t pm_ad_240p_map[] = {{-1, -1}, {STDMODE_480p, 1}, {STDMODE_720p_60, 2}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3}, {STDMODE_1080p_60, 4},
@@ -642,11 +660,10 @@ int get_adaptive_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config
     return 0;
 }
 
-int get_pure_lm_mode(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
+int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
 {
     int i;
     unsigned num_modes = sizeof(video_modes)/sizeof(mode_data_t);
-    avconfig_t* cc = get_current_avconfig();
     mode_flags valid_lm[] = { MODE_PT, (MODE_L2 | (MODE_L2<<cc->l2_mode)), (MODE_L3_GEN_16_9<<cc->l3_mode), (MODE_L4_GEN_4_3<<cc->l4_mode), (MODE_L5_GEN_4_3<<cc->l5_mode) };
     mode_flags target_lm;
     uint8_t pt_only = 0;

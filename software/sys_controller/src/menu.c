@@ -100,7 +100,8 @@ static const char *auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char *mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
 static const char *av3_alt_rgb_desc[] = { "Off", "AV1", "AV2" };
 static const char *adv761x_rgb_range_desc[] = { "Limited", "Full" };
-static const char *oper_mode_desc[] = { "Pure LM", "Adaptive LM", "Scaler" };
+static const char *oper_mode_desc[] = { "Line multiplier", "Scaler" };
+static const char *lm_mode_desc[] = { "Pure", "Adaptive" };
 static const char *scl_out_mode_desc[] = { "720x480 (60Hz)", "720x576 (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)" };
 static const char *scl_framelock_desc[] = { "On", "On (2x Hz)", "Off (closest Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
 static const char *scl_aspect_desc[] = { "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
@@ -243,6 +244,14 @@ MENU(menu_adap_lm, P99_PROTECT({
     { LNG("576p mode","576pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_576p,      OPT_WRAP, SETTING_ITEM(sm_ad_576p_desc) } } },
 }))
 
+MENU(menu_lm, P99_PROTECT({
+    { "Line multiplier mode",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lm_mode,         OPT_WRAP, SETTING_ITEM(lm_mode_desc) } } },
+    { "Deinterlace mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.lm_deint_mode,   OPT_WRAP, SETTING_ITEM(lm_deint_mode_desc) } } },
+    { "NI restore Y offset",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.nir_even_offset, OPT_NOWRAP, 0, 1, value_disp } } },
+    { "Pure LM opt.       >",                   OPT_SUBMENU,            { .sub = { &menu_pure_lm, NULL, NULL } } },
+    { "Adaptive LM opt.   >",                   OPT_SUBMENU,            { .sub = { &menu_adap_lm, NULL, NULL } } },
+}))
+
 #ifdef VIP
 MENU(menu_scaler, P99_PROTECT({
     { "Output resolution",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_out_mode,    OPT_WRAP, SETTING_ITEM(scl_out_mode_desc) } } },
@@ -269,8 +278,6 @@ MENU(menu_scaler, P99_PROTECT({
 
 MENU(menu_output, P99_PROTECT({
     { "Operating mode",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.oper_mode,       OPT_WRAP, SETTING_ITEM(oper_mode_desc) } } },
-    { "LM deinterlace mode",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lm_deint_mode,   OPT_WRAP, SETTING_ITEM(lm_deint_mode_desc) } } },
-    { "NI restore Y offset",                   OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.nir_even_offset, OPT_NOWRAP, 0, 1, value_disp } } },
     { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM(tx_mode_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 }))
@@ -296,11 +303,6 @@ MENU(menu_postproc, P99_PROTECT({
     //{ LNG("<DIY lat. test>","DIYﾁｴﾝﾃｽﾄ"),         OPT_FUNC_CALL,          { .fun = { latency_test, &lt_arg_info } } },
 }))
 
-MENU(menu_compatibility, P99_PROTECT({
-    { LNG("Full TX setup","ﾌﾙTXｾｯﾄｱｯﾌﾟ"),         OPT_AVCONFIG_SELECTION, { .sel = { &tc.full_tx_setup,    OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
-    { "Default HDMI VIC",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.default_vic,     OPT_NOWRAP, 0, HDMI_1080p50, value_disp } } },
-}))
-
 MENU(menu_audio, P99_PROTECT({
     { "Sampling format",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.audio_fmt,  OPT_WRAP, SETTING_ITEM(audio_fmt_desc) } } },
     { "Quad stereo",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.i2s_stereo_cfg, OPT_WRAP, SETTING_ITEM(audio_sr_desc) } } },
@@ -316,6 +318,11 @@ MENU(menu_audio, P99_PROTECT({
 #else
     { "AV1 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[0], OPT_NOWRAP, 0, 1, audio_src_disp } } },
 #endif
+}))
+
+MENU(menu_compatibility, P99_PROTECT({
+    { LNG("Full TX setup","ﾌﾙTXｾｯﾄｱｯﾌﾟ"),         OPT_AVCONFIG_SELECTION, { .sel = { &tc.full_tx_setup,    OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
+    { "Default HDMI VIC",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.default_vic,     OPT_NOWRAP, 0, HDMI_1080p50, value_disp } } },
 }))
 
 
@@ -343,17 +350,16 @@ MENU(menu_main, P99_PROTECT({
 #ifdef INC_ADV761X
     { "AV4 video in opt.  >",                   OPT_SUBMENU,            { .sub = { &menu_adv_video_opt, NULL, NULL } } },
 #endif
-    { "Pure LM opt.       >",                   OPT_SUBMENU,            { .sub = { &menu_pure_lm, NULL, NULL } } },
-    { "Adapt. LM opt.     >",                   OPT_SUBMENU,            { .sub = { &menu_adap_lm, NULL, NULL } } },
+    { "Line multiplier opt>",                   OPT_SUBMENU,            { .sub = { &menu_lm, NULL, NULL } } },
 #ifdef VIP
     { "Scaler opt.        >",                   OPT_SUBMENU,            { .sub = { &menu_scaler, NULL, NULL } } },
 #endif
-    { LNG("Output opt.    >","ｼｭﾂﾘｮｸｵﾌﾟｼｮﾝ  >"),  OPT_SUBMENU,            { .sub = { &menu_output, NULL, NULL } } },
+    { LNG("Output opt.        >","ｼｭﾂﾘｮｸｵﾌﾟｼｮﾝ  >"),  OPT_SUBMENU,            { .sub = { &menu_output, NULL, NULL } } },
+    { LNG("Audio opt.         >","ｵｰﾃﾞｨｵｵﾌﾟｼｮﾝ  >"), OPT_SUBMENU,             { .sub = { &menu_audio, NULL, NULL } } },
     //{ LNG("Scanline opt.  >","ｽｷｬﾝﾗｲﾝｵﾌﾟｼｮﾝ >"),  OPT_SUBMENU,            { .sub = { &menu_scanlines, NULL, NULL } } },
     //{ LNG("Post-proc.     >","ｱﾄｼｮﾘ         >"),  OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },
-    { LNG("Compatibility  >","ｺﾞｶﾝｾｲ        >"), OPT_SUBMENU,             { .sub = { &menu_compatibility, NULL, NULL } } },
-    { LNG("Audio options  >","ｵｰﾃﾞｨｵｵﾌﾟｼｮﾝ  >"), OPT_SUBMENU,             { .sub = { &menu_audio, NULL, NULL } } },
-    { "Settings opt   >",                       OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
+    { LNG("Compatibility      >","ｺﾞｶﾝｾｲ        >"), OPT_SUBMENU,             { .sub = { &menu_compatibility, NULL, NULL } } },
+    { "Settings           >",                       OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
 
 
