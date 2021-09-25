@@ -22,7 +22,6 @@
 #include "sys/alt_stdio.h"
 #include "utils.h"
 #include "system.h"
-#include "sysconfig.h"
 #include "io.h"
 
 uint32_t bswap32(uint32_t w)
@@ -31,6 +30,14 @@ uint32_t bswap32(uint32_t w)
             ((w <<  8) & 0x00ff0000) |
             ((w >>  8) & 0x0000ff00) |
             ((w >> 24) & 0x000000ff));
+}
+
+uint32_t gcd(uint32_t a, uint32_t b)
+{
+    if (a == 0)
+        return b;
+
+    return gcd(b % a, a);
 }
 
 unsigned long crc32(unsigned char *input_data, unsigned long input_data_length, int do_initialize)
@@ -51,14 +58,14 @@ unsigned long crc32(unsigned char *input_data, unsigned long input_data_length, 
     for(index = 0; index < (input_data_length & 0xFFFFFFFC); index+=4)
     {
         IOWR_32DIRECT(HW_CRC32_0_BASE, 0x4, *(unsigned long *)input_data_copy);
-        input_data_copy += 4;  /* void pointer, must move by 4 for each word */
+        input_data_copy = (char*)input_data_copy + 4;
     }
 
     /* Write the remainder of the buffer if it does not end on a word boundary */
     if((input_data_length & 0x3) == 0x3)  /* 3 bytes left */
     {
         IOWR_16DIRECT(HW_CRC32_0_BASE, 0x4, *(unsigned short *)input_data_copy);
-        input_data_copy += 2;
+        input_data_copy = (char*)input_data_copy + 2;
         IOWR_8DIRECT(HW_CRC32_0_BASE, 0x4, *(unsigned char *)input_data_copy);
     }
     else if((input_data_length & 0x3) == 0x2) /* 2 bytes left */

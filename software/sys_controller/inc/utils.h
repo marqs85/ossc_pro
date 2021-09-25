@@ -20,13 +20,15 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
-#include <alt_types.h>
+#include "sysconfig.h"
 
 #define PRINTF_BUFSIZE 512
 
 unsigned char bitswap8(unsigned char v);
 
 uint32_t bswap32(uint32_t w);
+
+uint32_t gcd(uint32_t a, uint32_t b);
 
 unsigned long crc32(unsigned char *input_data, unsigned long input_data_length, int do_initialize);
 

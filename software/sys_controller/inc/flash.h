@@ -20,7 +20,6 @@
 #ifndef FLASH_H_
 #define FLASH_H_
 
-#include "alt_types.h"
 #include "sysconfig.h"
 
 #define FLASH_SECTOR_SIZE 65536

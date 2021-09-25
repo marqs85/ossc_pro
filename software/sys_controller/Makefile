@@ -187,7 +187,7 @@ endif
 APP_CFLAGS_UNDEFINED_SYMBOLS :=
 APP_CFLAGS_OPTIMIZATION := -Os
 APP_CFLAGS_DEBUG_LEVEL :=
-APP_CFLAGS_WARNINGS := -Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function -Wno-packed-bitfield-compat
+APP_CFLAGS_WARNINGS := -Wall -Wpointer-arith -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function -Wno-packed-bitfield-compat
 APP_CFLAGS_USER_FLAGS := -fdata-sections -ffunction-sections -fshort-enums -fgnu89-inline -flto -msmall-data-limit=0
 
 APP_ASFLAGS_USER :=
