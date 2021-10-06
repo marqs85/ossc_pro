@@ -122,68 +122,6 @@ typedef enum {
 } stdmode_t;
 
 typedef enum {
-    /* Generic */
-    SMPPRESET_GEN_720x240    = 0,
-    SMPPRESET_GEN_960x240,
-    SMPPRESET_GEN_1280x240,
-    SMPPRESET_GEN_1600x240,
-    SMPPRESET_GEN_1920x240,
-    SMPPRESET_GEN_720x288,
-    SMPPRESET_GEN_1536x288,
-    SMPPRESET_GEN_1920x288,
-    SMPPRESET_GEN_720x480i,
-    SMPPRESET_GEN_1280x480i,
-    SMPPRESET_GEN_1920x480i,
-    SMPPRESET_GEN_1280x480i_WS,
-    SMPPRESET_GEN_1707x480i_WS,
-    SMPPRESET_GEN_720x576i,
-    SMPPRESET_GEN_1536x576i,
-    SMPPRESET_GEN_720x480,
-    SMPPRESET_GEN_1280x480,
-    SMPPRESET_GEN_1920x480,
-    SMPPRESET_GEN_1280x480_WS,
-    SMPPRESET_GEN_1707x480_WS,
-    SMPPRESET_GEN_720x576,
-    SMPPRESET_GEN_1536x576,
-    /* DTV / PC */
-    SMPPRESET_DTV480I,
-    SMPPRESET_DTV480I_WS,
-    SMPPRESET_DTV576I,
-    SMPPRESET_DTV576I_WS,
-    SMPPRESET_ARC_384P,
-    SMPPRESET_PC_700x400,
-    SMPPRESET_PC_640x400,
-    SMPPRESET_VGA480P60,
-    SMPPRESET_DTV480P,
-    SMPPRESET_DTV480P_WS,
-    SMPPRESET_DTV576P,
-    SMPPRESET_DTV576P_WS,
-    SMPPRESET_DTV720P50,
-    SMPPRESET_DTV720P60,
-    SMPPRESET_DTV1080I50,
-    SMPPRESET_DTV1080I60,
-    SMPPRESET_DTV1080P50,
-    SMPPRESET_DTV1080P60,
-    /* console-specific */
-    SMPPRESET_SNES_256x240,
-    SMPPRESET_SNES_512x240,
-    SMPPRESET_MD_256x224,
-    SMPPRESET_MD_320x224,
-    SMPPRESET_PSX_256x240,
-    SMPPRESET_PSX_320x240,
-    SMPPRESET_PSX_384x240,
-    SMPPRESET_PSX_512x240,
-    SMPPRESET_PSX_640x240,
-    SMPPRESET_SAT_320x240,
-    SMPPRESET_SAT_640x240,
-    SMPPRESET_SAT_352x240,
-    SMPPRESET_SAT_704x240,
-    SMPPRESET_N64_320x240,
-    SMPPRESET_N64_640x240,
-    SMPPRESET_NG_320x224,
-} smp_preset_id_t;
-
-typedef enum {
     SM_GEN_4_3      = 0,
     SM_GEN_16_9,
     SM_OPT_DTV480I,
@@ -223,7 +161,7 @@ typedef enum {
 
 typedef struct {
     stdmode_t stdmode_id;
-    uint8_t y_rpt;
+    int8_t y_rpt;
 } ad_mode_t;
 
 typedef struct {
@@ -266,16 +204,8 @@ typedef struct {
 } smp_preset_t;
 
 typedef struct {
-    stdmode_t mode_id;
-    smp_preset_id_t smp_preset_id_first;
-    smp_preset_id_t smp_preset_id_last;
-    uint16_t v_total_override;
-    si5351_ms_config_t si_ms_conf;
-} fl_config_t;
-
-typedef struct {
-    uint8_t x_rpt;
-    uint8_t y_rpt;
+    int8_t x_rpt;
+    int8_t y_rpt;
     uint8_t h_skip;
     int16_t x_offset;
     int16_t y_offset;

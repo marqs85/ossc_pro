@@ -46,7 +46,7 @@
 #include "firmware.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 46
+#define FW_VER_MINOR 50
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -353,6 +353,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_in_config3.v_synclen = vm_in->timings.v_synclen;
     hv_in_config3.v_backporch = vm_in->timings.v_backporch;
     hv_in_config2.interlaced = vm_in->timings.interlaced;
+    hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+12;
     hv_in_config3.h_skip = vm_conf->h_skip;
     hv_in_config3.h_sample_sel = vm_conf->h_skip / 2; // TODO: fix
 
@@ -487,6 +488,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_fb->output_rate = vm_out->timings.v_hz_x100;
     //vip_fb->locked = vm_conf->framelock;  // causes cvo fifo underflows
     vip_fb->locked = 0;
+    if (vm_conf->framelock)
+        vip_cvo->ctrl |= (1<<4);
 
     h_blank = vm_out->timings.h_total-vm_conf->x_size;
     v_blank = vm_out->timings.v_total-vm_conf->y_size;
@@ -862,6 +865,7 @@ void mainloop()
     status_t status;
     avconfig_t *cur_avconfig;
     si5351_clk_src si_clk_src;
+    si5351_ms_config_t *si_ms_conf_ptr;
     alt_timestamp_type start_ts;
 
     enable_isl = 0;
@@ -1078,9 +1082,9 @@ void mainloop()
                     oper_mode = get_operating_mode(cur_avconfig, &vmode_in, &vmode_out, &vm_conf);
 
                     if (oper_mode == OPERMODE_PURE_LM)
-                        sniprintf(op_status, 4, "x%u", (int8_t)vm_conf.y_rpt+1);
+                        sniprintf(op_status, 4, "x%u", vm_conf.y_rpt+1);
                     else if (oper_mode == OPERMODE_ADAPT_LM)
-                        sniprintf(op_status, 4, "x%ua", (int8_t)vm_conf.y_rpt+1);
+                        sniprintf(op_status, 4, "%c%ua", (vm_conf.y_rpt < 0) ? '/' : 'x', (vm_conf.y_rpt < 0) ? (-1*vm_conf.y_rpt+1) : vm_conf.y_rpt+1);
                     else if (oper_mode == OPERMODE_SCALER)
                         sniprintf(op_status, 4, "SCL");
 
@@ -1098,6 +1102,7 @@ void mainloop()
                         pll_h_total = (vm_conf.h_skip+1) * vmode_in.timings.h_total + (((vm_conf.h_skip+1) * vmode_in.timings.h_total_adj * 5 + 50) / 100);
 
                         si_clk_src = vm_conf.framelock ? SI_CLKIN : SI_XTAL;
+                        si_ms_conf_ptr = vm_conf.framelock ? NULL : &vmode_out.si_ms_conf;
                         pclk_i_hz = h_hz * pll_h_total;
                         dotclk_hz = estimate_dotclk(&vmode_in, h_hz);
                         pclk_o_hz = vmode_out.si_pclk_mult ? vmode_out.si_pclk_mult*((si_clk_src == SI_CLKIN) ? pclk_i_hz : si_dev.xtal_freq) : (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_x100/100))>>vmode_out.timings.interlaced;
@@ -1124,7 +1129,14 @@ void mainloop()
 
                         // Setup Si5351
                         if (vmode_out.si_pclk_mult == 0)
-                            si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, si_clk_src, pclk_i_hz, vmode_out.timings.h_total*vmode_out.timings.v_total, pll_h_total*vmode_in.timings.v_total, &vmode_out.si_ms_conf);
+                            si5351_set_frac_mult(&si_dev,
+                                                 SI_PLLA,
+                                                 SI_CLK0,
+                                                 si_clk_src,
+                                                 pclk_i_hz,
+                                                 vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock,
+                                                 pll_h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1),
+                                                 si_ms_conf_ptr);
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, si_clk_src, pclk_i_hz, vmode_out.si_pclk_mult, vmode_out.si_ms_conf.outdiv);
 
@@ -1205,9 +1217,9 @@ void mainloop()
                     oper_mode = get_operating_mode(cur_avconfig, &vmode_in, &vmode_out, &vm_conf);
 
                     if (oper_mode == OPERMODE_PURE_LM)
-                        sniprintf(op_status, 4, "x%u", (int8_t)vm_conf.y_rpt+1);
+                        sniprintf(op_status, 4, "x%u", vm_conf.y_rpt+1);
                     else if (oper_mode == OPERMODE_ADAPT_LM)
-                        sniprintf(op_status, 4, "x%ua", (int8_t)vm_conf.y_rpt+1);
+                        sniprintf(op_status, 4, "%c%ua", (vm_conf.y_rpt < 0) ? '/' : 'x', (vm_conf.y_rpt < 0) ? (-1*vm_conf.y_rpt+1) : vm_conf.y_rpt+1);
                     else if (oper_mode == OPERMODE_SCALER)
                         sniprintf(op_status, 4, "SCL");
 
@@ -1223,13 +1235,21 @@ void mainloop()
                         ui_disp_status(1);
 
                         si_clk_src = vm_conf.framelock ? SI_CLKIN : SI_XTAL;
+                        si_ms_conf_ptr = vm_conf.framelock ? NULL : &vmode_out.si_ms_conf;
                         pclk_i_hz = h_hz * advrx_dev.ss.h_total;
                         pclk_o_hz = vmode_out.si_pclk_mult ? vmode_out.si_pclk_mult*((si_clk_src == SI_CLKIN) ? pclk_i_hz : si_dev.xtal_freq) : (vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_out.timings.v_hz_x100/100))>>vmode_out.timings.interlaced;
                         printf("H: %u.%.2ukHz V: %u.%.2uHz PCLK_IN: %luHz\n\n", h_hz/1000, (((h_hz%1000)+5)/10), (vmode_in.timings.v_hz_x100/100), (vmode_in.timings.v_hz_x100%100), pclk_i_hz);
 
                         // Setup Si5351
                         if (vmode_out.si_pclk_mult == 0)
-                            si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, si_clk_src, pclk_i_hz, vmode_out.timings.h_total*vmode_out.timings.v_total, vmode_in.timings.h_total*vmode_in.timings.v_total, &vmode_out.si_ms_conf);
+                            si5351_set_frac_mult(&si_dev,
+                                                 SI_PLLA,
+                                                 SI_CLK0,
+                                                 si_clk_src,
+                                                 pclk_i_hz,
+                                                 vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock,
+                                                 vmode_in.timings.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1),
+                                                 si_ms_conf_ptr);
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, si_clk_src, pclk_i_hz, vmode_out.si_pclk_mult, vmode_out.si_ms_conf.outdiv);
 

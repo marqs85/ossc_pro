@@ -94,9 +94,8 @@ typedef union {
         int16_t x_offset:10;
         uint8_t x_start_lb:8;
         int8_t y_start_lb:6;
-        uint8_t x_rpt:3;
-        uint8_t y_rpt:3;
-        uint8_t xy_rsv:2;
+        int8_t x_rpt:4;
+        int8_t y_rpt:4;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } xy_config2_reg;

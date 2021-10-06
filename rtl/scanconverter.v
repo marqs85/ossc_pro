@@ -98,10 +98,10 @@ wire signed [8:0] Y_OFFSET = xy_out_config[31:23];
 wire [7:0] X_START_LB = xy_out_config2[17:10];
 wire signed [6:0] Y_START_LB = {xy_out_config2[23], xy_out_config2[23:18]};
 
-wire [2:0] X_RPT = xy_out_config2[26:24];
-wire [2:0] Y_RPT = xy_out_config2[29:27];
+wire signed [3:0] X_RPT = xy_out_config2[27:24];
+wire signed [3:0] Y_RPT = xy_out_config2[31:28];
 
-wire Y_SKIP = (Y_RPT == 3'(-1));
+wire Y_SKIP = (Y_RPT == 4'(-1));
 wire [1:0] Y_STEP = Y_SKIP+1'b1;
 
 wire [3:0] MISC_MASK_BR = misc_config[3:0];
@@ -121,8 +121,8 @@ reg src_fid, dst_fid;
 
 reg [10:0] xpos_lb;
 reg [6:0] ypos_lb;
-reg [2:0] x_ctr;
-reg [2:0] y_ctr;
+reg [3:0] x_ctr;
+reg [3:0] y_ctr;
 
 reg [5:0] ypos_i_wraddr;
 reg [10:0] ypos_i_prev;

@@ -216,7 +216,7 @@ end
 
 wire [7:0] ISL_R_post, ISL_G_post, ISL_B_post;
 wire ISL_HSYNC_post, ISL_VSYNC_post, ISL_DE_post, ISL_FID_post;
-wire ISL_fe_interlace, ISL_fe_frame_change;
+wire ISL_fe_interlace, ISL_fe_frame_change, ISL_sof_scaler;
 wire [19:0] ISL_fe_pcnt_frame;
 wire [10:0] ISL_fe_vtotal, ISL_fe_xpos, ISL_fe_ypos;
 isl51002_frontend u_isl_frontend ( 
@@ -252,6 +252,7 @@ isl51002_frontend u_isl_frontend (
     .ypos_o(ISL_fe_ypos),
     .vtotal(ISL_fe_vtotal),
     .frame_change(ISL_fe_frame_change),
+    .sof_scaler(ISL_sof_scaler),
     .pcnt_frame(ISL_fe_pcnt_frame)
 );
 
@@ -278,7 +279,7 @@ end
 
 wire [7:0] HDMIRX_R_post, HDMIRX_G_post, HDMIRX_B_post;
 wire HDMIRX_HSYNC_post, HDMIRX_VSYNC_post, HDMIRX_DE_post, HDMIRX_FID_post;
-wire HDMIRX_fe_interlace, HDMIRX_fe_frame_change;
+wire HDMIRX_fe_interlace, HDMIRX_fe_frame_change, HDMIRX_sof_scaler;
 wire [10:0] HDMIRX_fe_xpos, HDMIRX_fe_ypos;
 adv7611_frontend u_hdmirx_frontend ( 
     .PCLK_i(HDMIRX_PCLK_i),
@@ -289,6 +290,9 @@ adv7611_frontend u_hdmirx_frontend (
     .HSYNC_i(HDMIRX_HSYNC),
     .VSYNC_i(HDMIRX_VSYNC),
     .DE_i(HDMIRX_DE),
+    .hv_in_config(hv_in_config),
+    .hv_in_config2(hv_in_config2),
+    .hv_in_config3(hv_in_config3),
     .R_o(HDMIRX_R_post),
     .G_o(HDMIRX_G_post),
     .B_o(HDMIRX_B_post),
@@ -299,7 +303,8 @@ adv7611_frontend u_hdmirx_frontend (
     .interlace_flag(HDMIRX_fe_interlace),
     .xpos_o(HDMIRX_fe_xpos),
     .ypos_o(HDMIRX_fe_ypos),
-    .frame_change(HDMIRX_fe_frame_change)
+    .frame_change(HDMIRX_fe_frame_change),
+    .sof_scaler(HDMIRX_sof_scaler)
 );
 
 // capture clock mux
@@ -312,7 +317,7 @@ cyclonev_clkselect clkmux_capture (
 // capture data mux
 reg [7:0] R_capt, G_capt, B_capt;
 reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt;
-reg interlace_flag_capt, frame_change_capt;
+reg interlace_flag_capt, frame_change_capt, sof_scaler_capt;
 reg [10:0] xpos_capt, ypos_capt;
 always @(posedge pclk_capture) begin
     R_capt <= capture_sel ? HDMIRX_R_post : ISL_R_post;
@@ -324,6 +329,7 @@ always @(posedge pclk_capture) begin
     FID_capt <= capture_sel ? HDMIRX_FID_post : ISL_FID_post;
     interlace_flag_capt <= capture_sel ? HDMIRX_fe_interlace : ISL_fe_interlace;
     frame_change_capt <= capture_sel ? HDMIRX_fe_frame_change : ISL_fe_frame_change;
+    sof_scaler_capt <= capture_sel ? HDMIRX_sof_scaler : ISL_sof_scaler;
     xpos_capt <= capture_sel ? HDMIRX_fe_xpos : ISL_fe_xpos;
     ypos_capt <= capture_sel ? HDMIRX_fe_ypos : ISL_fe_ypos;
 end
@@ -481,8 +487,33 @@ assign AUDMUX_o = ~audmux_sel;
 // 0=input 1=output
 assign LS_DIR_o = 2'b11;
 
+`ifdef EXTRA_AV_OUT
+// VGA DAC
+reg [7:0] VGA_R, VGA_G, VGA_B;
+reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N;
+always @(posedge pclk_out) begin
+    VGA_R <= R_out;
+    VGA_G <= G_out;
+    VGA_B <= B_out;
+    VGA_HS <= HSYNC_out;
+    VGA_VS <= VSYNC_out;
+    VGA_BLANK_N <= DE_out;
+    VGA_SYNC_N <= 1'b0;
+end
+assign EXT_IO_A_io[4] = sys_poweron; // VGA_PSAVE_N
+assign EXT_IO_A_io[5] = sys_poweron; // AUDIO_MUTE_N
+assign EXT_IO_B_io[27] = ~pclk_out;
+assign {EXT_IO_B_io[6], EXT_IO_B_io[7], EXT_IO_B_io[4], EXT_IO_B_io[5], EXT_IO_B_io[2], EXT_IO_B_io[3], EXT_IO_B_io[0], EXT_IO_B_io[1]} = VGA_R;
+assign {EXT_IO_B_io[14], EXT_IO_B_io[15], EXT_IO_B_io[12], EXT_IO_B_io[13], EXT_IO_B_io[10], EXT_IO_B_io[11], EXT_IO_B_io[8], EXT_IO_B_io[9]} = VGA_G;
+assign {EXT_IO_B_io[24], EXT_IO_B_io[25], EXT_IO_B_io[22], EXT_IO_B_io[23], EXT_IO_B_io[20], EXT_IO_B_io[21], EXT_IO_B_io[18], EXT_IO_B_io[19]} = VGA_B;
+assign EXT_IO_B_io[29] = VGA_HS;
+assign EXT_IO_B_io[30] = VGA_VS;
+assign EXT_IO_B_io[17] = VGA_BLANK_N;
+assign EXT_IO_B_io[16] = VGA_SYNC_N;
+`else
 assign EXT_IO_A_io = {6{&btn_sync2_reg}};
 assign EXT_IO_B_io = {32{&btn_sync2_reg}};
+`endif
 
 // Power-on reset pulse generation (seems to be needed for booting from flash)
 always @(posedge CLK27_i)
@@ -651,7 +682,7 @@ sys sys_inst (
     .alt_vip_cl_cvo_0_clocked_video_vid_h                      (),
     .alt_vip_cl_cvo_0_clocked_video_vid_v                      (),
     .alt_vip_cl_cvo_0_genlock_sof_locked                       (1'b1),
-    .alt_vip_cl_cvo_0_genlock_sof                              (frame_change_capt)
+    .alt_vip_cl_cvo_0_genlock_sof                              (sof_scaler_capt)
 `endif
 );
 
