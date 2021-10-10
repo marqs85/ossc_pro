@@ -40,6 +40,7 @@ uint32_t gcd(uint32_t a, uint32_t b)
     return gcd(b % a, a);
 }
 
+#ifdef HW_CRC32_0_BASE
 unsigned long crc32(unsigned char *input_data, unsigned long input_data_length, int do_initialize)
 {
     unsigned long index;
@@ -83,6 +84,7 @@ unsigned long crc32(unsigned char *input_data, unsigned long input_data_length, 
     */
     return IORD_32DIRECT(HW_CRC32_0_BASE, 0x10);
 }
+#endif
 
 /* printf for direct driver interface */
 int dd_printf(const char *__restrict fmt, ...) {
