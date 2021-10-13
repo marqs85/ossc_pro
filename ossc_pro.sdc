@@ -25,6 +25,7 @@ set i2s_bck_out_port [get_ports HDMITX_I2S_BCK_o]
 #create_generated_clock -name pclk_out -master_clock pclk_hdmirx -source [get_ports HDMIRX_PCLK_i] -multiply_by 1 $pclk_out_port
 #create_generated_clock -name bck_out -master_clock bck_pcm -source [get_ports PCM_I2S_BCK_i] -multiply_by 1 $i2s_bck_out_port
 create_generated_clock -name bck_out -master_clock bck_hdmirx -source [get_ports HDMIRX_I2S_BCK_i] -multiply_by 1 $i2s_bck_out_port
+create_generated_clock -name sd_clk_out -master_clock sd_clk -source [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q] -multiply_by 1 [get_ports {SD_CLK_o}]
 
 # retrieve post-mapping clkmux output pin
 set clkmux_output [get_pins clkmux_capture|outclk]
@@ -57,7 +58,7 @@ derive_clock_uncertainty
 
 set_clock_groups -asynchronous -group \
                             {clk27} \
-                            {clk108 sd_clk} \
+                            {clk108 sd_clk sd_clk_out} \
                             {clk148p5} \
                             {pclk_isl pclk_isl_postmux} \
                             {pclk_isl_postmux_div2} \
@@ -72,8 +73,8 @@ set_clock_groups -asynchronous -group \
 ### IO delays ###
 
 # SD card
-set_input_delay 0 -clock sd_clk -reference_pin [get_ports {SD_CLK_o}] [get_ports {SD_CMD_io SD_DATA_io[*]}]
-set_output_delay 0 -clock sd_clk -reference_pin [get_ports {SD_CLK_o}] [get_ports {SD_CMD_io SD_DATA_io[*]}]
+set_input_delay 0 -clock sd_clk_out [get_ports {SD_CMD_io SD_DATA_io[*]}]
+set_output_delay 0 -clock sd_clk_out [get_ports {SD_CMD_io SD_DATA_io[*]}]
 
 # ISL51002
 set ISL_dmin [expr 3.4-0.5*(1000/165)]
