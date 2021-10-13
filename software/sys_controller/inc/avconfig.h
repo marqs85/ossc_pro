@@ -112,11 +112,13 @@ typedef struct {
     uint8_t pm_1080i;
     uint8_t pm_ad_240p;
     uint8_t pm_ad_288p;
+    uint8_t pm_ad_384p;
     uint8_t pm_ad_480i;
     uint8_t pm_ad_576i;
     uint8_t pm_ad_480p;
     uint8_t pm_ad_576p;
     uint8_t sm_ad_240p_288p;
+    uint8_t sm_ad_384p;
     uint8_t sm_ad_480i_576i;
     uint8_t sm_ad_480p;
     uint8_t sm_ad_576p;
@@ -156,6 +158,7 @@ typedef struct {
     uint8_t scl_dil_visualize_motion;
 #endif
     uint8_t sm_scl_240p_288p;
+    uint8_t sm_scl_384p;
     uint8_t sm_scl_480i_576i;
     uint8_t sm_scl_480p;
     uint8_t sm_scl_576p;

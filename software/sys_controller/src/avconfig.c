@@ -137,11 +137,13 @@ status_t update_avconfig() {
         (tc.l5_fmt != cc.l5_fmt) ||
         (tc.pm_ad_240p != cc.pm_ad_240p) ||
         (tc.pm_ad_288p != cc.pm_ad_288p) ||
+        (tc.pm_ad_384p != cc.pm_ad_384p) ||
         (tc.pm_ad_480i != cc.pm_ad_480i) ||
         (tc.pm_ad_576i != cc.pm_ad_576i) ||
         (tc.pm_ad_480p != cc.pm_ad_480p) ||
         (tc.pm_ad_576p != cc.pm_ad_576p) ||
         (tc.sm_ad_240p_288p != cc.sm_ad_240p_288p) ||
+        (tc.sm_ad_384p != cc.sm_ad_384p) ||
         (tc.sm_ad_480i_576i != cc.sm_ad_480i_576i) ||
         (tc.sm_ad_480p != cc.sm_ad_480p) ||
         (tc.sm_ad_576p != cc.sm_ad_576p) ||
@@ -155,6 +157,7 @@ status_t update_avconfig() {
         (tc.scl_framelock != cc.scl_framelock) ||
         (tc.scl_aspect != cc.scl_aspect) ||
         (tc.sm_scl_240p_288p != cc.sm_scl_240p_288p) ||
+        (tc.sm_scl_384p != cc.sm_scl_384p) ||
         (tc.sm_scl_480i_576i != cc.sm_scl_480i_576i) ||
         (tc.sm_scl_480p != cc.sm_scl_480p) ||
         (tc.sm_scl_576p != cc.sm_scl_576p)

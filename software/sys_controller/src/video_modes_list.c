@@ -103,6 +103,10 @@ smp_preset_t smp_presets_default[] = {
     { "720x288",      SM_GEN_4_3,        { 720,  288,   5500,   864, 0,  312,   69, 19,   63, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_288P },
     { "1536x288",     SM_GEN_4_3,        {1536,  288,   5500,  1872, 0,  312,  150, 19,  136, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_288P },
     { "1920x288",     SM_GEN_4_3,        {1920,  288,   5500,  2340, 0,  312,  187, 19,  171, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_288P },
+    /* Generic 384p presets */
+    { "1024x384",     SM_GEN_4_3,        {1024,  384,   7500,  1280, 0,  429,  91,  34,  137, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_384P },
+    { "1600x400",     SM_GEN_4_3,        {1600,  400,   7500,  2000, 0,  429,  142, 34,  213, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_384P },
+    { "1920x360",     SM_GEN_4_3,        {1920,  400,   7500,  2400, 0,  429,  171, 34,  255, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_384P },
     /* Generic 480i presets */
     { "720x480i",     SM_GEN_4_3,        { 720,  240,   6500,   858, 0,  525,   57, 15,   62, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     { "1280x480i",    SM_GEN_4_3,        {1280,  240,   6500,  1560, 0,  525,  170, 15,   72, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
@@ -130,14 +134,6 @@ smp_preset_t smp_presets_default[] = {
     /* DTV 576i */
     { "576i",         SM_OPT_DTV576I,    { 720,  288,   5500,   864, 0,  625,   69, 19,   63, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_576I },
     { "576i wide",    SM_OPT_DTV576I_WS, { 720,  288,   5500,   864, 0,  625,   69, 19,   63, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_576I },
-    /* 384p: Sega Model 2 */
-    { "384p",         SM_OPT_PC_HDTV,    { 496,  384,      0,   640, 0,  423,   50, 29,   62, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_384P },
-    /* 720x400@70Hz, VGA Mode 3+/7+ */
-    { "720x400_70",   SM_OPT_PC_HDTV,    { 720,  400,   7500,   900, 0,  449,   64, 34,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,    GROUP_384P },
-    /* 640x400@70Hz, VGA Mode 13h */
-    { "640x400_70",   SM_OPT_PC_HDTV,    { 640,  400,   7500,   800, 0,  449,   48, 34,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,    GROUP_384P },
-    /* VESA 640x480_60 */
-    { "640x480_60",   SM_OPT_VGA480P60,  { 640,  480,   6500,   800, 0,  525,   48, 33,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     /* DTV 480p */
     { "480p",         SM_OPT_DTV480P,    { 720,  480,   6500,   858, 0,  525,   60, 30,   62, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     { "480p wide",    SM_OPT_DTV480P_WS, { 720,  480,   6500,   858, 0,  525,   60, 30,   62, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
@@ -153,6 +149,17 @@ smp_preset_t smp_presets_default[] = {
     /* DTV 1080p */
     { "1080p_50",     SM_OPT_PC_HDTV,    {1920, 1080,   5500,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_HDTV,  GROUP_NONE },
     { "1080p_60",     SM_OPT_PC_HDTV,    {1920, 1080,   6500,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_HDTV,  GROUP_NONE },
+
+    /* 640x350@70Hz, VGA Mode 0*,1*,2*,3*,F,10 */
+    { "640x350_70",   SM_OPT_VGA_640x350_70, { 640,  350,   7500,   800, 0,  449,   48, 59,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,  GROUP_384P },
+    /* 720x350@70Hz, VGA Mode 7 */
+    { "720x350_70",   SM_OPT_VGA_720x350_70, { 720,  350,   7500,   900, 0,  449,   64, 59,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,  GROUP_384P },
+    /* 640x400@70Hz, VGA Mode 0-6,D-E,13 */
+    { "640x400_70",   SM_OPT_VGA_640x400_70, { 640,  400,   7500,   800, 0,  449,   48, 34,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,  GROUP_384P },
+    /* 720x400@70Hz, VGA Mode 0+,1+,2+,3+,7+ */
+    { "720x400_70",   SM_OPT_VGA_720x400_70, { 720,  400,   7500,   900, 0,  449,   64, 34,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,  GROUP_384P },
+    /* VESA 640x480@60Hz, VGA Mode 11-12 */
+    { "640x480_60",   SM_OPT_VGA_640x480_60, { 640,  480,   6500,   800, 0,  525,   48, 33,   96, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,  GROUP_480P },
 
     /* NES/SNES */
     { "SNES 256x240", SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  262,   39, 14,   25, 3,  0},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
@@ -176,6 +183,10 @@ smp_preset_t smp_presets_default[] = {
     { "N64 640x240",  SM_OPT_N64_640COL, { 640,  240,      0,   773,10,  263,   72, 14,   44, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     /* Neo Geo */
     { "NG 320x224",   SM_OPT_NG_320COL,  { 320,  224,      0,   384, 0,  264,   28, 21,   29, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
+    /* GBI */
+    { "GBI 240x360",  SM_OPT_GBI_240COL, { 240,  360,      0,   300, 0,  375,   24, 10,   18, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_384P },
+
+    { "PC98 640x400", SM_OPT_PC98_640COL,{ 640,  400,      0,   848, 0,  440,   80, 32,   64, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,    GROUP_384P },
 };
 
 const stdmode_t stdmode_idx_arr[] = {STDMODE_240p,

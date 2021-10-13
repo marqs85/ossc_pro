@@ -159,7 +159,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
                 // Find closest generic sampling width that does not exceed output active
                 if ((smp_preset->sm > SM_GEN_16_9) || (smp_preset->timings_i.h_active <= gen_width_limit))
                     mindiff_id = i;
-            } else if (diff_lines > mindiff_lines) {
+            } else if ((mindiff_lines < 10) && (diff_lines > mindiff_lines)) {
                 // Break out if suitable mode already found
                 break;
             }
@@ -188,6 +188,18 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     vm_in->sampler_phase = smp_preset->sampler_phase;
     vm_in->type = smp_preset->type;
     strncpy(vm_in->name, smp_preset->name, 14);
+
+    // adjust sampling preset if needed
+    diff_lines = vm_in->timings.v_total-(vm_in->timings.v_synclen+vm_in->timings.v_backporch+vm_in->timings.v_active);
+    if (diff_lines <= 0) {
+        if (vm_in->timings.v_backporch + diff_lines >= 0) {
+            vm_in->timings.v_backporch += diff_lines;
+        } else {
+            diff_lines += vm_in->timings.v_backporch;
+            vm_in->timings.v_backporch = 0;
+            vm_in->timings.v_active += diff_lines;
+        }
+    }
 
     vm_conf->h_skip = smp_preset->h_skip;
 
@@ -221,9 +233,10 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                           SM_OPT_N64_320COL, SM_OPT_N64_640COL,
                                           SM_OPT_NG_320COL};
+    const smp_mode_t sm_384p_map[] = {SM_GEN_4_3, SM_OPT_VGA_640x350_70, SM_OPT_VGA_720x350_70, SM_OPT_VGA_640x400_70, SM_OPT_VGA_720x400_70, SM_OPT_GBI_240COL, SM_OPT_PC98_640COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_OPT_DTV480I};
     const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_OPT_DTV576I};
-    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VGA480P60};
+    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VGA_640x480_60};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_OPT_DTV576P};
 
     unsigned aspect_map[][2] = {{4, 3},
@@ -253,7 +266,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     smp_mode_t target_sm_list[] = { SM_OPT_PC_HDTV,                         // GROUP_NONE
                                     sm_240p_288p_map[cc->sm_scl_240p_288p], // GROUP_240P
                                     sm_240p_288p_map[cc->sm_scl_240p_288p], // GROUP_288P
-                                    SM_OPT_PC_HDTV,                         // GROUP_384P
+                                    sm_384p_map[cc->sm_scl_384p],           // GROUP_384P
                                     sm_480i_map[cc->sm_scl_480i_576i],      // GROUP_480I
                                     sm_576i_map[cc->sm_scl_480i_576i],      // GROUP_576I
                                     sm_480p_map[cc->sm_scl_480p],           // GROUP_480P
@@ -405,6 +418,8 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
                                         {STDMODE_1600x1200_60, 4}, {STDMODE_1920x1200_60, 4}, {STDMODE_1920x1440_60, 5}, {STDMODE_2560x1440_60, 5}};
     const ad_mode_t pm_ad_288p_map[] = {{STDMODE_288p, 0}, {STDMODE_576p, 1}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3},
                                         {STDMODE_1920x1200_50, 3}, {STDMODE_1920x1440_50, 4}, {STDMODE_2560x1440_50, 4}};
+    const ad_mode_t pm_ad_384p_map[] = {{STDMODE_720p_60, 1}, {STDMODE_1024_768_60, 1}, {STDMODE_1080p_60, 2},
+                                        {STDMODE_1600x1200_60, 2}, {STDMODE_1920x1200_60, 2}, {STDMODE_1920x1440_60, 3}, {STDMODE_2560x1440_60, 3}};
     const ad_mode_t pm_ad_480i_map[] = {{STDMODE_480i, 0}, {STDMODE_240p, 0}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3},
                                         {STDMODE_1920x1440_60, 5}, {STDMODE_2560x1440_60, 5}};
     const ad_mode_t pm_ad_576i_map[] = {{STDMODE_576i, 0}, {STDMODE_288p, 0}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3}};
@@ -420,15 +435,16 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                           SM_OPT_N64_320COL, SM_OPT_N64_640COL,
                                           SM_OPT_NG_320COL};
+    const smp_mode_t sm_384p_map[] = {SM_GEN_4_3, SM_OPT_VGA_640x350_70, SM_OPT_VGA_720x350_70, SM_OPT_VGA_640x400_70, SM_OPT_VGA_720x400_70, SM_OPT_GBI_240COL, SM_OPT_PC98_640COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480I, SM_OPT_DTV480I_WS};
     const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV576I, SM_OPT_DTV576I};
-    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VGA480P60};
+    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VGA_640x480_60};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3};
 
     ad_mode_t ad_mode_list[] = { {-1, -1},                                  // GROUP_NONE
                                  pm_ad_240p_map[cc->pm_ad_240p],            // GROUP_240P
                                  pm_ad_288p_map[cc->pm_ad_288p],            // GROUP_288P
-                                 {-1, -1},                                  // GROUP_384P
+                                 pm_ad_384p_map[cc->pm_ad_384p],            // GROUP_384P
                                  pm_ad_480i_map[cc->pm_ad_480i],            // GROUP_480I
                                  pm_ad_576i_map[cc->pm_ad_576i],            // GROUP_576I
                                  pm_ad_480p_map[cc->pm_ad_480p],            // GROUP_480P
@@ -438,7 +454,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     smp_mode_t target_sm_list[] = { -1,                                     // GROUP_NONE
                                     sm_240p_288p_map[cc->sm_ad_240p_288p],  // GROUP_240P
                                     sm_240p_288p_map[cc->sm_ad_240p_288p],  // GROUP_288P
-                                    -1,                                     // GROUP_384P
+                                    sm_384p_map[cc->sm_ad_384p],            // GROUP_384P
                                     sm_480i_map[cc->sm_ad_480i_576i],       // GROUP_480I
                                     sm_576i_map[cc->sm_ad_480i_576i],       // GROUP_576I
                                     sm_480p_map[cc->sm_ad_480p],            // GROUP_480P
@@ -484,6 +500,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
             vm_conf->x_rpt = 1;
         break;
     case STDMODE_720p_60:
+    case STDMODE_1024_768_60:
         if (vm_in->timings.h_active <= 300)
             vm_conf->x_rpt = 3;
         else if (vm_in->timings.h_active <= 400)
