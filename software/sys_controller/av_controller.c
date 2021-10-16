@@ -46,7 +46,7 @@
 #include "firmware.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 50
+#define FW_VER_MINOR 51
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -167,7 +167,7 @@ int enable_isl, enable_hdmirx, enable_tp;
 extern uint8_t osd_enable;
 
 avinput_t avinput, target_avinput;
-unsigned tp_stdmode_idx, target_tp_stdmode_idx;
+stdmode_t tp_stdmode_id, target_tp_stdmode_id;
 
 mode_data_t vmode_in, vmode_out;
 vm_proc_config_t vm_conf;
@@ -717,13 +717,6 @@ int init_hw()
     }
 #endif
 
-    /*check_flash();
-    ret = read_flash(0, 100, buf);
-    printf("ret: %d\n", ret);
-    for (i=0; i<100; i++)
-        printf("%u: %.2x\n", i, buf[i]);*/
-
-    //set_default_vm_table();
     set_default_avconfig(1);
     set_default_keymap();
     init_menu();
@@ -787,9 +780,9 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
 
 void switch_tp_mode(rc_code_t code) {
     if (code == RC_LEFT)
-        target_tp_stdmode_idx--;
+        target_tp_stdmode_id = (target_tp_stdmode_id == 0) ? STDMODE_2560x1440_60 : target_tp_stdmode_id-1;
     else if (code == RC_RIGHT)
-        target_tp_stdmode_idx++;
+        target_tp_stdmode_id = (target_tp_stdmode_id == STDMODE_2560x1440_60) ? 0 : target_tp_stdmode_id+1;
 }
 
 int sys_is_powered_on() {
@@ -897,7 +890,7 @@ void mainloop()
             case AV_TESTPAT:
                 enable_isl = 0;
                 enable_tp = 1;
-                tp_stdmode_idx = -1;
+                tp_stdmode_id = -1;
                 break;
             case AV1_RGBS:
                 target_isl_input = ISL_CH0;
@@ -1017,8 +1010,8 @@ void mainloop()
         status = update_avconfig();
 
         if (enable_tp) {
-            if (tp_stdmode_idx != target_tp_stdmode_idx) {
-                get_standard_mode((unsigned)target_tp_stdmode_idx, &vm_conf, &vmode_in, &vmode_out);
+            if (tp_stdmode_id != target_tp_stdmode_id) {
+                get_standard_mode(target_tp_stdmode_id, &vm_conf, &vmode_in, &vmode_out);
                 if (vmode_out.si_pclk_mult > 0) {
                     si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, 0, vmode_out.si_pclk_mult, vmode_out.si_ms_conf.outdiv);
                     pclk_o_hz = vmode_out.si_pclk_mult*si_dev.xtal_freq;
@@ -1039,7 +1032,7 @@ void mainloop()
                 sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c %u.%.2uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', (vmode_out.timings.v_hz_x100/100), (vmode_out.timings.v_hz_x100%100));
                 ui_disp_status(1);
 
-                tp_stdmode_idx = target_tp_stdmode_idx;
+                tp_stdmode_id = target_tp_stdmode_id;
             }
         } else if (enable_isl) {
             if (isl_check_activity(&isl_dev, target_isl_input, target_isl_sync)) {
@@ -1364,8 +1357,8 @@ int main()
 
         // Set testpattern mode
         avinput = AV_TESTPAT;
-        tp_stdmode_idx=-1;
-        target_tp_stdmode_idx=3; // STDMODE_480p
+        tp_stdmode_id = -1;
+        target_tp_stdmode_id = STDMODE_480p;
 
         pcm186x_enable_power(&pcm_dev, 1);
 

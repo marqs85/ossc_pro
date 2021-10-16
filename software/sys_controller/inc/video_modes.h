@@ -60,7 +60,8 @@ typedef enum {
     GROUP_576I      = 5,
     GROUP_480P      = 6,
     GROUP_576P      = 7,
-    GROUP_1080I     = 8,
+    GROUP_720P      = 8,
+    GROUP_1080I     = 9,
 } video_group;
 
 typedef enum {
@@ -95,19 +96,20 @@ typedef enum {
 } mode_flags;
 
 typedef enum {
-    STDMODE_240p         = 7,
-    STDMODE_288p         = 15,
-    STDMODE_480i         = 23,
+    STDMODE_240p,
+    STDMODE_288p,
+    STDMODE_480i,
     STDMODE_480p,
-    STDMODE_576i         = 27,
+    STDMODE_640x480_60,
+    STDMODE_576i,
     STDMODE_576p,
-    STDMODE_720p_50      = 30,
+    STDMODE_720p_50,
     STDMODE_720p_60,
     STDMODE_720p_100,
     STDMODE_720p_120,
-    STDMODE_1024_768_60,
-    STDMODE_1280x1024_60 = 36,
-    STDMODE_1080i_50     = 38,
+    STDMODE_1024x768_60,
+    STDMODE_1280x1024_60,
+    STDMODE_1080i_50,
     STDMODE_1080i_60,
     STDMODE_1080p_50,
     STDMODE_1080p_60,
@@ -237,6 +239,6 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
 int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
 
-int get_standard_mode(unsigned stdmode_idx_arr_idx, vm_proc_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
+int get_standard_mode(stdmode_t stdmode_id, vm_proc_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
 
 #endif /* VIDEO_MODES_H_ */
