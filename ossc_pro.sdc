@@ -72,9 +72,11 @@ set_clock_groups -asynchronous -group \
 
 ### IO delays ###
 
-# SD card
-set_input_delay 0 -clock sd_clk_out [get_ports {SD_CMD_io SD_DATA_io[*]}]
-set_output_delay 0 -clock sd_clk_out [get_ports {SD_CMD_io SD_DATA_io[*]}]
+# SD card (IO constraints from Kingston specsheet, slightly reduced t_ODLY)
+set_input_delay -clock sd_clk_out -min 2.5 [get_ports {SD_CMD_io SD_DATA_io[*]}] -add_delay
+set_input_delay -clock sd_clk_out -max 12 [get_ports {SD_CMD_io SD_DATA_io[*]}] -add_delay
+set_output_delay -clock sd_clk_out -min -2 [get_ports {SD_CMD_io SD_DATA_io[*]}] -add_delay
+set_output_delay -clock sd_clk_out -max 6 [get_ports {SD_CMD_io SD_DATA_io[*]}] -add_delay
 
 # ISL51002
 set ISL_dmin [expr 3.4-0.5*(1000/165)]
