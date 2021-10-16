@@ -117,6 +117,8 @@ typedef struct {
     uint8_t pm_ad_576i;
     uint8_t pm_ad_480p;
     uint8_t pm_ad_576p;
+    uint8_t pm_ad_720p;
+    uint8_t pm_ad_1080i;
     uint8_t sm_ad_240p_288p;
     uint8_t sm_ad_384p;
     uint8_t sm_ad_480i_576i;
@@ -137,11 +139,9 @@ typedef struct {
     uint8_t ypbpr_cs;
     uint8_t sync_lpf;
     uint8_t stc_lpf;
-    uint8_t full_tx_setup;
     uint8_t audmux_sel;
     audinput_t audio_src_map[4];
     uint8_t reverse_lpf;
-    uint8_t default_vic;
     uint8_t audio_fmt;
 #ifdef VIP
     uint8_t scl_out_mode;

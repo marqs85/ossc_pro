@@ -28,6 +28,8 @@
 // Current and target configuration
 avconfig_t cc, tc;
 
+uint8_t update_cur_vm;
+
 // Default configuration
 const avconfig_t tc_default = {
     .l3_mode = 1,
@@ -37,10 +39,11 @@ const avconfig_t tc_default = {
     .pm_1080i = 1,
     .pm_ad_240p = 2,
     .pm_ad_288p = 3,
-    .pm_ad_480i = 4,
-    .pm_ad_576i = 3,
+    .pm_ad_480i = 5,
+    .pm_ad_576i = 4,
     .pm_ad_480p = 4,
     .pm_ad_576p = 0,
+    .pm_ad_1080i = 1,
     .sl_altern = 1,
     .lm_mode = 1,
 #ifdef VIP
@@ -142,6 +145,8 @@ status_t update_avconfig() {
         (tc.pm_ad_576i != cc.pm_ad_576i) ||
         (tc.pm_ad_480p != cc.pm_ad_480p) ||
         (tc.pm_ad_576p != cc.pm_ad_576p) ||
+        (tc.pm_ad_720p != cc.pm_ad_720p) ||
+        (tc.pm_ad_1080i != cc.pm_ad_1080i) ||
         (tc.sm_ad_240p_288p != cc.sm_ad_240p_288p) ||
         (tc.sm_ad_384p != cc.sm_ad_384p) ||
         (tc.sm_ad_480i_576i != cc.sm_ad_480i_576i) ||
@@ -150,7 +155,7 @@ status_t update_avconfig() {
         (tc.lm_mode != cc.lm_mode) ||
         (tc.oper_mode != cc.oper_mode) ||
         (tc.upsample2x != cc.upsample2x) ||
-        (tc.default_vic != cc.default_vic)
+        update_cur_vm
 #ifdef VIP
         || (tc.scl_alg != cc.scl_alg) ||
         (tc.scl_out_mode != cc.scl_out_mode) ||
@@ -177,6 +182,7 @@ status_t update_avconfig() {
         switch_audsrc(tc.audio_src_map, &tc.hdmitx_cfg.audio_fmt);
 
     memcpy(&cc, &tc, sizeof(avconfig_t));
+    update_cur_vm = 0;
 
 #ifdef INC_PCM186X
     cc.pcm_cfg.fs = cc.audio_fmt;

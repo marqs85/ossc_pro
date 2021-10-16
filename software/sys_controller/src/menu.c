@@ -25,7 +25,7 @@
 #include "firmware.h"
 #include "us2066.h"
 
-#define MAX_MENU_DEPTH 3
+#define MAX_MENU_DEPTH 4
 
 #define OPT_NOWRAP  0
 #define OPT_WRAP    1
@@ -36,15 +36,17 @@
 #define LNG(e, j) e
 #endif
 
-extern avconfig_t tc;
+extern avconfig_t cc, tc;
 extern isl51002_dev isl_dev;
 extern volatile osd_regs *osd;
+extern mode_data_t video_modes_plm[];
+extern uint8_t update_cur_vm;
 
 char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_active, tc_v_synclen, tc_v_bporch, tc_v_active, tc_sampler_phase;
 uint8_t menu_active;
-uint8_t vm_sel, vm_edit;
+uint8_t vm_cur, vm_sel, vm_edit, smp_cur, smp_sel, smp_edit;
 
 menunavi navi[MAX_MENU_DEPTH];
 uint8_t navlvl;
@@ -68,17 +70,19 @@ static const char *pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "De
 static const char *pm_ad_240p_desc[] = { "720x240 (Passthru)", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)", "2560x1440 (Line6x)" };
 static const char *pm_ad_288p_desc[] = { "720x288 (Passthru)", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1200 (Line4x)", "1920x1440 (Line5x)", "2560x1440 (Line5x)" };
 static const char *pm_ad_384p_desc[] = { "1280x720 (Line2x)", "1024x768 (Line2x)", "1920x1080 (Line3x)", "1600x1200 (Line3x)", "1920x1200 (Line3x)", "1920x1440 (Line4x)", "2560x1440 (Line4x)" };
-static const char *pm_ad_480i_desc[] = { "720x480i (Passthru)", "720x240 (240p rest.)", "1280x1024 (Dint+L4x)", "1080i (240p rest+L2x)", "1920x1080 (Dint+L4x)", "1920x1440 (Dint+L6x)", "2560x1440 (Dint+L6x)" };
-static const char *pm_ad_576i_desc[] = { "720x576i (Passthru)", "720x288 (288p rest.)", "1080i (288p rest+L2x)", "1920x1080 (Dint+L4x)" };
+static const char *pm_ad_480i_desc[] = { "720x480i (Passthru)", "720x240 (240p rest.)", "720x480 (Dint+L2x)", "1280x1024 (Dint+L4x)", "1080i (240p rest+L2x)", "1920x1080 (Dint+L4x)", "1920x1440 (Dint+L6x)", "2560x1440 (Dint+L6x)" };
+static const char *pm_ad_576i_desc[] = { "720x576i (Passthru)", "720x288 (288p rest.)", "720x576 (Dint+L2x)", "1080i (288p rest+L2x)", "1920x1080 (Dint+L4x)" };
 static const char *pm_ad_480p_desc[] = { "720x480 (Passthru)", "720x240 (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)", "2560x1440 (Line3x)" };
 static const char *pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x288 (Line drop)", "1920x1200 (Line2x)" };
+static const char *pm_ad_720p_desc[] = { "1280x720 (Passthru)", "2560x1440 (Line2x)" };
+static const char *pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080i (Dint+L2x)" };
 static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col" };
 static const char *sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9" };
 static const char *sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480@60" };
 static const char *sm_ad_576p_desc[] = { "Generic 4:3" };
 static const char *lm_deint_mode_desc[] = { "Bob", "Noninterlace restore" };
-static const char *ar_256col_desc[] = { "4:3", "8:7" };
+static const char *ar_256col_desc[] = { "Pseudo 4:3 DAR", "1:1 PAR" };
 static const char *tx_mode_desc[] = { "HDMI (RGB Full)", "HDMI (RGB Limited)", "HDMI (YCbCr444)", "DVI" };
 static const char *sl_mode_desc[] = { LNG("Off","ｵﾌ"), LNG("Auto","ｵｰﾄ"), LNG("On","ｵﾝ") };
 static const char *sl_method_desc[] = { LNG("Multiplication","Multiplication"), LNG("Subtraction","Subtraction") };
@@ -139,29 +143,29 @@ static void lt_disp(uint8_t v) { strncpy(menu_row2, lt_desc[v], US2066_ROW_LEN+1
 static void aud_db_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d dB", ((int8_t)v-PCM_GAIN_0DB)); }
 #endif
 static void audio_src_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", audio_src_desc[v]); }
-//static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes[v].name, US2066_ROW_LEN+1); }
+static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes_plm[v].name, US2066_ROW_LEN+1); }
 //static void link_av_desc (avinput_t v) { strncpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
 //static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
 //static void coarse_gain_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%u", ((v*10)+50)/100, (((v*10)+50)%100)/10); }
 
-/*static const arg_info_t vm_arg_info = {&vm_sel, VIDEO_MODES_CNT-1, vm_display_name};
-static const arg_info_t profile_arg_info = {&profile_sel_menu, MAX_PROFILE, profile_disp};
+static const arg_info_t vm_arg_info = {&vm_sel, 40, vm_display_name};
+/*static const arg_info_t profile_arg_info = {&profile_sel_menu, MAX_PROFILE, profile_disp};
 static const arg_info_t lt_arg_info = {&lt_sel, (sizeof(lt_desc)/sizeof(char*))-1, lt_disp};*/
 
 
-/*MENU(menu_advtiming, P99_PROTECT({
-    { LNG("H. samplerate","H. ｻﾝﾌﾟﾙﾚｰﾄ"),        OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_samplerate, H_TOTAL_MIN,   H_TOTAL_MAX, vm_tweak } } },
-    { "H. s.rate frac",                           OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_samplerate_adj, 0,  H_TOTAL_ADJ_MAX, vm_tweak } } },
-    { LNG("H. synclen","H. ﾄﾞｳｷﾅｶﾞｻ"),       OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_synclen,    H_SYNCLEN_MIN, H_SYNCLEN_MAX, vm_tweak } } },
-    { LNG("H. backporch","H. ﾊﾞｯｸﾎﾟｰﾁ"),        OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_bporch,     H_BPORCH_MIN,  H_BPORCH_MAX, vm_tweak } } },
-    { LNG("H. active","H. ｱｸﾃｨﾌﾞ"),             OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_active,     H_ACTIVE_MIN,  H_ACTIVE_MAX, vm_tweak } } },
-    { LNG("V. synclen","V. ﾄﾞｳｷﾅｶﾞｻ"),       OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_synclen,    V_SYNCLEN_MIN, V_SYNCLEN_MAX, vm_tweak } } },
-    { LNG("V. backporch","V. ﾊﾞｯｸﾎﾟｰﾁ"),       OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_bporch,     V_BPORCH_MIN,  V_BPORCH_MAX, vm_tweak } } },
-    { LNG("V. active","V. ｱｸﾃｨﾌﾞ"),            OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_active,     V_ACTIVE_MIN,  V_ACTIVE_MAX, vm_tweak } } },
-    { LNG("Sampling phase","ｻﾝﾌﾟﾘﾝｸﾞﾌｪｰｽﾞ"),     OPT_AVCONFIG_NUMVAL_U16,  { .num_u16 = { &tc_sampler_phase, 0, SAMPLER_PHASE_MAX, vm_tweak } } },
-}))*/
+MENU(menu_advtiming, P99_PROTECT({
+    { LNG("H. samplerate","H. ｻﾝﾌﾟﾙﾚｰﾄ"),      OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_samplerate, H_TOTAL_MIN, H_TOTAL_MAX, vm_tweak } } },
+    { "H. s.rate frac",                       OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_samplerate_adj,       0, H_TOTAL_ADJ_MAX, vm_tweak } } },
+    { LNG("H. synclen","H. ﾄﾞｳｷﾅｶﾞｻ"),         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_synclen,  H_SYNCLEN_MIN, H_SYNCLEN_MAX, vm_tweak } } },
+    { LNG("H. backporch","H. ﾊﾞｯｸﾎﾟｰﾁ"),       OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_bporch,    H_BPORCH_MIN, H_BPORCH_MAX, vm_tweak } } },
+    { LNG("H. active","H. ｱｸﾃｨﾌﾞ"),            OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_active,    H_ACTIVE_MIN, H_ACTIVE_MAX, vm_tweak } } },
+    { LNG("V. synclen","V. ﾄﾞｳｷﾅｶﾞｻ"),         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_synclen,  V_SYNCLEN_MIN, V_SYNCLEN_MAX, vm_tweak } } },
+    { LNG("V. backporch","V. ﾊﾞｯｸﾎﾟｰﾁ"),       OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_bporch,    V_BPORCH_MIN, V_BPORCH_MAX, vm_tweak } } },
+    { LNG("V. active","V. ｱｸﾃｨﾌﾞ"),            OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_active,    V_ACTIVE_MIN, V_ACTIVE_MAX, vm_tweak } } },
+    { LNG("Sampling phase","ｻﾝﾌﾟﾘﾝｸﾞﾌｪｰｽﾞ"),    OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_sampler_phase,          0, SAMPLER_PHASE_MAX, vm_tweak } } },
+}))
 
 MENU(menu_cust_sl, P99_PROTECT({
     { "Sub-line 1 str",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_l_str[0],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
@@ -227,11 +231,10 @@ MENU(menu_pure_lm, P99_PROTECT({
     { LNG("Line4x mode","Line4xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l4_mode,         OPT_WRAP, SETTING_ITEM(l2l4l5_mode_desc) } } },
     { LNG("Line5x mode","Line5xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l5_mode,         OPT_WRAP, SETTING_ITEM(l2l4l5_mode_desc) } } },
     { LNG("Line5x format","Line5xｹｲｼｷ"),        OPT_AVCONFIG_SELECTION, { .sel = { &tc.l5_fmt,          OPT_WRAP, SETTING_ITEM(l5_fmt_desc) } } },
-    { LNG("256x240 aspect","256x240ｱｽﾍﾟｸﾄ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.ar_256col,       OPT_WRAP, SETTING_ITEM(ar_256col_desc) } } },
     { "480p in preset",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.s480p_mode,     OPT_WRAP, SETTING_ITEM(s480p_mode_desc) } } },
     { "400p in preset",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.s400p_mode,     OPT_WRAP, SETTING_ITEM(s400p_mode_desc) } } },
     { LNG("Allow upsample2x","ｱｯﾌﾟｻﾝﾌﾟﾙ2xｷｮﾖｳ"), OPT_AVCONFIG_SELECTION, { .sel = { &tc.upsample2x,      OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
-    //{ LNG("<Adv. timing   >","<ｶｸｼｭﾀｲﾐﾝｸﾞ>"),    OPT_SUBMENU,            { .sub = { &menu_advtiming, &vm_arg_info, vm_select } } },
+    { LNG("<Adv. timing   >","<ｶｸｼｭﾀｲﾐﾝｸﾞ>"),    OPT_SUBMENU,            { .sub = { &menu_advtiming, &vm_arg_info, vm_select } } },
 }))
 
 MENU(menu_adap_lm, P99_PROTECT({
@@ -242,6 +245,8 @@ MENU(menu_adap_lm, P99_PROTECT({
     { LNG("576i proc","576iｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_576i,      OPT_WRAP, SETTING_ITEM(pm_ad_576i_desc) } } },
     { LNG("480p proc","480pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_480p,      OPT_WRAP, SETTING_ITEM(pm_ad_480p_desc) } } },
     { LNG("576p proc","576pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_576p,      OPT_WRAP, SETTING_ITEM(pm_ad_576p_desc) } } },
+    { LNG("720p proc","720pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_720p,      OPT_WRAP, SETTING_ITEM(pm_ad_720p_desc) } } },
+    { LNG("1080i proc","1080iｼｮﾘ"),             OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_1080i,     OPT_WRAP, SETTING_ITEM(pm_ad_1080i_desc) } } },
     { LNG("240p/288p mode","240p/288pﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_240p_288p, OPT_WRAP, SETTING_ITEM(sm_ad_240p_288p_desc) } } },
     { LNG("350-400p mode","350-400pﾓｰﾄﾞ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_384p,      OPT_WRAP, SETTING_ITEM(sm_ad_384p_desc) } } },
     { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_480i_576i, OPT_WRAP, SETTING_ITEM(sm_ad_480i_576i_desc) } } },
@@ -253,6 +258,7 @@ MENU(menu_lm, P99_PROTECT({
     { "Line multiplier mode",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lm_mode,         OPT_WRAP, SETTING_ITEM(lm_mode_desc) } } },
     { "Deinterlace mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.lm_deint_mode,   OPT_WRAP, SETTING_ITEM(lm_deint_mode_desc) } } },
     { "NI restore Y offset",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.nir_even_offset, OPT_NOWRAP, 0, 1, value_disp } } },
+    { LNG("256x240 aspect","256x240ｱｽﾍﾟｸﾄ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.ar_256col,       OPT_WRAP, SETTING_ITEM(ar_256col_desc) } } },
     { "Pure LM opt.       >",                   OPT_SUBMENU,            { .sub = { &menu_pure_lm, NULL, NULL } } },
     { "Adaptive LM opt.   >",                   OPT_SUBMENU,            { .sub = { &menu_adap_lm, NULL, NULL } } },
 }))
@@ -326,11 +332,6 @@ MENU(menu_audio, P99_PROTECT({
 #endif
 }))
 
-MENU(menu_compatibility, P99_PROTECT({
-    { LNG("Full TX setup","ﾌﾙTXｾｯﾄｱｯﾌﾟ"),         OPT_AVCONFIG_SELECTION, { .sel = { &tc.full_tx_setup,    OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
-    { "Default HDMI VIC",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.default_vic,     OPT_NOWRAP, 0, HDMI_1080p50, value_disp } } },
-}))
-
 
 MENU(menu_settings, P99_PROTECT({
     //{ LNG("<Load profile >","<ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ    >"),   OPT_FUNC_CALL,         { .fun = { load_profile, &profile_arg_info } } },
@@ -366,7 +367,6 @@ MENU(menu_main, P99_PROTECT({
     { LNG("Audio opt.         >","ｵｰﾃﾞｨｵｵﾌﾟｼｮﾝ  >"), OPT_SUBMENU,             { .sub = { &menu_audio, NULL, NULL } } },
     //{ LNG("Scanline opt.  >","ｽｷｬﾝﾗｲﾝｵﾌﾟｼｮﾝ >"),  OPT_SUBMENU,            { .sub = { &menu_scanlines, NULL, NULL } } },
     //{ LNG("Post-proc.     >","ｱﾄｼｮﾘ         >"),  OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },
-    { LNG("Compatibility      >","ｺﾞｶﾝｾｲ        >"), OPT_SUBMENU,             { .sub = { &menu_compatibility, NULL, NULL } } },
     { "Settings           >",                       OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
 
@@ -594,7 +594,7 @@ void display_menu(rc_code_t remote_code)
 void update_osd_size(mode_data_t *vm_out) {
     uint8_t osd_size = vm_out->timings.v_active / 700;
 
-    osd->osd_config.x_size = osd_size;
+    osd->osd_config.x_size = osd_size + vm_out->timings.interlaced;
     osd->osd_config.y_size = osd_size;
 }
 
@@ -611,46 +611,46 @@ void update_settings() {
     }
 }
 
-/*static void vm_select() {
+static void vm_select() {
     vm_edit = vm_sel;
-    tc_h_samplerate = video_modes[vm_edit].h_total;
-    tc_h_samplerate_adj = (uint16_t)video_modes[vm_edit].h_total_adj;
-    tc_h_synclen = (uint16_t)video_modes[vm_edit].h_synclen;
-    tc_h_bporch = (uint16_t)video_modes[vm_edit].h_backporch;
-    tc_h_active = video_modes[vm_edit].h_active;
-    tc_v_synclen = (uint16_t)video_modes[vm_edit].v_synclen;
-    tc_v_bporch = (uint16_t)video_modes[vm_edit].v_backporch;
-    tc_v_active = video_modes[vm_edit].v_active;
-    tc_sampler_phase = video_modes[vm_edit].sampler_phase;
+    tc_h_samplerate = video_modes_plm[vm_edit].timings.h_total;
+    tc_h_samplerate_adj = (uint16_t)video_modes_plm[vm_edit].timings.h_total_adj;
+    tc_h_synclen = (uint16_t)video_modes_plm[vm_edit].timings.h_synclen;
+    tc_h_bporch = (uint16_t)video_modes_plm[vm_edit].timings.h_backporch;
+    tc_h_active = video_modes_plm[vm_edit].timings.h_active;
+    tc_v_synclen = (uint16_t)video_modes_plm[vm_edit].timings.v_synclen;
+    tc_v_bporch = (uint16_t)video_modes_plm[vm_edit].timings.v_backporch;
+    tc_v_active = video_modes_plm[vm_edit].timings.v_active;
+    tc_sampler_phase = video_modes_plm[vm_edit].sampler_phase;
 }
 
 static void vm_tweak(uint16_t *v) {
-    if (cm.sync_active && (cm.id == vm_edit)) {
-        if ((video_modes[cm.id].h_total != tc_h_samplerate) ||
-            (video_modes[cm.id].h_total_adj != (uint8_t)tc_h_samplerate_adj) ||
-            (video_modes[cm.id].h_synclen != tc_h_synclen) ||
-            (video_modes[cm.id].h_backporch != (uint8_t)tc_h_bporch) ||
-            (video_modes[cm.id].h_active != tc_h_active) ||
-            (video_modes[cm.id].v_synclen != tc_v_synclen) ||
-            (video_modes[cm.id].v_backporch != (uint8_t)tc_v_bporch) ||
-            (video_modes[cm.id].v_active != tc_v_active) ||
-            (video_modes[cm.id].sampler_phase != tc_sampler_phase))
+    if (isl_dev.sync_active && (vm_cur == vm_edit) && (cc.oper_mode == OPERMODE_PURE_LM)) {
+        if ((video_modes_plm[vm_cur].timings.h_total != tc_h_samplerate) ||
+            (video_modes_plm[vm_cur].timings.h_total_adj != (uint8_t)tc_h_samplerate_adj) ||
+            (video_modes_plm[vm_cur].timings.h_synclen != tc_h_synclen) ||
+            (video_modes_plm[vm_cur].timings.h_backporch != (uint8_t)tc_h_bporch) ||
+            (video_modes_plm[vm_cur].timings.h_active != tc_h_active) ||
+            (video_modes_plm[vm_cur].timings.v_synclen != tc_v_synclen) ||
+            (video_modes_plm[vm_cur].timings.v_backporch != (uint8_t)tc_v_bporch) ||
+            (video_modes_plm[vm_cur].timings.v_active != tc_v_active) ||
+            (video_modes_plm[vm_cur].sampler_phase != tc_sampler_phase))
             update_cur_vm = 1;
     }
-    video_modes[vm_edit].h_total = tc_h_samplerate;
-    video_modes[vm_edit].h_total_adj = (uint8_t)tc_h_samplerate_adj;
-    video_modes[vm_edit].h_synclen = (uint8_t)tc_h_synclen;
-    video_modes[vm_edit].h_backporch = (uint8_t)tc_h_bporch;
-    video_modes[vm_edit].h_active = tc_h_active;
-    video_modes[vm_edit].v_synclen = (uint8_t)tc_v_synclen;
-    video_modes[vm_edit].v_backporch = (uint8_t)tc_v_bporch;
-    video_modes[vm_edit].v_active = tc_v_active;
-    video_modes[vm_edit].sampler_phase = tc_sampler_phase;
+    video_modes_plm[vm_edit].timings.h_total = tc_h_samplerate;
+    video_modes_plm[vm_edit].timings.h_total_adj = (uint8_t)tc_h_samplerate_adj;
+    video_modes_plm[vm_edit].timings.h_synclen = (uint8_t)tc_h_synclen;
+    video_modes_plm[vm_edit].timings.h_backporch = (uint8_t)tc_h_bporch;
+    video_modes_plm[vm_edit].timings.h_active = tc_h_active;
+    video_modes_plm[vm_edit].timings.v_synclen = (uint8_t)tc_v_synclen;
+    video_modes_plm[vm_edit].timings.v_backporch = (uint8_t)tc_v_bporch;
+    video_modes_plm[vm_edit].timings.v_active = tc_v_active;
+    video_modes_plm[vm_edit].sampler_phase = tc_sampler_phase;
 
     if (v == &tc_sampler_phase)
         sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%d deg","%d ﾄﾞ"), ((*v)*1125)/100);
     else if ((v == &tc_h_samplerate) || (v == &tc_h_samplerate_adj))
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%.2u", video_modes[vm_edit].h_total, video_modes[vm_edit].h_total_adj*5);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%.2u", video_modes_plm[vm_edit].timings.h_total, video_modes_plm[vm_edit].timings.h_total_adj*5);
     else
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", *v);
-}*/
+}

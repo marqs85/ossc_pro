@@ -123,7 +123,7 @@ void render_osd_menu();
 void display_menu(rc_code_t remote_code);
 void update_osd_size(mode_data_t *vm_out);
 void update_settings();
-/*static void vm_select();
-static void vm_tweak(uint16_t *v);*/
+static void vm_select();
+static void vm_tweak(uint16_t *v);
 
 #endif
