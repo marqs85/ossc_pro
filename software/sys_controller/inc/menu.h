@@ -26,10 +26,21 @@
 #include "video_modes.h"
 
 typedef enum {
+    NO_ACTION    = 0,
+    OPT_SELECT   = RC_OK,
+    PREV_MENU    = RC_BACK,
+    PREV_PAGE    = RC_UP,
+    NEXT_PAGE    = RC_DOWN,
+    VAL_MINUS    = RC_LEFT,
+    VAL_PLUS     = RC_RIGHT,
+} menucode_id; // order must be consequential with rc_code_t
+
+typedef enum {
     OPT_AVCONFIG_SELECTION,
     OPT_AVCONFIG_NUMVALUE,
     OPT_AVCONFIG_NUMVAL_U16,
     OPT_SUBMENU,
+    OPT_CUSTOMMENU,
     OPT_FUNC_CALL,
 } menuitem_type;
 
@@ -37,6 +48,7 @@ typedef int (*func_call)(void);
 typedef void (*arg_func)(void);
 typedef void (*disp_func)(uint8_t);
 typedef void (*disp_func_u16)(uint16_t*);
+typedef void (*cstm_disp_func)(menucode_id, int);
 
 typedef struct {
     uint8_t *data;
@@ -81,6 +93,10 @@ typedef struct {
 } opt_submenu;
 
 typedef struct {
+    cstm_disp_func cstm_f;
+} opt_custommenu;
+
+typedef struct {
     const char *name;
     menuitem_type type;
     union {
@@ -88,6 +104,7 @@ typedef struct {
         opt_avconfig_numvalue num;
         opt_avconfig_numvalue_u16 num_u16;
         opt_submenu sub;
+        opt_custommenu cstm;
         opt_func_call fun;
     };
 } menuitem_t;
@@ -101,16 +118,6 @@ struct menustruct {
 #define MENU(X, Y) menuitem_t X##_items[] = Y; const menu_t X = { sizeof(X##_items)/sizeof(menuitem_t), X##_items };
 #define P99_PROTECT(...) __VA_ARGS__
 
-typedef enum {
-    NO_ACTION    = 0,
-    OPT_SELECT   = RC_OK,
-    PREV_MENU    = RC_BACK,
-    PREV_PAGE    = RC_UP,
-    NEXT_PAGE    = RC_DOWN,
-    VAL_MINUS    = RC_LEFT,
-    VAL_PLUS     = RC_RIGHT,
-} menucode_id; // order must be consequential with rc_code_t
-
 typedef struct {
     const menu_t *m;
     uint8_t mp;
@@ -120,10 +127,14 @@ int is_menu_active();
 void init_menu();
 menunavi* get_current_menunavi();
 void render_osd_menu();
+void cstm_clock_phase(menucode_id code, int setup_disp);
+void cstm_size(menucode_id code, int setup_disp);
+void cstm_position(menucode_id code, int setup_disp);
 void display_menu(rc_code_t remote_code);
 void update_osd_size(mode_data_t *vm_out);
 void update_settings();
 static void vm_select();
 static void vm_tweak(uint16_t *v);
+static void smp_select();
 
 #endif

@@ -46,7 +46,7 @@
 #include "firmware.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 51
+#define FW_VER_MINOR 52
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -163,6 +163,7 @@ uint8_t sys_powered_on;
 uint8_t sd_det, sd_det_prev;
 
 int enable_isl, enable_hdmirx, enable_tp;
+oper_mode_t oper_mode;
 
 extern uint8_t osd_enable;
 
@@ -848,7 +849,6 @@ void mainloop()
 {
     int i, man_input_change;
     char op_status[4];
-    oper_mode_t oper_mode;
     uint32_t pclk_i_hz, pclk_o_hz, dotclk_hz, h_hz, pll_h_total, pll_h_total_prev=0;
     ths_channel_t target_ths_ch;
     ths_input_t target_ths_input;
