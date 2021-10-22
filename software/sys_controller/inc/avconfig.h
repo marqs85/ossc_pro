@@ -45,7 +45,7 @@
 #define V_MASK_MAX          63
 #define HV_MASK_MAX_BR      15
 #define VIDEO_LPF_MAX       5
-#define SAMPLER_PHASE_MAX   31
+#define SAMPLER_PHASE_MAX   64
 #define SYNC_VTH_MAX        15
 #define VSYNC_THOLD_MIN     10
 #define VSYNC_THOLD_MAX     200

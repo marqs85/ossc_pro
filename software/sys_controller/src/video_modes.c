@@ -36,6 +36,10 @@
 
 extern uint8_t vm_cur, vm_sel, smp_cur, smp_sel;
 
+const int num_video_modes_plm = sizeof(video_modes_plm_default)/sizeof(mode_data_t);
+const int num_video_modes = sizeof(video_modes_default)/sizeof(mode_data_t);
+const int num_smp_presets = sizeof(smp_presets_default)/sizeof(smp_preset_t);
+
 mode_data_t video_modes_plm[sizeof(video_modes_plm_default)/sizeof(mode_data_t)];
 mode_data_t video_modes[sizeof(video_modes_default)/sizeof(mode_data_t)];
 smp_preset_t smp_presets[sizeof(smp_presets_default)/sizeof(smp_preset_t)];
@@ -131,9 +135,9 @@ oper_mode_t get_operating_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *
     return mode;
 }
 
-int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t target_sm_list[], int gen_width_limit, vm_proc_config_t *vm_conf)
+int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t target_sm_list[], int gen_width_target, vm_proc_config_t *vm_conf)
 {
-    int i, diff_lines, mindiff_id=0, mindiff_lines=1000, v_active_ref;
+    int i, diff_lines, diff_width, mindiff_id=0, mindiff_lines=1000, mindiff_width, v_active_ref;
     mode_data_t *mode_preset;
     smp_preset_t *smp_preset;
 
@@ -145,7 +149,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
             mode_preset = (mode_data_t*)&video_modes[ad_mode_list[smp_preset->group].stdmode_id];
             v_active_ref = (ad_mode_list[smp_preset->group].y_rpt < 0) ? ((smp_preset->timings_i.v_active*(mode_preset->timings.interlaced+1)) / (-1*ad_mode_list[smp_preset->group].y_rpt+1)) :
                                                                          smp_preset->timings_i.v_active*(mode_preset->timings.interlaced+1) * (ad_mode_list[smp_preset->group].y_rpt+1);
-            gen_width_limit = ((((smp_preset->sm == SM_GEN_16_9) ? 16 : 12)*v_active_ref)/9)+1;
+            gen_width_target = ((((smp_preset->sm == SM_GEN_16_9) ? 16 : 12)*v_active_ref)/9)+1;
         }
 
         if ((vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
@@ -157,10 +161,24 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
             if (diff_lines < mindiff_lines) {
                 mindiff_id = i;
                 mindiff_lines = diff_lines;
+                if (smp_preset->sm <= SM_GEN_16_9) {
+                    mindiff_width = gen_width_target - smp_preset->timings_i.h_active;
+                    // Favor widths under target
+                    if (mindiff_width < 0)
+                        mindiff_width = (3*abs(mindiff_width))/2;
+                }
             } else if (diff_lines == mindiff_lines) {
-                // Find closest generic sampling width that does not exceed output active
-                if ((smp_preset->sm <= SM_GEN_16_9) && (smp_preset->timings_i.h_active <= gen_width_limit))
-                    mindiff_id = i;
+                // Find closest matching generic sampling width
+                if (smp_preset->sm <= SM_GEN_16_9) {
+                    diff_width = gen_width_target - smp_preset->timings_i.h_active;
+                    if (diff_width < 0)
+                        diff_width = (3*abs(diff_width))/2;
+
+                    if (diff_width < mindiff_width) {
+                        mindiff_id = i;
+                        mindiff_width = diff_width;
+                    }
+                }
             } else if ((mindiff_lines < 10) && (diff_lines > mindiff_lines)) {
                 // Break out if suitable mode already found
                 break;
@@ -193,17 +211,15 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     vm_in->type = smp_preset->type;
     strncpy(vm_in->name, smp_preset->name, 14);
 
-    // adjust sampling preset if needed
+    // adjust sampling preset by reducing active height if needed
     diff_lines = vm_in->timings.v_total-(vm_in->timings.v_synclen+vm_in->timings.v_backporch+vm_in->timings.v_active);
-    if (diff_lines <= 0) {
-        if (vm_in->timings.v_backporch + diff_lines >= 0) {
-            vm_in->timings.v_backporch += diff_lines;
-        } else {
-            diff_lines += vm_in->timings.v_backporch;
-            vm_in->timings.v_backporch = 0;
-            vm_in->timings.v_active += diff_lines;
-        }
-    }
+    if (diff_lines < 0)
+        vm_in->timings.v_active += diff_lines;
+
+    // repeat for width
+    diff_width = vm_in->timings.h_total-(vm_in->timings.h_synclen+vm_in->timings.h_backporch+vm_in->timings.h_active);
+    if (diff_width < 0)
+        vm_in->timings.h_active += diff_width;
 
     vm_conf->h_skip = smp_preset->h_skip;
 
@@ -213,7 +229,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
 #ifdef VIP
 int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
 {
-    int i, mode_hz_index, gen_width_limit=0, allow_x_inc, allow_y_inc, int_scl_x=1, int_scl_y=1, src_crop;
+    int i, mode_hz_index, gen_width_target=0, allow_x_inc, allow_y_inc, int_scl_x=1, int_scl_y=1, src_crop;
     int32_t error_cur=1, error_x_inc=0, error_y_inc=0;
     mode_data_t *mode_preset = NULL;
     memset(vm_out, 0, sizeof(mode_data_t));
@@ -291,16 +307,14 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
 
     mode_preset = (mode_data_t*)&video_modes[pm_scl_map[cc->scl_out_mode][mode_hz_index]];
 
-    if (cc->scl_aspect < 3) {
-        gen_width_limit = (aspect_map[cc->scl_aspect][0]*mode_preset->timings.v_active)/aspect_map[cc->scl_aspect][1];
-        if (gen_width_limit > mode_preset->timings.h_active)
-            gen_width_limit = mode_preset->timings.h_active;
-    } else {
-        gen_width_limit = 0;
-    }
+    // Calculate target active width for generic modes
+    if (cc->scl_aspect < 3)
+        gen_width_target = (aspect_map[cc->scl_aspect][0]*mode_preset->timings.v_active)/aspect_map[cc->scl_aspect][1];
+    else
+        gen_width_target = 0;
 
     // Get sampling preset for analog sources
-    if (!vm_in->timings.h_total && (get_sampling_preset(vm_in, NULL, target_sm_list, gen_width_limit, vm_conf) != 0))
+    if (!vm_in->timings.h_total && (get_sampling_preset(vm_in, NULL, target_sm_list, gen_width_target, vm_conf) != 0))
         return -1;
 
     memcpy(vm_out, mode_preset, sizeof(mode_data_t));

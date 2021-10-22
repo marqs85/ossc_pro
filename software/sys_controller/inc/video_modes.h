@@ -31,13 +31,13 @@
 #define H_TOTAL_ADJ_MAX 19
 #define H_SYNCLEN_MIN 10
 #define H_SYNCLEN_MAX 255
-#define H_BPORCH_MIN 1
+#define H_BPORCH_MIN 0
 #define H_BPORCH_MAX 255
 #define H_ACTIVE_MIN 200
 #define H_ACTIVE_MAX 1920
 #define V_SYNCLEN_MIN 1
 #define V_SYNCLEN_MAX 7
-#define V_BPORCH_MIN 1
+#define V_BPORCH_MIN 0
 #define V_BPORCH_MAX 63
 #define V_ACTIVE_MIN 160
 #define V_ACTIVE_MAX 1200
