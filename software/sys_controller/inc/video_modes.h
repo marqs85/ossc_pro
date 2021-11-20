@@ -32,15 +32,15 @@
 #define H_SYNCLEN_MIN 10
 #define H_SYNCLEN_MAX 255
 #define H_BPORCH_MIN 0
-#define H_BPORCH_MAX 255
+#define H_BPORCH_MAX 511
 #define H_ACTIVE_MIN 200
-#define H_ACTIVE_MAX 1920
+#define H_ACTIVE_MAX 2048
 #define V_SYNCLEN_MIN 1
-#define V_SYNCLEN_MAX 7
+#define V_SYNCLEN_MAX 15
 #define V_BPORCH_MIN 0
-#define V_BPORCH_MAX 63
+#define V_BPORCH_MAX 511
 #define V_ACTIVE_MIN 160
-#define V_ACTIVE_MAX 1200
+#define V_ACTIVE_MAX 1440
 
 #define DEFAULT_SAMPLER_PHASE 0
 
@@ -167,6 +167,14 @@ typedef enum {
     OPERMODE_SCALER       = 2,
     OPERMODE_INVALID      = 255,
 } oper_mode_t;
+
+typedef enum {
+    GEN_WIDTH_SMALLEST,
+    GEN_WIDTH_CLOSEST_PREFER_UNDER,
+    GEN_WIDTH_CLOSEST_PREFER_OVER,
+} gen_width_mode_t;
+
+#define NUM_VIDEO_GROUPS (GROUP_1080I+1)
 
 typedef struct {
     stdmode_t stdmode_id;

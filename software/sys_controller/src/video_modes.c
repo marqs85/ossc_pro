@@ -34,7 +34,7 @@
 
 #include "video_modes_list.c"
 
-extern uint8_t vm_cur, vm_sel, smp_cur, smp_sel;
+extern uint8_t vm_cur, vm_sel, smp_cur, smp_sel, dtmg_cur;
 
 const int num_video_modes_plm = sizeof(video_modes_plm_default)/sizeof(mode_data_t);
 const int num_video_modes = sizeof(video_modes_default)/sizeof(mode_data_t);
@@ -43,19 +43,21 @@ const int num_smp_presets = sizeof(smp_presets_default)/sizeof(smp_preset_t);
 mode_data_t video_modes_plm[sizeof(video_modes_plm_default)/sizeof(mode_data_t)];
 mode_data_t video_modes[sizeof(video_modes_default)/sizeof(mode_data_t)];
 smp_preset_t smp_presets[sizeof(smp_presets_default)/sizeof(smp_preset_t)];
+sync_timings_t hdmi_timings[NUM_VIDEO_GROUPS]; // one for each video_group to hold HDMI video timings
 
 void set_default_vm_table() {
     memcpy(video_modes_plm, video_modes_plm_default, sizeof(video_modes_plm_default));
     memcpy(video_modes, video_modes_default, sizeof(video_modes_default));
     memcpy(smp_presets, smp_presets_default, sizeof(smp_presets_default));
+    memset(hdmi_timings, 0, sizeof(hdmi_timings));
 }
 
 void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
     uint32_t val, bp_extra;
 
     val = vmode->timings.h_synclen * h_mult;
-    if (val >= (1<<8)) {
-        vmode->timings.h_synclen = (1<<8)-1;
+    if (val > H_SYNCLEN_MAX) {
+        vmode->timings.h_synclen = H_SYNCLEN_MAX;
         bp_extra = val - vmode->timings.h_synclen;
     } else {
         vmode->timings.h_synclen = val;
@@ -63,22 +65,22 @@ void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
     }
 
     val = (vmode->timings.h_backporch * h_mult) + bp_extra;
-    if (val >= (1<<9))
-        vmode->timings.h_backporch = (1<<9)-1;
+    if (val > H_BPORCH_MAX)
+        vmode->timings.h_backporch = H_BPORCH_MAX;
     else
         vmode->timings.h_backporch = val;
 
     val = vmode->timings.h_active * h_mult;
-    if (val >= (1<<11))
-        vmode->timings.h_active = (1<<11)-1;
+    if (val > H_ACTIVE_MAX)
+        vmode->timings.h_active = H_ACTIVE_MAX;
     else
         vmode->timings.h_active = val;
 
     vmode->timings.h_total = h_mult * vmode->timings.h_total + ((h_mult * vmode->timings.h_total_adj * 5 + 50) / 100);
 
     val = vmode->timings.v_synclen * v_mult;
-    if (val >= (1<<4)) {
-        vmode->timings.v_synclen = (1<<4)-1;
+    if (val > V_SYNCLEN_MAX) {
+        vmode->timings.v_synclen = V_SYNCLEN_MAX;
         bp_extra = val - vmode->timings.v_synclen;
     } else {
         vmode->timings.v_synclen = val;
@@ -86,14 +88,14 @@ void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
     }
 
     val = (vmode->timings.v_backporch * v_mult) + bp_extra;
-    if (val >= (1<<9))
-        vmode->timings.v_backporch = (1<<9)-1;
+    if (val > V_BPORCH_MAX)
+        vmode->timings.v_backporch = V_BPORCH_MAX;
     else
         vmode->timings.v_backporch = val;
 
     val = vmode->timings.v_active * v_mult;
-    if (val >= (1<<11))
-        vmode->timings.v_active = (1<<11)-1;
+    if (val > V_ACTIVE_MAX)
+        vmode->timings.v_active = V_ACTIVE_MAX;
     else
         vmode->timings.v_active = val;
 
@@ -102,6 +104,18 @@ void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
         vmode->timings.v_total *= (v_mult / 2);
     } else {
         vmode->timings.v_total *= v_mult;
+    }
+}
+
+void adjust_gen_width_diff(gen_width_mode_t gen_width_mode, int *diff_width) {
+    if (gen_width_mode == GEN_WIDTH_CLOSEST_PREFER_UNDER) {
+        if (*diff_width < 0)
+            *diff_width = (3*abs(*diff_width))/2;
+    } else if (gen_width_mode == GEN_WIDTH_CLOSEST_PREFER_OVER) {
+        if (*diff_width > 0)
+            *diff_width = (3*(*diff_width))/2;
+        else
+            *diff_width = abs(*diff_width);
     }
 }
 
@@ -135,11 +149,19 @@ oper_mode_t get_operating_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *
     return mode;
 }
 
-int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t target_sm_list[], int gen_width_target, vm_proc_config_t *vm_conf)
+int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t target_sm_list[], int gen_width_target, gen_width_mode_t gen_width_mode, vm_proc_config_t *vm_conf)
 {
     int i, diff_lines, diff_width, mindiff_id=0, mindiff_lines=1000, mindiff_width, v_active_ref;
     mode_data_t *mode_preset;
     smp_preset_t *smp_preset;
+
+    // Force fixed preset for digital sources
+    if (vm_in->timings.h_total) {
+        gen_width_mode = GEN_WIDTH_SMALLEST;
+
+        for (i=1; i<=7; i++)
+            target_sm_list[i] = SM_GEN_4_3;
+    }
 
     // Go through sampling presets and find closest one
     for (i=0; i<sizeof(smp_presets)/sizeof(smp_preset_t); i++) {
@@ -163,16 +185,13 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
                 mindiff_lines = diff_lines;
                 if (smp_preset->sm <= SM_GEN_16_9) {
                     mindiff_width = gen_width_target - smp_preset->timings_i.h_active;
-                    // Favor widths under target
-                    if (mindiff_width < 0)
-                        mindiff_width = (3*abs(mindiff_width))/2;
+                    adjust_gen_width_diff(gen_width_mode, &mindiff_width);
                 }
-            } else if (diff_lines == mindiff_lines) {
+            } else if ((diff_lines == mindiff_lines) && (gen_width_mode != GEN_WIDTH_SMALLEST)) {
                 // Find closest matching generic sampling width
                 if (smp_preset->sm <= SM_GEN_16_9) {
                     diff_width = gen_width_target - smp_preset->timings_i.h_active;
-                    if (diff_width < 0)
-                        diff_width = (3*abs(diff_width))/2;
+                    adjust_gen_width_diff(gen_width_mode, &diff_width);
 
                     if (diff_width < mindiff_width) {
                         mindiff_id = i;
@@ -195,9 +214,18 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
 
     vm_in->group = smp_preset->group;
 
-    // do not overwrite vm_in timings for digital sources
-    if (vm_in->timings.h_total)
+    // write vm_in timings for digital sources
+    if (vm_in->timings.h_total) {
+        if ((hdmi_timings[vm_in->group].h_total != vm_in->timings.h_total) || (hdmi_timings[vm_in->group].v_total != vm_in->timings.v_total))
+            memcpy(&hdmi_timings[vm_in->group], &vm_in->timings, sizeof(sync_timings_t));
+        else
+            memcpy(&vm_in->timings, &hdmi_timings[vm_in->group], sizeof(sync_timings_t));
+
+        dtmg_cur = vm_in->group;
+        smp_sel = vm_in->group;
+
         return 0;
+    }
 
     vm_in->timings.h_active = smp_preset->timings_i.h_active;
     vm_in->timings.v_active = smp_preset->timings_i.v_active;
@@ -232,6 +260,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     int i, mode_hz_index, gen_width_target=0, allow_x_inc, allow_y_inc, int_scl_x=1, int_scl_y=1, src_crop;
     int32_t error_cur=1, error_x_inc=0, error_y_inc=0;
     mode_data_t *mode_preset = NULL;
+    gen_width_mode_t gen_width_mode = (cc->scl_alg == 1) ? GEN_WIDTH_CLOSEST_PREFER_OVER : GEN_WIDTH_CLOSEST_PREFER_UNDER;
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
@@ -313,8 +342,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     else
         gen_width_target = 0;
 
-    // Get sampling preset for analog sources
-    if (!vm_in->timings.h_total && (get_sampling_preset(vm_in, NULL, target_sm_list, gen_width_target, vm_conf) != 0))
+    // Get sampling preset for analog sources and group for digital sources
+    if (get_sampling_preset(vm_in, NULL, target_sm_list, gen_width_target, gen_width_mode, vm_conf) != 0)
         return -1;
 
     memcpy(vm_out, mode_preset, sizeof(mode_data_t));
@@ -486,7 +515,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
 
     // Get sampling preset for analog sources and group for digital sources
-    if (get_sampling_preset(vm_in, ad_mode_list, target_sm_list, 0, vm_conf) != 0)
+    if (get_sampling_preset(vm_in, ad_mode_list, target_sm_list, 0, GEN_WIDTH_CLOSEST_PREFER_UNDER, vm_conf) != 0)
         return -1;
 
     // Switch to 60Hz output preset if needed
@@ -537,7 +566,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     case STDMODE_720p_60:
     case STDMODE_1024x768_60:
         if (vm_in->timings.h_active <= 300)
-            vm_conf->x_rpt = 3;
+            vm_conf->x_rpt = 3 - cc->ar_256col;
         else if (vm_in->timings.h_active <= 400)
             vm_conf->x_rpt = 2;
         else if (vm_in->timings.h_active <= 720)
@@ -545,7 +574,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
         break;
     case STDMODE_1280x1024_60:
         if (vm_in->timings.h_active <= 284)
-            vm_conf->x_rpt = 4;
+            vm_conf->x_rpt = 4 - cc->ar_256col;
         else if (vm_in->timings.h_active <= 366)
             vm_conf->x_rpt = 3;
         else if (vm_in->timings.h_active <= 460)
@@ -562,7 +591,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     case STDMODE_1920x1200_60:
         if (vm_in->timings.v_active*(vm_conf->y_rpt+1) <= 1080) {
             if (vm_in->timings.h_active <= 284)
-                vm_conf->x_rpt = 4;
+                vm_conf->x_rpt = 4 - cc->ar_256col;
             else if (vm_in->timings.h_active <= 366)
                 vm_conf->x_rpt = 3;
             else if (vm_in->timings.h_active <= 510)
@@ -571,7 +600,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
                 vm_conf->x_rpt = 1;
         } else {
             if (vm_in->timings.h_active <= 290)
-                vm_conf->x_rpt = 5;
+                vm_conf->x_rpt = 5 - 2*cc->ar_256col;
             else if (vm_in->timings.h_active <= 355)
                 vm_conf->x_rpt = 4;
             else if (vm_in->timings.h_active <= 460)
@@ -590,7 +619,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     case STDMODE_2560x1440_50:
     case STDMODE_2560x1440_60:
         if (vm_in->timings.h_active <= 295)
-            vm_conf->x_rpt = 6;
+            vm_conf->x_rpt = 6 - 2*cc->ar_256col;
         else if (vm_in->timings.h_active <= 350)
             vm_conf->x_rpt = 5;
         else if (vm_in->timings.h_active <= 426)

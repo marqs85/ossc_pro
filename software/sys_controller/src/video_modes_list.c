@@ -196,6 +196,8 @@ const smp_preset_t smp_presets_default[] = {
     { "1280x960_60",  SM_OPT_PC_HDTV,    {1280,  960,      0,  1800, 0, 1000,  312, 36,  112, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,    VIDEO_PC,  GROUP_NONE },
     { "1280x1024_60", SM_OPT_PC_HDTV,    {1280, 1024,      0,  1688, 0, 1066,  248, 38,  112, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,    VIDEO_PC,  GROUP_NONE },
     { "1600x1200_60", SM_OPT_PC_HDTV,    {1600, 1200,      0,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,    VIDEO_PC,  GROUP_NONE },
+    /* CVT misc */
+    { "1920x1200_60", SM_OPT_PC_HDTV,    {1920, 1200,      0,  2080, 0, 1235,   80, 26,   32, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,    VIDEO_PC,  GROUP_NONE },
 
     /* NES/SNES */
     { "SNES 256x240", SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  262,   39, 14,   25, 3,  0},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
