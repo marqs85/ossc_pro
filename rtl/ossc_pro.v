@@ -293,6 +293,7 @@ adv7611_frontend u_hdmirx_frontend (
     .hv_in_config(hv_in_config),
     .hv_in_config2(hv_in_config2),
     .hv_in_config3(hv_in_config3),
+    .sync_passthru(1'b0),
     .R_o(HDMIRX_R_post),
     .G_o(HDMIRX_G_post),
     .B_o(HDMIRX_B_post),

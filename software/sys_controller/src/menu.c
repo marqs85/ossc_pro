@@ -38,9 +38,11 @@
 
 extern avconfig_t tc;
 extern isl51002_dev isl_dev;
+extern adv761x_dev advrx_dev;
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
-extern smp_preset_t smp_presets[];
+extern smp_preset_t smp_presets[], smp_presets_default[];
+extern sync_timings_t hdmi_timings[];
 extern uint8_t update_cur_vm;
 extern oper_mode_t oper_mode;
 extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
@@ -49,7 +51,7 @@ char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_active, tc_v_synclen, tc_v_bporch, tc_v_active, tc_sampler_phase;
 uint8_t menu_active;
-uint8_t vm_cur, vm_sel, vm_edit, smp_cur, smp_sel, smp_edit;
+uint8_t vm_cur, vm_sel, vm_edit, smp_cur, smp_sel, smp_edit, dtmg_cur, dtmg_edit;
 
 menunavi navi[MAX_MENU_DEPTH];
 uint8_t navlvl;
@@ -130,6 +132,7 @@ static const char *sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350
 static const char *sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i" };
 static const char *sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480@60" };
 static const char *sm_scl_576p_desc[] = { "Generic", "DTV 576p" };
+static const char *hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -150,12 +153,18 @@ static void aud_db_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d 
 #endif
 static void audio_src_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", audio_src_desc[v]); }
 static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes_plm[v].name, US2066_ROW_LEN+1); }
-static void smp_display_name (uint8_t v) { strncpy(menu_row2, smp_presets[v].name, US2066_ROW_LEN+1); }
 //static void link_av_desc (avinput_t v) { strncpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
 //static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
 //static void coarse_gain_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%u", ((v*10)+50)/100, (((v*10)+50)%100)/10); }
+
+static void smp_display_name (uint8_t v) {
+    if (advrx_dev.powered_on && advrx_dev.sync_active)
+        strncpy(menu_row2, hdmi_timings_groups[v % NUM_VIDEO_GROUPS], US2066_ROW_LEN+1);
+    else
+        strncpy(menu_row2, smp_presets[v].name, US2066_ROW_LEN+1);
+}
 
 static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mode) {
     if (v) {
@@ -194,6 +203,7 @@ MENU(menu_advtiming, P99_PROTECT({
     { "Clock & Phase      >",                 OPT_CUSTOMMENU,         { .cstm = { &cstm_clock_phase } } },
     { "Size               >",                 OPT_CUSTOMMENU,         { .cstm = { &cstm_size } } },
     { "Position           >",                 OPT_CUSTOMMENU,         { .cstm = { &cstm_position } } },
+    { "<   Reset preset   >",                 OPT_FUNC_CALL,          { .fun =  { smp_reset, NULL } } },
 }))
 
 MENU(menu_cust_sl, P99_PROTECT({
@@ -497,8 +507,17 @@ void render_osd_menu() {
 void cstm_clock_phase(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0xff, 0xc0};
     smp_preset_t *smp = &smp_presets[smp_edit];
+    char clock_disp[US2066_ROW_LEN+1], phase_disp[US2066_ROW_LEN+1];
     int i;
-    int active_mode = (isl_dev.powered_on && isl_dev.sync_active && (smp_cur == smp_edit) && ((oper_mode == OPERMODE_ADAPT_LM) || (oper_mode == OPERMODE_SCALER)));
+    int active_mode = smp_is_active();
+
+    if (advrx_dev.powered_on && advrx_dev.sync_active) {
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "Not applicable");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "for HDMI");
+        ui_disp_menu(1);
+
+        return;
+    }
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
@@ -547,22 +566,30 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
         break;
     }
 
-    // clear rows
-    for (i=6; i<=7; i++)
-        strncpy((char*)osd->osd_array.data[i][1], "", OSD_CHAR_COLS);
-
     if (smp->h_skip)
-        sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u.%.2u (x%u)", smp->timings_i.h_total, smp->timings_i.h_total_adj*5, smp->h_skip+1);
+        sniprintf(clock_disp, US2066_ROW_LEN+1, "%u.%.2u (x%u)", smp->timings_i.h_total, smp->timings_i.h_total_adj*5, smp->h_skip+1);
     else
-        sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", smp->timings_i.h_total);
-    sampler_phase_disp((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, smp->sampler_phase, active_mode);
+        sniprintf(clock_disp, US2066_ROW_LEN+1, "%u", smp->timings_i.h_total);
+    sampler_phase_disp(phase_disp, US2066_ROW_LEN+1, smp->sampler_phase, active_mode);
+
+    strncpy((char*)osd->osd_array.data[6][1], clock_disp, OSD_CHAR_COLS);
+    strncpy((char*)osd->osd_array.data[7][1], phase_disp, OSD_CHAR_COLS);
+    sniprintf(menu_row1, US2066_ROW_LEN+1, "Clock: %s", clock_disp);
+    sniprintf(menu_row2, US2066_ROW_LEN+1, "Phase: %s", phase_disp);
+
+    ui_disp_menu(0);
 }
 
 void cstm_size(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x3ff, 0x3c0};
-    smp_preset_t *smp = &smp_presets[smp_edit];
+    sync_timings_t *st;
     int i;
-    int active_mode = (isl_dev.powered_on && isl_dev.sync_active && (smp_cur == smp_edit) && ((oper_mode == OPERMODE_ADAPT_LM) || (oper_mode == OPERMODE_SCALER)));
+    int active_mode = smp_is_active();
+
+    if (advrx_dev.powered_on && advrx_dev.sync_active)
+        st = &hdmi_timings[dtmg_edit];
+    else
+        st = &smp_presets[smp_edit].timings_i;
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
@@ -586,44 +613,44 @@ void cstm_size(menucode_id code, int setup_disp) {
     // Parse menu control
     switch (code) {
     case PREV_PAGE:
-        if (smp->timings_i.v_active > V_ACTIVE_MIN) {
-            if (!(smp->timings_i.v_active % 2) && (smp->timings_i.v_backporch < V_BPORCH_MAX))
-                smp->timings_i.v_backporch++;
+        if (st->v_active > V_ACTIVE_MIN) {
+            if (!(st->v_active % 2) && (st->v_backporch < V_BPORCH_MAX))
+                st->v_backporch++;
 
-            smp->timings_i.v_active--;
+            st->v_active--;
 
             if (active_mode)
                 update_cur_vm = 1;
         }
         break;
     case NEXT_PAGE:
-        if (smp->timings_i.v_active < V_ACTIVE_MAX) {
-            if ((smp->timings_i.v_active % 2) && (smp->timings_i.v_backporch > V_BPORCH_MIN))
-                smp->timings_i.v_backporch--;
+        if (st->v_active < V_ACTIVE_MAX) {
+            if ((st->v_active % 2) && (st->v_backporch > V_BPORCH_MIN))
+                st->v_backporch--;
 
-            smp->timings_i.v_active++;
+            st->v_active++;
 
             if (active_mode)
                 update_cur_vm = 1;
         }
         break;
     case VAL_MINUS:
-        if (smp->timings_i.h_active < H_ACTIVE_MAX) {
-            if ((smp->timings_i.h_active % 2) && (smp->timings_i.h_backporch > H_BPORCH_MIN))
-                smp->timings_i.h_backporch--;
+        if (st->h_active < H_ACTIVE_MAX) {
+            if ((st->h_active % 2) && (st->h_backporch > H_BPORCH_MIN))
+                st->h_backporch--;
 
-            smp->timings_i.h_active++;
+            st->h_active++;
 
             if (active_mode)
                 update_cur_vm = 1;
         }
         break;
     case VAL_PLUS:
-        if (smp->timings_i.h_active > H_ACTIVE_MIN) {
-            if (!(smp->timings_i.h_active % 2) && (smp->timings_i.h_backporch < H_BPORCH_MAX))
-                smp->timings_i.h_backporch++;
+        if (st->h_active > H_ACTIVE_MIN) {
+            if (!(st->h_active % 2) && (st->h_backporch < H_BPORCH_MAX))
+                st->h_backporch++;
 
-            smp->timings_i.h_active--;
+            st->h_active--;
 
             if (active_mode)
                 update_cur_vm = 1;
@@ -637,17 +664,26 @@ void cstm_size(menucode_id code, int setup_disp) {
     for (i=6; i<=9; i++)
         strncpy((char*)osd->osd_array.data[i][1], "", OSD_CHAR_COLS);
 
-    sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", smp->timings_i.h_backporch);
-    sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%u", smp->timings_i.v_backporch);
-    sniprintf((char*)osd->osd_array.data[8][1], OSD_CHAR_COLS, "%u", smp->timings_i.h_active);
-    sniprintf((char*)osd->osd_array.data[9][1], OSD_CHAR_COLS, "%u", smp->timings_i.v_active);
+    sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", st->h_backporch);
+    sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%u", st->v_backporch);
+    sniprintf((char*)osd->osd_array.data[8][1], OSD_CHAR_COLS, "%u", st->h_active);
+    sniprintf((char*)osd->osd_array.data[9][1], OSD_CHAR_COLS, "%u", st->v_active);
+    sniprintf(menu_row1, US2066_ROW_LEN+1, "H.bp: %u  V.bp: %u", st->h_backporch, st->v_backporch);
+    sniprintf(menu_row2, US2066_ROW_LEN+1, "Active: %ux%u", st->h_active, st->v_active);
+
+    ui_disp_menu(0);
 }
 
 void cstm_position(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0xff, 0xc0};
-    smp_preset_t *smp = &smp_presets[smp_edit];
+    sync_timings_t *st;
     int i;
-    int active_mode = (isl_dev.powered_on && isl_dev.sync_active && (smp_cur == smp_edit) && ((oper_mode == OPERMODE_ADAPT_LM) || (oper_mode == OPERMODE_SCALER)));
+    int active_mode = smp_is_active();
+
+    if (advrx_dev.powered_on && advrx_dev.sync_active)
+        st = &hdmi_timings[dtmg_edit];
+    else
+        st = &smp_presets[smp_edit].timings_i;
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
@@ -669,32 +705,32 @@ void cstm_position(menucode_id code, int setup_disp) {
     // Parse menu control
     switch (code) {
     case PREV_PAGE:
-        if (smp->timings_i.v_backporch < V_BPORCH_MAX) {
-            smp->timings_i.v_backporch++;
+        if (st->v_backporch < V_BPORCH_MAX) {
+            st->v_backporch++;
 
             if (active_mode)
                 update_cur_vm = 1;
         }
         break;
     case NEXT_PAGE:
-        if (smp->timings_i.v_backporch > V_BPORCH_MIN) {
-            smp->timings_i.v_backporch--;
+        if (st->v_backporch > V_BPORCH_MIN) {
+            st->v_backporch--;
 
             if (active_mode)
                 update_cur_vm = 1;
         }
         break;
     case VAL_MINUS:
-        if (smp->timings_i.h_backporch < H_BPORCH_MAX) {
-            smp->timings_i.h_backporch++;
+        if (st->h_backporch < H_BPORCH_MAX) {
+            st->h_backporch++;
 
             if (active_mode)
                 update_cur_vm = 1;
         }
         break;
     case VAL_PLUS:
-        if (smp->timings_i.h_backporch > H_BPORCH_MIN) {
-            smp->timings_i.h_backporch--;
+        if (st->h_backporch > H_BPORCH_MIN) {
+            st->h_backporch--;
 
             if (active_mode)
                 update_cur_vm = 1;
@@ -708,8 +744,12 @@ void cstm_position(menucode_id code, int setup_disp) {
     for (i=6; i<=7; i++)
         strncpy((char*)osd->osd_array.data[i][1], "", OSD_CHAR_COLS);
 
-    sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", smp->timings_i.h_backporch);
-    sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%u", smp->timings_i.v_backporch);
+    sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", st->h_backporch);
+    sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%u", st->v_backporch);
+    sniprintf(menu_row1, US2066_ROW_LEN+1, "H. backporch: %u", st->h_backporch);
+    sniprintf(menu_row2, US2066_ROW_LEN+1, "V. backporch: %u", st->v_backporch);
+
+    ui_disp_menu(0);
 }
 
 void display_menu(rc_code_t remote_code)
@@ -736,14 +776,9 @@ void display_menu(rc_code_t remote_code)
     }
 
     // Custom menu function
-    if (cstm_f != NULL) {
-        if (code == PREV_MENU) {
-            cstm_f = NULL;
-            render_osd_menu();
-            osd->osd_row_color.mask = (1<<navi[navlvl].mp);
-        } else {
-            cstm_f(code, 0);
-        }
+    if ((cstm_f != NULL) && (code != PREV_MENU)) {
+        cstm_f(code, 0);
+
         return;
     }
 
@@ -763,7 +798,10 @@ void display_menu(rc_code_t remote_code)
         break;
     case PREV_MENU:
         if (navlvl > 0) {
-            navlvl--;
+            if (cstm_f != NULL)
+                cstm_f = NULL;
+            else
+                navlvl--;
             render_osd_menu();
         } else {
             menu_active = 0;
@@ -934,4 +972,28 @@ static void vm_tweak(uint16_t *v) {
 
 static void smp_select() {
     smp_edit = smp_sel;
+    dtmg_edit = smp_sel % NUM_VIDEO_GROUPS;
+}
+
+static int smp_is_active() {
+    if (!((oper_mode == OPERMODE_ADAPT_LM) || (oper_mode == OPERMODE_SCALER)))
+        return 0;
+    else if (isl_dev.powered_on && isl_dev.sync_active && (smp_cur == smp_edit))
+        return 1;
+    else if (advrx_dev.powered_on && advrx_dev.sync_active && (dtmg_cur == dtmg_edit))
+        return 1;
+    else
+        return 0;
+}
+
+static int smp_reset() {
+    if (advrx_dev.powered_on && advrx_dev.sync_active)
+        memset(&hdmi_timings[dtmg_edit], 0, sizeof(sync_timings_t));
+    else
+        memcpy(&smp_presets[smp_edit], &smp_presets_default[smp_edit], sizeof(smp_preset_t));
+
+    if (smp_is_active())
+        update_cur_vm = 1;
+
+    return 0;
 }

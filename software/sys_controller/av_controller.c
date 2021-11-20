@@ -46,7 +46,7 @@
 #include "firmware.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 52
+#define FW_VER_MINOR 53
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
