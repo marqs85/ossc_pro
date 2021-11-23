@@ -28,6 +28,7 @@
 #define INC_ADV761X
 #define INC_PCM186X
 #define VIP
+#define OSSC_PRO_FINAL_CFG
 
 //#define I2C_DEBUG
 #define I2CA_BASE I2C_OPENCORES_0_BASE
