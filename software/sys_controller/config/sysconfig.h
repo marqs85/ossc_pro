@@ -23,12 +23,12 @@
 #include "system.h"
 
 #define INC_THS7353
-//#define INC_ADV7513
-#define INC_SII1136
+#define INC_ADV7513
+//#define INC_SII1136
 #define INC_ADV761X
 #define INC_PCM186X
 #define VIP
-#define OSSC_PRO_FINAL_CFG
+//#define OSSC_PRO_FINAL_CFG
 
 //#define I2C_DEBUG
 #define I2CA_BASE I2C_OPENCORES_0_BASE

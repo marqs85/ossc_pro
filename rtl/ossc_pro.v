@@ -18,7 +18,7 @@
 //
 
 `define PO_RESET_WIDTH 27000
-//`define PCB_1P3
+`define PCB_1P3
 
 `define VIP
 `define PIXPAR2
