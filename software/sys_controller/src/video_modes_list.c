@@ -202,29 +202,41 @@ const smp_preset_t smp_presets_default[] = {
     /* NES/SNES */
     { "SNES 256x240", SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  262,   39, 14,   25, 3,  0},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "SNES 512x240", SM_OPT_SNES_512COL,{ 512,  240,      0,   682, 0,  262,   78, 14,   50, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
+    { "SNES 512x448i",SM_OPT_SNES_512COL,{ 512,  224,      0,   682, 0,  525,   78, 14,   50, 3,  1},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     /* MD */
     { "MD 256x224",   SM_OPT_MD_256COL,  { 256,  224,      0,   342, 0,  262,   39, 24,   25, 3,  0},  4,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "MD 320x224",   SM_OPT_MD_320COL,  { 320,  224,      0,   427,10,  262,   52, 24,   31, 3,  0},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
+    { "MD 256x448i",  SM_OPT_MD_256COL,  { 256,  224,      0,   342, 0,  525,   39, 24,   25, 3,  1},  4,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
+    { "MD 320x448i",  SM_OPT_MD_320COL,  { 320,  224,      0,   427,10,  525,   52, 24,   31, 3,  1},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     /* PSX */
     { "PSX 256x240",  SM_OPT_PSX_256COL, { 256,  240,      0,   341, 6,  263,   37, 14,   25, 3,  0},  9,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "PSX 320x240",  SM_OPT_PSX_320COL, { 320,  240,      0,   426,12,  263,   47, 14,   31, 3,  0},  7,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "PSX 384x240",  SM_OPT_PSX_384COL, { 384,  240,      0,   487,11,  263,   43, 14,   38, 3,  0},  6,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "PSX 512x240",  SM_OPT_PSX_512COL, { 512,  240,      0,   682,12,  263,   74, 14,   50, 3,  0},  4,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "PSX 640x240",  SM_OPT_PSX_640COL, { 640,  240,      0,   853, 5,  263,   94, 14,   62, 3,  0},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
+    { "PSX 512x480i", SM_OPT_PSX_512COL, { 512,  240,      0,   682,12,  525,   74, 14,   50, 3,  1},  4,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
+    { "PSX 640x480i", SM_OPT_PSX_640COL, { 640,  240,      0,   853, 5,  525,   94, 14,   62, 3,  1},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     /* Saturn */
     { "SAT 320x240",  SM_OPT_SAT_320COL, { 320,  240,      0,   426,10,  263,   48, 15,   31, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "SAT 640x240",  SM_OPT_SAT_640COL, { 640,  240,      0,   853, 0,  263,   96, 15,   62, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "SAT 352x240",  SM_OPT_SAT_352COL, { 352,  240,      0,   455, 0,  263,   45, 15,   34, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "SAT 704x240",  SM_OPT_SAT_704COL, { 704,  240,      0,   910, 0,  263,   90, 15,   68, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
+    { "SAT 640x480i", SM_OPT_SAT_640COL, { 640,  240,      0,   853, 0,  525,   96, 15,   62, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
+    { "SAT 704x480i", SM_OPT_SAT_704COL, { 704,  240,      0,   910, 0,  525,   90, 15,   68, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     /* N64 */
     { "N64 320x240",  SM_OPT_N64_320COL, { 320,  240,      0,   386,15,  263,   36, 14,   22, 3,  0},  3,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "N64 640x240",  SM_OPT_N64_640COL, { 640,  240,      0,   773,10,  263,   72, 14,   44, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
+    { "N64 640x480i", SM_OPT_N64_640COL, { 640,  240,      0,   773,10,  525,   72, 14,   44, 3,  1},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     /* Neo Geo */
     { "NG 320x224",   SM_OPT_NG_320COL,  { 320,  224,      0,   384, 0,  264,   28, 21,   29, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     /* GBI */
     { "GBI 240x360",  SM_OPT_GBI_240COL, { 240,  360,      0,   300, 0,  375,   24, 10,   18, 3,  0},  1,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_384P },
-    /* PS2 GSM 960i mode */
+    /* DC/PS2/GC 640col AR-correct modes. DTV 480 preset should be used for games which render full 480 lines */
+    { "DC 640x448i",  SM_OPT_DC_640COL,  { 640,  224,      0,   858, 0,  525,   95, 23,   62, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
+    { "DC 640x448",   SM_OPT_DC_640COL,  { 640,  448,      0,   858, 0,  525,   95, 46,   62, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
+    /* PS2 GSM modes */
+    { "PS2 512x448",  SM_OPT_PS2_512COL, { 512,  448,      0,   858, 0,  525,  160, 46,   62, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     { "PS2 640x960i", SM_OPT_PC_HDTV,    { 640,  480,      0,   800, 0, 1050,   48, 33,   96, 2,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_1080I},
 
-    { "PC98 640x400", SM_OPT_PC98_640COL,{ 640,  400,      0,   848, 0,  440,   80, 32,   64, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,    GROUP_384P },
+    { "PC98 640x400", SM_OPT_PC98_640COL,{ 640,  400,      0,   848, 0,  440,   80, 31,   64, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,    GROUP_384P },
 };

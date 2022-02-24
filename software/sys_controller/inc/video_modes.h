@@ -159,6 +159,8 @@ typedef enum {
     SM_OPT_NG_320COL,
     SM_OPT_GBI_240COL,
     SM_OPT_PC98_640COL,
+    SM_OPT_DC_640COL,
+    SM_OPT_PS2_512COL,
 } smp_mode_t;
 
 typedef enum {
