@@ -1,12 +1,12 @@
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 
-/* First 80 flash sectors reserved for 2 compressed bitstreams.
-   Last 16 flash sectors reserved for userdata.
-   That leaves 160 sectors (10MB) for flash_imem. */
+/* First 160 flash sectors reserved for 2 compressed bitstreams (2x 5.2MB).
+   Last 16 flash sectors reserved for userdata (16x 64KB).
+   That leaves 80 sectors (10MB) for flash_imem (2x 2.6MB). */
 MEMORY
 {
-    flash_imem : ORIGIN = 0x02500000, LENGTH = 10485760
+    flash_imem : ORIGIN = 0x02A00000, LENGTH = 2621440
     dataram    : ORIGIN = 0x00010000, LENGTH = 0x8000
 }
 
