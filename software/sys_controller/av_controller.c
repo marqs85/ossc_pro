@@ -46,7 +46,7 @@
 #include "firmware.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 53
+#define FW_VER_MINOR 54
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -184,16 +184,18 @@ static const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV
 FIL file;
 char char_buff[256];
 
-const pp_coeff* scl_pp_coeff_list[][2] = {{&pp_coeff_nearest, NULL},
-                                          {&pp_coeff_nearest, NULL},
-                                          {&pp_coeff_nearest, NULL},
-                                          {&pp_coeff_lanczos3, NULL},
-                                          {&pp_coeff_lanczos4, NULL},
-                                          {&pp_coeff_lanczos2, &pp_coeff_lanczos3},
-                                          {&pp_coeff_lanczos3, &pp_coeff_lanczos4},
-                                          {&pp_coeff_sl_sharp, NULL}};
+const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
+                                            {{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
+                                            {{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
+                                            {{&pp_coeff_lanczos3, NULL}, {&pp_coeff_lanczos3, NULL}},
+                                            {{&pp_coeff_lanczos3_13, NULL}, {&pp_coeff_lanczos3_13, NULL}},
+                                            {{&pp_coeff_lanczos3, &pp_coeff_lanczos3_13}, {&pp_coeff_lanczos3, &pp_coeff_lanczos3_13}},
+                                            {{&pp_coeff_lanczos4, NULL}, {&pp_coeff_lanczos4, NULL}},
+                                            {{&pp_coeff_nearest, NULL}, {&pp_coeff_sl_sharp, NULL}}};
 int scl_loaded_pp_coeff = -1;
 #define PP_COEFF_SIZE  (sizeof(scl_pp_coeff_list) / sizeof((scl_pp_coeff_list)[0]))
+#define PP_TAPS 4
+#define PP_PHASES 64
 
 typedef struct {
     uint32_t ctrl;
@@ -256,7 +258,7 @@ typedef struct {
     uint32_t v_coeff_rbank;
     uint32_t h_phase;
     uint32_t v_phase;
-    int32_t coeff_data[4];
+    int32_t coeff_data[PP_TAPS];
 } vip_scl_ii_regs;
 
 typedef struct {
@@ -402,7 +404,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 #ifdef VIP
     vip_cvi->ctrl = vip_enable;
     vip_dli->ctrl = vip_enable;
-    scl_ea = (avconfig->scl_alg >= PP_COEFF_SIZE) ? 0 : !!scl_pp_coeff_list[avconfig->scl_alg][1];
+    scl_ea = (avconfig->scl_alg >= PP_COEFF_SIZE) ? 0 : !!scl_pp_coeff_list[avconfig->scl_alg][0][1];
     vip_scl_pp->ctrl = vip_enable ? (scl_ea<<1)|1 : 0;
     vip_fb->ctrl = vip_enable;
     vip_cvo->ctrl = vip_enable ? (1 | (1<<3)) : 0;
@@ -428,49 +430,44 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         if (avconfig->scl_alg >= PP_COEFF_SIZE) { // Custom
             snprintf(coeff_filename, sizeof(coeff_filename), "scaler%d.txt", (avconfig->scl_alg + 1 - PP_COEFF_SIZE) );
             if (!file_open(&file, coeff_filename)) {
-                t = 0;
                 p = 0;
                 while (file_get_string(&file, char_buff, sizeof(char_buff))) {
                     n = sscanf(char_buff, "%d,%d,%d,%d", &v0, &v1, &v2, &v3);
-                    if (n == 4) {
+                    if (n == PP_TAPS) {
                         vip_scl_pp->coeff_data[0] = v0;
                         vip_scl_pp->coeff_data[1] = v1;
                         vip_scl_pp->coeff_data[2] = v2;
                         vip_scl_pp->coeff_data[3] = v3;
 
-                        if (!t) vip_scl_pp->h_phase = p;
-                        else    vip_scl_pp->v_phase = p;
+                        vip_scl_pp->h_phase = p;
+                        vip_scl_pp->v_phase = p;
 
-                        if (++p == 16) {
-                            p = 0;
-                            if (++t == 2) {
-                                break;
-                            }
-                        }
+                        if (++p == PP_PHASES)
+                            break;
                     }
                 }
                 file_close(&file);
             }
         } else {
-            for (p=0; p<16; p++) {
-                for (t=0; t<4; t++)
-                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0]->v[0][p][t];
+            for (p=0; p<PP_PHASES; p++) {
+                for (t=0; t<PP_TAPS; t++)
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0][0]->v[p][t];
 
                 vip_scl_pp->h_phase = p;
 
-                for (t=0; t<4; t++)
-                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0]->v[1][p][t];
+                for (t=0; t<PP_TAPS; t++)
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1][0]->v[p][t];
 
                 vip_scl_pp->v_phase = p;
 
                 if (scl_ea) {
-                    for (t=0; t<4; t++)
-                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1]->v[0][p][t];
+                    for (t=0; t<PP_TAPS; t++)
+                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0][1]->v[p][t];
 
                     vip_scl_pp->h_phase = p+(1<<15);
 
-                    for (t=0; t<4; t++)
-                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1]->v[1][p][t];
+                    for (t=0; t<PP_TAPS; t++)
+                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1][1]->v[p][t];
 
                     vip_scl_pp->v_phase = p+(1<<15);
                 }
