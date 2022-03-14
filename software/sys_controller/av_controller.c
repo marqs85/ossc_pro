@@ -285,10 +285,10 @@ typedef struct {
 } vip_vfb_ii_regs;
 
 volatile vip_cvi_ii_regs *vip_cvi = (volatile vip_cvi_ii_regs*)0x00024000;
-volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)0x00025000;
-volatile vip_dli_ii_regs *vip_dli = (volatile vip_dli_ii_regs*)0x00026000;
-volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)0x00027000;
-volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)0x00029000;
+volatile vip_dli_ii_regs *vip_dli = (volatile vip_dli_ii_regs*)0x00024200;
+volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)0x00024400;
+volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)0x00024600;
+volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)0x00024800;
 #endif
 
 

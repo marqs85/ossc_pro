@@ -186,7 +186,9 @@ wire sd_cmd_oe_o, sd_cmd_out_o, sd_dat_oe_o;
 wire [3:0] sd_dat_out_o;
 
 assign SD_CMD_io = sd_cmd_oe_o ? sd_cmd_out_o : 1'bz;
-assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
+assign SD_DATA_io[3] = sd_dat_oe_o ? sd_dat_out_o[3] : 1'bz;
+assign SD_DATA_io[2:1] = 2'bzz;
+assign SD_DATA_io[0] = sd_dat_oe_o ? sd_dat_out_o[0] : 1'bz;
 
 assign FPGA_PCLK1x_o = pclk_capture;
 
@@ -584,12 +586,12 @@ sys sys_inst (
     .pulpino_0_config_testmode_i            (1'b0),
     .pulpino_0_config_fetch_enable_i        (1'b1),
     .pulpino_0_config_clock_gating_i        (1'b0),
-    .pulpino_0_config_boot_addr_i           (32'h02500000),
+    .pulpino_0_config_boot_addr_i           (32'h02A00000),
     .master_0_master_reset_reset            (jtagm_reset_req),
     .sdc_controller_0_sd_sd_cmd_dat_i       (SD_CMD_io),
     .sdc_controller_0_sd_sd_cmd_out_o       (sd_cmd_out_o),
     .sdc_controller_0_sd_sd_cmd_oe_o        (sd_cmd_oe_o),
-    .sdc_controller_0_sd_sd_dat_dat_i       (SD_DATA_io),
+    .sdc_controller_0_sd_sd_dat_dat_i       ({SD_DATA_io[3], 2'b11, SD_DATA_io[0]}),
     .sdc_controller_0_sd_sd_dat_out_o       (sd_dat_out_o),
     .sdc_controller_0_sd_sd_dat_oe_o        (sd_dat_oe_o),
     .sdc_controller_0_sd_clk_o_clk          (SD_CLK_o),

@@ -146,6 +146,7 @@ set_false_path -to {emif_hwreset_n_sync1_reg emif_swreset_n_sync1_reg}
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[0]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[1]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[2]
+set_false_path -setup -to [get_registers sys:sys_inst|sys_alt_vip_cl_cvo_0:alt_vip_cl_cvo_0|alt_vip_cvo_core:cvo_core|alt_vip_cvo_sync_conditioner:pixel_channel_sync_conditioner|alt_vip_common_sync_generation:sync_generation_generate.sync_generation|sof*]
 
 
 ### JTAG Signal Constraints ###
