@@ -38,7 +38,9 @@
 
 extern avconfig_t tc;
 extern isl51002_dev isl_dev;
+#ifndef DExx_FW
 extern adv761x_dev advrx_dev;
+#endif
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
 extern smp_preset_t smp_presets[], smp_presets_default[];
@@ -160,9 +162,11 @@ static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1
 //static void coarse_gain_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%u", ((v*10)+50)/100, (((v*10)+50)%100)/10); }
 
 static void smp_display_name (uint8_t v) {
+#ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active)
         strncpy(menu_row2, hdmi_timings_groups[v % NUM_VIDEO_GROUPS], US2066_ROW_LEN+1);
     else
+#endif
         strncpy(menu_row2, smp_presets[v].name, US2066_ROW_LEN+1);
 }
 
@@ -511,6 +515,7 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
     int i;
     int active_mode = smp_is_active();
 
+#ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active) {
         sniprintf(menu_row1, US2066_ROW_LEN+1, "Not applicable");
         sniprintf(menu_row2, US2066_ROW_LEN+1, "for HDMI");
@@ -518,6 +523,7 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
 
         return;
     }
+#endif
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
@@ -586,9 +592,11 @@ void cstm_size(menucode_id code, int setup_disp) {
     int i;
     int active_mode = smp_is_active();
 
+#ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active)
         st = &hdmi_timings[dtmg_edit];
     else
+#endif
         st = &smp_presets[smp_edit].timings_i;
 
     if (setup_disp) {
@@ -680,9 +688,11 @@ void cstm_position(menucode_id code, int setup_disp) {
     int i;
     int active_mode = smp_is_active();
 
+#ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active)
         st = &hdmi_timings[dtmg_edit];
     else
+#endif
         st = &smp_presets[smp_edit].timings_i;
 
     if (setup_disp) {
@@ -980,16 +990,20 @@ static int smp_is_active() {
         return 0;
     else if (isl_dev.powered_on && isl_dev.sync_active && (smp_cur == smp_edit))
         return 1;
+#ifndef DExx_FW
     else if (advrx_dev.powered_on && advrx_dev.sync_active && (dtmg_cur == dtmg_edit))
         return 1;
+#endif
     else
         return 0;
 }
 
 static int smp_reset() {
+#ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active)
         memset(&hdmi_timings[dtmg_edit], 0, sizeof(sync_timings_t));
     else
+#endif
         memcpy(&smp_presets[smp_edit], &smp_presets_default[smp_edit], sizeof(smp_preset_t));
 
     if (smp_is_active())
