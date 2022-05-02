@@ -48,6 +48,7 @@ extern sync_timings_t hdmi_timings[];
 extern uint8_t update_cur_vm;
 extern oper_mode_t oper_mode;
 extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
+extern uint8_t sl_def_iv_x, sl_def_iv_y;
 
 char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
@@ -61,7 +62,8 @@ uint8_t navlvl;
 // Pointer to custom menu display function
 void (*cstm_f)(menucode_id, int);
 
-uint8_t osd_enable, osd_enable_pre=1, osd_status_timeout, osd_status_timeout_pre=1;
+uint8_t osd_enable, osd_enable_pre, osd_status_timeout, osd_status_timeout_pre;
+uint8_t fan_pwm, fan_pwm_pre, led_pwm, led_pwm_pre;
 
 static const char *off_on_desc[] = { LNG("Off","ｵﾌ"), LNG("On","ｵﾝ") };
 static const char *video_lpf_desc[] = { LNG("Auto","ｵｰﾄ"), LNG("Off","ｵﾌ"), "95MHz (HDTV II)", "35MHz (HDTV I)", "16MHz (EDTV)", "9MHz (SDTV)" };
@@ -121,7 +123,7 @@ static const char *lm_mode_desc[] = { "Pure", "Adaptive" };
 static const char *scl_out_mode_desc[] = { "720x480 (60Hz)", "720x576 (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)" };
 static const char *scl_framelock_desc[] = { "On", "On (2x Hz)", "Off (closest Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
 static const char *scl_aspect_desc[] = { "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
-static const char *scl_alg_desc[] = { "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "SL sharp", "Custom scaler1.txt", "Custom scaler2.txt" };
+static const char *scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "SL sharp", "Custom scaler1.txt", "Custom scaler2.txt" };
 #ifndef VIP_DIL_B
 #ifdef DEBUG
 static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Visualize motion" };
@@ -142,6 +144,8 @@ static void hsync_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "
 static void sync_gf_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u ns", ((((v+14)%16)+1)*37)); }
 static void sl_str_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", ((v+1)*625)/100); }
 static void sl_cust_str_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", ((v)*625)/100); }
+static void sl_cust_iv_x_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%u%s", (v ? "" : "Auto ("), (v ? v : sl_def_iv_x)+1, (v ? "" : ")")); }
+static void sl_cust_iv_y_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%u%s", (v ? "" : "Auto ("), (v ? v : sl_def_iv_y)+1, (v ? "" : ")")); }
 static void sl_hybr_str_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", (v*625)/100); }
 static void lines_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), v); }
 static void pixels_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), v); }
@@ -155,6 +159,7 @@ static void aud_db_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d 
 #endif
 static void audio_src_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", audio_src_desc[v]); }
 static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes_plm[v].name, US2066_ROW_LEN+1); }
+static void pwm_disp (uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", (v*10)); }
 //static void link_av_desc (avinput_t v) { strncpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
 //static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
@@ -211,17 +216,24 @@ MENU(menu_advtiming, P99_PROTECT({
 }))
 
 MENU(menu_cust_sl, P99_PROTECT({
+    { "H interval",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_iv_x,          OPT_NOWRAP, 0, 9, sl_cust_iv_x_disp } } },
+    { "V interval",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_iv_y,          OPT_NOWRAP, 0, 5, sl_cust_iv_y_disp } } },
     { "Sub-line 1 str",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_l_str[0],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-line 2 str",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_l_str[1],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-line 3 str",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_l_str[2],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-line 4 str",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_l_str[3],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-line 5 str",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_l_str[4],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
+    { "Sub-line 6 str",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_l_str[5],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-column 1 str",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[0],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-column 2 str",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[1],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-column 3 str",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[2],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-column 4 str",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[3],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-column 5 str",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[4],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
     { "Sub-column 6 str",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[5],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
+    { "Sub-column 7 str",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[6],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
+    { "Sub-column 8 str",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[7],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
+    { "Sub-column 9 str",                     OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[8],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
+    { "Sub-column 10 str",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_cust_c_str[9],      OPT_NOWRAP, 0, SCANLINESTR_MAX+1, sl_cust_str_disp } } },
 }))
 
 
@@ -342,21 +354,23 @@ MENU(menu_output, P99_PROTECT({
 MENU(menu_scanlines, P99_PROTECT({
     { LNG("Scanlines","ｽｷｬﾝﾗｲﾝ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_mode,     OPT_WRAP,   SETTING_ITEM(sl_mode_desc) } } },
     { LNG("Sl. strength","ｽｷｬﾝﾗｲﾝﾂﾖｻ"),            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_str,      OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
-    { "Sl. hybrid str.",                          OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_hybr_str, OPT_NOWRAP, 0, SL_HYBRIDSTR_MAX, sl_hybr_str_disp } } },
+    //{ "Sl. hybrid str.",                          OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_hybr_str, OPT_NOWRAP, 0, SL_HYBRIDSTR_MAX, sl_hybr_str_disp } } },
     { "Sl. method",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_method,   OPT_WRAP,   SETTING_ITEM(sl_method_desc) } } },
-    { "Sl. alternating",                          OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_altern,   OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
+    { "Sl. LM Bob altern.",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_altern,   OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { LNG("Sl. alignment","ｽｷｬﾝﾗｲﾝﾎﾟｼﾞｼｮﾝ"),        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_id,       OPT_WRAP,   SETTING_ITEM(sl_id_desc) } } },
-    { "Sl. alt interval",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_altiv,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
+    //{ "Sl. alt interval",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_altiv,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { LNG("Sl. type","ｽｷｬﾝﾗｲﾝﾙｲ"),                 OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_type,     OPT_WRAP,   SETTING_ITEM(sl_type_desc) } } },
     { "<  Custom Sl.  >",                         OPT_SUBMENU,            { .sub = { &menu_cust_sl, NULL, NULL } } },
 }))
 
 MENU(menu_postproc, P99_PROTECT({
-    { LNG("Horizontal mask","ｽｲﾍｲﾏｽｸ"),           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.h_mask,      OPT_NOWRAP, 0, H_MASK_MAX, pixels_disp } } },
-    { LNG("Vertical mask","ｽｲﾁｮｸﾏｽｸ"),            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.v_mask,      OPT_NOWRAP, 0, V_MASK_MAX, pixels_disp } } },
+    //{ LNG("Horizontal mask","ｽｲﾍｲﾏｽｸ"),           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.h_mask,      OPT_NOWRAP, 0, H_MASK_MAX, pixels_disp } } },
+    //{ LNG("Vertical mask","ｽｲﾁｮｸﾏｽｸ"),            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.v_mask,      OPT_NOWRAP, 0, V_MASK_MAX, pixels_disp } } },
     { "Mask color",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.mask_color,  OPT_NOWRAP,   SETTING_ITEM(mask_color_desc) } } },
     { LNG("Mask brightness","ﾏｽｸｱｶﾙｻ"),           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.mask_br,     OPT_NOWRAP, 0, HV_MASK_MAX_BR, value_disp } } },
-    { LNG("Reverse LPF","ｷﾞｬｸLPF"),              OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.reverse_lpf, OPT_NOWRAP, 0, REVERSE_LPF_MAX, value_disp } } },
+    { "BFI for 2x Hz",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.bfi_enable,  OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
+    { "BFI strength",                            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.bfi_str,     OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
+    //{ LNG("Reverse LPF","ｷﾞｬｸLPF"),              OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.reverse_lpf, OPT_NOWRAP, 0, REVERSE_LPF_MAX, value_disp } } },
     //{ LNG("<DIY lat. test>","DIYﾁｴﾝﾃｽﾄ"),         OPT_FUNC_CALL,          { .fun = { latency_test, &lt_arg_info } } },
 }))
 
@@ -391,6 +405,8 @@ MENU(menu_settings, P99_PROTECT({
     //{ "Auto AV3 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av3_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
     { "OSD",                                    OPT_AVCONFIG_SELECTION, { .sel = { &osd_enable_pre,   OPT_WRAP,   SETTING_ITEM(osd_enable_desc) } } },
     { "OSD status disp.",                       OPT_AVCONFIG_SELECTION, { .sel = { &osd_status_timeout_pre,   OPT_WRAP,   SETTING_ITEM(osd_status_desc) } } },
+    { "Fan PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &fan_pwm_pre,   OPT_NOWRAP, 0, 10,  pwm_disp } } },
+    { "Led PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &led_pwm_pre,   OPT_NOWRAP, 1, 10,  pwm_disp } } },
     //{     "<Import sett.  >",                     OPT_FUNC_CALL,        { .fun = { import_userdata, NULL } } },
 #ifdef OSSC_PRO_FINAL_CFG
     { LNG("<Fw. update    >","<ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ>"), OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
@@ -410,8 +426,8 @@ MENU(menu_main, P99_PROTECT({
 #endif
     { LNG("Output opt.        >","ｼｭﾂﾘｮｸｵﾌﾟｼｮﾝ  >"),  OPT_SUBMENU,            { .sub = { &menu_output, NULL, NULL } } },
     { LNG("Audio opt.         >","ｵｰﾃﾞｨｵｵﾌﾟｼｮﾝ  >"), OPT_SUBMENU,             { .sub = { &menu_audio, NULL, NULL } } },
-    //{ LNG("Scanline opt.  >","ｽｷｬﾝﾗｲﾝｵﾌﾟｼｮﾝ >"),  OPT_SUBMENU,            { .sub = { &menu_scanlines, NULL, NULL } } },
-    //{ LNG("Post-proc.     >","ｱﾄｼｮﾘ         >"),  OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },
+    { LNG("Scanline opt.      >","ｽｷｬﾝﾗｲﾝｵﾌﾟｼｮﾝ >"),  OPT_SUBMENU,            { .sub = { &menu_scanlines, NULL, NULL } } },
+    { LNG("Post-proc.         >","ｱﾄｼｮﾘ         >"),  OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },
     { "Settings           >",                       OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
 
@@ -431,8 +447,6 @@ void init_menu() {
     smp_arg_info.max = num_smp_presets-1;
 
     // Setup OSD
-    osd_enable = osd_enable_pre;
-    osd_status_timeout = osd_status_timeout_pre;
     osd->osd_config.x_size = 0;
     osd->osd_config.y_size = 0;
     osd->osd_config.x_offset = 3;
@@ -920,6 +934,13 @@ void update_osd_size(mode_data_t *vm_out) {
     osd->osd_config.y_size = osd_size;
 }
 
+void set_default_settings() {
+    osd_enable = osd_enable_pre = 1;
+    osd_status_timeout = osd_status_timeout_pre = 1;
+    fan_pwm = fan_pwm_pre = 0;
+    led_pwm = led_pwm_pre = 5;
+}
+
 void update_settings() {
     if ((osd_enable != osd_enable_pre) || (osd_status_timeout != osd_status_timeout_pre)) {
         osd_enable = osd_enable_pre;
@@ -930,6 +951,11 @@ void update_settings() {
             render_osd_menu();
             display_menu(0);
         }
+    }
+    if ((fan_pwm != fan_pwm_pre) || (led_pwm != led_pwm_pre)) {
+        fan_pwm = fan_pwm_pre;
+        led_pwm = led_pwm_pre;
+        sys_update_pwm();
     }
 }
 

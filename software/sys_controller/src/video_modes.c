@@ -260,7 +260,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     int i, mode_hz_index, gen_width_target=0, allow_x_inc, allow_y_inc, int_scl_x=1, int_scl_y=1, src_crop;
     int32_t error_cur=1, error_x_inc=0, error_y_inc=0;
     mode_data_t *mode_preset = NULL;
-    gen_width_mode_t gen_width_mode = (cc->scl_alg == 1) ? GEN_WIDTH_CLOSEST_PREFER_OVER : GEN_WIDTH_CLOSEST_PREFER_UNDER;
+    gen_width_mode_t gen_width_mode = (cc->scl_alg == 2) ? GEN_WIDTH_CLOSEST_PREFER_OVER : GEN_WIDTH_CLOSEST_PREFER_UNDER;
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
@@ -381,7 +381,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
         return -1;
 
     // Calculate size and position based on aspect ratio
-    if (cc->scl_alg < 2) { // Integer
+    if ((cc->scl_alg == 1) || (cc->scl_alg == 2)) { // Integer
         // Integer scale incrementally in horizontal or vertical direction depending which results to more correct aspect ratio
         while (1) {
             if (cc->scl_aspect < 4) {
@@ -391,8 +391,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
             }
 
             // Up to 1/8 horizontally or vertically allowed to be cropped when overscanning enabled
-            allow_x_inc = cc->scl_alg ? (7*(int_scl_x+1)*vm_in->timings.h_active <= 8*vm_out->timings.h_active) : ((int_scl_x+1)*vm_in->timings.h_active <= vm_out->timings.h_active);
-            allow_y_inc = cc->scl_alg ? (7*(int_scl_y+1)*vm_in->timings.v_active <= 8*vm_out->timings.v_active) : ((int_scl_y+1)*vm_in->timings.v_active <= vm_out->timings.v_active);
+            allow_x_inc = (cc->scl_alg == 2) ? (7*(int_scl_x+1)*vm_in->timings.h_active <= 8*vm_out->timings.h_active) : ((int_scl_x+1)*vm_in->timings.h_active <= vm_out->timings.h_active);
+            allow_y_inc = (cc->scl_alg == 2) ? (7*(int_scl_y+1)*vm_in->timings.v_active <= 8*vm_out->timings.v_active) : ((int_scl_y+1)*vm_in->timings.v_active <= vm_out->timings.v_active);
 
             if (!allow_x_inc && !allow_y_inc) {
                 break;
@@ -435,6 +435,9 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
         vm_conf->x_offset = (vm_out->timings.h_active - vm_conf->x_size)/2;
         vm_conf->y_offset = (vm_out->timings.v_active - vm_conf->y_size)/2;
 
+        vm_conf->y_rpt = int_scl_y - 1;
+        vm_conf->x_rpt = int_scl_x - 1;
+
         printf("\nint_scl_x: %d int_scl_y: %d", int_scl_x, int_scl_y);
     } else { // Scale to aspect
         if (cc->scl_aspect < 4) {
@@ -453,6 +456,9 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
             vm_conf->x_size = vm_out->timings.h_active;
             vm_conf->y_size = vm_out->timings.v_active;
         }
+
+        vm_conf->y_rpt = (vm_conf->y_size < vm_in->timings.v_active) ? 0 : (vm_conf->y_size / vm_in->timings.v_active) - 1;
+        vm_conf->x_rpt = (vm_conf->x_size < vm_in->timings.h_active) ? 0 : (vm_conf->x_size / vm_in->timings.h_active) - 1;
     }
 
     printf("\nx_size: %u, y_size: %u\nx_offset: %d, y_offset: %d\n", vm_conf->x_size, vm_conf->y_size, vm_conf->x_offset, vm_conf->y_offset);

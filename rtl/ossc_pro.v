@@ -48,12 +48,12 @@ module ossc_pro (
     input HDMIRX_HSYNC_i,
     input HDMIRX_VSYNC_i,
     input HDMIRX_DE_i,
-    input HDMIRX_INT_N_i,
     input HDMIRX_I2S_BCK_i,
     input HDMIRX_I2S_WS_i,
     output HDMIRX_RESET_N_o,
 
-    input HDMITX_INT_N_i,
+    input HDMI_INT_N_i,
+
     output HDMITX_PCLK_o,
     output HDMITX_I2S_BCK_o,
     output HDMITX_I2S_WS_o,
@@ -94,6 +94,7 @@ module ossc_pro (
     input [5:0] BTN_i,
     output [2:0] LED_o,
     output AUDMUX_o,
+    output FAN_PWM_o,
 
     output SD_CLK_o,
     inout SD_CMD_io,
@@ -108,7 +109,7 @@ module ossc_pro (
 
 wire jtagm_reset_req;
 
-wire [15:0] sys_ctrl;
+wire [31:0] sys_ctrl;
 wire sys_poweron = sys_ctrl[0];
 wire isl_reset_n = sys_ctrl[1];
 wire hdmirx_reset_n = sys_ctrl[2];
@@ -125,6 +126,8 @@ wire testpattern_enable = sys_ctrl[12];
 wire csc_enable = sys_ctrl[13];
 wire framelock = sys_ctrl[14];
 wire hdmirx_spdif = sys_ctrl[15];
+wire [3:0] fan_duty = sys_ctrl[19:16];
+wire [3:0] led_duty = sys_ctrl[23:20];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -159,7 +162,7 @@ wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
 wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
 wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2;
-wire [31:0] misc_config, sl_config, sl_config2;
+wire [31:0] misc_config, sl_config, sl_config2, sl_config3;
 
 reg [23:0] resync_led_ctr;
 reg resync_strobe_sync1_reg, resync_strobe_sync2_reg, resync_strobe_prev;
@@ -167,8 +170,13 @@ wire resync_strobe_i;
 wire resync_strobe = resync_strobe_sync2_reg;
 
 //BGR
-assign LED_o = sys_poweron ? {framelock, (ir_code == 0), (resync_led_ctr != 0)} : {2'b00, ~resync_led_ctr[23]};
+wire led_pwm;
+assign LED_o = {3{led_pwm}} & (sys_poweron ? {framelock, (ir_code == 0), (resync_led_ctr != 0)} : {2'b00, ~resync_led_ctr[23]});
 //assign LED_o = {emif_status_init_done, emif_status_cal_success, emif_status_cal_fail};
+
+//Fan
+wire fan_pwm;
+assign FAN_PWM_o = ~(sys_poweron & fan_pwm);
 
 wire [11:0] xpos_sc;
 wire [10:0] ypos_sc;
@@ -180,7 +188,7 @@ assign HDMIRX_RESET_N_o = hdmirx_reset_n;
 
 reg emif_hwreset_n_sync1_reg, emif_hwreset_n_sync2_reg, emif_swreset_n_sync1_reg, emif_swreset_n_sync2_reg;
 
-assign HDMITX_5V_EN_o = 1'b1;
+assign HDMITX_5V_EN_o = sys_poweron;
 
 wire sd_cmd_oe_o, sd_cmd_out_o, sd_dat_oe_o;
 wire [3:0] sd_dat_out_o;
@@ -615,6 +623,7 @@ sys sys_inst (
     .sc_config_0_sc_if_misc_config_o        (misc_config),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
+    .sc_config_0_sc_if_sl_config3_o         (sl_config3),
     .osd_generator_0_osd_if_vclk            (PCLK_sc),
     .osd_generator_0_osd_if_xpos            (xpos_sc),
     .osd_generator_0_osd_if_ypos            (ypos_sc),
@@ -712,6 +721,7 @@ scanconverter scanconverter_inst (
     .misc_config(misc_config),
     .sl_config(sl_config),
     .sl_config2(sl_config2),
+    .sl_config3(sl_config3),
     .testpattern_enable(testpattern_enable),
     .ext_sync_mode(vip_select),
     .ext_frame_change_i(vip_frame_start),
@@ -737,6 +747,15 @@ ir_rcv ir0 (
     .ir_code        (ir_code),
     .ir_code_ack    (),
     .ir_code_cnt    (ir_code_cnt)
+);
+
+pwm_2ch #(.PERIOD(1024)) pwm_inst (
+    .clk            (CLK27_i),
+    .reset_n        (po_reset_n),
+    .ch1_duty       (fan_duty),
+    .ch2_duty       (led_duty),
+    .ch1_pwm        (fan_pwm),
+    .ch2_pwm        (led_pwm)
 );
 
 endmodule

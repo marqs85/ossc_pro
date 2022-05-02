@@ -132,6 +132,7 @@ void cstm_size(menucode_id code, int setup_disp);
 void cstm_position(menucode_id code, int setup_disp);
 void display_menu(rc_code_t remote_code);
 void update_osd_size(mode_data_t *vm_out);
+void set_default_settings();
 void update_settings();
 static void vm_select();
 static void vm_tweak(uint16_t *v);

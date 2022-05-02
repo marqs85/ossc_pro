@@ -46,7 +46,7 @@
 #include "firmware.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 54
+#define FW_VER_MINOR 55
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -156,16 +156,18 @@ struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq);
 
 FRESULT res;
 
-uint16_t sys_ctrl;
+uint32_t sys_ctrl;
 uint32_t sys_status;
 uint8_t sys_powered_on;
 
 uint8_t sd_det, sd_det_prev;
+uint8_t sl_def_iv_x, sl_def_iv_y;
 
 int enable_isl, enable_hdmirx, enable_tp;
 oper_mode_t oper_mode;
 
 extern uint8_t osd_enable;
+extern uint8_t fan_pwm, led_pwm;
 
 avinput_t avinput, target_avinput;
 stdmode_t tp_stdmode_id, target_tp_stdmode_id;
@@ -185,8 +187,6 @@ FIL file;
 char char_buff[256];
 
 const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
-                                            {{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
-                                            {{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
                                             {{&pp_coeff_lanczos3, NULL}, {&pp_coeff_lanczos3, NULL}},
                                             {{&pp_coeff_lanczos3_13, NULL}, {&pp_coeff_lanczos3_13, NULL}},
                                             {{&pp_coeff_lanczos3, &pp_coeff_lanczos3_13}, {&pp_coeff_lanczos3, &pp_coeff_lanczos3_13}},
@@ -196,6 +196,7 @@ int scl_loaded_pp_coeff = -1;
 #define PP_COEFF_SIZE  (sizeof(scl_pp_coeff_list) / sizeof((scl_pp_coeff_list)[0]))
 #define PP_TAPS 4
 #define PP_PHASES 64
+#define SCL_ALG_COEFF_START 3
 
 typedef struct {
     uint32_t ctrl;
@@ -284,11 +285,11 @@ typedef struct {
     uint32_t output_rate;
 } vip_vfb_ii_regs;
 
-volatile vip_cvi_ii_regs *vip_cvi = (volatile vip_cvi_ii_regs*)0x00024000;
-volatile vip_dli_ii_regs *vip_dli = (volatile vip_dli_ii_regs*)0x00024200;
-volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)0x00024400;
-volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)0x00024600;
-volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)0x00024800;
+volatile vip_cvi_ii_regs *vip_cvi = (volatile vip_cvi_ii_regs*)ALT_VIP_CL_CVI_0_BASE;
+volatile vip_dli_ii_regs *vip_dli = (volatile vip_dli_ii_regs*)ALT_VIP_CL_DIL_0_BASE;
+volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)ALT_VIP_CL_VFB_0_BASE;
+volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)ALT_VIP_CL_SCL_0_BASE;
+volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)ALT_VIP_CL_CVO_0_BASE;
 #endif
 
 
@@ -328,7 +329,7 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
 
 void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf, avconfig_t *avconfig)
 {
-    int vip_enable, scl_ea, p, t, n;
+    int vip_enable, scl_target_pp_coeff, scl_ea, i, p, t, n;
     int v0,v1,v2,v3;
     char coeff_filename[16];
 
@@ -343,6 +344,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     misc_config_reg misc_config = {.data=0x00000000};
     sl_config_reg sl_config = {.data=0x00000000};
     sl_config2_reg sl_config2 = {.data=0x00000000};
+    sl_config3_reg sl_config3 = {.data=0x00000000};
 
     vip_enable = !enable_tp && (avconfig->oper_mode == 1);
     uint32_t h_blank, v_blank, h_frontporch, v_frontporch;
@@ -388,6 +390,55 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     misc_config.nir_even_offset = avconfig->nir_even_offset;
     misc_config.ypbpr_cs = avconfig->ypbpr_cs;
     misc_config.vip_enable = vip_enable;
+    misc_config.bfi_enable = avconfig->bfi_enable & ((uint32_t)vm_out->timings.v_hz_x100*5 >= (uint32_t)vm_in->timings.v_hz_x100*9);
+    misc_config.bfi_str = avconfig->bfi_str;
+
+    // set default/custom scanline interval
+    sl_def_iv_y = (vm_conf->y_rpt > 0) ? vm_conf->y_rpt : 1;
+    sl_def_iv_x = (vm_conf->x_rpt > 0) ? vm_conf->x_rpt : sl_def_iv_y;
+    sl_config3.sl_iv_x = ((avconfig->sl_type == 3) && (avconfig->sl_cust_iv_x)) ? avconfig->sl_cust_iv_x : sl_def_iv_x;
+    sl_config3.sl_iv_y = ((avconfig->sl_type == 3) && (avconfig->sl_cust_iv_y)) ? avconfig->sl_cust_iv_y : sl_def_iv_y;
+
+    // construct custom/default scanline overlay
+    for (i=0; i<6; i++) {
+        if (avconfig->sl_type == 3) {
+            sl_config.sl_l_str_arr |= ((avconfig->sl_cust_l_str[i]-1)&0xf)<<(4*i);
+            sl_config.sl_l_overlay |= (avconfig->sl_cust_l_str[i]!=0)<<i;
+        } else {
+            sl_config.sl_l_str_arr |= avconfig->sl_str<<(4*i);
+
+            if ((i==5) && ((avconfig->sl_type == 0) || (avconfig->sl_type == 2))) {
+                sl_config.sl_l_overlay = (1<<((sl_config3.sl_iv_y+1)/2))-1;
+                if (avconfig->sl_id)
+                    sl_config.sl_l_overlay <<= (sl_config3.sl_iv_y+2)/2;
+            }
+        }
+    }
+    for (i=0; i<10; i++) {
+        if (avconfig->sl_type == 3) {
+            if (i<8)
+                sl_config2.sl_c_str_arr_l |= ((avconfig->sl_cust_c_str[i]-1)&0xf)<<(4*i);
+            else
+                sl_config3.sl_c_str_arr_h |= ((avconfig->sl_cust_c_str[i]-1)&0xf)<<(4*(i-8));
+            sl_config3.sl_c_overlay |= (avconfig->sl_cust_c_str[i]!=0)<<i;
+        } else {
+            if (i<8)
+                sl_config2.sl_c_str_arr_l |= avconfig->sl_str<<(4*i);
+            else
+                sl_config3.sl_c_str_arr_h |= avconfig->sl_str<<(4*(i-8));
+
+            if ((i==9) && ((avconfig->sl_type == 1) || (avconfig->sl_type == 2)))
+                sl_config3.sl_c_overlay = (1<<((sl_config3.sl_iv_x+1)/2))-1;
+        }
+    }
+    sl_config.sl_method = avconfig->sl_method;
+    sl_config.sl_altern = avconfig->sl_altern;
+
+    // disable scanlines if configured so
+    if (((avconfig->sl_mode == 1) && (!vm_conf->y_rpt)) || (avconfig->sl_mode == 0)) {
+        sl_config.sl_l_overlay = 0;
+        sl_config3.sl_c_overlay = 0;
+    }
 
     sc->hv_in_config = hv_in_config;
     sc->hv_in_config2 = hv_in_config2;
@@ -400,11 +451,20 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     sc->misc_config = misc_config;
     sc->sl_config = sl_config;
     sc->sl_config2 = sl_config2;
+    sc->sl_config3 = sl_config3;
 
 #ifdef VIP
     vip_cvi->ctrl = vip_enable;
     vip_dli->ctrl = vip_enable;
-    scl_ea = (avconfig->scl_alg >= PP_COEFF_SIZE) ? 0 : !!scl_pp_coeff_list[avconfig->scl_alg][0][1];
+
+    if (avconfig->scl_alg == 0)
+        scl_target_pp_coeff = ((vm_in->group >= GROUP_240P) && (vm_in->group <= GROUP_384P)) ? 0 : 2; // Nearest or Lanchos3_sharp
+    else if (avconfig->scl_alg < SCL_ALG_COEFF_START)
+        scl_target_pp_coeff = 0; // Nearest for integer scale
+    else
+        scl_target_pp_coeff = avconfig->scl_alg-SCL_ALG_COEFF_START;
+    scl_ea = (scl_target_pp_coeff >= PP_COEFF_SIZE) ? 0 : !!scl_pp_coeff_list[scl_target_pp_coeff][0][1];
+
     vip_scl_pp->ctrl = vip_enable ? (scl_ea<<1)|1 : 0;
     vip_fb->ctrl = vip_enable;
     vip_cvo->ctrl = vip_enable ? (1 | (1<<3)) : 0;
@@ -426,9 +486,9 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
     vip_dli->motion_shift = avconfig->scl_dil_motion_shift;
 
-    if (avconfig->scl_alg != scl_loaded_pp_coeff) {
-        if (avconfig->scl_alg >= PP_COEFF_SIZE) { // Custom
-            snprintf(coeff_filename, sizeof(coeff_filename), "scaler%d.txt", (avconfig->scl_alg + 1 - PP_COEFF_SIZE) );
+    if (scl_target_pp_coeff != scl_loaded_pp_coeff) {
+        if (scl_target_pp_coeff >= PP_COEFF_SIZE) { // Custom
+            snprintf(coeff_filename, sizeof(coeff_filename), "scaler%d.txt", (scl_target_pp_coeff + 1 - PP_COEFF_SIZE) );
             if (!file_open(&file, coeff_filename)) {
                 p = 0;
                 while (file_get_string(&file, char_buff, sizeof(char_buff))) {
@@ -451,30 +511,30 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         } else {
             for (p=0; p<PP_PHASES; p++) {
                 for (t=0; t<PP_TAPS; t++)
-                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0][0]->v[p][t];
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][0][0]->v[p][t];
 
                 vip_scl_pp->h_phase = p;
 
                 for (t=0; t<PP_TAPS; t++)
-                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1][0]->v[p][t];
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][1][0]->v[p][t];
 
                 vip_scl_pp->v_phase = p;
 
                 if (scl_ea) {
                     for (t=0; t<PP_TAPS; t++)
-                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][0][1]->v[p][t];
+                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][0][1]->v[p][t];
 
                     vip_scl_pp->h_phase = p+(1<<15);
 
                     for (t=0; t<PP_TAPS; t++)
-                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[avconfig->scl_alg][1][1]->v[p][t];
+                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][1][1]->v[p][t];
 
                     vip_scl_pp->v_phase = p+(1<<15);
                 }
             }
         }
 
-        scl_loaded_pp_coeff = avconfig->scl_alg;
+        scl_loaded_pp_coeff = scl_target_pp_coeff;
     }
 
     vip_scl_pp->edge_thold = avconfig->scl_edge_thold;
@@ -717,7 +777,9 @@ int init_hw()
 
     set_default_avconfig(1);
     set_default_keymap();
+    set_default_settings();
     init_menu();
+    sys_update_pwm();
 
     return 0;
 }
@@ -789,6 +851,12 @@ int sys_is_powered_on() {
 
 void sys_toggle_power() {
     sys_powered_on ^= 1;
+}
+
+void sys_update_pwm() {
+    sys_ctrl &= ~(SCTRL_FAN_PWM_MASK|SCTRL_LED_PWM_MASK);
+    sys_ctrl |= (fan_pwm << SCTRL_FAN_PWM_OFFS) | (led_pwm << SCTRL_LED_PWM_OFFS);
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 }
 
 void print_vm_stats() {
@@ -1004,6 +1072,7 @@ void mainloop()
             ui_disp_status(1);
         }
 
+        update_settings();
         status = update_avconfig();
 
         if (enable_tp) {
@@ -1145,14 +1214,6 @@ void mainloop()
 
                         update_osd_size(&vmode_out);
                         update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
-
-                        // Force CVO restart upon mode change (may be needed for stability)
-                        /*if (oper_mode == OPERMODE_SCALER) {
-                            usleep(100000);
-                            vip_cvo->ctrl = 0;
-                            usleep(100000);
-                            vip_cvo->ctrl = 1;
-                        }*/
 
                         // Setup VIC and pixel repetition
 #ifdef INC_ADV7513

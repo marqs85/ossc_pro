@@ -44,7 +44,8 @@ module sc_config_top(
     output [31:0] xy_out_config2_o,
     output [31:0] misc_config_o,
     output [31:0] sl_config_o,
-    output [31:0] sl_config2_o
+    output [31:0] sl_config2_o,
+    output [31:0] sl_config3_o
 );
 
 localparam FE_STATUS_REGNUM =       4'h0;
@@ -61,14 +62,15 @@ localparam XY_OUT_CONFIG2_REGNUM =  4'ha;
 localparam MISC_CONFIG_REGNUM =     4'hb;
 localparam SL_CONFIG_REGNUM =       4'hc;
 localparam SL_CONFIG2_REGNUM =      4'hd;
+localparam SL_CONFIG3_REGNUM =      4'he;
 
-reg [31:0] config_reg[HV_IN_CONFIG_REGNUM:SL_CONFIG2_REGNUM] /* synthesis ramstyle = "logic" */;
+reg [31:0] config_reg[HV_IN_CONFIG_REGNUM:SL_CONFIG3_REGNUM] /* synthesis ramstyle = "logic" */;
 
 assign avalon_s_waitrequest_n = 1'b1;
 
 genvar i;
 generate
-    for (i=HV_IN_CONFIG_REGNUM; i <= SL_CONFIG2_REGNUM; i++) begin : gen_reg
+    for (i=HV_IN_CONFIG_REGNUM; i <= SL_CONFIG3_REGNUM; i++) begin : gen_reg
         always @(posedge clk_i or posedge rst_i) begin
             if (rst_i) begin
                 config_reg[i] <= 0;
@@ -114,5 +116,6 @@ assign xy_out_config2_o = config_reg[XY_OUT_CONFIG2_REGNUM];
 assign misc_config_o = config_reg[MISC_CONFIG_REGNUM];
 assign sl_config_o = config_reg[SL_CONFIG_REGNUM];
 assign sl_config2_o = config_reg[SL_CONFIG2_REGNUM];
+assign sl_config3_o = config_reg[SL_CONFIG3_REGNUM];
 
 endmodule

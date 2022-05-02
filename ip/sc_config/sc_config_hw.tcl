@@ -1,11 +1,11 @@
-# 
+#
 # request TCL package from ACDS 16.1
-# 
+#
 package require -exact qsys 16.1
 
-# 
+#
 # module
-# 
+#
 set_module_property DESCRIPTION "Scanconverter config"
 set_module_property NAME sc_config
 #set_module_property VERSION 18.0
@@ -20,9 +20,9 @@ set_module_property REPORT_TO_TALKBACK false
 set_module_property ALLOW_GREYBOX_GENERATION false
 set_module_property REPORT_HIERARCHY false
 
-# 
+#
 # file sets
-# 
+#
 add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
 set_fileset_property QUARTUS_SYNTH TOP_LEVEL sc_config_top
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
@@ -35,19 +35,19 @@ set_fileset_property SIM_VERILOG ENABLE_FILE_OVERWRITE_MODE false
 set_fileset_property SIM_VERILOG TOP_LEVEL sc_config_top
 add_fileset_file sc_config_top.sv VERILOG PATH sc_config_top.sv
 
-# 
+#
 # parameters
-# 
+#
 
 
-# 
+#
 # display items
-# 
+#
 
 
-# 
+#
 # connection point clock_sink
-# 
+#
 add_interface clock_sink clock end
 set_interface_property clock_sink clockRate 0
 set_interface_property clock_sink ENABLED true
@@ -59,9 +59,9 @@ set_interface_property clock_sink SVD_ADDRESS_GROUP ""
 add_interface_port clock_sink clk_i clk Input 1
 
 
-# 
+#
 # connection point reset_sink
-# 
+#
 add_interface reset_sink reset end
 set_interface_property reset_sink associatedClock clock_sink
 set_interface_property reset_sink synchronousEdges DEASSERT
@@ -74,9 +74,9 @@ set_interface_property reset_sink SVD_ADDRESS_GROUP ""
 add_interface_port reset_sink rst_i reset Input 1
 
 
-# 
+#
 # connection point avalon_s
-# 
+#
 add_interface avalon_s avalon end
 set_interface_property avalon_s addressUnits WORDS
 set_interface_property avalon_s associatedClock clock_sink
@@ -114,9 +114,9 @@ set_interface_assignment avalon_s embeddedsw.configuration.isNonVolatileStorage 
 set_interface_assignment avalon_s embeddedsw.configuration.isPrintableDevice 0
 
 
-# 
+#
 # connection point bus
-# 
+#
 #add_sv_interface bus sc_if
 
 # Setting the parameter property to add SV interface parameters
@@ -131,9 +131,9 @@ set_interface_assignment avalon_s embeddedsw.configuration.isPrintableDevice 0
 #add_fileset_file sc_if.sv SYSTEM_VERILOG PATH sc_if.sv SYSTEMVERILOG_INTERFACE
 
 
-# 
+#
 # connection point sc_if
-# 
+#
 add_interface sc_if conduit end
 set_interface_property sc_if associatedClock ""
 set_interface_property sc_if associatedReset ""
@@ -157,3 +157,4 @@ add_interface_port sc_if xy_out_config2_o xy_out_config2_o Output 32
 add_interface_port sc_if misc_config_o misc_config_o Output 32
 add_interface_port sc_if sl_config_o sl_config_o Output 32
 add_interface_port sc_if sl_config2_o sl_config2_o Output 32
+add_interface_port sc_if sl_config3_o sl_config3_o Output 32

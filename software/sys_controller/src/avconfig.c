@@ -46,9 +46,9 @@ const avconfig_t tc_default = {
     .pm_ad_1080i = 1,
     .sl_altern = 1,
     .lm_mode = 1,
+    .mask_br = 8,
 #ifdef VIP
     .scl_out_mode = 4,
-    .scl_alg = 3,
     .scl_edge_thold = 7,
     .scl_dil_motion_shift = 3,
 #ifndef VIP_DIL_B
@@ -113,7 +113,19 @@ status_t update_avconfig() {
         (tc.reverse_lpf != cc.reverse_lpf) ||
         (tc.lm_deint_mode != cc.lm_deint_mode) ||
         (tc.nir_even_offset != cc.nir_even_offset) ||
-        (tc.ypbpr_cs != cc.ypbpr_cs)
+        (tc.ypbpr_cs != cc.ypbpr_cs) ||
+        (tc.bfi_enable != cc.bfi_enable) ||
+        (tc.bfi_str != cc.bfi_str) ||
+        (tc.sl_mode != cc.sl_mode) ||
+        (tc.sl_type != cc.sl_type) ||
+        (tc.sl_method != cc.sl_method) ||
+        (tc.sl_str != cc.sl_str) ||
+        (tc.sl_id != cc.sl_id) ||
+        (tc.sl_altern != cc.sl_altern) ||
+        (tc.sl_cust_iv_x != cc.sl_cust_iv_x) ||
+        (tc.sl_cust_iv_y != cc.sl_cust_iv_y) ||
+        (memcmp(tc.sl_cust_l_str, cc.sl_cust_l_str, 6*sizeof(uint8_t))) ||
+        (memcmp(tc.sl_cust_c_str, cc.sl_cust_c_str, 10*sizeof(uint8_t)))
 #ifdef VIP
         || (tc.scl_edge_thold != cc.scl_edge_thold) ||
         (tc.scl_dil_motion_shift != cc.scl_dil_motion_shift)

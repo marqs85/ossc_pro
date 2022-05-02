@@ -109,31 +109,40 @@ typedef union {
         uint8_t nir_even_offset:1;
         uint8_t ypbpr_cs:1;
         uint8_t vip_enable:1;
-        uint32_t misc_rsv:16;
+        uint8_t bfi_str:4;
+        uint8_t bfi_enable:1;
+        uint32_t misc_rsv:11;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } misc_config_reg;
 
 typedef union {
     struct {
-        uint32_t sl_l_str_arr:20;
-        uint8_t sl_l_overlay:5;
-        uint8_t sl_hybr_str:5;
+        uint32_t sl_l_str_arr:24;
+        uint8_t sl_l_overlay:6;
         uint8_t sl_method:1;
-        uint8_t sl_no_altern:1;
+        uint8_t sl_altern:1;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } sl_config_reg;
 
 typedef union {
     struct {
-        uint32_t sl_c_str_arr:24;
-        uint8_t sl_c_overlay:6;
-        uint8_t sl_altiv:1;
-        uint8_t sl_rsv:1;
+        uint32_t sl_c_str_arr_l;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } sl_config2_reg;
+
+typedef union {
+    struct {
+        uint32_t sl_c_str_arr_h:8;
+        uint32_t sl_c_overlay:10;
+        uint8_t sl_iv_y:3;
+        uint8_t sl_iv_x:4;
+        uint32_t sl_rsv:7;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} sl_config3_reg;
 
 typedef struct {
     fe_status_reg fe_status;
@@ -150,6 +159,7 @@ typedef struct {
     misc_config_reg misc_config;
     sl_config_reg sl_config;
     sl_config2_reg sl_config2;
+    sl_config3_reg sl_config3;
 } sc_regs;
 
 #endif //SC_CONFIG_REGS_H_

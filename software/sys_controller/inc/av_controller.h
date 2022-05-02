@@ -42,6 +42,10 @@
 #define SCTRL_CSC_ENABLE        (1<<13)
 #define SCTRL_FRAMELOCK         (1<<14)
 #define SCTRL_HDMIRX_SPDIF      (1<<15)
+#define SCTRL_FAN_PWM_OFFS      16
+#define SCTRL_FAN_PWM_MASK      (0xf<<SCTRL_FAN_PWM_OFFS)
+#define SCTRL_LED_PWM_OFFS      20
+#define SCTRL_LED_PWM_MASK      (0xf<<SCTRL_LED_PWM_OFFS)
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -100,6 +104,8 @@ void switch_tp_mode(rc_code_t code);
 int sys_is_powered_on();
 
 void sys_toggle_power();
+
+void sys_update_pwm();
 
 void print_vm_stats();
 

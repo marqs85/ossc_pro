@@ -98,7 +98,9 @@ typedef struct {
     uint8_t sl_str;
     uint8_t sl_id;
     uint8_t sl_cust_l_str[6];
-    uint8_t sl_cust_c_str[6];
+    uint8_t sl_cust_c_str[10];
+    uint8_t sl_cust_iv_x;
+    uint8_t sl_cust_iv_y;
     uint8_t linemult_target;
     uint8_t l2_mode;
     uint8_t l3_mode;
@@ -133,6 +135,8 @@ typedef struct {
     uint8_t v_mask;
     uint8_t mask_br;
     uint8_t mask_color;
+    uint8_t bfi_enable;
+    uint8_t bfi_str;
     uint8_t s480p_mode;
     uint8_t s400p_mode;
     uint8_t upsample2x;
