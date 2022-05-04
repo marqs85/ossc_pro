@@ -405,8 +405,10 @@ MENU(menu_settings, P99_PROTECT({
     //{ "Auto AV3 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av3_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
     { "OSD",                                    OPT_AVCONFIG_SELECTION, { .sel = { &osd_enable_pre,   OPT_WRAP,   SETTING_ITEM(osd_enable_desc) } } },
     { "OSD status disp.",                       OPT_AVCONFIG_SELECTION, { .sel = { &osd_status_timeout_pre,   OPT_WRAP,   SETTING_ITEM(osd_status_desc) } } },
+#ifndef DExx_FW
     { "Fan PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &fan_pwm_pre,   OPT_NOWRAP, 0, 10,  pwm_disp } } },
     { "Led PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &led_pwm_pre,   OPT_NOWRAP, 1, 10,  pwm_disp } } },
+#endif
     //{     "<Import sett.  >",                     OPT_FUNC_CALL,        { .fun = { import_userdata, NULL } } },
 #ifdef OSSC_PRO_FINAL_CFG
     { LNG("<Fw. update    >","<ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ>"), OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
@@ -937,8 +939,10 @@ void update_osd_size(mode_data_t *vm_out) {
 void set_default_settings() {
     osd_enable = osd_enable_pre = 1;
     osd_status_timeout = osd_status_timeout_pre = 1;
+#ifndef DExx_FW
     fan_pwm = fan_pwm_pre = 0;
     led_pwm = led_pwm_pre = 5;
+#endif
 }
 
 void update_settings() {
@@ -952,11 +956,13 @@ void update_settings() {
             display_menu(0);
         }
     }
+#ifndef DExx_FW
     if ((fan_pwm != fan_pwm_pre) || (led_pwm != led_pwm_pre)) {
         fan_pwm = fan_pwm_pre;
         led_pwm = led_pwm_pre;
         sys_update_pwm();
     }
+#endif
 }
 
 static void vm_select() {
