@@ -46,7 +46,7 @@
 #include "firmware.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 55
+#define FW_VER_MINOR 56
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -169,8 +169,7 @@ oper_mode_t oper_mode;
 extern uint8_t osd_enable;
 extern uint8_t fan_pwm, led_pwm;
 
-avinput_t avinput, target_avinput;
-stdmode_t tp_stdmode_id, target_tp_stdmode_id;
+avinput_t avinput, target_avinput, default_avinput;
 
 mode_data_t vmode_in, vmode_out;
 vm_proc_config_t vm_conf;
@@ -178,7 +177,7 @@ vm_proc_config_t vm_conf;
 char row1[US2066_ROW_LEN+1], row2[US2066_ROW_LEN+1];
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
-static const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4", "Last used" };
+extern const char *avinput_str[];
 
 #ifdef VIP
 #include "src/scl_pp_coeffs.c"
@@ -784,11 +783,11 @@ int init_hw()
     return 0;
 }
 
-void switch_input(rc_code_t code, btn_vec_t pb_vec) {
-    avinput_t prev_input = (avinput <= AV1_RGBS) ? AV4 : (avinput-1);
-    avinput_t next_input = (avinput == AV4) ? AV1_RGBS : (avinput+1);
+void switch_input(rc_code_t rcode, btn_code_t bcode) {
+    avinput_t prev_input = (avinput == AV_TESTPAT) ? AV4 : (avinput-1);
+    avinput_t next_input = (avinput == AV4) ? AV_TESTPAT : (avinput+1);
 
-    switch (code) {
+    switch (rcode) {
         case RC_BTN1: target_avinput = AV1_RGBS; break;
         case RC_BTN4: target_avinput = (avinput == AV1_RGsB) ? AV1_YPbPr : AV1_RGsB; break;
         case RC_BTN7: target_avinput = (avinput == AV1_RGBHV) ? AV1_RGBCS : AV1_RGBHV; break;
@@ -803,8 +802,10 @@ void switch_input(rc_code_t code, btn_vec_t pb_vec) {
         default: break;
     }
 
-    if (pb_vec & PB_BTN0)
-        avinput = next_input;
+    if (bcode == BC_UP)
+        target_avinput = prev_input;
+    else if (bcode == BC_DOWN)
+        target_avinput = next_input;
 }
 
 void set_syncmux_biasmode(uint8_t syncmux_stc) {
@@ -836,13 +837,6 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
         pcm186x_source_sel(&pcm_dev, audsrc);
 
     *aud_tx_fmt = (audsrc == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
-}
-
-void switch_tp_mode(rc_code_t code) {
-    if (code == RC_LEFT)
-        target_tp_stdmode_id = (target_tp_stdmode_id == 0) ? STDMODE_2560x1440_60 : target_tp_stdmode_id-1;
-    else if (code == RC_RIGHT)
-        target_tp_stdmode_id = (target_tp_stdmode_id == STDMODE_2560x1440_60) ? 0 : target_tp_stdmode_id+1;
 }
 
 int sys_is_powered_on() {
@@ -895,10 +889,6 @@ void print_vm_stats() {
         sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "H/V total:");
         sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%-5u %-5u", vmode_out.timings.h_total, vmode_out.timings.v_total);
         row++;
-
-        sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Audio fmt/fs/CC/CA:");
-        //sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%s/%u/%u/0x%x", (advtx_dev.cfg.audio_fmt == AUDIO_I2S) ? "I2S" : "SPDIF", advtx_dev.cfg.i2s_fs, advtx_dev.cfg.audio_cc_val, advtx_dev.cfg.audio_ca_val);
-        row++;
     }
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Firmware:");
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "v%u.%.2u @ " __DATE__, FW_VER_MAJOR, FW_VER_MINOR);
@@ -926,15 +916,11 @@ void mainloop()
     si5351_ms_config_t *si_ms_conf_ptr;
     alt_timestamp_type start_ts;
 
-    enable_isl = 0;
-    enable_hdmirx = 0;
-    enable_tp = 1;
-
     cur_avconfig = get_current_avconfig();
 
     while (1) {
         start_ts = alt_timestamp();
-        target_avinput = avinput;
+
         read_controls();
         parse_control();
 
@@ -955,7 +941,7 @@ void mainloop()
             case AV_TESTPAT:
                 enable_isl = 0;
                 enable_tp = 1;
-                tp_stdmode_id = -1;
+                cur_avconfig->tp_mode = -1;
                 break;
             case AV1_RGBS:
                 target_isl_input = ISL_CH0;
@@ -1076,8 +1062,8 @@ void mainloop()
         status = update_avconfig();
 
         if (enable_tp) {
-            if (tp_stdmode_id != target_tp_stdmode_id) {
-                get_standard_mode(target_tp_stdmode_id, &vm_conf, &vmode_in, &vmode_out);
+            if (status == TP_MODE_CHANGE) {
+                get_standard_mode(cur_avconfig->tp_mode, &vm_conf, &vmode_in, &vmode_out);
                 if (vmode_out.si_pclk_mult > 0) {
                     si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, 0, vmode_out.si_pclk_mult, vmode_out.si_ms_conf.outdiv);
                     pclk_o_hz = vmode_out.si_pclk_mult*si_dev.xtal_freq;
@@ -1094,11 +1080,8 @@ void mainloop()
 #ifdef INC_SII1136
                 sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
 #endif
-                //sniprintf(row2, US2066_ROW_LEN+1, "Test: %s", vmode_out.name);
                 sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c %u.%.2uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', (vmode_out.timings.v_hz_x100/100), (vmode_out.timings.v_hz_x100%100));
                 ui_disp_status(1);
-
-                tp_stdmode_id = target_tp_stdmode_id;
             }
         } else if (enable_isl) {
             if (isl_check_activity(&isl_dev, target_isl_input, target_isl_sync)) {
@@ -1253,7 +1236,7 @@ void mainloop()
                     if (advrx_dev.ss.interlace_flag)
                         vmode_in.timings.v_hz_x100 *= 2;
 
-                    sniprintf(vmode_in.name, 14, "%ux%u%c", advrx_dev.ss.h_active, (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
+                    sniprintf(vmode_in.name, 16, "%ux%u%c", advrx_dev.ss.h_active, (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active;
                     vmode_in.timings.v_active = advrx_dev.ss.v_active;
                     vmode_in.timings.h_total = advrx_dev.ss.h_total;
@@ -1404,19 +1387,15 @@ int main()
         // Restart system clock
         alt_timestamp_start();
 
-        sniprintf(row1, US2066_ROW_LEN+1, "OSSC Pro fw. %u.%.2u", FW_VER_MAJOR, FW_VER_MINOR);
-        ui_disp_status(1);
-
         // ADVRX powerup
         // pcm powerup
         sys_ctrl |= SCTRL_POWER_ON;
         sys_ctrl &= ~SCTRL_EMIF_POWERDN_REQ;
         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
-        // Set testpattern mode
-        avinput = AV_TESTPAT;
-        tp_stdmode_id = -1;
-        target_tp_stdmode_id = STDMODE_480p;
+        // Set default input
+        avinput = (avinput_t)-1;
+        target_avinput = default_avinput;
 
         pcm186x_enable_power(&pcm_dev, 1);
 

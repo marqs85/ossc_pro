@@ -46,7 +46,9 @@ const avconfig_t tc_default = {
     .pm_ad_1080i = 1,
     .sl_altern = 1,
     .lm_mode = 1,
+    .tp_mode = STDMODE_480p,
     .mask_br = 8,
+    .bfi_str = 15,
 #ifdef VIP
     .scl_out_mode = 4,
     .scl_edge_thold = 7,
@@ -138,7 +140,10 @@ status_t update_avconfig() {
 #endif
 #endif
        )
-        status = (status < SC_CONFIG_CHANGE) ? SC_CONFIG_CHANGE : status;
+        status = SC_CONFIG_CHANGE;
+
+    if (tc.tp_mode != cc.tp_mode)
+        status = TP_MODE_CHANGE;
 
     if ((tc.pm_240p != cc.pm_240p) ||
         (tc.pm_384p != cc.pm_384p) ||
@@ -180,7 +185,7 @@ status_t update_avconfig() {
         (tc.sm_scl_576p != cc.sm_scl_576p)
 #endif
         )
-        status = (status < MODE_CHANGE) ? MODE_CHANGE : status;
+        status = MODE_CHANGE;
 
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)

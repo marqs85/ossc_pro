@@ -177,6 +177,7 @@ typedef enum {
 } gen_width_mode_t;
 
 #define NUM_VIDEO_GROUPS (GROUP_1080I+1)
+#define NUM_VIDEO_MODES  (STDMODE_2560x1440_60+1)
 
 typedef struct {
     stdmode_t stdmode_id;
@@ -198,7 +199,7 @@ typedef struct {
 } sync_timings_t;
 
 typedef struct {
-    char name[14];
+    char name[16];
     HDMI_vic_t vic;
     sync_timings_t timings;
     uint8_t sampler_phase;
@@ -213,7 +214,7 @@ typedef struct {
 } mode_data_t;
 
 typedef struct {
-    char name[14];
+    char name[16];
     smp_mode_t sm;
     sync_timings_t timings_i;
     uint8_t h_skip;

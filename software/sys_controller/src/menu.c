@@ -43,12 +43,14 @@ extern adv761x_dev advrx_dev;
 #endif
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
+extern mode_data_t video_modes[];
 extern smp_preset_t smp_presets[], smp_presets_default[];
 extern sync_timings_t hdmi_timings[];
 extern uint8_t update_cur_vm;
 extern oper_mode_t oper_mode;
 extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
 extern uint8_t sl_def_iv_x, sl_def_iv_y;
+extern avinput_t target_avinput, default_avinput;
 
 char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
@@ -62,11 +64,14 @@ uint8_t navlvl;
 // Pointer to custom menu display function
 void (*cstm_f)(menucode_id, int);
 
+// Listview variables
+uint8_t lw_mp;
+menuitem_t *lw_item;
+
 uint8_t osd_enable, osd_enable_pre, osd_status_timeout, osd_status_timeout_pre;
 uint8_t fan_pwm, fan_pwm_pre, led_pwm, led_pwm_pre;
 
 static const char *off_on_desc[] = { LNG("Off","ｵﾌ"), LNG("On","ｵﾝ") };
-static const char *video_lpf_desc[] = { LNG("Auto","ｵｰﾄ"), LNG("Off","ｵﾌ"), "95MHz (HDTV II)", "35MHz (HDTV I)", "16MHz (EDTV)", "9MHz (SDTV)" };
 static const char *ypbpr_cs_desc[] = { "Rec. 601", "Rec. 709" };
 static const char *s480p_mode_desc[] = { LNG("Auto","ｵｰﾄ"), "DTV 480p", "VESA 640x480@60" };
 static const char *s400p_mode_desc[] = { "VGA 640x400@70", "VGA 720x400@70" };
@@ -101,22 +106,21 @@ static const char *sl_method_desc[] = { LNG("Multiplication","Multiplication"), 
 static const char *sl_type_desc[] = { LNG("Horizontal","ﾖｺ"), LNG("Vertical","ﾀﾃ"), "Horiz. + Vert.", "Custom" };
 static const char *sl_id_desc[] = { LNG("Top","ｳｴ"), LNG("Bottom","ｼﾀ") };
 #ifdef DExx_FW
+const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS" };
 static const char *audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz" };
 static const char *audio_src_desc[] = { "AV1 (analog)", "SPDIF" };
 #else
+const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4" };
 static const char *audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz", "24bit/192kHz" };
 static const char *audio_src_desc[] = { "AV1 (analog)", "AV2 (analog)", "AV3 (analog)", "SPDIF", "AV4 (digital)" };
 #endif
 static const char *audio_sr_desc[] = { "Off", "On (4.0)", "On (5.1)", "On (7.1)" };
 static const char *audmux_sel_desc[] = { "AV3 input", "AV1 output" };
-static const char *lt_desc[] = { "Top-left", "Center", "Bottom-right" };
-static const char *lcd_bl_timeout_desc[] = { "Off", "3s", "10s", "30s" };
 static const char *osd_enable_desc[] = { "Off", "Full", "Simple" };
 static const char *osd_status_desc[] = { "2s", "5s", "10s", "Off" };
 static const char *rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
 static const char *auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char *mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
-static const char *av3_alt_rgb_desc[] = { "Off", "AV1", "AV2" };
 static const char *adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char *oper_mode_desc[] = { "Line multiplier", "Scaler" };
 static const char *lm_mode_desc[] = { "Pure", "Adaptive" };
@@ -153,20 +157,19 @@ static void value_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u",
 static void value16_disp(uint16_t *v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", *v); }
 static void signed_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d", (int8_t)(v-SIGNED_NUMVAL_ZERO)); }
 static void pct_x10_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%u%%", (v/10), (v%10) ); }
-static void lt_disp(uint8_t v) { strncpy(menu_row2, lt_desc[v], US2066_ROW_LEN+1); }
 #ifdef INC_PCM186X
 static void aud_db_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d dB", ((int8_t)v-PCM_GAIN_0DB)); }
 #endif
 static void audio_src_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", audio_src_desc[v]); }
-static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes_plm[v].name, US2066_ROW_LEN+1); }
+static void vm_plm_display_name (uint8_t v) { strncpy(menu_row2, video_modes_plm[v].name, US2066_ROW_LEN+1); }
+static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes[v].name, US2066_ROW_LEN+1); }
 static void pwm_disp (uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", (v*10)); }
 //static void link_av_desc (avinput_t v) { strncpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
 //static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
-//static void coarse_gain_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%u", ((v*10)+50)/100, (((v*10)+50)%100)/10); }
 
-static void smp_display_name (uint8_t v) {
+static void smp_display_name(uint8_t v) {
 #ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active)
         strncpy(menu_row2, hdmi_timings_groups[v % NUM_VIDEO_GROUPS], US2066_ROW_LEN+1);
@@ -190,7 +193,7 @@ static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mod
     }
 }
 
-static arg_info_t vm_arg_info = {&vm_sel, 0, vm_display_name};
+static arg_info_t vm_arg_info = {&vm_sel, 0, vm_plm_display_name};
 static arg_info_t smp_arg_info = {&smp_sel, 0, smp_display_name};
 /*static const arg_info_t profile_arg_info = {&profile_sel_menu, MAX_PROFILE, profile_disp};
 static const arg_info_t lt_arg_info = {&lt_sel, (sizeof(lt_desc)/sizeof(char*))-1, lt_disp};*/
@@ -209,10 +212,10 @@ MENU(menu_advtiming_plm, P99_PROTECT({
 }))
 
 MENU(menu_advtiming, P99_PROTECT({
-    { "Clock & Phase      >",                 OPT_CUSTOMMENU,         { .cstm = { &cstm_clock_phase } } },
-    { "Size               >",                 OPT_CUSTOMMENU,         { .cstm = { &cstm_size } } },
-    { "Position           >",                 OPT_CUSTOMMENU,         { .cstm = { &cstm_position } } },
-    { "<   Reset preset   >",                 OPT_FUNC_CALL,          { .fun =  { smp_reset, NULL } } },
+    { "Clock & Phase",                        OPT_CUSTOMMENU,         { .cstm = { &cstm_clock_phase } } },
+    { "Size",                                 OPT_CUSTOMMENU,         { .cstm = { &cstm_size } } },
+    { "Position",                             OPT_CUSTOMMENU,         { .cstm = { &cstm_position } } },
+    { "Reset preset",                         OPT_FUNC_CALL,          { .fun =  { smp_reset, NULL } } },
 }))
 
 MENU(menu_cust_sl, P99_PROTECT({
@@ -256,12 +259,10 @@ MENU(menu_isl_video_opt, P99_PROTECT({
 }))
 
 MENU(menu_isl_sync_opt, P99_PROTECT({
-    //{ LNG("Analog sync LPF","ｱﾅﾛｸﾞﾄﾞｳｷ LPF"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sync_lpf,    OPT_WRAP,   SETTING_ITEM(sync_lpf_desc) } } },
-    //{ "Analog STC LPF",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.stc_lpf,    OPT_WRAP,   SETTING_ITEM(stc_lpf_desc) } } },
     { LNG("Analog sync Vth","ｱﾅﾛｸﾞﾄﾞｳｷ Vth"),    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.sog_vth,     OPT_NOWRAP, 0, SYNC_VTH_MAX, sog_vth_disp } } },
     { "TTL Hsync Vth",                          OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.hsync_vth,    OPT_NOWRAP, 0, SYNC_VTH_MAX, hsync_vth_disp } } },
 #ifdef INC_THS7353
-    { "Analog sync pre-STC",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.syncmux_stc,         OPT_WRAP,   SETTING_ITEM(syncmux_stc_desc) } } },
+    { "Analog sync pre-STC",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.syncmux_stc,         OPT_WRAP,   SETTING_ITEM_LIST(syncmux_stc_desc) } } },
 #endif
     { "Sync glitch filt len",                   OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.sync_gf,     OPT_WRAP, 0, 15, sync_gf_disp } } },
     { "H-PLL Pre-Coast",                        OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.pre_coast,   OPT_NOWRAP, 0, PLL_COAST_MAX, lines_disp } } },
@@ -276,36 +277,36 @@ MENU(menu_adv_video_opt, P99_PROTECT({
 #endif
 
 MENU(menu_pure_lm, P99_PROTECT({
-    { LNG("240p/288p proc","240p/288pｼｮﾘ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_240p,         OPT_WRAP, SETTING_ITEM(pm_240p_desc) } } },
-    { LNG("384p/400p proc","384p/400pｼｮﾘ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_384p,         OPT_WRAP, SETTING_ITEM(pm_384p_desc) } } },
-    { LNG("480i/576i proc","480i/576iｼｮﾘ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_480i,         OPT_WRAP, SETTING_ITEM(pm_480i_desc) } } },
-    { LNG("480p/576p proc","480p/576pｼｮﾘ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_480p,         OPT_WRAP, SETTING_ITEM(pm_480p_desc) } } },
-    { LNG("960i/1080i proc","960i/1080iｼｮﾘ"),   OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_1080i,        OPT_WRAP, SETTING_ITEM(pm_1080i_desc) } } },
-    { LNG("Line2x mode","Line2xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l2_mode,         OPT_WRAP, SETTING_ITEM(l2l4l5_mode_desc) } } },
-    { LNG("Line3x mode","Line3xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l3_mode,         OPT_WRAP, SETTING_ITEM(l3_mode_desc) } } },
-    { LNG("Line4x mode","Line4xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l4_mode,         OPT_WRAP, SETTING_ITEM(l2l4l5_mode_desc) } } },
-    { LNG("Line5x mode","Line5xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l5_mode,         OPT_WRAP, SETTING_ITEM(l2l4l5_mode_desc) } } },
-    { LNG("Line5x format","Line5xｹｲｼｷ"),        OPT_AVCONFIG_SELECTION, { .sel = { &tc.l5_fmt,          OPT_WRAP, SETTING_ITEM(l5_fmt_desc) } } },
-    { "480p in preset",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.s480p_mode,     OPT_WRAP, SETTING_ITEM(s480p_mode_desc) } } },
-    { "400p in preset",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.s400p_mode,     OPT_WRAP, SETTING_ITEM(s400p_mode_desc) } } },
+    { LNG("240p/288p proc","240p/288pｼｮﾘ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_240p,         OPT_WRAP, SETTING_ITEM_LIST(pm_240p_desc) } } },
+    { LNG("384p/400p proc","384p/400pｼｮﾘ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_384p,         OPT_WRAP, SETTING_ITEM_LIST(pm_384p_desc) } } },
+    { LNG("480i/576i proc","480i/576iｼｮﾘ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_480i,         OPT_WRAP, SETTING_ITEM_LIST(pm_480i_desc) } } },
+    { LNG("480p/576p proc","480p/576pｼｮﾘ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_480p,         OPT_WRAP, SETTING_ITEM_LIST(pm_480p_desc) } } },
+    { LNG("960i/1080i proc","960i/1080iｼｮﾘ"),   OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_1080i,        OPT_WRAP, SETTING_ITEM_LIST(pm_1080i_desc) } } },
+    { LNG("Line2x mode","Line2xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l2_mode,         OPT_WRAP, SETTING_ITEM_LIST(l2l4l5_mode_desc) } } },
+    { LNG("Line3x mode","Line3xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l3_mode,         OPT_WRAP, SETTING_ITEM_LIST(l3_mode_desc) } } },
+    { LNG("Line4x mode","Line4xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l4_mode,         OPT_WRAP, SETTING_ITEM_LIST(l2l4l5_mode_desc) } } },
+    { LNG("Line5x mode","Line5xﾓｰﾄﾞ"),          OPT_AVCONFIG_SELECTION, { .sel = { &tc.l5_mode,         OPT_WRAP, SETTING_ITEM_LIST(l2l4l5_mode_desc) } } },
+    { LNG("Line5x format","Line5xｹｲｼｷ"),        OPT_AVCONFIG_SELECTION, { .sel = { &tc.l5_fmt,          OPT_WRAP, SETTING_ITEM_LIST(l5_fmt_desc) } } },
+    { "480p in preset",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.s480p_mode,     OPT_WRAP, SETTING_ITEM_LIST(s480p_mode_desc) } } },
+    { "400p in preset",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.s400p_mode,     OPT_WRAP, SETTING_ITEM_LIST(s400p_mode_desc) } } },
     { LNG("Allow upsample2x","ｱｯﾌﾟｻﾝﾌﾟﾙ2xｷｮﾖｳ"), OPT_AVCONFIG_SELECTION, { .sel = { &tc.upsample2x,      OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 }))
 
 MENU(menu_adap_lm, P99_PROTECT({
-    { LNG("240p proc","240pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_240p,      OPT_WRAP, SETTING_ITEM(pm_ad_240p_desc) } } },
-    { LNG("288p proc","288pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_288p,      OPT_WRAP, SETTING_ITEM(pm_ad_288p_desc) } } },
-    { LNG("350-400p proc","350-400pｼｮﾘ"),       OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_384p,      OPT_WRAP, SETTING_ITEM(pm_ad_384p_desc) } } },
-    { LNG("480i proc","480iｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_480i,      OPT_WRAP, SETTING_ITEM(pm_ad_480i_desc) } } },
-    { LNG("576i proc","576iｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_576i,      OPT_WRAP, SETTING_ITEM(pm_ad_576i_desc) } } },
-    { LNG("480p proc","480pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_480p,      OPT_WRAP, SETTING_ITEM(pm_ad_480p_desc) } } },
-    { LNG("576p proc","576pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_576p,      OPT_WRAP, SETTING_ITEM(pm_ad_576p_desc) } } },
-    { LNG("720p proc","720pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_720p,      OPT_WRAP, SETTING_ITEM(pm_ad_720p_desc) } } },
-    { LNG("1080i proc","1080iｼｮﾘ"),             OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_1080i,     OPT_WRAP, SETTING_ITEM(pm_ad_1080i_desc) } } },
-    { LNG("240p/288p mode","240p/288pﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_240p_288p, OPT_WRAP, SETTING_ITEM(sm_ad_240p_288p_desc) } } },
-    { LNG("350-400p mode","350-400pﾓｰﾄﾞ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_384p,      OPT_WRAP, SETTING_ITEM(sm_ad_384p_desc) } } },
-    { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_480i_576i, OPT_WRAP, SETTING_ITEM(sm_ad_480i_576i_desc) } } },
-    { LNG("480p mode","480pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_480p,      OPT_WRAP, SETTING_ITEM(sm_ad_480p_desc) } } },
-    { LNG("576p mode","576pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_576p,      OPT_WRAP, SETTING_ITEM(sm_ad_576p_desc) } } },
+    { LNG("240p proc","240pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_240p,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_240p_desc) } } },
+    { LNG("288p proc","288pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_288p,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_288p_desc) } } },
+    { LNG("350-400p proc","350-400pｼｮﾘ"),       OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_384p,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_384p_desc) } } },
+    { LNG("480i proc","480iｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_480i,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_480i_desc) } } },
+    { LNG("576i proc","576iｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_576i,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_576i_desc) } } },
+    { LNG("480p proc","480pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_480p,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_480p_desc) } } },
+    { LNG("576p proc","576pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_576p,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_576p_desc) } } },
+    { LNG("720p proc","720pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_720p,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_720p_desc) } } },
+    { LNG("1080i proc","1080iｼｮﾘ"),             OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_1080i,     OPT_WRAP, SETTING_ITEM_LIST(pm_ad_1080i_desc) } } },
+    { LNG("240p/288p mode","240p/288pﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_240p_288p, OPT_WRAP, SETTING_ITEM_LIST(sm_ad_240p_288p_desc) } } },
+    { LNG("350-400p mode","350-400pﾓｰﾄﾞ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_384p,      OPT_WRAP, SETTING_ITEM_LIST(sm_ad_384p_desc) } } },
+    { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_480i_576i, OPT_WRAP, SETTING_ITEM_LIST(sm_ad_480i_576i_desc) } } },
+    { LNG("480p mode","480pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_480p,      OPT_WRAP, SETTING_ITEM_LIST(sm_ad_480p_desc) } } },
+    { LNG("576p mode","576pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_576p,      OPT_WRAP, SETTING_ITEM_LIST(sm_ad_576p_desc) } } },
 }))
 
 MENU(menu_lm, P99_PROTECT({
@@ -313,21 +314,21 @@ MENU(menu_lm, P99_PROTECT({
     { "Deinterlace mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.lm_deint_mode,   OPT_WRAP, SETTING_ITEM(lm_deint_mode_desc) } } },
     { "NI restore Y offset",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.nir_even_offset, OPT_NOWRAP, 0, 1, value_disp } } },
     { LNG("256x240 aspect","256x240ｱｽﾍﾟｸﾄ"),     OPT_AVCONFIG_SELECTION, { .sel = { &tc.ar_256col,       OPT_WRAP, SETTING_ITEM(ar_256col_desc) } } },
-    { "Pure LM opt.       >",                   OPT_SUBMENU,            { .sub = { &menu_pure_lm, NULL, NULL } } },
-    { "Adaptive LM opt.   >",                   OPT_SUBMENU,            { .sub = { &menu_adap_lm, NULL, NULL } } },
-    { "< P-LM Adv. timing >",                   OPT_SUBMENU,            { .sub = { &menu_advtiming_plm, &vm_arg_info, vm_select } } },
-    { "< A-LM Adv. timing >",                   OPT_SUBMENU,            { .sub = { &menu_advtiming,     &smp_arg_info, smp_select } } },
+    { "Pure LM opt.",                           OPT_SUBMENU,            { .sub = { &menu_pure_lm, NULL, NULL } } },
+    { "Adaptive LM opt.",                       OPT_SUBMENU,            { .sub = { &menu_adap_lm, NULL, NULL } } },
+    { "P-LM Adv. timing",                       OPT_SUBMENU,            { .sub = { &menu_advtiming_plm, &vm_arg_info, vm_select } } },
+    { "A-LM Adv. timing",                       OPT_SUBMENU,            { .sub = { &menu_advtiming,     &smp_arg_info, smp_select } } },
 }))
 
 #ifdef VIP
 MENU(menu_scaler, P99_PROTECT({
-    { "Output resolution",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_out_mode,    OPT_WRAP, SETTING_ITEM(scl_out_mode_desc) } } },
-    { "Framelock",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_framelock,   OPT_WRAP, SETTING_ITEM(scl_framelock_desc) } } },
-    { "Aspect ratio",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_aspect,      OPT_WRAP, SETTING_ITEM(scl_aspect_desc) } } },
-    { "Scaling algorithm",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_alg,         OPT_WRAP, SETTING_ITEM(scl_alg_desc) } } },
+    { "Output resolution",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_out_mode,    OPT_WRAP, SETTING_ITEM_LIST(scl_out_mode_desc) } } },
+    { "Framelock",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_framelock,   OPT_WRAP, SETTING_ITEM_LIST(scl_framelock_desc) } } },
+    { "Aspect ratio",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_aspect,      OPT_WRAP, SETTING_ITEM_LIST(scl_aspect_desc) } } },
+    { "Scaling algorithm",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_alg,         OPT_WRAP, SETTING_ITEM_LIST(scl_alg_desc) } } },
     { "Edge threshold",                         OPT_AVCONFIG_NUMVALUE, { .num = { &tc.scl_edge_thold,  OPT_NOWRAP, 0, 255, value_disp } } },
 #ifndef VIP_DIL_B
-    { "Deinterlace mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_dil_alg,     OPT_WRAP, SETTING_ITEM(scl_dil_alg_desc) } } },
+    { "Deinterlace mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_dil_alg,     OPT_WRAP, SETTING_ITEM_LIST(scl_dil_alg_desc) } } },
 #endif
     { "Motion shift",                           OPT_AVCONFIG_NUMVALUE, { .num = { &tc.scl_dil_motion_shift,     OPT_NOWRAP, 0, 7, value_disp } } },
 #ifdef VIP_DIL_B
@@ -337,36 +338,37 @@ MENU(menu_scaler, P99_PROTECT({
     { "Visualize motion",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_dil_visualize_motion,     OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 #endif
 #endif
-    { LNG("240p/288p mode","240p/288pﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_240p_288p, OPT_WRAP, SETTING_ITEM(sm_scl_240p_288p_desc) } } },
-    { LNG("350-400p mode","350-400pﾓｰﾄﾞ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_384p,      OPT_WRAP, SETTING_ITEM(sm_scl_384p_desc) } } },
-    { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480i_576i, OPT_WRAP, SETTING_ITEM(sm_scl_480i_576i_desc) } } },
-    { LNG("480p mode","480pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480p,      OPT_WRAP, SETTING_ITEM(sm_scl_480p_desc) } } },
-    { "<   Adv. timing    >",                   OPT_SUBMENU,            { .sub = { &menu_advtiming,     &smp_arg_info, smp_select } } },
+    { LNG("240p/288p mode","240p/288pﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_240p_288p, OPT_WRAP, SETTING_ITEM_LIST(sm_scl_240p_288p_desc) } } },
+    { LNG("350-400p mode","350-400pﾓｰﾄﾞ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_384p,      OPT_WRAP, SETTING_ITEM_LIST(sm_scl_384p_desc) } } },
+    { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480i_576i, OPT_WRAP, SETTING_ITEM_LIST(sm_scl_480i_576i_desc) } } },
+    { LNG("480p mode","480pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480p,      OPT_WRAP, SETTING_ITEM_LIST(sm_scl_480p_desc) } } },
+    { "Adv. timing",                            OPT_SUBMENU,            { .sub = { &menu_advtiming,     &smp_arg_info, smp_select } } },
 }))
 #endif
 
 MENU(menu_output, P99_PROTECT({
-    { "Operating mode",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.oper_mode,       OPT_WRAP, SETTING_ITEM(oper_mode_desc) } } },
-    { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM(tx_mode_desc) } } },
+    { "Operating mode",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.oper_mode,       OPT_WRAP, SETTING_ITEM(oper_mode_desc) } } },
+    { "Test pattern mode",                      OPT_AVCONFIG_NUMVALUE, { .num = { &tc.tp_mode,          OPT_WRAP, 0, (NUM_VIDEO_MODES-1), vm_display_name} } },
+    { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM_LIST(tx_mode_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 }))
 
 MENU(menu_scanlines, P99_PROTECT({
-    { LNG("Scanlines","ｽｷｬﾝﾗｲﾝ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_mode,     OPT_WRAP,   SETTING_ITEM(sl_mode_desc) } } },
-    { LNG("Sl. strength","ｽｷｬﾝﾗｲﾝﾂﾖｻ"),            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_str,      OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
-    //{ "Sl. hybrid str.",                          OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_hybr_str, OPT_NOWRAP, 0, SL_HYBRIDSTR_MAX, sl_hybr_str_disp } } },
-    { "Sl. method",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_method,   OPT_WRAP,   SETTING_ITEM(sl_method_desc) } } },
-    { "Sl. LM Bob altern.",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_altern,   OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
-    { LNG("Sl. alignment","ｽｷｬﾝﾗｲﾝﾎﾟｼﾞｼｮﾝ"),        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_id,       OPT_WRAP,   SETTING_ITEM(sl_id_desc) } } },
+    { LNG("Scanlines","ｽｷｬﾝﾗｲﾝ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_mode,     OPT_WRAP,   SETTING_ITEM_LIST(sl_mode_desc) } } },
+    { LNG("Sl. strength","ｽｷｬﾝﾗｲﾝﾂﾖｻ"),         OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_str,      OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
+    //{ "Sl. hybrid str.",                      OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sl_hybr_str, OPT_NOWRAP, 0, SL_HYBRIDSTR_MAX, sl_hybr_str_disp } } },
+    { "Sl. method",                             OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_method,   OPT_WRAP,   SETTING_ITEM(sl_method_desc) } } },
+    { "Sl. LM Bob altern.",                     OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_altern,   OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
+    { LNG("Sl. alignment","ｽｷｬﾝﾗｲﾝﾎﾟｼﾞｼｮﾝ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_id,       OPT_WRAP,   SETTING_ITEM(sl_id_desc) } } },
     //{ "Sl. alt interval",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_altiv,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
-    { LNG("Sl. type","ｽｷｬﾝﾗｲﾝﾙｲ"),                 OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_type,     OPT_WRAP,   SETTING_ITEM(sl_type_desc) } } },
-    { "<  Custom Sl.  >",                         OPT_SUBMENU,            { .sub = { &menu_cust_sl, NULL, NULL } } },
+    { LNG("Sl. type","ｽｷｬﾝﾗｲﾝﾙｲ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_type,     OPT_WRAP,   SETTING_ITEM_LIST(sl_type_desc) } } },
+    { "Custom Sl.",                             OPT_SUBMENU,            { .sub = { &menu_cust_sl, NULL, NULL } } },
 }))
 
 MENU(menu_postproc, P99_PROTECT({
     //{ LNG("Horizontal mask","ｽｲﾍｲﾏｽｸ"),           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.h_mask,      OPT_NOWRAP, 0, H_MASK_MAX, pixels_disp } } },
     //{ LNG("Vertical mask","ｽｲﾁｮｸﾏｽｸ"),            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.v_mask,      OPT_NOWRAP, 0, V_MASK_MAX, pixels_disp } } },
-    { "Mask color",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.mask_color,  OPT_NOWRAP,   SETTING_ITEM(mask_color_desc) } } },
+    { "Mask color",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.mask_color,  OPT_NOWRAP,   SETTING_ITEM_LIST(mask_color_desc) } } },
     { LNG("Mask brightness","ﾏｽｸｱｶﾙｻ"),           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.mask_br,     OPT_NOWRAP, 0, HV_MASK_MAX_BR, value_disp } } },
     { "BFI for 2x Hz",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.bfi_enable,  OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "BFI strength",                            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.bfi_str,     OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
@@ -375,8 +377,8 @@ MENU(menu_postproc, P99_PROTECT({
 }))
 
 MENU(menu_audio, P99_PROTECT({
-    { "Sampling format",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.audio_fmt,  OPT_WRAP, SETTING_ITEM(audio_fmt_desc) } } },
-    { "Quad stereo",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.i2s_stereo_cfg, OPT_WRAP, SETTING_ITEM(audio_sr_desc) } } },
+    { "Sampling format",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.audio_fmt,  OPT_WRAP, SETTING_ITEM_LIST(audio_fmt_desc) } } },
+    { "Quad stereo",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.i2s_stereo_cfg, OPT_WRAP, SETTING_ITEM_LIST(audio_sr_desc) } } },
 #ifdef INC_PCM186X
     { "Pre-ADC gain",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.pcm_cfg.gain,    OPT_NOWRAP, PCM_GAIN_M12DB, PCM_GAIN_12DB, aud_db_disp } } },
 #endif
@@ -395,42 +397,43 @@ MENU(menu_audio, P99_PROTECT({
 MENU(menu_settings, P99_PROTECT({
     //{ LNG("<Load profile >","<ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ    >"),   OPT_FUNC_CALL,         { .fun = { load_profile, &profile_arg_info } } },
     //{ LNG("<Save profile >","<ﾌﾟﾛﾌｧｲﾙｾｰﾌﾞ    >"),  OPT_FUNC_CALL,          { .fun = { save_profile, &profile_arg_info } } },
-    { LNG("<Reset settings>","<ｾｯﾃｲｵｼｮｷｶ    >"),  OPT_FUNC_CALL,          { .fun = { reset_target_avconfig, NULL } } },
     //{ LNG("Link prof->input","Link prof->input"), OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.link_av,  OPT_WRAP, AV1_RGBs, AV_LAST, link_av_desc } } },
     //{ LNG("Link input->prof","Link input->prof"),   OPT_AVCONFIG_SELECTION, { .sel = { &profile_link,  OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
-    //{ LNG("Initial input","ｼｮｷﾆｭｳﾘｮｸ"),          OPT_AVCONFIG_SELECTION, { .sel = { &def_input,       OPT_WRAP, SETTING_ITEM(avinput_str) } } },
+    { LNG("Initial input","ｼｮｷﾆｭｳﾘｮｸ"),          OPT_AVCONFIG_SELECTION, { .sel = { &default_avinput,       OPT_WRAP, SETTING_ITEM_LIST(avinput_str) } } },
     //{ "Autodetect input",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_input,     OPT_WRAP, SETTING_ITEM(auto_input_desc) } } },
     //{ "Auto AV1 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av1_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
     //{ "Auto AV2 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av2_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
     //{ "Auto AV3 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av3_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
-    { "OSD",                                    OPT_AVCONFIG_SELECTION, { .sel = { &osd_enable_pre,   OPT_WRAP,   SETTING_ITEM(osd_enable_desc) } } },
-    { "OSD status disp.",                       OPT_AVCONFIG_SELECTION, { .sel = { &osd_status_timeout_pre,   OPT_WRAP,   SETTING_ITEM(osd_status_desc) } } },
+    { "OSD",                                    OPT_AVCONFIG_SELECTION, { .sel = { &osd_enable_pre,   OPT_WRAP,   SETTING_ITEM_LIST(osd_enable_desc) } } },
+    { "OSD status disp.",                       OPT_AVCONFIG_SELECTION, { .sel = { &osd_status_timeout_pre,   OPT_WRAP,   SETTING_ITEM_LIST(osd_status_desc) } } },
 #ifndef DExx_FW
     { "Fan PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &fan_pwm_pre,   OPT_NOWRAP, 0, 10,  pwm_disp } } },
     { "Led PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &led_pwm_pre,   OPT_NOWRAP, 1, 10,  pwm_disp } } },
 #endif
     //{     "<Import sett.  >",                     OPT_FUNC_CALL,        { .fun = { import_userdata, NULL } } },
+    { LNG("Reset settings","ｾｯﾃｲｵｼｮｷｶ"),         OPT_FUNC_CALL,          { .fun = { reset_target_avconfig, NULL } } },
 #ifdef OSSC_PRO_FINAL_CFG
-    { LNG("<Fw. update    >","<ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ>"), OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
+    { LNG("Fw. update","ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ"),       OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
 #endif
 }))
 
 
 MENU(menu_main, P99_PROTECT({
-    { "AV1-3 video in opt.>",                   OPT_SUBMENU,            { .sub = { &menu_isl_video_opt, NULL, NULL } } },
-    { "AV1-3 sync opt.    >",                   OPT_SUBMENU,            { .sub = { &menu_isl_sync_opt, NULL, NULL } } },
+    { "Input select",                          OPT_AVCONFIG_SELECTION, { .sel = { &target_avinput,   OPT_WRAP,   SETTING_ONLY_LIST(avinput_str) } } },
+    { "AV1-3 video in opt.",                    OPT_SUBMENU,            { .sub = { &menu_isl_video_opt, NULL, NULL } } },
+    { "AV1-3 sync opt.",                        OPT_SUBMENU,            { .sub = { &menu_isl_sync_opt, NULL, NULL } } },
 #ifdef INC_ADV761X
-    { "AV4 video in opt.  >",                   OPT_SUBMENU,            { .sub = { &menu_adv_video_opt, NULL, NULL } } },
+    { "AV4 video in opt.",                      OPT_SUBMENU,            { .sub = { &menu_adv_video_opt, NULL, NULL } } },
 #endif
-    { "Line multiplier opt>",                   OPT_SUBMENU,            { .sub = { &menu_lm, NULL, NULL } } },
+    { "Line multiplier opt",                    OPT_SUBMENU,            { .sub = { &menu_lm, NULL, NULL } } },
 #ifdef VIP
-    { "Scaler opt.        >",                   OPT_SUBMENU,            { .sub = { &menu_scaler, NULL, NULL } } },
+    { "Scaler opt.",                            OPT_SUBMENU,            { .sub = { &menu_scaler, NULL, NULL } } },
 #endif
-    { LNG("Output opt.        >","ｼｭﾂﾘｮｸｵﾌﾟｼｮﾝ  >"),  OPT_SUBMENU,            { .sub = { &menu_output, NULL, NULL } } },
-    { LNG("Audio opt.         >","ｵｰﾃﾞｨｵｵﾌﾟｼｮﾝ  >"), OPT_SUBMENU,             { .sub = { &menu_audio, NULL, NULL } } },
-    { LNG("Scanline opt.      >","ｽｷｬﾝﾗｲﾝｵﾌﾟｼｮﾝ >"),  OPT_SUBMENU,            { .sub = { &menu_scanlines, NULL, NULL } } },
-    { LNG("Post-proc.         >","ｱﾄｼｮﾘ         >"),  OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },
-    { "Settings           >",                       OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
+    { LNG("Output opt.","ｼｭﾂﾘｮｸｵﾌﾟｼｮﾝ"),        OPT_SUBMENU,            { .sub = { &menu_output, NULL, NULL } } },
+    { LNG("Audio opt.","ｵｰﾃﾞｨｵｵﾌﾟｼｮﾝ"),         OPT_SUBMENU,             { .sub = { &menu_audio, NULL, NULL } } },
+    { LNG("Scanline opt.","ｽｷｬﾝﾗｲﾝｵﾌﾟｼｮﾝ"),     OPT_SUBMENU,            { .sub = { &menu_scanlines, NULL, NULL } } },
+    { LNG("Post-proc.","ｱﾄｼｮﾘ"),                OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },
+    { "Settings",                               OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
 
 
@@ -443,6 +446,7 @@ void init_menu() {
     memset(navi, 0, sizeof(navi));
     navi[0].m = &menu_main;
     navlvl = 0;
+    cstm_f = NULL;
 
     // Set max ids for adv timing
     vm_arg_info.max = num_video_modes_plm-1;
@@ -462,11 +466,45 @@ menunavi* get_current_menunavi() {
     return &navi[navlvl];
 }
 
+void write_option_name(menuitem_t *item)
+{
+    int i, offset;
+
+    if ((item->type == OPT_FUNC_CALL) || ((item->type == OPT_SUBMENU) && item->sub.arg_info)) {
+        offset = (US2066_ROW_LEN-strlen(item->name))/2;
+        if (offset < 2)
+            offset = 2;
+        menu_row1[0] = '<';
+        for (i=1; i<US2066_ROW_LEN-1; i++) {
+            if ((i < offset) || (i >= offset+strlen(item->name)))
+                menu_row1[i] = ' ';
+            else
+                menu_row1[i] = item->name[i-offset];
+        }
+        menu_row1[US2066_ROW_LEN-1] = '>';
+        menu_row1[US2066_ROW_LEN] = 0;
+    } else if ((item->type == OPT_SUBMENU) || (item->type == OPT_CUSTOMMENU) || ((item->type == OPT_AVCONFIG_SELECTION) && item->sel.list_view)) {
+        for (i=0; i<US2066_ROW_LEN-1; i++) {
+            if (i >= strlen(item->name))
+                menu_row1[i] = ' ';
+            else
+                menu_row1[i] = item->name[i];
+        }
+        menu_row1[US2066_ROW_LEN-1] = '>';
+        menu_row1[US2066_ROW_LEN] = 0;
+    } else {
+        strncpy(menu_row1, item->name, US2066_ROW_LEN+1);
+    }
+}
+
 void write_option_value(menuitem_t *item, int func_called, int retval)
 {
     switch (item->type) {
         case OPT_AVCONFIG_SELECTION:
-            strncpy(menu_row2, item->sel.setting_str[*(item->sel.data)], US2066_ROW_LEN+1);
+            if (item->sel.list_view < 2)
+                strncpy(menu_row2, item->sel.setting_str[*(item->sel.data)], US2066_ROW_LEN+1);
+            else
+                menu_row2[0] = 0;
             break;
         case OPT_AVCONFIG_NUMVALUE:
             item->num.df(*(item->num.data));
@@ -510,10 +548,11 @@ void render_osd_menu() {
 
     for (i=0; i < navi[navlvl].m->num_items; i++) {
         item = &navi[navlvl].m->items[i];
-        strncpy((char*)osd->osd_array.data[i][0], item->name, OSD_CHAR_COLS);
+        write_option_name(item);
+        strncpy((char*)osd->osd_array.data[i][0], menu_row1, OSD_CHAR_COLS);
         row_mask[0] |= (1<<i);
 
-        if ((item->type != OPT_SUBMENU) && (item->type != OPT_CUSTOMMENU) && (item->type != OPT_FUNC_CALL)) {
+        if ((item->type != OPT_SUBMENU) && (item->type != OPT_CUSTOMMENU) && (item->type != OPT_FUNC_CALL) && !((item->type == OPT_AVCONFIG_SELECTION) && (item->sel.list_view == 2))) {
             write_option_value(item, 0, 0);
             strncpy((char*)osd->osd_array.data[i][1], menu_row2, OSD_CHAR_COLS);
             row_mask[1] |= (1<<i);
@@ -525,11 +564,13 @@ void render_osd_menu() {
 }
 
 void cstm_clock_phase(menucode_id code, int setup_disp) {
-    uint32_t row_mask[2] = {0xff, 0xc0};
+    uint32_t row_mask[2] = {0x3ff, 0x3f0};
     smp_preset_t *smp = &smp_presets[smp_edit];
     char clock_disp[US2066_ROW_LEN+1], phase_disp[US2066_ROW_LEN+1];
     int i;
     int active_mode = smp_is_active();
+    static int sr_step;
+    static const char *sr_step_str[] = {"1", "10", "0.05"};
 
 #ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active) {
@@ -541,17 +582,25 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
     }
 #endif
 
+    // Samplerate step can be only integer for non-oversampled modes
+    if ((sr_step == 2) && !smp->h_skip)
+        sr_step = 0;
+
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       Phase+");
         sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
-        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "Clock- <   > Clock+");
+        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "Clock- < \x85 > Clock+");
         sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
         sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       Phase-");
+        sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "%c%s", (active_mode ? '*' : ' '), smp->name);
+        sniprintf((char*)osd->osd_array.data[5][1], OSD_CHAR_COLS, "--------------------");
 
         sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "H. samplerate");
         sniprintf((char*)osd->osd_array.data[7][0], OSD_CHAR_COLS, "Sampling phase");
+
+        sniprintf((char*)osd->osd_array.data[9][0], OSD_CHAR_COLS, "\x85 H. sr. step");
 
         osd->osd_sec_enable[0].mask = row_mask[0];
         osd->osd_sec_enable[1].mask = row_mask[1];
@@ -571,31 +620,59 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
             isl_set_sampler_phase(&isl_dev, smp->sampler_phase);
         break;
     case VAL_MINUS:
-        if (smp->timings_i.h_total > H_TOTAL_MIN) {
-            smp->timings_i.h_total--;
-            if (active_mode)
-                update_cur_vm = 1;
+        if (sr_step == 2) {
+            if (smp->timings_i.h_total_adj == 0) {
+                smp->timings_i.h_total_adj = H_TOTAL_ADJ_MAX;
+                smp->timings_i.h_total--;
+            } else {
+                smp->timings_i.h_total_adj--;
+            }
+        } else {
+            smp->timings_i.h_total -= (sr_step ? 10 : 1);
         }
+        if (smp->timings_i.h_total < H_TOTAL_MIN) {
+            smp->timings_i.h_total = H_TOTAL_MIN;
+            smp->timings_i.h_total_adj = 0;
+        }
+        if (active_mode)
+            update_cur_vm = 1;
         break;
     case VAL_PLUS:
-        if (smp->timings_i.h_total < H_TOTAL_MAX) {
-            smp->timings_i.h_total++;
-            if (active_mode)
-                update_cur_vm = 1;
+        if (sr_step == 2) {
+            if (smp->timings_i.h_total_adj == H_TOTAL_ADJ_MAX) {
+                smp->timings_i.h_total_adj = 0;
+                smp->timings_i.h_total++;
+            } else {
+                smp->timings_i.h_total_adj++;
+            }
+        } else {
+            smp->timings_i.h_total += (sr_step ? 10 : 1);
         }
+        if ((smp->timings_i.h_total > H_TOTAL_MAX) || ((smp->timings_i.h_total == H_TOTAL_MAX) && (smp->timings_i.h_total_adj != 0))) {
+            smp->timings_i.h_total = H_TOTAL_MAX;
+            smp->timings_i.h_total_adj = 0;
+        }
+        if (active_mode)
+            update_cur_vm = 1;
+        break;
+    case OPT_SELECT:
+        sr_step = (sr_step + 1) % (smp->h_skip ? 3 : 2);
         break;
     default:
         break;
     }
 
     if (smp->h_skip)
-        sniprintf(clock_disp, US2066_ROW_LEN+1, "%u.%.2u (x%u)", smp->timings_i.h_total, smp->timings_i.h_total_adj*5, smp->h_skip+1);
+        sniprintf(clock_disp, US2066_ROW_LEN+1, "%u.%.2u (x%u = %u)", smp->timings_i.h_total, smp->timings_i.h_total_adj*5,
+                                                                       smp->h_skip+1,
+                                                                       (smp->h_skip+1) * smp->timings_i.h_total + (((smp->h_skip+1) * smp->timings_i.h_total_adj * 5 + 50) / 100));
     else
         sniprintf(clock_disp, US2066_ROW_LEN+1, "%u", smp->timings_i.h_total);
     sampler_phase_disp(phase_disp, US2066_ROW_LEN+1, smp->sampler_phase, active_mode);
 
     strncpy((char*)osd->osd_array.data[6][1], clock_disp, OSD_CHAR_COLS);
     strncpy((char*)osd->osd_array.data[7][1], phase_disp, OSD_CHAR_COLS);
+    strncpy((char*)osd->osd_array.data[9][1], sr_step_str[sr_step], OSD_CHAR_COLS);
     sniprintf(menu_row1, US2066_ROW_LEN+1, "Clock: %s", clock_disp);
     sniprintf(menu_row2, US2066_ROW_LEN+1, "Phase: %s", phase_disp);
 
@@ -603,31 +680,42 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
 }
 
 void cstm_size(menucode_id code, int setup_disp) {
-    uint32_t row_mask[2] = {0x3ff, 0x3c0};
+    uint32_t row_mask[2] = {0xfff, 0xff0};
     sync_timings_t *st;
-    int i;
+    const char *mode_name;
+    int i, adj;
+    static int size_step_idx;
+    static uint8_t size_step_arr[] = {1, 4, 10};
     int active_mode = smp_is_active();
 
 #ifndef DExx_FW
-    if (advrx_dev.powered_on && advrx_dev.sync_active)
+    if (advrx_dev.powered_on && advrx_dev.sync_active) {
         st = &hdmi_timings[dtmg_edit];
-    else
+        mode_name = hdmi_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
+    } else
 #endif
+    {
         st = &smp_presets[smp_edit].timings_i;
+        mode_name = smp_presets[smp_edit].name;
+    }
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       ZoomY+");
         sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
-        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "ZoomX- <   > ZoomX+");
+        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "ZoomX- < \x85 > ZoomX+");
         sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
         sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       ZoomY-");
+        sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "%c%s", (active_mode ? '*' : ' '), mode_name);
+        sniprintf((char*)osd->osd_array.data[5][1], OSD_CHAR_COLS, "--------------------");
 
-        sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "H. backporch");
-        sniprintf((char*)osd->osd_array.data[7][0], OSD_CHAR_COLS, "V. backporch");
-        sniprintf((char*)osd->osd_array.data[8][0], OSD_CHAR_COLS, "H. active");
-        sniprintf((char*)osd->osd_array.data[9][0], OSD_CHAR_COLS, "V. active");
+        sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "H. active");
+        sniprintf((char*)osd->osd_array.data[7][0], OSD_CHAR_COLS, "V. active");
+
+        sniprintf((char*)osd->osd_array.data[9][0], OSD_CHAR_COLS, "\x85 Stepsize");
+        sniprintf((char*)osd->osd_array.data[10][0], OSD_CHAR_COLS, "(H. backporch)");
+        sniprintf((char*)osd->osd_array.data[11][0], OSD_CHAR_COLS, "(V. backporch)");
 
         osd->osd_sec_enable[0].mask = row_mask[0];
         osd->osd_sec_enable[1].mask = row_mask[1];
@@ -637,48 +725,150 @@ void cstm_size(menucode_id code, int setup_disp) {
     // Parse menu control
     switch (code) {
     case PREV_PAGE:
-        if (st->v_active > V_ACTIVE_MIN) {
-            if (!(st->v_active % 2) && (st->v_backporch < V_BPORCH_MAX))
-                st->v_backporch++;
-
-            st->v_active--;
-
-            if (active_mode)
-                update_cur_vm = 1;
-        }
-        break;
     case NEXT_PAGE:
-        if (st->v_active < V_ACTIVE_MAX) {
-            if ((st->v_active % 2) && (st->v_backporch > V_BPORCH_MIN))
-                st->v_backporch--;
+        adj = (code == PREV_PAGE) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
+        if ((int)st->v_active+adj < V_ACTIVE_MIN)
+            adj = V_ACTIVE_MIN - st->v_active;
+        else if ((int)st->v_active+adj > V_ACTIVE_MAX)
+            adj = V_ACTIVE_MAX - st->v_active;
 
-            st->v_active++;
-
-            if (active_mode)
-                update_cur_vm = 1;
+        if ((adj == -1) || (adj == 1)) {
+            if (((int)st->v_backporch - adj >= V_BPORCH_MIN) && ((int)st->v_backporch - adj <= V_BPORCH_MAX))
+                st->v_backporch -= !(st->v_active % 2) ? adj : 0;
+            else
+                adj = 0;
+        } else {
+            if (((int)st->v_backporch - (adj/2) >= V_BPORCH_MIN) && ((int)st->v_backporch - (adj/2) <= V_BPORCH_MAX))
+                st->v_backporch -= adj/2;
+            else
+                adj = 0;
         }
+
+        st->v_active += adj;
+
+        if (active_mode && (adj != 0))
+            update_cur_vm = 1;
         break;
     case VAL_MINUS:
-        if (st->h_active < H_ACTIVE_MAX) {
-            if ((st->h_active % 2) && (st->h_backporch > H_BPORCH_MIN))
-                st->h_backporch--;
-
-            st->h_active++;
-
-            if (active_mode)
-                update_cur_vm = 1;
-        }
-        break;
     case VAL_PLUS:
-        if (st->h_active > H_ACTIVE_MIN) {
-            if (!(st->h_active % 2) && (st->h_backporch < H_BPORCH_MAX))
-                st->h_backporch++;
+        adj = (code == VAL_PLUS) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
+        if ((int)st->h_active+adj < H_ACTIVE_MIN)
+            adj = H_ACTIVE_MIN - st->h_active;
+        else if ((int)st->h_active+adj > H_ACTIVE_MAX)
+            adj = H_ACTIVE_MAX - st->h_active;
 
-            st->h_active--;
-
-            if (active_mode)
-                update_cur_vm = 1;
+        if ((adj == -1) || (adj == 1)) {
+            if (((int)st->h_backporch - adj >= H_BPORCH_MIN) && ((int)st->h_backporch - adj <= H_BPORCH_MAX))
+                st->h_backporch -= !(st->h_active % 2) ? adj : 0;
+            else
+                adj = 0;
+        } else {
+            if (((int)st->h_backporch - (adj/2) >= H_BPORCH_MIN) && ((int)st->h_backporch - (adj/2) <= H_BPORCH_MAX))
+                st->h_backporch -= adj/2;
+            else
+                adj = 0;
         }
+
+        st->h_active += adj;
+
+        if (active_mode && (adj != 0))
+            update_cur_vm = 1;
+        break;
+    case OPT_SELECT:
+        size_step_idx = (size_step_idx + 1) % (sizeof(size_step_arr)/sizeof(uint8_t));
+        break;
+    default:
+        break;
+    }
+
+    // clear rows
+    for (i=6; i<=11; i++)
+        strncpy((char*)osd->osd_array.data[i][1], "", OSD_CHAR_COLS);
+
+    sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", st->h_active);
+    sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%u", st->v_active);
+    sniprintf((char*)osd->osd_array.data[9][1], OSD_CHAR_COLS, "%u", size_step_arr[size_step_idx]);
+    sniprintf((char*)osd->osd_array.data[10][1], OSD_CHAR_COLS, "%u", st->h_backporch);
+    sniprintf((char*)osd->osd_array.data[11][1], OSD_CHAR_COLS, "%u", st->v_backporch);
+    sniprintf(menu_row1, US2066_ROW_LEN+1, "H.bp: %u  V.bp: %u", st->h_backporch, st->v_backporch);
+    sniprintf(menu_row2, US2066_ROW_LEN+1, "Active: %ux%u", st->h_active, st->v_active);
+
+    ui_disp_menu(0);
+}
+
+void cstm_position(menucode_id code, int setup_disp) {
+    uint32_t row_mask[2] = {0x3ff, 0x3f0};
+    sync_timings_t *st;
+    const char *mode_name;
+    int i, adj;
+    static int pos_step_idx;
+    static uint8_t pos_step_arr[] = {1, 4, 10};
+    int active_mode = smp_is_active();
+
+#ifndef DExx_FW
+    if (advrx_dev.powered_on && advrx_dev.sync_active) {
+        st = &hdmi_timings[dtmg_edit];
+        mode_name = hdmi_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
+    } else
+#endif
+    {
+        st = &smp_presets[smp_edit].timings_i;
+        mode_name = smp_presets[smp_edit].name;
+    }
+
+    if (setup_disp) {
+        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+
+        sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       PosY-");
+        sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
+        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, " PosX- < \x85 > PosX+");
+        sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
+        sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       PosY+");
+        sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "%c%s", (active_mode ? '*' : ' '), mode_name);
+        sniprintf((char*)osd->osd_array.data[5][1], OSD_CHAR_COLS, "--------------------");
+
+        sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "H. backporch");
+        sniprintf((char*)osd->osd_array.data[7][0], OSD_CHAR_COLS, "V. backporch");
+
+        sniprintf((char*)osd->osd_array.data[9][0], OSD_CHAR_COLS, "\x85 Stepsize");
+
+        osd->osd_sec_enable[0].mask = row_mask[0];
+        osd->osd_sec_enable[1].mask = row_mask[1];
+        osd->osd_row_color.mask = 0;
+    }
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+    case NEXT_PAGE:
+        adj = (code == NEXT_PAGE) ? -pos_step_arr[pos_step_idx] : pos_step_arr[pos_step_idx];
+
+        if ((int)st->v_backporch+adj < V_BPORCH_MIN)
+            adj = V_BPORCH_MIN - st->v_backporch;
+        else if ((int)st->v_backporch+adj > V_BPORCH_MAX)
+            adj = V_BPORCH_MAX - st->v_backporch;
+
+        st->v_backporch += adj;
+
+        if (active_mode && (adj != 0))
+            update_cur_vm = 1;
+        break;
+    case VAL_MINUS:
+    case VAL_PLUS:
+        adj = (code == VAL_PLUS) ? -pos_step_arr[pos_step_idx] : pos_step_arr[pos_step_idx];
+
+        if ((int)st->h_backporch+adj < H_BPORCH_MIN)
+            adj = H_BPORCH_MIN - st->h_backporch;
+        else if ((int)st->h_backporch+adj > H_BPORCH_MAX)
+            adj = H_BPORCH_MAX - st->h_backporch;
+
+        st->h_backporch += adj;
+
+        if (active_mode && (adj != 0))
+            update_cur_vm = 1;
+        break;
+    case OPT_SELECT:
+        pos_step_idx = (pos_step_idx + 1) % (sizeof(pos_step_arr)/sizeof(uint8_t));
         break;
     default:
         break;
@@ -690,95 +880,98 @@ void cstm_size(menucode_id code, int setup_disp) {
 
     sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", st->h_backporch);
     sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%u", st->v_backporch);
-    sniprintf((char*)osd->osd_array.data[8][1], OSD_CHAR_COLS, "%u", st->h_active);
-    sniprintf((char*)osd->osd_array.data[9][1], OSD_CHAR_COLS, "%u", st->v_active);
-    sniprintf(menu_row1, US2066_ROW_LEN+1, "H.bp: %u  V.bp: %u", st->h_backporch, st->v_backporch);
-    sniprintf(menu_row2, US2066_ROW_LEN+1, "Active: %ux%u", st->h_active, st->v_active);
-
-    ui_disp_menu(0);
-}
-
-void cstm_position(menucode_id code, int setup_disp) {
-    uint32_t row_mask[2] = {0xff, 0xc0};
-    sync_timings_t *st;
-    int i;
-    int active_mode = smp_is_active();
-
-#ifndef DExx_FW
-    if (advrx_dev.powered_on && advrx_dev.sync_active)
-        st = &hdmi_timings[dtmg_edit];
-    else
-#endif
-        st = &smp_presets[smp_edit].timings_i;
-
-    if (setup_disp) {
-        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
-
-        sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       PosY-");
-        sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
-        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, " PosX- <   > PosX+");
-        sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
-        sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       PosY+");
-
-        sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "H. backporch");
-        sniprintf((char*)osd->osd_array.data[7][0], OSD_CHAR_COLS, "V. backporch");
-
-        osd->osd_sec_enable[0].mask = row_mask[0];
-        osd->osd_sec_enable[1].mask = row_mask[1];
-        osd->osd_row_color.mask = 0;
-    }
-
-    // Parse menu control
-    switch (code) {
-    case PREV_PAGE:
-        if (st->v_backporch < V_BPORCH_MAX) {
-            st->v_backporch++;
-
-            if (active_mode)
-                update_cur_vm = 1;
-        }
-        break;
-    case NEXT_PAGE:
-        if (st->v_backporch > V_BPORCH_MIN) {
-            st->v_backporch--;
-
-            if (active_mode)
-                update_cur_vm = 1;
-        }
-        break;
-    case VAL_MINUS:
-        if (st->h_backporch < H_BPORCH_MAX) {
-            st->h_backporch++;
-
-            if (active_mode)
-                update_cur_vm = 1;
-        }
-        break;
-    case VAL_PLUS:
-        if (st->h_backporch > H_BPORCH_MIN) {
-            st->h_backporch--;
-
-            if (active_mode)
-                update_cur_vm = 1;
-        }
-        break;
-    default:
-        break;
-    }
-
-    // clear rows
-    for (i=6; i<=7; i++)
-        strncpy((char*)osd->osd_array.data[i][1], "", OSD_CHAR_COLS);
-
-    sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", st->h_backporch);
-    sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%u", st->v_backporch);
+    sniprintf((char*)osd->osd_array.data[9][1], OSD_CHAR_COLS, "%u", pos_step_arr[pos_step_idx]);
     sniprintf(menu_row1, US2066_ROW_LEN+1, "H. backporch: %u", st->h_backporch);
     sniprintf(menu_row2, US2066_ROW_LEN+1, "V. backporch: %u", st->v_backporch);
 
     ui_disp_menu(0);
 }
 
-void display_menu(rc_code_t remote_code)
+void cstm_listview(menucode_id code, int setup_disp) {
+    uint32_t row_mask[2] = {0x03, 0x00};
+    int i;
+
+    if (setup_disp) {
+        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+        lw_mp = *lw_item->sel.data;
+
+        sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%s", lw_item->name);
+        strncpy(menu_row1, lw_item->name, US2066_ROW_LEN+1);
+        for (i=0; i<OSD_CHAR_COLS; i++)
+            osd->osd_array.data[1][0][i] = '-';
+
+        for (i=0; i<=lw_item->sel.max; i++) {
+            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%c%s", (i==lw_mp? '*' : ' '), lw_item->sel.setting_str[i]);
+            row_mask[0] |= (1<<(i+2));
+        }
+        osd->osd_sec_enable[0].mask = row_mask[0];
+        osd->osd_sec_enable[1].mask = row_mask[1];
+        osd->osd_row_color.mask = (1<<(lw_mp+2));
+    }
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+        lw_mp = (lw_mp > 0) ? (lw_mp - 1) : lw_item->sel.max;
+        osd->osd_row_color.mask = (1<<(lw_mp+2));
+        break;
+    case NEXT_PAGE:
+        lw_mp = (lw_mp < lw_item->sel.max) ? (lw_mp + 1) : 0;
+        osd->osd_row_color.mask = (1<<(lw_mp+2));
+        break;
+    case OPT_SELECT:
+        osd->osd_array.data[*lw_item->sel.data+2][0][0] = ' ';
+        *lw_item->sel.data = lw_mp;
+        osd->osd_array.data[lw_mp+2][0][0] = '*';
+        break;
+    default:
+        break;
+    }
+
+    sniprintf(menu_row2, US2066_ROW_LEN+1, "%c%s", (*lw_item->sel.data==lw_mp? '*' : ' '), lw_item->sel.setting_str[lw_mp]);
+
+    ui_disp_menu(0);
+}
+
+void enter_cstm(menuitem_t *item, int detached_mode) {
+    if (detached_mode) {
+        navlvl = 0;
+        menu_active = 1;
+        osd->osd_config.menu_active = menu_active;
+    }
+    if (item->type == OPT_AVCONFIG_SELECTION) {
+        lw_item = item;
+        cstm_f = cstm_listview;
+    } else {
+        cstm_f = item->cstm.cstm_f;
+    }
+    cstm_f(NO_ACTION, 1);
+}
+
+void quick_adjust(menuitem_t *item, int adj) {
+    int adj_data = (int)(*item->num.data) + adj;
+
+    if (adj_data < (int)item->num.min)
+        *item->num.data = item->num.wrap_cfg ? item->num.max : item->num.min;
+    else if (adj_data > (int)item->num.max)
+        *item->num.data = item->num.wrap_cfg ? item->num.min : item->num.max;
+    else
+        *item->num.data = (uint8_t)adj_data;
+
+    strncpy((char*)osd->osd_array.data[0][0], item->name, OSD_CHAR_COLS);
+    if (item->type == OPT_AVCONFIG_SELECTION) {
+        strncpy((char*)osd->osd_array.data[1][0], item->sel.setting_str[*item->sel.data], OSD_CHAR_COLS);
+    } else {
+        item->num.df(*item->num.data);
+        strncpy((char*)osd->osd_array.data[1][0], menu_row2, OSD_CHAR_COLS);
+    }
+    osd->osd_config.status_refresh = 1;
+    osd->osd_row_color.mask = 0;
+    osd->osd_sec_enable[0].mask = 3;
+    osd->osd_sec_enable[1].mask = 0;
+}
+
+void display_menu(rc_code_t rcode, btn_code_t bcode)
 {
     menucode_id code = NO_ACTION;
     menuitem_t *item;
@@ -786,13 +979,15 @@ void display_menu(rc_code_t remote_code)
     uint16_t *val_u16, val_u16_min, val_u16_max;
     int i, func_called = 0, retval = 0, forcedisp=0;
 
-    if (remote_code == RC_MENU) {
+    if ((rcode == RC_MENU) || (!menu_active && (bcode == BC_PRESS))) {
         menu_active ^= 1;
         osd->osd_config.menu_active = menu_active;
         if (menu_active)
             render_osd_menu();
-    } else if ((remote_code >= RC_OK) && (remote_code < RC_INFO)) {
-        code = remote_code;
+    } else if ((rcode >= RC_OK) && (rcode < RC_INFO)) {
+        code = OPT_SELECT+(rcode-RC_OK);
+    } else if (bcode != (btn_code_t)-1) {
+        code = OPT_SELECT+(bcode-BC_OK);
     }
 
     if (!menu_active) {
@@ -832,6 +1027,7 @@ void display_menu(rc_code_t remote_code)
         } else {
             menu_active = 0;
             osd->osd_config.menu_active = 0;
+            cstm_f = NULL;
             ui_disp_status(0);
             return;
         }
@@ -850,9 +1046,14 @@ void display_menu(rc_code_t remote_code)
 
                 break;
             case OPT_CUSTOMMENU:
-                cstm_f = item->cstm.cstm_f;
-                cstm_f(NO_ACTION, 1);
+                enter_cstm(item, 0);
                 return;
+                break;
+            case OPT_AVCONFIG_SELECTION:
+                if (item->sel.list_view) {
+                    enter_cstm(item, 0);
+                    return;
+                }
                 break;
             case OPT_FUNC_CALL:
                 retval = item->fun.f();
@@ -872,10 +1073,12 @@ void display_menu(rc_code_t remote_code)
                 val_min = item->sel.min;
                 val_max = item->sel.max;
 
-                if (code == VAL_MINUS)
-                    *val = (*val > val_min) ? (*val-1) : (val_wrap ? val_max : val_min);
-                else
-                    *val = (*val < val_max) ? (*val+1) : (val_wrap ? val_min : val_max);
+                if ((item->type != OPT_AVCONFIG_SELECTION) || (item->sel.list_view < 2)) {
+                    if (code == VAL_MINUS)
+                        *val = (*val > val_min) ? (*val-1) : (val_wrap ? val_max : val_min);
+                    else
+                        *val = (*val < val_max) ? (*val+1) : (val_wrap ? val_min : val_max);
+                }
                 break;
             case OPT_AVCONFIG_NUMVAL_U16:
                 val_u16 = item->num_u16.data;
@@ -919,7 +1122,7 @@ void display_menu(rc_code_t remote_code)
 
     // Generate menu text
     item = &navi[navlvl].m->items[navi[navlvl].mp];
-    strncpy(menu_row1, item->name, US2066_ROW_LEN+1);
+    write_option_name(item);
     write_option_value(item, func_called, retval);
     strncpy((char*)osd->osd_array.data[navi[navlvl].mp][1], menu_row2, OSD_CHAR_COLS);
     osd->osd_row_color.mask = (1<<navi[navlvl].mp);
@@ -937,6 +1140,7 @@ void update_osd_size(mode_data_t *vm_out) {
 }
 
 void set_default_settings() {
+    default_avinput = 0;
     osd_enable = osd_enable_pre = 1;
     osd_status_timeout = osd_status_timeout_pre = 1;
 #ifndef DExx_FW
@@ -953,7 +1157,7 @@ void update_settings() {
         osd->osd_config.status_timeout = osd_status_timeout;
         if (is_menu_active()) {
             render_osd_menu();
-            display_menu(0);
+            display_menu((rc_code_t)-1, (btn_code_t)-1);
         }
     }
 #ifndef DExx_FW
