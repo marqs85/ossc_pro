@@ -28,10 +28,12 @@ module scanconverter (
     input VSYNC_i,
     input DE_i,
     input FID_i,
+    input datavalid_i,
     input interlaced_in_i,
     input frame_change_i,
     input [10:0] xpos_i,
     input [10:0] ypos_i,
+    input [11:0] h_in_active,
     input [31:0] hv_out_config,
     input [31:0] hv_out_config2,
     input [31:0] hv_out_config3,
@@ -56,10 +58,24 @@ module scanconverter (
     output DE_o,
     output [11:0] xpos_o,
     output [10:0] ypos_o,
-    output reg resync_strobe
+    output reg resync_strobe,
+    input emif_br_clk,
+    output [27:0] emif_rd_addr,
+    output emif_rd_read,
+    input [255:0] emif_rd_rdata,
+    input emif_rd_waitrequest,
+    input emif_rd_readdatavalid,
+    output [5:0] emif_rd_burstcount,
+    output [27:0] emif_wr_addr,
+    output emif_wr_write,
+    output [255:0] emif_wr_wdata,
+    input emif_wr_waitrequest,
+    output [5:0] emif_wr_burstcount
 );
 
-localparam NUM_LINE_BUFFERS = 40;
+parameter EMIF_ENABLE = 0;
+parameter NUM_LINE_BUFFERS = 32;
+
 
 localparam FID_EVEN = 1'b0;
 localparam FID_ODD = 1'b1;
@@ -100,7 +116,7 @@ wire signed [9:0] X_OFFSET = xy_out_config2[9:0];
 wire signed [8:0] Y_OFFSET = xy_out_config[31:23];
 
 wire [7:0] X_START_LB = xy_out_config2[17:10];
-wire signed [6:0] Y_START_LB = {xy_out_config2[23], xy_out_config2[23:18]};
+wire signed [5:0] Y_START_LB = xy_out_config2[23:18];
 
 wire signed [3:0] X_RPT = xy_out_config2[27:24];
 wire signed [3:0] Y_RPT = xy_out_config2[31:28];
@@ -138,20 +154,18 @@ reg [11:0] h_cnt;
 reg [10:0] v_cnt;
 reg src_fid, dst_fid;
 
-reg [10:0] xpos_lb;
-reg [6:0] ypos_lb;
+reg [10:0] xpos_lb, xpos_lb_start;
+reg [10:0] ypos_lb, ypos_lb_next;
 reg [3:0] x_ctr;
 reg [3:0] y_ctr;
-
-reg [5:0] ypos_i_wraddr;
-reg [10:0] ypos_i_prev;
-reg [10:0] xpos_i_wraddr;
-reg [23:0] DATA_i_wrdata;
-reg DE_i_wren;
+reg line_id;
 
 reg [7:0] sl_str;
 reg sl_method;
 wire bfi_frame;
+
+wire [7:0] R_sl_mult, G_sl_mult, B_sl_mult;
+wire [7:0] R_linebuf, G_linebuf, B_linebuf;
 
 // Pipeline registers
 reg [7:0] R_pp[PP_LINEBUF_END:PP_PL_END] /* synthesis ramstyle = "logic" */;
@@ -167,25 +181,7 @@ reg draw_sl_pp[(PP_SLGEN_START+1):(PP_SLGEN_END-1)] /* synthesis ramstyle = "log
 reg [3:0] x_ctr_sl_pp[PP_PL_START:PP_SLGEN_START] /* synthesis ramstyle = "logic" */;
 reg [2:0] y_ctr_sl_pp[PP_PL_START:PP_SLGEN_START] /* synthesis ramstyle = "logic" */;
 
-reg [10:0] xpos_lb_start;
-
 assign PCLK_o = PCLK_OUT_i;
-
-wire [16:0] linebuf_wraddr = {ypos_i_wraddr, xpos_i_wraddr};
-wire [16:0] linebuf_rdaddr = {ypos_lb[5:0], xpos_lb};
-
-wire [7:0] R_linebuf, G_linebuf, B_linebuf;
-wire [7:0] R_sl_mult, G_sl_mult, B_sl_mult;
-
-linebuf linebuf_rgb (
-    .data(DATA_i_wrdata),
-    .rdaddress(linebuf_rdaddr),
-    .rdclock(PCLK_OUT_i),
-    .wraddress(linebuf_wraddr),
-    .wrclock(PCLK_CAP_i),
-    .wren(DE_i_wren),
-    .q({R_linebuf, G_linebuf, B_linebuf})
-);
 
 lpm_mult_sl R_sl_mult_u
 (
@@ -209,22 +205,41 @@ lpm_mult_sl B_sl_mult_u
     .result(B_sl_mult)
 );
 
-// Linebuffer write address calculation
-always @(posedge PCLK_CAP_i) begin
-    if (ypos_i == 0) begin
-        ypos_i_wraddr <= 0;
-    end else if (ypos_i != ypos_i_prev) begin
-        if (ypos_i_wraddr == NUM_LINE_BUFFERS-1)
-            ypos_i_wraddr <= 0;
-        else
-            ypos_i_wraddr <= ypos_i_wraddr + 1'b1;
-    end
-
-    xpos_i_wraddr <= xpos_i;
-    ypos_i_prev <= ypos_i;
-    DATA_i_wrdata <= {R_i, G_i, B_i};
-    DE_i_wren <= DE_i;
-end
+linebuf_top #(
+    .EMIF_ENABLE(EMIF_ENABLE),
+    .NUM_LINE_BUFFERS(NUM_LINE_BUFFERS)
+  ) linebuf_top_inst (
+    .PCLK_CAP_i(PCLK_CAP_i),
+    .PCLK_OUT_i(PCLK_OUT_i),
+    .R_i(R_i),
+    .G_i(G_i),
+    .B_i(B_i),
+    .DE_i(DE_i),
+    .datavalid_i(datavalid_i),
+    .h_in_active(h_in_active),
+    .xpos_i(xpos_i),
+    .ypos_i(ypos_i),
+    .xpos_lb(xpos_lb),
+    .ypos_lb(ypos_lb),
+    .ypos_lb_next(ypos_lb_next),
+    .line_id(line_id),
+    .lb_enable(~ext_sync_mode),
+    .R_linebuf(R_linebuf),
+    .G_linebuf(G_linebuf),
+    .B_linebuf(B_linebuf),
+    .emif_br_clk(emif_br_clk),
+    .emif_rd_addr(emif_rd_addr),
+    .emif_rd_read(emif_rd_read),
+    .emif_rd_rdata(emif_rd_rdata),
+    .emif_rd_waitrequest(emif_rd_waitrequest),
+    .emif_rd_readdatavalid(emif_rd_readdatavalid),
+    .emif_rd_burstcount(emif_rd_burstcount),
+    .emif_wr_addr(emif_wr_addr),
+    .emif_wr_write(emif_wr_write),
+    .emif_wr_wdata(emif_wr_wdata),
+    .emif_wr_waitrequest(emif_wr_waitrequest),
+    .emif_wr_burstcount(emif_wr_burstcount),
+);
 
 
 // Frame change strobe synchronization
@@ -289,44 +304,50 @@ always @(posedge PCLK_OUT_i) begin
     DE_pp[1] <= (h_cnt >= H_SYNCLEN+H_BACKPORCH) & (h_cnt < H_SYNCLEN+H_BACKPORCH+H_ACTIVE) & (v_cnt >= V_SYNCLEN+V_BACKPORCH) & (v_cnt < V_SYNCLEN+V_BACKPORCH+V_ACTIVE);
 
     if (h_cnt == H_SYNCLEN+H_BACKPORCH) begin
-        if (v_cnt == V_SYNCLEN+V_BACKPORCH) begin
-            ypos_pp[1] <= 0;
+        // Start 1 line before active so that linebuffer can be filled from DRAM in time
+        if (v_cnt == V_SYNCLEN+V_BACKPORCH-1'b1) begin
+            ypos_pp[1] <= 11'(-1);
             // Bob deinterlace adjusts linebuf start position and y_ctr for even source fields if
             // output is progressive mode. Noninterlace restore as raw output mode is an exception
             // which ignores LM deinterlace mode setting.
             if (~ext_sync_mode & ~MISC_LM_DEINT_MODE & (Y_RPT > 0) & ~V_INTERLACED & (src_fid == FID_EVEN)) begin
-                ypos_lb <= Y_START_LB - 1'b1;
+                ypos_lb_next <= Y_START_LB - 1'b1;
                 y_ctr <= ((Y_RPT+1'b1) >> 1);
                 y_ctr_sl_pp[1] <= SL_BOB_ALTERN ? ((Y_RPT+1'b1) >> 1) : 0;
             end else begin
                 if (Y_SKIP & (dst_fid == FID_EVEN)) begin
                     // Linedrop mode and output interlaced
-                    ypos_lb <= Y_START_LB + 1'b1;
+                    ypos_lb_next <= Y_START_LB + 1'b1;
                 end else if ((((Y_RPT == 0) & ~V_INTERLACED) | ((Y_RPT > 0) & MISC_LM_DEINT_MODE)) & (src_fid == FID_EVEN)) begin
                     // Adjust even field Y-offset for noninterlace restore
-                    ypos_lb <= Y_START_LB - MISC_NIR_EVEN_OFFSET;
+                    ypos_lb_next <= Y_START_LB - MISC_NIR_EVEN_OFFSET;
                 end else begin
-                    ypos_lb <= Y_START_LB;
+                    ypos_lb_next <= Y_START_LB;
                 end
                 y_ctr <= 0;
                 y_ctr_sl_pp[1] <= 0;
             end
             xpos_lb_start <= (X_OFFSET < 10'sd0) ? 11'd0 : {1'b0, X_OFFSET};
+            line_id <= ~line_id;
         end else begin
-            if (ypos_pp[1] < V_ACTIVE) begin
+            if ((ypos_pp[1] == 11'(-1)) | (ypos_pp[1] < V_ACTIVE)) begin
                 ypos_pp[1] <= ypos_pp[1] + 1'b1;
-            end
 
-            if ((y_ctr == Y_RPT) | Y_SKIP) begin
-                if ((ypos_lb >= NUM_LINE_BUFFERS-Y_STEP) & (ypos_lb < NUM_LINE_BUFFERS))
-                    ypos_lb <= ypos_lb + Y_STEP - NUM_LINE_BUFFERS;
-                else
-                    ypos_lb <= ypos_lb + Y_STEP;
-                y_ctr <= 0;
-            end else begin
-                y_ctr <= y_ctr + 1'b1;
+                if ((ypos_pp[1] == 11'(-1)) | (y_ctr == Y_RPT) | Y_SKIP) begin
+                    if ((ypos_lb_next >= NUM_LINE_BUFFERS-Y_STEP) & (ypos_lb_next < NUM_LINE_BUFFERS))
+                        ypos_lb_next <= ypos_lb_next + Y_STEP - NUM_LINE_BUFFERS;
+                    else
+                        ypos_lb_next <= ypos_lb_next + Y_STEP;
+                    ypos_lb <= ypos_lb_next;
+                    line_id <= ~line_id;
+                    if (ypos_pp[1] != 11'(-1))
+                        y_ctr <= 0;
+                end else begin
+                    y_ctr <= y_ctr + 1'b1;
+                end
+                if (ypos_pp[1] != 11'(-1))
+                    y_ctr_sl_pp[1] <= (y_ctr_sl_pp[1] == SL_IV_Y) ? 0 : y_ctr_sl_pp[1] + 1'b1;
             end
-            y_ctr_sl_pp[1] <= (y_ctr_sl_pp[1] == SL_IV_Y) ? 0 : y_ctr_sl_pp[1] + 1'b1;
         end
         xpos_pp[1] <= 0;
         xpos_lb <= X_START_LB;

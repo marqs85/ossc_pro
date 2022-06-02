@@ -149,10 +149,14 @@ wire sys_reset_n = (po_reset_n & pll_locked);
 wire sys_reset_n = (po_reset_n & ~jtagm_reset_req & pll_locked);
 `endif
 
-wire emif_status_init_done;
-wire emif_status_cal_success;
-wire emif_status_cal_fail;
-wire emif_status_powerdn_ack;
+wire emif_status_init_done, emif_status_cal_success, emif_status_cal_fail, emif_status_powerdn_ack;
+
+/* EMIF IF for LM */
+wire emif_br_clk;
+wire [27:0] emif_rd_addr, emif_wr_addr;
+wire [255:0] emif_rd_rdata, emif_wr_wdata;
+wire [5:0] emif_rd_burstcount, emif_wr_burstcount;
+wire emif_rd_read, emif_rd_waitrequest, emif_rd_readdatavalid, emif_wr_write, emif_wr_waitrequest;
 
 wire sd_detect = ~SD_DETECT_i;
 
@@ -225,7 +229,7 @@ always @(posedge CLK27_i) begin
 end
 
 wire [7:0] ISL_R_post, ISL_G_post, ISL_B_post;
-wire ISL_HSYNC_post, ISL_VSYNC_post, ISL_DE_post, ISL_FID_post;
+wire ISL_HSYNC_post, ISL_VSYNC_post, ISL_DE_post, ISL_FID_post, ISL_datavalid_post;
 wire ISL_fe_interlace, ISL_fe_frame_change, ISL_sof_scaler;
 wire [19:0] ISL_fe_pcnt_frame;
 wire [10:0] ISL_fe_vtotal, ISL_fe_xpos, ISL_fe_ypos;
@@ -258,6 +262,7 @@ isl51002_frontend u_isl_frontend (
     .DE_o(ISL_DE_post),
     .FID_o(ISL_FID_post),
     .interlace_flag(ISL_fe_interlace),
+    .datavalid_o(ISL_datavalid_post),
     .xpos_o(ISL_fe_xpos),
     .ypos_o(ISL_fe_ypos),
     .vtotal(ISL_fe_vtotal),
@@ -327,7 +332,7 @@ cyclonev_clkselect clkmux_capture (
 
 // capture data mux
 reg [7:0] R_capt, G_capt, B_capt;
-reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt;
+reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt, datavalid_capt;
 reg interlace_flag_capt, frame_change_capt, sof_scaler_capt;
 reg [10:0] xpos_capt, ypos_capt;
 always @(posedge pclk_capture) begin
@@ -337,6 +342,7 @@ always @(posedge pclk_capture) begin
     HSYNC_capt <= capture_sel ? HDMIRX_HSYNC_post : ISL_HSYNC_post;
     VSYNC_capt <= capture_sel ? HDMIRX_VSYNC_post : ISL_VSYNC_post;
     DE_capt <= capture_sel ? HDMIRX_DE_post : ISL_DE_post;
+    datavalid_capt <= capture_sel ? 1'b1 : ISL_datavalid_post;
     FID_capt <= capture_sel ? HDMIRX_FID_post : ISL_FID_post;
     interlace_flag_capt <= capture_sel ? HDMIRX_fe_interlace : ISL_fe_interlace;
     frame_change_capt <= capture_sel ? HDMIRX_fe_frame_change : ISL_fe_frame_change;
@@ -380,10 +386,10 @@ reg HSYNC_vip, VSYNC_vip, DE_vip;
 always @(posedge pclk_capture) begin
     if (pclk_capture_div2 == 0) begin
         VIP_DATA_i[47:24] <= {R_capt, G_capt, B_capt};
-        {VIP_HSYNC_i[1], VIP_VSYNC_i[1], VIP_DE_i[1], VIP_FID_i[1]} <= {~HSYNC_capt, ~VSYNC_capt, DE_capt, ~FID_capt};
+        {VIP_HSYNC_i[1], VIP_VSYNC_i[1], VIP_DE_i[1], VIP_FID_i[1]} <= {~HSYNC_capt, ~VSYNC_capt, DE_capt & datavalid_capt, ~FID_capt};
     end else begin
         VIP_DATA_i[23:0] <= {R_capt, G_capt, B_capt};
-        {VIP_HSYNC_i[0], VIP_VSYNC_i[0], VIP_DE_i[0], VIP_FID_i[0]} <= {~HSYNC_capt, ~VSYNC_capt, DE_capt, ~FID_capt};
+        {VIP_HSYNC_i[0], VIP_VSYNC_i[0], VIP_DE_i[0], VIP_FID_i[0]} <= {~HSYNC_capt, ~VSYNC_capt, DE_capt & datavalid_capt, ~FID_capt};
     end
 end
 
@@ -405,7 +411,7 @@ wire [3:0] unused1, unused0;
 wire [4:0] unused_out;
 
 dc_fifo_in  dc_fifo_in_inst (
-    .data({R_capt, G_capt, B_capt, ~HSYNC_capt, ~VSYNC_capt, DE_capt, ~FID_capt, 4'h0}),
+    .data({R_capt, G_capt, B_capt, ~HSYNC_capt, ~VSYNC_capt, DE_capt & datavalid_capt, ~FID_capt, 4'h0}),
     .rdclk(pclk_capture_div2),
     .rdreq(1),
     .wrclk(pclk_capture),
@@ -426,7 +432,7 @@ dc_fifo_out  dc_fifo_out_inst (
 wire [23:0] VIP_DATA_i = {R_capt, G_capt, B_capt};
 wire VIP_HSYNC_i = ~HSYNC_capt;
 wire VIP_VSYNC_i = ~VSYNC_capt;
-wire VIP_DE_i = DE_capt;
+wire VIP_DE_i = DE_capt & datavalid_capt;
 wire VIP_FID_i = ~FID_capt;
 wire [23:0] VIP_DATA_o;
 wire [7:0] R_vip = VIP_DATA_o[23:16];
@@ -629,6 +635,18 @@ sys sys_inst (
     .osd_generator_0_osd_if_ypos            (ypos_sc),
     .osd_generator_0_osd_if_osd_enable      (osd_enable),
     .osd_generator_0_osd_if_osd_color       (osd_color),
+    .emif_bridge_0_clk_o                    (emif_br_clk),
+    .emif_bridge_0_wr_address               (emif_wr_addr),
+    .emif_bridge_0_wr_write                 (emif_wr_write),
+    .emif_bridge_0_wr_write_data            (emif_wr_wdata),
+    .emif_bridge_0_wr_waitrequest           (emif_wr_waitrequest),
+    .emif_bridge_0_wr_burstcount            (emif_wr_burstcount),
+    .emif_bridge_0_rd_address               (emif_rd_addr),
+    .emif_bridge_0_rd_read                  (emif_rd_read),
+    .emif_bridge_0_rd_read_data             (emif_rd_rdata),
+    .emif_bridge_0_rd_waitrequest           (emif_rd_waitrequest),
+    .emif_bridge_0_rd_readdatavalid         (emif_rd_readdatavalid),
+    .emif_bridge_0_rd_burstcount            (emif_rd_burstcount),
     .mem_if_lpddr2_emif_0_global_reset_reset_n     (emif_hwreset_n_sync2_reg),
     .mem_if_lpddr2_emif_0_soft_reset_reset_n       (emif_swreset_n_sync2_reg),
     .mem_if_lpddr2_emif_0_status_local_init_done   (emif_status_init_done),
@@ -698,7 +716,10 @@ sys sys_inst (
 `endif
 );
 
-scanconverter scanconverter_inst (
+scanconverter #(
+    .EMIF_ENABLE(0),
+    .NUM_LINE_BUFFERS(40)
+  ) scanconverter_inst (
     .PCLK_CAP_i(pclk_capture),
     .PCLK_OUT_i(SI_PCLK_i),
     .reset_n(sys_reset_n),  //TODO: sync to pclk_capture
@@ -709,10 +730,12 @@ scanconverter scanconverter_inst (
     .VSYNC_i(VSYNC_capt),
     .DE_i(DE_capt),
     .FID_i(FID_capt),
+    .datavalid_i(datavalid_capt),
     .interlaced_in_i(interlace_flag_capt),
     .frame_change_i(frame_change_capt),
     .xpos_i(xpos_capt),
     .ypos_i(ypos_capt),
+    .h_in_active(hv_in_config[23:12]),
     .hv_out_config(hv_out_config),
     .hv_out_config2(hv_out_config2),
     .hv_out_config3(hv_out_config3),
@@ -737,7 +760,19 @@ scanconverter scanconverter_inst (
     .DE_o(DE_sc),
     .xpos_o(xpos_sc),
     .ypos_o(ypos_sc),
-    .resync_strobe(resync_strobe_i)
+    .resync_strobe(resync_strobe_i),
+    .emif_br_clk(emif_br_clk),
+    .emif_rd_addr(emif_rd_addr),
+    .emif_rd_read(emif_rd_read),
+    .emif_rd_rdata(emif_rd_rdata),
+    .emif_rd_waitrequest(emif_rd_waitrequest),
+    .emif_rd_readdatavalid(emif_rd_readdatavalid),
+    .emif_rd_burstcount(emif_rd_burstcount),
+    .emif_wr_addr(emif_wr_addr),
+    .emif_wr_write(emif_wr_write),
+    .emif_wr_wdata(emif_wr_wdata),
+    .emif_wr_waitrequest(emif_wr_waitrequest),
+    .emif_wr_burstcount(emif_wr_burstcount)
 );
 
 ir_rcv ir0 (

@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "22";
+         value = "23";
          type = "int";
       }
    }
@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "26";
+         value = "27";
          type = "int";
       }
    }
@@ -55,7 +55,7 @@
    {
       datum _sortIndex
       {
-         value = "23";
+         value = "24";
          type = "int";
       }
    }
@@ -76,7 +76,7 @@
    {
       datum _sortIndex
       {
-         value = "25";
+         value = "26";
          type = "int";
       }
    }
@@ -97,7 +97,7 @@
    {
       datum _sortIndex
       {
-         value = "24";
+         value = "25";
          type = "int";
       }
    }
@@ -112,6 +112,14 @@
       {
          value = "1024";
          type = "String";
+      }
+   }
+   element avalon_bridge_mod_0
+   {
+      datum _sortIndex
+      {
+         value = "21";
+         type = "int";
       }
    }
    element clk_27
@@ -231,7 +239,7 @@
    {
       datum _sortIndex
       {
-         value = "21";
+         value = "22";
          type = "int";
       }
    }
@@ -583,6 +591,11 @@
    dir="end" />
  <interface name="clk" internal="clk_27.clk_in" type="clock" dir="end" />
  <interface
+   name="emif_bridge_0"
+   internal="avalon_bridge_mod_0.external_interface"
+   type="conduit"
+   dir="end" />
+ <interface
    name="i2c_opencores_0_export"
    internal="i2c_opencores_0.export"
    type="conduit"
@@ -899,6 +912,14 @@
   <parameter name="WRITER_RUNTIME_CONTROL" value="1" />
   <parameter name="WRITE_BURST_TARGET" value="32" />
   <parameter name="WRITE_FIFO_DEPTH" value="64" />
+ </module>
+ <module
+   name="avalon_bridge_mod_0"
+   kind="avalon_bridge_mod"
+   version="1.0"
+   enabled="1">
+  <parameter name="AW" value="28" />
+  <parameter name="DW" value="256" />
  </module>
  <module name="clk_27" kind="clock_source" version="21.1" enabled="1">
   <parameter name="clockFrequency" value="27000000" />
@@ -1860,6 +1881,24 @@
  <connection
    kind="avalon"
    version="21.1"
+   start="avalon_bridge_mod_0.avalon_master_rd"
+   end="mem_if_lpddr2_emif_0.avl_0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="21.1"
+   start="avalon_bridge_mod_0.avalon_master_wr"
+   end="mem_if_lpddr2_emif_0.avl_0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="21.1"
    start="alt_vip_cl_dil_0.edi_read_master"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2116,6 +2155,11 @@
    version="21.1"
    start="pll_0.outclk0"
    end="intel_generic_serial_flash_interface_top_0.clk" />
+ <connection
+   kind="clock"
+   version="21.1"
+   start="pll_0.outclk0"
+   end="avalon_bridge_mod_0.clk" />
  <connection
    kind="clock"
    version="21.1"
@@ -2445,6 +2489,11 @@
    version="21.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_3" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="reset_bridge_0.out_reset"
+   end="avalon_bridge_mod_0.reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="false" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />

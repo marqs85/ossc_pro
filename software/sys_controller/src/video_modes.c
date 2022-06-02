@@ -681,6 +681,10 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     if (vm_out->timings.v_total * in_interlace_mult > vtotal_ref)
         v_linediff -= (((vm_in->timings.v_active * vm_out->timings.v_total * in_interlace_mult) / (vm_in->timings.v_total * out_interlace_mult)) - vm_conf->y_size);
 
+#ifdef LM_EMIF_EXTRA_DELAY
+    v_linediff -= (vm_conf->y_rpt+1);
+#endif
+
     vm_conf->framesync_line = (v_linediff < 0) ? (vm_out->timings.v_total/out_interlace_mult)+v_linediff : v_linediff;
     vm_conf->framelock = 1;
 
@@ -1062,7 +1066,11 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
                 }
             }
 
+#ifdef LM_EMIF_EXTRA_DELAY
+            vm_conf->framesync_line = ((vm_out->timings.v_total>>vm_out->timings.interlaced)-(1+vm_out->timings.interlaced)*(vm_conf->y_rpt+1));
+#else
             vm_conf->framesync_line = vm_in->timings.interlaced ? ((vm_out->timings.v_total>>vm_out->timings.interlaced)-(vm_conf->y_rpt+1)) : 0;
+#endif
             vm_conf->framelock = 1;
 
             if (vm_conf->x_size == 0)

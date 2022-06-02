@@ -4,8 +4,7 @@
 *.qws
 .qsys_edit
 greybox_tmp
-board/*/*.xml
-board/*/*db/*
-board/*/sys/*
-board/*/output_files/*
-board/*/software/sys_controller*/*
+*.xml
+*db/*
+sys/*
+output_files/*
