@@ -72,10 +72,9 @@
 // In reverse order of importance
 typedef enum {
     NO_CHANGE           = 0,
-    SC_CONFIG_CHANGE    = 1,
-    MODE_CHANGE         = 2,
-    TX_MODE_CHANGE      = 3,
-    ACTIVITY_CHANGE     = 4
+    SC_CONFIG_CHANGE,
+    TP_MODE_CHANGE,
+    MODE_CHANGE
 } status_t;
 
 typedef enum {
@@ -98,8 +97,9 @@ typedef struct {
     uint8_t sl_str;
     uint8_t sl_id;
     uint8_t sl_cust_l_str[6];
-    uint8_t sl_cust_c_str[6];
-    uint8_t linemult_target;
+    uint8_t sl_cust_c_str[10];
+    uint8_t sl_cust_iv_x;
+    uint8_t sl_cust_iv_y;
     uint8_t l2_mode;
     uint8_t l3_mode;
     uint8_t l4_mode;
@@ -126,6 +126,7 @@ typedef struct {
     uint8_t sm_ad_576p;
     uint8_t lm_mode;
     uint8_t oper_mode;
+    uint8_t tp_mode;
     uint8_t lm_deint_mode;
     uint8_t nir_even_offset;
     uint8_t ar_256col;
@@ -133,12 +134,12 @@ typedef struct {
     uint8_t v_mask;
     uint8_t mask_br;
     uint8_t mask_color;
+    uint8_t bfi_enable;
+    uint8_t bfi_str;
     uint8_t s480p_mode;
     uint8_t s400p_mode;
     uint8_t upsample2x;
     uint8_t ypbpr_cs;
-    uint8_t sync_lpf;
-    uint8_t stc_lpf;
     uint8_t audmux_sel;
     audinput_t audio_src_map[4];
     uint8_t reverse_lpf;

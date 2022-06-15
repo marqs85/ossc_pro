@@ -48,12 +48,12 @@ module ossc_pro (
     input HDMIRX_HSYNC_i,
     input HDMIRX_VSYNC_i,
     input HDMIRX_DE_i,
-    input HDMIRX_INT_N_i,
     input HDMIRX_I2S_BCK_i,
     input HDMIRX_I2S_WS_i,
     output HDMIRX_RESET_N_o,
 
-    input HDMITX_INT_N_i,
+    input HDMI_INT_N_i,
+
     output HDMITX_PCLK_o,
     output HDMITX_I2S_BCK_o,
     output HDMITX_I2S_WS_o,
@@ -94,6 +94,7 @@ module ossc_pro (
     input [5:0] BTN_i,
     output [2:0] LED_o,
     output AUDMUX_o,
+    output FAN_PWM_o,
 
     output SD_CLK_o,
     inout SD_CMD_io,
@@ -108,7 +109,7 @@ module ossc_pro (
 
 wire jtagm_reset_req;
 
-wire [15:0] sys_ctrl;
+wire [31:0] sys_ctrl;
 wire sys_poweron = sys_ctrl[0];
 wire isl_reset_n = sys_ctrl[1];
 wire hdmirx_reset_n = sys_ctrl[2];
@@ -125,6 +126,8 @@ wire testpattern_enable = sys_ctrl[12];
 wire csc_enable = sys_ctrl[13];
 wire framelock = sys_ctrl[14];
 wire hdmirx_spdif = sys_ctrl[15];
+wire [3:0] fan_duty = sys_ctrl[19:16];
+wire [3:0] led_duty = sys_ctrl[23:20];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -146,10 +149,14 @@ wire sys_reset_n = (po_reset_n & pll_locked);
 wire sys_reset_n = (po_reset_n & ~jtagm_reset_req & pll_locked);
 `endif
 
-wire emif_status_init_done;
-wire emif_status_cal_success;
-wire emif_status_cal_fail;
-wire emif_status_powerdn_ack;
+wire emif_status_init_done, emif_status_cal_success, emif_status_cal_fail, emif_status_powerdn_ack;
+
+/* EMIF IF for LM */
+wire emif_br_clk;
+wire [27:0] emif_rd_addr, emif_wr_addr;
+wire [255:0] emif_rd_rdata, emif_wr_wdata;
+wire [5:0] emif_rd_burstcount, emif_wr_burstcount;
+wire emif_rd_read, emif_rd_waitrequest, emif_rd_readdatavalid, emif_wr_write, emif_wr_waitrequest;
 
 wire sd_detect = ~SD_DETECT_i;
 
@@ -159,7 +166,7 @@ wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
 wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
 wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2;
-wire [31:0] misc_config, sl_config, sl_config2;
+wire [31:0] misc_config, sl_config, sl_config2, sl_config3;
 
 reg [23:0] resync_led_ctr;
 reg resync_strobe_sync1_reg, resync_strobe_sync2_reg, resync_strobe_prev;
@@ -167,8 +174,13 @@ wire resync_strobe_i;
 wire resync_strobe = resync_strobe_sync2_reg;
 
 //BGR
-assign LED_o = sys_poweron ? {framelock, (ir_code == 0), (resync_led_ctr != 0)} : {2'b00, ~resync_led_ctr[23]};
+wire led_pwm;
+assign LED_o = {3{led_pwm}} & (sys_poweron ? {framelock, (ir_code == 0), (resync_led_ctr != 0)} : {2'b00, ~resync_led_ctr[23]});
 //assign LED_o = {emif_status_init_done, emif_status_cal_success, emif_status_cal_fail};
+
+//Fan
+wire fan_pwm;
+assign FAN_PWM_o = ~(sys_poweron & fan_pwm);
 
 wire [11:0] xpos_sc;
 wire [10:0] ypos_sc;
@@ -180,13 +192,15 @@ assign HDMIRX_RESET_N_o = hdmirx_reset_n;
 
 reg emif_hwreset_n_sync1_reg, emif_hwreset_n_sync2_reg, emif_swreset_n_sync1_reg, emif_swreset_n_sync2_reg;
 
-assign HDMITX_5V_EN_o = 1'b1;
+assign HDMITX_5V_EN_o = sys_poweron;
 
 wire sd_cmd_oe_o, sd_cmd_out_o, sd_dat_oe_o;
 wire [3:0] sd_dat_out_o;
 
 assign SD_CMD_io = sd_cmd_oe_o ? sd_cmd_out_o : 1'bz;
-assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
+assign SD_DATA_io[3] = sd_dat_oe_o ? sd_dat_out_o[3] : 1'bz;
+assign SD_DATA_io[2:1] = 2'bzz;
+assign SD_DATA_io[0] = sd_dat_oe_o ? sd_dat_out_o[0] : 1'bz;
 
 assign FPGA_PCLK1x_o = pclk_capture;
 
@@ -215,7 +229,7 @@ always @(posedge CLK27_i) begin
 end
 
 wire [7:0] ISL_R_post, ISL_G_post, ISL_B_post;
-wire ISL_HSYNC_post, ISL_VSYNC_post, ISL_DE_post, ISL_FID_post;
+wire ISL_HSYNC_post, ISL_VSYNC_post, ISL_DE_post, ISL_FID_post, ISL_datavalid_post;
 wire ISL_fe_interlace, ISL_fe_frame_change, ISL_sof_scaler;
 wire [19:0] ISL_fe_pcnt_frame;
 wire [10:0] ISL_fe_vtotal, ISL_fe_xpos, ISL_fe_ypos;
@@ -248,6 +262,7 @@ isl51002_frontend u_isl_frontend (
     .DE_o(ISL_DE_post),
     .FID_o(ISL_FID_post),
     .interlace_flag(ISL_fe_interlace),
+    .datavalid_o(ISL_datavalid_post),
     .xpos_o(ISL_fe_xpos),
     .ypos_o(ISL_fe_ypos),
     .vtotal(ISL_fe_vtotal),
@@ -317,7 +332,7 @@ cyclonev_clkselect clkmux_capture (
 
 // capture data mux
 reg [7:0] R_capt, G_capt, B_capt;
-reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt;
+reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt, datavalid_capt;
 reg interlace_flag_capt, frame_change_capt, sof_scaler_capt;
 reg [10:0] xpos_capt, ypos_capt;
 always @(posedge pclk_capture) begin
@@ -327,6 +342,7 @@ always @(posedge pclk_capture) begin
     HSYNC_capt <= capture_sel ? HDMIRX_HSYNC_post : ISL_HSYNC_post;
     VSYNC_capt <= capture_sel ? HDMIRX_VSYNC_post : ISL_VSYNC_post;
     DE_capt <= capture_sel ? HDMIRX_DE_post : ISL_DE_post;
+    datavalid_capt <= capture_sel ? 1'b1 : ISL_datavalid_post;
     FID_capt <= capture_sel ? HDMIRX_FID_post : ISL_FID_post;
     interlace_flag_capt <= capture_sel ? HDMIRX_fe_interlace : ISL_fe_interlace;
     frame_change_capt <= capture_sel ? HDMIRX_fe_frame_change : ISL_fe_frame_change;
@@ -370,10 +386,10 @@ reg HSYNC_vip, VSYNC_vip, DE_vip;
 always @(posedge pclk_capture) begin
     if (pclk_capture_div2 == 0) begin
         VIP_DATA_i[47:24] <= {R_capt, G_capt, B_capt};
-        {VIP_HSYNC_i[1], VIP_VSYNC_i[1], VIP_DE_i[1], VIP_FID_i[1]} <= {~HSYNC_capt, ~VSYNC_capt, DE_capt, ~FID_capt};
+        {VIP_HSYNC_i[1], VIP_VSYNC_i[1], VIP_DE_i[1], VIP_FID_i[1]} <= {~HSYNC_capt, ~VSYNC_capt, DE_capt & datavalid_capt, ~FID_capt};
     end else begin
         VIP_DATA_i[23:0] <= {R_capt, G_capt, B_capt};
-        {VIP_HSYNC_i[0], VIP_VSYNC_i[0], VIP_DE_i[0], VIP_FID_i[0]} <= {~HSYNC_capt, ~VSYNC_capt, DE_capt, ~FID_capt};
+        {VIP_HSYNC_i[0], VIP_VSYNC_i[0], VIP_DE_i[0], VIP_FID_i[0]} <= {~HSYNC_capt, ~VSYNC_capt, DE_capt & datavalid_capt, ~FID_capt};
     end
 end
 
@@ -393,30 +409,41 @@ wire [7:0] R_vip, G_vip, B_vip;
 wire HSYNC_vip, VSYNC_vip, DE_vip;
 wire [3:0] unused1, unused0;
 wire [4:0] unused_out;
+wire dc_fifo_in_rdempty, dc_fifo_in_wrfull;
+wire dc_fifo_out_rdempty, dc_fifo_out_wrfull;
+reg dc_fifo_in_rdempty_prev;
 
 dc_fifo_in  dc_fifo_in_inst (
     .data({R_capt, G_capt, B_capt, ~HSYNC_capt, ~VSYNC_capt, DE_capt, ~FID_capt, 4'h0}),
     .rdclk(pclk_capture_div2),
-    .rdreq(1),
+    .rdreq(!dc_fifo_in_rdempty),
+    .rdempty(dc_fifo_in_rdempty),
     .wrclk(pclk_capture),
-    .wrreq(1),
+    .wrreq(datavalid_capt & !dc_fifo_in_wrfull),
+    .wrfull(dc_fifo_in_wrfull),
     .q({VIP_DATA_i[47:24], VIP_HSYNC_i[1], VIP_VSYNC_i[1], VIP_DE_i[1], VIP_FID_i[1], unused1, VIP_DATA_i[23:0], VIP_HSYNC_i[0], VIP_VSYNC_i[0], VIP_DE_i[0], VIP_FID_i[0], unused0})
 );
 
 dc_fifo_out  dc_fifo_out_inst (
     .data({VIP_DATA_o[47:24], VIP_HSYNC_o[1], VIP_VSYNC_o[1], VIP_DE_o[1], 5'h0, VIP_DATA_o[23:0], VIP_HSYNC_o[0], VIP_VSYNC_o[0], VIP_DE_o[0], 5'h0}),
     .rdclk(pclk_out),
-    .rdreq(1),
+    .rdreq(!dc_fifo_out_rdempty),
+    .rdempty(dc_fifo_out_rdempty),
     .wrclk(pclk_out_div2),
-    .wrreq(1),
+    .wrreq(!dc_fifo_out_wrfull),
+    .wrfull(dc_fifo_out_wrfull),
     .q({R_vip, G_vip, B_vip, HSYNC_vip, VSYNC_vip, DE_vip, unused_out})
 );
+
+always @(posedge pclk_capture_div2) begin
+    dc_fifo_in_rdempty_prev <= dc_fifo_in_rdempty;
+end
 `endif // DIV2_SYNC
 `else // PIXPAR2
 wire [23:0] VIP_DATA_i = {R_capt, G_capt, B_capt};
 wire VIP_HSYNC_i = ~HSYNC_capt;
 wire VIP_VSYNC_i = ~VSYNC_capt;
-wire VIP_DE_i = DE_capt;
+wire VIP_DE_i = DE_capt & datavalid_capt;
 wire VIP_FID_i = ~FID_capt;
 wire [23:0] VIP_DATA_o;
 wire [7:0] R_vip = VIP_DATA_o[23:16];
@@ -584,12 +611,12 @@ sys sys_inst (
     .pulpino_0_config_testmode_i            (1'b0),
     .pulpino_0_config_fetch_enable_i        (1'b1),
     .pulpino_0_config_clock_gating_i        (1'b0),
-    .pulpino_0_config_boot_addr_i           (32'h02500000),
+    .pulpino_0_config_boot_addr_i           (32'h02A00000),
     .master_0_master_reset_reset            (jtagm_reset_req),
     .sdc_controller_0_sd_sd_cmd_dat_i       (SD_CMD_io),
     .sdc_controller_0_sd_sd_cmd_out_o       (sd_cmd_out_o),
     .sdc_controller_0_sd_sd_cmd_oe_o        (sd_cmd_oe_o),
-    .sdc_controller_0_sd_sd_dat_dat_i       (SD_DATA_io),
+    .sdc_controller_0_sd_sd_dat_dat_i       ({SD_DATA_io[3], 2'b11, SD_DATA_io[0]}),
     .sdc_controller_0_sd_sd_dat_out_o       (sd_dat_out_o),
     .sdc_controller_0_sd_sd_dat_oe_o        (sd_dat_oe_o),
     .sdc_controller_0_sd_clk_o_clk          (SD_CLK_o),
@@ -613,11 +640,24 @@ sys sys_inst (
     .sc_config_0_sc_if_misc_config_o        (misc_config),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
+    .sc_config_0_sc_if_sl_config3_o         (sl_config3),
     .osd_generator_0_osd_if_vclk            (PCLK_sc),
     .osd_generator_0_osd_if_xpos            (xpos_sc),
     .osd_generator_0_osd_if_ypos            (ypos_sc),
     .osd_generator_0_osd_if_osd_enable      (osd_enable),
     .osd_generator_0_osd_if_osd_color       (osd_color),
+    .emif_bridge_0_clk_o                    (emif_br_clk),
+    .emif_bridge_0_wr_address               (emif_wr_addr),
+    .emif_bridge_0_wr_write                 (emif_wr_write),
+    .emif_bridge_0_wr_write_data            (emif_wr_wdata),
+    .emif_bridge_0_wr_waitrequest           (emif_wr_waitrequest),
+    .emif_bridge_0_wr_burstcount            (emif_wr_burstcount),
+    .emif_bridge_0_rd_address               (emif_rd_addr),
+    .emif_bridge_0_rd_read                  (emif_rd_read),
+    .emif_bridge_0_rd_read_data             (emif_rd_rdata),
+    .emif_bridge_0_rd_waitrequest           (emif_rd_waitrequest),
+    .emif_bridge_0_rd_readdatavalid         (emif_rd_readdatavalid),
+    .emif_bridge_0_rd_burstcount            (emif_rd_burstcount),
     .mem_if_lpddr2_emif_0_global_reset_reset_n     (emif_hwreset_n_sync2_reg),
     .mem_if_lpddr2_emif_0_soft_reset_reset_n       (emif_swreset_n_sync2_reg),
     .mem_if_lpddr2_emif_0_status_local_init_done   (emif_status_init_done),
@@ -649,7 +689,7 @@ sys sys_inst (
     ),
     .alt_vip_cl_cvi_0_clocked_video_vid_data                   (VIP_DATA_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_de                     (VIP_DE_i),
-    .alt_vip_cl_cvi_0_clocked_video_vid_datavalid              (1'b1),
+    .alt_vip_cl_cvi_0_clocked_video_vid_datavalid              (!dc_fifo_in_rdempty_prev),
     .alt_vip_cl_cvi_0_clocked_video_vid_locked                 (1'b1),
     .alt_vip_cl_cvi_0_clocked_video_vid_f                      (VIP_FID_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_v_sync                 (VIP_VSYNC_i),
@@ -687,7 +727,10 @@ sys sys_inst (
 `endif
 );
 
-scanconverter scanconverter_inst (
+scanconverter #(
+    .EMIF_ENABLE(0),
+    .NUM_LINE_BUFFERS(40)
+  ) scanconverter_inst (
     .PCLK_CAP_i(pclk_capture),
     .PCLK_OUT_i(SI_PCLK_i),
     .reset_n(sys_reset_n),  //TODO: sync to pclk_capture
@@ -698,10 +741,12 @@ scanconverter scanconverter_inst (
     .VSYNC_i(VSYNC_capt),
     .DE_i(DE_capt),
     .FID_i(FID_capt),
+    .datavalid_i(datavalid_capt),
     .interlaced_in_i(interlace_flag_capt),
     .frame_change_i(frame_change_capt),
     .xpos_i(xpos_capt),
     .ypos_i(ypos_capt),
+    .h_in_active(hv_in_config[23:12]),
     .hv_out_config(hv_out_config),
     .hv_out_config2(hv_out_config2),
     .hv_out_config3(hv_out_config3),
@@ -710,6 +755,7 @@ scanconverter scanconverter_inst (
     .misc_config(misc_config),
     .sl_config(sl_config),
     .sl_config2(sl_config2),
+    .sl_config3(sl_config3),
     .testpattern_enable(testpattern_enable),
     .ext_sync_mode(vip_select),
     .ext_frame_change_i(vip_frame_start),
@@ -725,7 +771,19 @@ scanconverter scanconverter_inst (
     .DE_o(DE_sc),
     .xpos_o(xpos_sc),
     .ypos_o(ypos_sc),
-    .resync_strobe(resync_strobe_i)
+    .resync_strobe(resync_strobe_i),
+    .emif_br_clk(emif_br_clk),
+    .emif_rd_addr(emif_rd_addr),
+    .emif_rd_read(emif_rd_read),
+    .emif_rd_rdata(emif_rd_rdata),
+    .emif_rd_waitrequest(emif_rd_waitrequest),
+    .emif_rd_readdatavalid(emif_rd_readdatavalid),
+    .emif_rd_burstcount(emif_rd_burstcount),
+    .emif_wr_addr(emif_wr_addr),
+    .emif_wr_write(emif_wr_write),
+    .emif_wr_wdata(emif_wr_wdata),
+    .emif_wr_waitrequest(emif_wr_waitrequest),
+    .emif_wr_burstcount(emif_wr_burstcount)
 );
 
 ir_rcv ir0 (
@@ -735,6 +793,15 @@ ir_rcv ir0 (
     .ir_code        (ir_code),
     .ir_code_ack    (),
     .ir_code_cnt    (ir_code_cnt)
+);
+
+pwm_2ch #(.PERIOD(1024)) pwm_inst (
+    .clk            (CLK27_i),
+    .reset_n        (po_reset_n),
+    .ch1_duty       (fan_duty),
+    .ch2_duty       (led_duty),
+    .ch1_pwm        (fan_pwm),
+    .ch2_pwm        (led_pwm)
 );
 
 endmodule

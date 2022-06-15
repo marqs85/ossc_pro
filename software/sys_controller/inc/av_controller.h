@@ -42,6 +42,10 @@
 #define SCTRL_CSC_ENABLE        (1<<13)
 #define SCTRL_FRAMELOCK         (1<<14)
 #define SCTRL_HDMIRX_SPDIF      (1<<15)
+#define SCTRL_FAN_PWM_OFFS      16
+#define SCTRL_FAN_PWM_MASK      (0xf<<SCTRL_FAN_PWM_OFFS)
+#define SCTRL_LED_PWM_OFFS      20
+#define SCTRL_LED_PWM_MASK      (0xf<<SCTRL_LED_PWM_OFFS)
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -53,20 +57,19 @@
 
 typedef enum {
     AV_TESTPAT      = 0,
-    AV1_RGBS        = 1,
-    AV1_RGsB        = 2,
-    AV1_YPbPr       = 3,
-    AV1_RGBHV       = 4,
-    AV1_RGBCS       = 5,
-    AV2_YPbPr       = 6,
-    AV2_RGsB        = 7,
-    AV3_RGBHV       = 8,
-    AV3_RGBCS       = 9,
-    AV3_RGBS        = 10,
-    AV3_RGsB        = 11,
-    AV3_YPbPr       = 12,
-    AV4             = 13,
-    AV_LAST         = 14
+    AV1_RGBS,
+    AV1_RGsB,
+    AV1_YPbPr,
+    AV1_RGBHV,
+    AV1_RGBCS,
+    AV2_YPbPr,
+    AV2_RGsB,
+    AV3_RGBHV,
+    AV3_RGBCS,
+    AV3_RGBS,
+    AV3_RGsB,
+    AV3_YPbPr,
+    AV4
 } avinput_t;
 
 #ifdef DExx_FW
@@ -87,7 +90,7 @@ typedef enum {
 void ui_disp_menu(uint8_t osd_mode);
 void ui_disp_status(uint8_t refresh_osd_timer);
 
-void switch_input(rc_code_t code, btn_vec_t pb_vec);
+void switch_input(rc_code_t rcode, btn_code_t bcode);
 
 void set_syncmux_biasmode(uint8_t syncmux_stc);
 
@@ -95,11 +98,11 @@ void switch_audmux(uint8_t audmux_sel);
 
 void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
 
-void switch_tp_mode(rc_code_t code);
-
 int sys_is_powered_on();
 
 void sys_toggle_power();
+
+void sys_update_pwm();
 
 void print_vm_stats();
 
