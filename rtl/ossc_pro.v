@@ -409,24 +409,35 @@ wire [7:0] R_vip, G_vip, B_vip;
 wire HSYNC_vip, VSYNC_vip, DE_vip;
 wire [3:0] unused1, unused0;
 wire [4:0] unused_out;
+wire dc_fifo_in_rdempty, dc_fifo_in_wrfull;
+wire dc_fifo_out_rdempty, dc_fifo_out_wrfull;
+reg dc_fifo_in_rdempty_prev;
 
 dc_fifo_in  dc_fifo_in_inst (
-    .data({R_capt, G_capt, B_capt, ~HSYNC_capt, ~VSYNC_capt, DE_capt & datavalid_capt, ~FID_capt, 4'h0}),
+    .data({R_capt, G_capt, B_capt, ~HSYNC_capt, ~VSYNC_capt, DE_capt, ~FID_capt, 4'h0}),
     .rdclk(pclk_capture_div2),
-    .rdreq(1),
+    .rdreq(!dc_fifo_in_rdempty),
+    .rdempty(dc_fifo_in_rdempty),
     .wrclk(pclk_capture),
-    .wrreq(1),
+    .wrreq(datavalid_capt & !dc_fifo_in_wrfull),
+    .wrfull(dc_fifo_in_wrfull),
     .q({VIP_DATA_i[47:24], VIP_HSYNC_i[1], VIP_VSYNC_i[1], VIP_DE_i[1], VIP_FID_i[1], unused1, VIP_DATA_i[23:0], VIP_HSYNC_i[0], VIP_VSYNC_i[0], VIP_DE_i[0], VIP_FID_i[0], unused0})
 );
 
 dc_fifo_out  dc_fifo_out_inst (
     .data({VIP_DATA_o[47:24], VIP_HSYNC_o[1], VIP_VSYNC_o[1], VIP_DE_o[1], 5'h0, VIP_DATA_o[23:0], VIP_HSYNC_o[0], VIP_VSYNC_o[0], VIP_DE_o[0], 5'h0}),
     .rdclk(pclk_out),
-    .rdreq(1),
+    .rdreq(!dc_fifo_out_rdempty),
+    .rdempty(dc_fifo_out_rdempty),
     .wrclk(pclk_out_div2),
-    .wrreq(1),
+    .wrreq(!dc_fifo_out_wrfull),
+    .wrfull(dc_fifo_out_wrfull),
     .q({R_vip, G_vip, B_vip, HSYNC_vip, VSYNC_vip, DE_vip, unused_out})
 );
+
+always @(posedge pclk_capture_div2) begin
+    dc_fifo_in_rdempty_prev <= dc_fifo_in_rdempty;
+end
 `endif // DIV2_SYNC
 `else // PIXPAR2
 wire [23:0] VIP_DATA_i = {R_capt, G_capt, B_capt};
@@ -678,7 +689,7 @@ sys sys_inst (
     ),
     .alt_vip_cl_cvi_0_clocked_video_vid_data                   (VIP_DATA_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_de                     (VIP_DE_i),
-    .alt_vip_cl_cvi_0_clocked_video_vid_datavalid              (1'b1),
+    .alt_vip_cl_cvi_0_clocked_video_vid_datavalid              (!dc_fifo_in_rdempty_prev),
     .alt_vip_cl_cvi_0_clocked_video_vid_locked                 (1'b1),
     .alt_vip_cl_cvi_0_clocked_video_vid_f                      (VIP_FID_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_v_sync                 (VIP_VSYNC_i),
