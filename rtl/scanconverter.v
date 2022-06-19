@@ -311,18 +311,18 @@ always @(posedge PCLK_OUT_i) begin
             // output is progressive mode. Noninterlace restore as raw output mode is an exception
             // which ignores LM deinterlace mode setting.
             if (~ext_sync_mode & ~MISC_LM_DEINT_MODE & (Y_RPT > 0) & ~V_INTERLACED & (src_fid == FID_EVEN)) begin
-                ypos_lb_next <= Y_START_LB - 1'b1;
+                ypos_lb_next <= 11'(Y_START_LB) - 1'b1;
                 y_ctr <= ((Y_RPT+1'b1) >> 1);
                 y_ctr_sl_pp[1] <= SL_BOB_ALTERN ? ((Y_RPT+1'b1) >> 1) : 0;
             end else begin
                 if (Y_SKIP & (dst_fid == FID_EVEN)) begin
                     // Linedrop mode and output interlaced
-                    ypos_lb_next <= Y_START_LB + 1'b1;
+                    ypos_lb_next <= 11'(Y_START_LB) + 1'b1;
                 end else if ((((Y_RPT == 0) & ~V_INTERLACED) | ((Y_RPT > 0) & MISC_LM_DEINT_MODE)) & (src_fid == FID_EVEN)) begin
                     // Adjust even field Y-offset for noninterlace restore
-                    ypos_lb_next <= Y_START_LB - MISC_NIR_EVEN_OFFSET;
+                    ypos_lb_next <= 11'(Y_START_LB) - MISC_NIR_EVEN_OFFSET;
                 end else begin
-                    ypos_lb_next <= Y_START_LB;
+                    ypos_lb_next <= 11'(Y_START_LB);
                 end
                 y_ctr <= 0;
                 y_ctr_sl_pp[1] <= 0;
