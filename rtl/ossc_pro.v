@@ -728,8 +728,8 @@ sys sys_inst (
 );
 
 scanconverter #(
-    .EMIF_ENABLE(0),
-    .NUM_LINE_BUFFERS(40)
+    .EMIF_ENABLE(1),
+    .NUM_LINE_BUFFERS(2048)
   ) scanconverter_inst (
     .PCLK_CAP_i(pclk_capture),
     .PCLK_OUT_i(SI_PCLK_i),

@@ -412,9 +412,9 @@ MENU(menu_settings, P99_PROTECT({
 #endif
     //{     "<Import sett.  >",                     OPT_FUNC_CALL,        { .fun = { import_userdata, NULL } } },
     { LNG("Reset settings","ｾｯﾃｲｵｼｮｷｶ"),         OPT_FUNC_CALL,          { .fun = { reset_target_avconfig, NULL } } },
-#ifdef OSSC_PRO_FINAL_CFG
+//#ifdef OSSC_PRO_FINAL_CFG
     { LNG("Fw. update","ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ"),       OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
-#endif
+//#endif
 }))
 
 
