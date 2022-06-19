@@ -28,6 +28,7 @@
 #define INC_ADV761X
 #define INC_PCM186X
 #define VIP
+#define LM_EMIF_EXTRA_DELAY
 //#define OSSC_PRO_FINAL_CFG
 
 //#define I2C_DEBUG

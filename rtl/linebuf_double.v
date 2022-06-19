@@ -4,7 +4,7 @@
 // MODULE: altsyncram 
 
 // ============================================================
-// File Name: linebuf.v
+// File Name: linebuf_double.v
 // Megafunction Name(s):
 // 			altsyncram
 //
@@ -37,7 +37,7 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module linebuf (
+module linebuf_double (
 	data,
 	rdaddress,
 	rdclock,
@@ -46,10 +46,10 @@ module linebuf (
 	wren,
 	q);
 
-	input	[23:0]  data;
-	input	[16:0]  rdaddress;
+	input	[191:0]  data;
+	input	[12:0]  rdaddress;
 	input	  rdclock;
-	input	[16:0]  wraddress;
+	input	[9:0]  wraddress;
 	input	  wrclock;
 	input	  wren;
 	output	[23:0]  q;
@@ -97,15 +97,15 @@ module linebuf (
 		altsyncram_component.clock_enable_output_b = "BYPASS",
 		altsyncram_component.intended_device_family = "Cyclone V",
 		altsyncram_component.lpm_type = "altsyncram",
-		altsyncram_component.numwords_a = 81920,
-		altsyncram_component.numwords_b = 81920,
+		altsyncram_component.numwords_a = 640,
+		altsyncram_component.numwords_b = 5120,
 		altsyncram_component.operation_mode = "DUAL_PORT",
 		altsyncram_component.outdata_aclr_b = "NONE",
 		altsyncram_component.outdata_reg_b = "CLOCK1",
 		altsyncram_component.power_up_uninitialized = "FALSE",
-		altsyncram_component.widthad_a = 17,
-		altsyncram_component.widthad_b = 17,
-		altsyncram_component.width_a = 24,
+		altsyncram_component.widthad_a = 10,
+		altsyncram_component.widthad_b = 13,
+		altsyncram_component.width_a = 192,
 		altsyncram_component.width_b = 24,
 		altsyncram_component.width_byteena_a = 1;
 
@@ -145,7 +145,7 @@ endmodule
 // Retrieval info: PRIVATE: JTAG_ENABLED NUMERIC "0"
 // Retrieval info: PRIVATE: JTAG_ID STRING "NONE"
 // Retrieval info: PRIVATE: MAXIMUM_DEPTH NUMERIC "0"
-// Retrieval info: PRIVATE: MEMSIZE NUMERIC "1966080"
+// Retrieval info: PRIVATE: MEMSIZE NUMERIC "122880"
 // Retrieval info: PRIVATE: MEM_IN_BITS NUMERIC "0"
 // Retrieval info: PRIVATE: MIFfilename STRING ""
 // Retrieval info: PRIVATE: OPERATION_MODE NUMERIC "2"
@@ -156,7 +156,7 @@ endmodule
 // Retrieval info: PRIVATE: READ_DURING_WRITE_MODE_PORT_A NUMERIC "3"
 // Retrieval info: PRIVATE: READ_DURING_WRITE_MODE_PORT_B NUMERIC "3"
 // Retrieval info: PRIVATE: REGdata NUMERIC "1"
-// Retrieval info: PRIVATE: REGq NUMERIC "1"
+// Retrieval info: PRIVATE: REGq NUMERIC "0"
 // Retrieval info: PRIVATE: REGrdaddress NUMERIC "1"
 // Retrieval info: PRIVATE: REGrren NUMERIC "1"
 // Retrieval info: PRIVATE: REGwraddress NUMERIC "1"
@@ -164,10 +164,10 @@ endmodule
 // Retrieval info: PRIVATE: SYNTH_WRAPPER_GEN_POSTFIX STRING "0"
 // Retrieval info: PRIVATE: USE_DIFF_CLKEN NUMERIC "0"
 // Retrieval info: PRIVATE: UseDPRAM NUMERIC "1"
-// Retrieval info: PRIVATE: VarWidth NUMERIC "0"
-// Retrieval info: PRIVATE: WIDTH_READ_A NUMERIC "24"
+// Retrieval info: PRIVATE: VarWidth NUMERIC "1"
+// Retrieval info: PRIVATE: WIDTH_READ_A NUMERIC "192"
 // Retrieval info: PRIVATE: WIDTH_READ_B NUMERIC "24"
-// Retrieval info: PRIVATE: WIDTH_WRITE_A NUMERIC "24"
+// Retrieval info: PRIVATE: WIDTH_WRITE_A NUMERIC "192"
 // Retrieval info: PRIVATE: WIDTH_WRITE_B NUMERIC "24"
 // Retrieval info: PRIVATE: WRADDR_ACLR_B NUMERIC "0"
 // Retrieval info: PRIVATE: WRADDR_REG_B NUMERIC "0"
@@ -182,35 +182,35 @@ endmodule
 // Retrieval info: CONSTANT: CLOCK_ENABLE_OUTPUT_B STRING "BYPASS"
 // Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone V"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "altsyncram"
-// Retrieval info: CONSTANT: NUMWORDS_A NUMERIC "81920"
-// Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "81920"
+// Retrieval info: CONSTANT: NUMWORDS_A NUMERIC "640"
+// Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "5120"
 // Retrieval info: CONSTANT: OPERATION_MODE STRING "DUAL_PORT"
 // Retrieval info: CONSTANT: OUTDATA_ACLR_B STRING "NONE"
 // Retrieval info: CONSTANT: OUTDATA_REG_B STRING "CLOCK1"
 // Retrieval info: CONSTANT: POWER_UP_UNINITIALIZED STRING "FALSE"
-// Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "17"
-// Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "17"
-// Retrieval info: CONSTANT: WIDTH_A NUMERIC "24"
+// Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "10"
+// Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "13"
+// Retrieval info: CONSTANT: WIDTH_A NUMERIC "192"
 // Retrieval info: CONSTANT: WIDTH_B NUMERIC "24"
 // Retrieval info: CONSTANT: WIDTH_BYTEENA_A NUMERIC "1"
-// Retrieval info: USED_PORT: data 0 0 24 0 INPUT NODEFVAL "data[23..0]"
+// Retrieval info: USED_PORT: data 0 0 192 0 INPUT NODEFVAL "data[191..0]"
 // Retrieval info: USED_PORT: q 0 0 24 0 OUTPUT NODEFVAL "q[23..0]"
-// Retrieval info: USED_PORT: rdaddress 0 0 17 0 INPUT NODEFVAL "rdaddress[16..0]"
+// Retrieval info: USED_PORT: rdaddress 0 0 13 0 INPUT NODEFVAL "rdaddress[12..0]"
 // Retrieval info: USED_PORT: rdclock 0 0 0 0 INPUT NODEFVAL "rdclock"
-// Retrieval info: USED_PORT: wraddress 0 0 17 0 INPUT NODEFVAL "wraddress[16..0]"
+// Retrieval info: USED_PORT: wraddress 0 0 10 0 INPUT NODEFVAL "wraddress[9..0]"
 // Retrieval info: USED_PORT: wrclock 0 0 0 0 INPUT VCC "wrclock"
 // Retrieval info: USED_PORT: wren 0 0 0 0 INPUT GND "wren"
-// Retrieval info: CONNECT: @address_a 0 0 17 0 wraddress 0 0 17 0
-// Retrieval info: CONNECT: @address_b 0 0 17 0 rdaddress 0 0 17 0
+// Retrieval info: CONNECT: @address_a 0 0 10 0 wraddress 0 0 10 0
+// Retrieval info: CONNECT: @address_b 0 0 13 0 rdaddress 0 0 13 0
 // Retrieval info: CONNECT: @clock0 0 0 0 0 wrclock 0 0 0 0
 // Retrieval info: CONNECT: @clock1 0 0 0 0 rdclock 0 0 0 0
-// Retrieval info: CONNECT: @data_a 0 0 24 0 data 0 0 24 0
+// Retrieval info: CONNECT: @data_a 0 0 192 0 data 0 0 192 0
 // Retrieval info: CONNECT: @wren_a 0 0 0 0 wren 0 0 0 0
 // Retrieval info: CONNECT: q 0 0 24 0 @q_b 0 0 24 0
-// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf.v TRUE
-// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf.inc FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf.cmp FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf.bsf FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf_inst.v FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf_bb.v TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf_double.v TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf_double.inc FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf_double.cmp FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf_double.bsf FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf_double_inst.v FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL linebuf_double_bb.v FALSE
 // Retrieval info: LIB_FILE: altera_mf

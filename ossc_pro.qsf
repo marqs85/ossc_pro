@@ -41,7 +41,7 @@ set_global_assignment -name DEVICE 5CEFA5F23C8
 set_global_assignment -name TOP_LEVEL_ENTITY ossc_pro
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 17.1.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:23:54  SEPTEMBER 01, 2019"
-set_global_assignment -name LAST_QUARTUS_VERSION "20.1.1 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "21.1.0 Lite Edition"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
@@ -73,8 +73,8 @@ set_instance_assignment -name IO_STANDARD "1.2 V" -to CLK27_i
 set_instance_assignment -name IO_STANDARD "1.2 V" -to LED_o[0]
 set_instance_assignment -name IO_STANDARD "1.2 V" -to LED_o[1]
 set_instance_assignment -name IO_STANDARD "1.2 V" -to LED_o[2]
-set_instance_assignment -name IO_STANDARD "1.2 V" -to HDMIRX_INT_N_i
-set_instance_assignment -name IO_STANDARD "1.2 V" -to HDMITX_INT_N_i
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HDMI_INT_N_i
+set_instance_assignment -name IO_STANDARD "1.2 V" -to FAN_PWM_o
 set_instance_assignment -name IO_STANDARD "1.2 V" -to SI_INT_N_i
 set_instance_assignment -name IO_STANDARD "1.2 V" -to LS_DIR_o[0]
 set_instance_assignment -name IO_STANDARD "1.2 V" -to LS_DIR_o[1]
@@ -125,7 +125,7 @@ set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_DE_o
 set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCQ128
 set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 3.3V
 set_global_assignment -name ENABLE_SIGNALTAP OFF
-set_global_assignment -name USE_SIGNALTAP_FILE output_files/ossc_pro_io.stp
+set_global_assignment -name USE_SIGNALTAP_FILE output_files/ossc_pro_emif.stp
 set_global_assignment -name GENERATE_RBF_FILE ON
 
 
@@ -220,7 +220,7 @@ set_location_assignment PIN_Y14 -to HDMIRX_G_i[0]
 set_location_assignment PIN_W19 -to HDMIRX_HSYNC_i
 set_location_assignment PIN_Y19 -to HDMIRX_I2S_BCK_i
 set_location_assignment PIN_W22 -to HDMIRX_I2S_WS_i
-set_location_assignment PIN_L8 -to HDMIRX_INT_N_i
+set_location_assignment PIN_L8 -to HDMI_INT_N_i
 set_location_assignment PIN_V15 -to HDMIRX_PCLK_i
 set_location_assignment PIN_Y22 -to HDMIRX_RESET_N_o
 set_location_assignment PIN_AA20 -to HDMIRX_R_i[7]
@@ -253,7 +253,6 @@ set_location_assignment PIN_T18 -to HDMITX_HSYNC_o
 set_location_assignment PIN_U22 -to HDMITX_I2S_BCK_o
 set_location_assignment PIN_R14 -to HDMITX_I2S_DATA_o
 set_location_assignment PIN_W21 -to HDMITX_I2S_WS_o
-set_location_assignment PIN_A12 -to HDMITX_INT_N_i
 set_location_assignment PIN_M22 -to HDMITX_PCLK_o
 set_location_assignment PIN_T15 -to HDMITX_R_o[7]
 set_location_assignment PIN_R15 -to HDMITX_R_o[6]
@@ -266,6 +265,7 @@ set_location_assignment PIN_P17 -to HDMITX_R_o[0]
 set_location_assignment PIN_V19 -to HDMITX_SPDIF_o
 set_location_assignment PIN_T20 -to HDMITX_VSYNC_o
 set_location_assignment PIN_L22 -to HDMITX_5V_EN_o
+set_location_assignment PIN_A12 -to FAN_PWM_o
 set_location_assignment PIN_P9 -to IR_RX_i
 set_location_assignment PIN_Y9 -to ISL_B_i[7]
 set_location_assignment PIN_R9 -to ISL_B_i[6]
@@ -611,26 +611,30 @@ set_global_assignment -name SEED 1
 
 
 
+
+set_global_assignment -name STRATIXIII_UPDATE_MODE REMOTE
+
+
+
 set_global_assignment -name SDC_FILE ossc_pro.sdc
 set_global_assignment -name QIP_FILE sys/synthesis/sys.qip
 set_global_assignment -name VERILOG_FILE rtl/ic_frontends/isl51002/isl51002_frontend.v
 set_global_assignment -name VERILOG_FILE rtl/ic_frontends/adv7611/adv7611_frontend.v
 set_global_assignment -name VERILOG_FILE rtl/scanconverter.v
-set_global_assignment -name VERILOG_FILE rtl/videogen.v
+set_global_assignment -name VERILOG_FILE rtl/linebuf_top.v
 set_global_assignment -name VERILOG_FILE rtl/ir_rcv.v
+set_global_assignment -name VERILOG_FILE rtl/pwm_2ch.v
 set_global_assignment -name SIP_FILE sys/simulation/sys.sip
 set_global_assignment -name QIP_FILE software/sys_controller/mem_init/meminit.qip
 set_global_assignment -name SIP_FILE software/sys_controller/mem_init/meminit.sip
 set_global_assignment -name VERILOG_FILE rtl/ossc_pro.v
 set_global_assignment -name SIGNALTAP_FILE output_files/ossc_pro_io.stp
 set_global_assignment -name QIP_FILE rtl/linebuf.qip
+set_global_assignment -name QIP_FILE rtl/linebuf_double.qip
 set_global_assignment -name QIP_FILE rtl/char_array.qip
 set_global_assignment -name QIP_FILE rtl/char_rom.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_in.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_out.qip
-
-set_global_assignment -name STRATIXIII_UPDATE_MODE REMOTE
-
-
-
+set_global_assignment -name QIP_FILE rtl/lpm_mult_sl.qip
+set_global_assignment -name QIP_FILE rtl/dc_fifo_emif_wr.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

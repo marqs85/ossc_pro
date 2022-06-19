@@ -1,6 +1,6 @@
 # flash details
 set flash_base                  0x02000000
-set flash_imem_offset           0x00500000
+set flash_imem_offset           0x00A00000
 set flash_imem_base             [format 0x%.8x [expr $flash_base + $flash_imem_offset]]
 set flash_secsize               65536
 
@@ -21,7 +21,15 @@ set bin_size [file size $bin_file]
 set num_sectors [expr ($bin_size / $flash_secsize) + (($bin_size % $flash_secsize) ne 0)]
 
 #Select the master service type and check for available service paths.
-set service_paths [get_service_paths master]
+while 1 {
+    set service_paths [get_service_paths master]
+    if {[llength $service_paths] > 0} {
+        break
+    }
+    puts "Refreshing connections..."
+    refresh_connections
+    after 100
+}
 
 #Set the master service path.
 set master_service_path [lindex $service_paths 0]

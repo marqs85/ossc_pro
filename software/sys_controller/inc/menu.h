@@ -27,13 +27,13 @@
 
 typedef enum {
     NO_ACTION    = 0,
-    OPT_SELECT   = RC_OK,
-    PREV_MENU    = RC_BACK,
-    PREV_PAGE    = RC_UP,
-    NEXT_PAGE    = RC_DOWN,
-    VAL_MINUS    = RC_LEFT,
-    VAL_PLUS     = RC_RIGHT,
-} menucode_id; // order must be consequential with rc_code_t
+    OPT_SELECT,
+    PREV_MENU,
+    PREV_PAGE,
+    NEXT_PAGE,
+    VAL_MINUS,
+    VAL_PLUS
+} menucode_id;
 
 typedef enum {
     OPT_AVCONFIG_SELECTION,
@@ -61,6 +61,7 @@ typedef struct {
     uint8_t wrap_cfg;
     uint8_t min;
     uint8_t max;
+    uint8_t list_view;
     const char **setting_str;
 } opt_avconfig_selection;
 
@@ -114,7 +115,9 @@ struct menustruct {
     menuitem_t *items;
 };
 
-#define SETTING_ITEM(x) 0, sizeof(x)/sizeof(char*)-1, x
+#define SETTING_ITEM(x) 0, sizeof(x)/sizeof(char*)-1, 0, x
+#define SETTING_ITEM_LIST(x) 0, sizeof(x)/sizeof(char*)-1, 1, x
+#define SETTING_ONLY_LIST(x) 0, sizeof(x)/sizeof(char*)-1, 2, x
 #define MENU(X, Y) menuitem_t X##_items[] = Y; const menu_t X = { sizeof(X##_items)/sizeof(menuitem_t), X##_items };
 #define P99_PROTECT(...) __VA_ARGS__
 
@@ -130,8 +133,12 @@ void render_osd_menu();
 void cstm_clock_phase(menucode_id code, int setup_disp);
 void cstm_size(menucode_id code, int setup_disp);
 void cstm_position(menucode_id code, int setup_disp);
-void display_menu(rc_code_t remote_code);
+void cstm_listview(menucode_id code, int setup_disp);
+void enter_cstm(menuitem_t *item, int detached_mode);
+void quick_adjust(menuitem_t *item, int adj);
+void display_menu(rc_code_t rcode, btn_code_t bcode);
 void update_osd_size(mode_data_t *vm_out);
+void set_default_settings();
 void update_settings();
 static void vm_select();
 static void vm_tweak(uint16_t *v);

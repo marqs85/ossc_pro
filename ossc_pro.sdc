@@ -93,7 +93,7 @@ set hdmirx_data_inputs [get_ports {HDMIRX_R_i* HDMIRX_G_i* HDMIRX_B_i* HDMIRX_HS
 set_input_delay -clock pclk_hdmirx -clock_fall -min $hdmirx_dmin $hdmirx_data_inputs -add_delay
 set_input_delay -clock pclk_hdmirx -clock_fall -max $hdmirx_dmax $hdmirx_data_inputs -add_delay
 set_input_delay 0 -clock bck_hdmirx -clock_fall [get_ports {HDMIRX_I2S_WS_i HDMIRX_AP_i}]
-set_false_path -from [get_ports {HDMIRX_INT_N_i}]
+set_false_path -from [get_ports {HDMI_INT_N_i}]
 set_false_path -to [get_ports {HDMIRX_RESET_N_o}]
 
 # ADV7513 (0ns video clock delay adjustment)
@@ -116,7 +116,6 @@ foreach_in_collection c [get_clocks pclk_*_out] {
 
 set_output_delay -clock bck_out -min $hdmitx_dmin [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
 set_output_delay -clock bck_out -max $hdmitx_dmax [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
-set_false_path -from [get_ports {HDMITX_INT_N_i}]
 set_false_path -to [get_ports {HDMITX_SPDIF_o HDMITX_5V_EN_o}]
 
 # extra_av_out
@@ -140,12 +139,13 @@ set_input_delay 0 -clock bck_pcm -clock_fall [get_ports {PCM_I2S_WS_i PCM_I2S_DA
 
 # Misc
 set_false_path -from [get_ports {BTN_i* IR_RX_i SCL_io SDA_io SI_INT_N_i SPDIF_EXT_i SD_DETECT_i}]
-set_false_path -to [get_ports {LED_o* AUDMUX_o SCL_io SDA_io FPGA_PCLK1x_o}]
+set_false_path -to [get_ports {LED_o* AUDMUX_o SCL_io SDA_io FPGA_PCLK1x_o FAN_PWM_o}]
 set_false_path -from {emif_hwreset_n_sync2_reg emif_swreset_n_sync2_reg}
 set_false_path -to {emif_hwreset_n_sync1_reg emif_swreset_n_sync1_reg}
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[0]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[1]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[2]
+set_false_path -setup -to [get_registers sys:sys_inst|sys_alt_vip_cl_cvo_0:alt_vip_cl_cvo_0|alt_vip_cvo_core:cvo_core|alt_vip_cvo_sync_conditioner:pixel_channel_sync_conditioner|alt_vip_common_sync_generation:sync_generation_generate.sync_generation|sof*]
 
 
 ### JTAG Signal Constraints ###

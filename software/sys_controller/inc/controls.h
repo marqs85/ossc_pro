@@ -24,6 +24,7 @@
 #include "sysconfig.h"
 
 typedef enum {
+    /* Keypad */
     RC_BTN1                 = 0,
     RC_BTN2,
     RC_BTN3,
@@ -34,6 +35,7 @@ typedef enum {
     RC_BTN8,
     RC_BTN9,
     RC_BTN0,
+    /* Menu navigation */
     RC_MENU,
     RC_OK,
     RC_BACK,
@@ -41,24 +43,62 @@ typedef enum {
     RC_DOWN,
     RC_LEFT,
     RC_RIGHT,
+    /* Essential special keys */
     RC_INFO,
     RC_STANDBY,
+    /* Scanline hotkeys */
     RC_SL_MODE,
     RC_SL_TYPE,
+    RC_SL_ALIGNM,
     RC_SL_PLUS,
     RC_SL_MINUS,
-    RC_LM_MODE,
+    /* LM hotkeys */
+    RC_LM_PURE,
+    RC_LM_ADAPT,
+    RC_LM_PROC,
+    RC_LM_DIL,
     RC_PHASE_PLUS,
     RC_PHASE_MINUS,
+    /* Scaler hotkeys */
+    RC_SCL,
+    RC_SCL_RES,
+    RC_SCL_FL,
+    RC_SCL_SCL_ALG,
+    RC_SCL_DIL_ALG,
+    RC_SCL_AR,
+    RC_SCL_ROT,
+    RC_SCL_SIZE,
+    RC_SCL_POS,
+    /* Other special keys */
+    RC_RED,
+    RC_GREEN,
+    RC_YELLOW,
+    RC_BLUE,
+    RC_OSD,
+    RC_SCRSHOT,
     RC_PROF_HOTKEY
 } rc_code_t;
 
 typedef enum {
-    PB_BTN0             = (1<<0),
-    PB_BTN1             = (1<<1)
+    BC_HOLD                 = 0,
+    BC_OK,
+    BC_PRESS,
+    BC_UP,
+    BC_DOWN,
+    BC_LEFT,
+    BC_RIGHT
+} btn_code_t;
+
+typedef enum {
+    JOY_PRESS       = (1<<0),
+    JOY_UP          = (1<<1),
+    JOY_RIGHT       = (1<<2),
+    JOY_DOWN        = (1<<3),
+    JOY_LEFT        = (1<<4),
+    PB_PRESS        = (1<<5),
 } btn_vec_t;
 
-#define REMOTE_MAX_KEYS (RC_PROF_HOTKEY-RC_BTN1+1)
+#define REMOTE_MAX_KEYS (RC_PROF_HOTKEY+1)
 
 #define CONTROLS_RC_MASK                   0x0000ffff
 #define CONTROLS_RC_OFFS                   0
