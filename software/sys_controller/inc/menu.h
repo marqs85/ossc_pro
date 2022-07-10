@@ -138,8 +138,6 @@ void enter_cstm(menuitem_t *item, int detached_mode);
 void quick_adjust(menuitem_t *item, int adj);
 void display_menu(rc_code_t rcode, btn_code_t bcode);
 void update_osd_size(mode_data_t *vm_out);
-void set_default_settings();
-void update_settings();
 static void vm_select();
 static void vm_tweak(uint16_t *v);
 static void smp_select();

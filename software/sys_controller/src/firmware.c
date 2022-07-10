@@ -135,22 +135,7 @@ void __attribute__((noinline, __section__(".text_bram"))) fw_update_commit(fw_he
         addr = hdr->image_info[i].target_offset;
 
         for (j=0; j<sectors; j++) {
-            // Write enable
-            flashctrl_dev.regs->flash_cmd_cfg = 0x00000006;
-            flashctrl_dev.regs->flash_cmd_ctrl = 1;
-
-            // Sector erase
-            flashctrl_dev.regs->flash_cmd_cfg = 0x000003D8;
-            flashctrl_dev.regs->flash_cmd_addr = addr;
-            flashctrl_dev.regs->flash_cmd_ctrl = 1;
-
-            // Poll status register until write has completed
-            while (1) {
-                flashctrl_dev.regs->flash_cmd_cfg = 0x00001805;
-                flashctrl_dev.regs->flash_cmd_ctrl = 1;
-                if (!(flashctrl_dev.regs->flash_cmd_rddata[0] & (1<<0)))
-                    break;
-            }
+            flash_sector_erase(&flashctrl_dev, addr);
             addr += FLASH_SECTOR_SIZE;
         }
     }

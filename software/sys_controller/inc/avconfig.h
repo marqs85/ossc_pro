@@ -69,12 +69,11 @@
 #define L5FMT_1600x1200     1
 #define L5FMT_1920x1200     2
 
-// In reverse order of importance
+// In ascending order of importance
 typedef enum {
-    NO_CHANGE           = 0,
-    SC_CONFIG_CHANGE,
-    TP_MODE_CHANGE,
-    MODE_CHANGE
+    SC_CONFIG_CHANGE    = (1<<0),
+    TP_MODE_CHANGE      = (1<<1),
+    MODE_CHANGE         = (1<<2),
 } status_t;
 
 typedef enum {
@@ -182,12 +181,11 @@ typedef struct {
 #endif
 } __attribute__((packed)) avconfig_t;
 
-int reset_target_avconfig();
-
 avconfig_t* get_current_avconfig();
-
-int set_default_avconfig(int update_cc);
-
 status_t update_avconfig();
+int set_default_profile(int update_cc);
+int reset_profile();
+int save_profile();
+int load_profile();
 
 #endif

@@ -107,7 +107,7 @@ typedef enum {
 #define CONTROLS_BTN_MASK                  0x3f000000
 #define CONTROLS_BTN_OFFS                  24
 
-//void setup_rc();
+int setup_rc();
 void set_default_keymap();
 void read_controls();
 void parse_control();
