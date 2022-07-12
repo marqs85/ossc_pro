@@ -73,7 +73,7 @@ extern menuitem_t menu_advtiming_items[];
 
 int setup_rc()
 {
-    int i, confirm;
+    int i, confirm, retval=0;
     uint32_t remote_code_raw_prev;
     uint8_t btn_press, btn_press_prev = 0;
 
@@ -112,6 +112,8 @@ int setup_rc()
             if (!btn_press_prev && btn_press) {
                 if (i == 0) {
                     set_default_keymap();
+                    retval = 1;
+                    set_func_ret_msg("Default map set");
                     i=REMOTE_MAX_KEYS;
                 } else {
                     i-=2;
@@ -130,7 +132,7 @@ int setup_rc()
     }
     write_userdata(INIT_CONFIG_SLOT);
 
-    return 0;
+    return retval;
 }
 
 void set_default_keymap() {

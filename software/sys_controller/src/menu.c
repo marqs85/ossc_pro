@@ -55,7 +55,7 @@ extern uint8_t sl_def_iv_x, sl_def_iv_y;
 extern avinput_t target_avinput;
 extern uint8_t profile_sel_menu;
 
-char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
+char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1], func_ret_status[US2066_ROW_LEN+1];
 extern char target_profile_name[USERDATA_NAME_LEN+1];
 
 uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_active, tc_v_synclen, tc_v_bporch, tc_v_active, tc_sampler_phase;
@@ -524,6 +524,8 @@ void write_option_value(menuitem_t *item, int func_called, int retval)
                     strncpy(menu_row2, "Done", US2066_ROW_LEN+1);
                 else if (retval < 0)
                     sniprintf(menu_row2, US2066_ROW_LEN+1, "Failed (%d)", retval);
+                else
+                    strncpy(menu_row2, func_ret_status, US2066_ROW_LEN+1);
             } else if (item->fun.arg_info) {
                 item->fun.arg_info->df(*item->fun.arg_info->data);
             } else {
@@ -1129,6 +1131,10 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
         osd->osd_sec_enable[1].mask |= (1<<navi[navlvl].mp);
 
     ui_disp_menu(0);
+}
+
+void set_func_ret_msg(char *msg) {
+    strncpy(func_ret_status, msg, US2066_ROW_LEN+1);
 }
 
 void update_osd_size(mode_data_t *vm_out) {

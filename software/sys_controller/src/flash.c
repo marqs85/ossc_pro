@@ -49,7 +49,7 @@ void __attribute__((noinline, __section__(".text_bram"))) flash_sector_erase(fla
     dev->regs->flash_cmd_ctrl = 1;
 
     // Sector erase
-    dev->regs->flash_cmd_cfg = 0x000003D8;
+    dev->regs->flash_cmd_cfg = (dev->flash_size > 0x1000000) ? 0x000004DC : 0x000003D8;
     dev->regs->flash_cmd_addr = addr;
     dev->regs->flash_cmd_ctrl = 1;
 
