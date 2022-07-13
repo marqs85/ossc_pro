@@ -22,6 +22,7 @@
 #include "avconfig.h"
 #include "av_controller.h"
 #include "video_modes.h"
+#include "userdata.h"
 
 #define DEFAULT_ON              1
 
@@ -29,6 +30,8 @@
 avconfig_t cc, tc;
 
 uint8_t update_cur_vm;
+
+uint8_t profile_sel, profile_sel_menu;
 
 // Default configuration
 const avconfig_t tc_default = {
@@ -71,44 +74,12 @@ const avconfig_t tc_default = {
 
 const HDMI_i2s_fs_t audio_fmt_iec_map[] = {IEC60958_FS_48KHZ, IEC60958_FS_96KHZ, IEC60958_FS_192KHZ};
 
-int reset_target_avconfig() {
-    set_default_avconfig(0);
-
-    return 0;
-}
-
 avconfig_t* get_current_avconfig() {
     return &cc;
 }
 
-int set_default_avconfig(int update_cc)
-{
-    memcpy(&tc, &tc_default, sizeof(avconfig_t));
-    isl_get_default_cfg(&tc.isl_cfg);
-#ifdef INC_ADV7513
-    adv7513_get_default_cfg(&tc.hdmitx_cfg);
-#endif
-#ifdef INC_SII1136
-    sii1136_get_default_cfg(&tc.hdmitx_cfg);
-#endif
-#ifdef INC_PCM186X
-    pcm186x_get_default_cfg(&tc.pcm_cfg);
-#endif
-
-#ifdef DExx_FW
-    tc.hdmitx_cfg.i2s_fs = IEC60958_FS_96KHZ;
-#endif
-
-    if (update_cc)
-        memcpy(&cc, &tc, sizeof(avconfig_t));
-
-    set_default_vm_table();
-
-    return 0;
-}
-
 status_t update_avconfig() {
-    status_t status = NO_CHANGE;
+    status_t status = 0;
 
     if ((tc.mask_br != cc.mask_br) ||
         (tc.mask_color != cc.mask_color) ||
@@ -140,10 +111,10 @@ status_t update_avconfig() {
 #endif
 #endif
        )
-        status = SC_CONFIG_CHANGE;
+        status |= SC_CONFIG_CHANGE;
 
     if (tc.tp_mode != cc.tp_mode)
-        status = TP_MODE_CHANGE;
+        status |= TP_MODE_CHANGE;
 
     if ((tc.pm_240p != cc.pm_240p) ||
         (tc.pm_384p != cc.pm_384p) ||
@@ -185,7 +156,7 @@ status_t update_avconfig() {
         (tc.sm_scl_576p != cc.sm_scl_576p)
 #endif
         )
-        status = MODE_CHANGE;
+        status |= MODE_CHANGE;
 
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)
@@ -209,4 +180,69 @@ status_t update_avconfig() {
     cc.hdmitx_cfg.audio_ca_val = CA_2p0;
 
     return status;
+}
+
+int set_default_profile(int update_cc)
+{
+    memcpy(&tc, &tc_default, sizeof(avconfig_t));
+    isl_get_default_cfg(&tc.isl_cfg);
+#ifdef INC_ADV7513
+    adv7513_get_default_cfg(&tc.hdmitx_cfg);
+#endif
+#ifdef INC_SII1136
+    sii1136_get_default_cfg(&tc.hdmitx_cfg);
+#endif
+#ifdef INC_PCM186X
+    pcm186x_get_default_cfg(&tc.pcm_cfg);
+#endif
+
+#ifdef DExx_FW
+    tc.hdmitx_cfg.i2s_fs = IEC60958_FS_96KHZ;
+#endif
+
+    if (update_cc)
+        memcpy(&cc, &tc, sizeof(avconfig_t));
+
+    set_default_vm_table();
+
+    return 0;
+}
+
+int reset_profile() {
+    set_default_profile(0);
+
+    return 0;
+}
+
+int load_profile() {
+    int retval;
+
+    retval = read_userdata(profile_sel_menu, 0);
+    if (retval == 0) {
+        profile_sel = profile_sel_menu;
+
+        // Change the input if the new profile demands it.
+        /*if (tc.link_av != AV_LAST)
+            target_input = tc.link_av;
+
+        // Update profile link (also prevents the change of input from inducing a profile load).
+        input_profiles[profile_link ? target_input : AV_TESTPAT] = profile_sel;
+        write_userdata(INIT_CONFIG_SLOT);*/
+    }
+
+    return retval;
+}
+
+int save_profile() {
+    int retval;
+
+    retval = write_userdata(profile_sel_menu);
+    if (retval == 0) {
+        profile_sel = profile_sel_menu;
+
+        //input_profiles[profile_link ? cm.avinput : AV_TESTPAT] = profile_sel;
+        write_userdata(INIT_CONFIG_SLOT);
+    }
+
+    return retval;
 }

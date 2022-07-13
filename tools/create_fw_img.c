@@ -138,12 +138,12 @@ int main(int argc, char **argv)
     char rdbuf[BUF_SIZE];
     fw_header hdr = {0};
     unsigned fw_version_major, fw_version_minor;
-    
+
     unsigned int i, bytes_read, bytes_written, tot_bytes_read, num_images;
-    
+
     if ((argc < 5) || (argc < 3+2*atoi(argv[1])) || (argc > 4+2*atoi(argv[1]))) {
         printf("Usage: %s num_images image0_path image0_offset [imageN_path imageN_offset...] version [version_suffix]\n", argv[0]);
-        return -1;  
+        return -1;
     }
 
     num_images = atoi(argv[1]);
@@ -159,10 +159,10 @@ int main(int argc, char **argv)
         }
         bitswap_data[i] = ((strlen(argv[2+2*i]) > 4) && !strncmp(argv[2+2*i] + strlen(argv[2+2*i]) - 4, ".rbf", 4));
     }
-    
+
     snprintf(fw_bin_name, MAX_FILENAME-1, "ossc_pro_%s%s%s.bin", argv[2+2*num_images], (argc == 2+2*num_images) ? "-" : "", (argc == 2+2*num_images) ? argv[3+2*num_images] : "");
-    
-    if ((fd_o = open(fw_bin_name, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR)) == -1) {
+
+    if ((fd_o = open(fw_bin_name, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1) {
         printf("Couldn't open output file\n");
         return -1;
     }
@@ -244,8 +244,8 @@ int main(int argc, char **argv)
     }
 
     printf("Firmware image written to %s\n", fw_bin_name);
-    
+
     close(fd_o);
-    
+
     return 0;
 }
