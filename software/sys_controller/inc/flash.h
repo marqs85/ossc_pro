@@ -45,5 +45,6 @@ typedef struct {
 } flash_ctrl_dev;
 
 void flash_write_protect(flash_ctrl_dev *dev, int enable);
+void flash_sector_erase(flash_ctrl_dev *dev, uint32_t addr);
 
 #endif /* FLASH_H_ */

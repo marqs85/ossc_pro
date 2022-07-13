@@ -42,3 +42,22 @@ void __attribute__((noinline, __section__(".text_bram"))) flash_write_protect(fl
     dev->regs->flash_cmd_cfg = 0x00000004;
     dev->regs->flash_cmd_ctrl = 1;
 }
+
+void __attribute__((noinline, __section__(".text_bram"))) flash_sector_erase(flash_ctrl_dev *dev, uint32_t addr) {
+    // Write enable
+    dev->regs->flash_cmd_cfg = 0x00000006;
+    dev->regs->flash_cmd_ctrl = 1;
+
+    // Sector erase
+    dev->regs->flash_cmd_cfg = (dev->flash_size > 0x1000000) ? 0x000004DC : 0x000003D8;
+    dev->regs->flash_cmd_addr = addr;
+    dev->regs->flash_cmd_ctrl = 1;
+
+    // Poll status register until write has completed
+    while (1) {
+        dev->regs->flash_cmd_cfg = 0x00001805;
+        dev->regs->flash_cmd_ctrl = 1;
+        if (!(dev->regs->flash_cmd_rddata[0] & (1<<0)))
+            break;
+    }
+}

@@ -44,9 +44,10 @@
 #include "video_modes.h"
 #include "flash.h"
 #include "firmware.h"
+#include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 57
+#define FW_VER_MINOR 58
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -97,6 +98,15 @@ unsigned char pro_edid_bin[] = {
   0x01, 0x1d, 0x00, 0xbc, 0x52, 0xd0, 0x1e, 0x20, 0xb8, 0x28, 0x55, 0x40,
   0xba, 0x88, 0x21, 0x00, 0x00, 0x1e, 0x01, 0x1d, 0x00, 0x72, 0x51, 0xd0,
   0x1e, 0x20, 0x6e, 0x0c
+};
+
+// Default settings
+const settings_t ts_default = {
+    .default_avinput = 0,
+    .osd_enable = 1,
+    .osd_status_timeout = 1,
+    .fan_pwm = 0,
+    .led_pwm = 5,
 };
 
 isl51002_dev isl_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
@@ -166,13 +176,12 @@ uint8_t sl_def_iv_x, sl_def_iv_y;
 int enable_isl, enable_hdmirx, enable_tp;
 oper_mode_t oper_mode;
 
-extern uint8_t osd_enable;
-extern uint8_t fan_pwm, led_pwm;
-
-avinput_t avinput, target_avinput, default_avinput;
+avinput_t avinput, target_avinput;
 
 mode_data_t vmode_in, vmode_out;
 vm_proc_config_t vm_conf;
+
+settings_t cs, ts;
 
 char row1[US2066_ROW_LEN+1], row2[US2066_ROW_LEN+1];
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
@@ -296,7 +305,7 @@ void ui_disp_menu(uint8_t osd_mode)
 {
     uint8_t menu_page;
 
-    if ((osd_mode == 1) || (osd_enable == 2)) {
+    if ((osd_mode == 1) || (ts.osd_enable == 2)) {
         strncpy((char*)osd->osd_array.data[0][0], menu_row1, OSD_CHAR_COLS);
         strncpy((char*)osd->osd_array.data[1][0], menu_row2, OSD_CHAR_COLS);
         osd->osd_row_color.mask = 0;
@@ -774,11 +783,16 @@ int init_hw()
     }
 #endif
 
-    set_default_avconfig(1);
-    set_default_keymap();
+    set_default_profile(1);
     set_default_settings();
     init_menu();
-    sys_update_pwm();
+    init_userdata();
+
+    // Load initconfig and profile
+    read_userdata(INIT_CONFIG_SLOT, 0);
+    read_userdata(0, 0);
+
+    update_settings(1);
 
     return 0;
 }
@@ -847,12 +861,6 @@ void sys_toggle_power() {
     sys_powered_on ^= 1;
 }
 
-void sys_update_pwm() {
-    sys_ctrl &= ~(SCTRL_FAN_PWM_MASK|SCTRL_LED_PWM_MASK);
-    sys_ctrl |= (fan_pwm << SCTRL_FAN_PWM_OFFS) | (led_pwm << SCTRL_LED_PWM_OFFS);
-    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
-}
-
 void print_vm_stats() {
     alt_timestamp_type ts = alt_timestamp();
     int row = 0;
@@ -898,6 +906,31 @@ void print_vm_stats() {
     osd->osd_row_color.mask = 0;
     osd->osd_sec_enable[0].mask = (1<<(row+1))-1;
     osd->osd_sec_enable[1].mask = (1<<(row+1))-1;
+}
+
+void set_default_settings() {
+    memcpy(&ts, &ts_default, sizeof(settings_t));
+    set_default_keymap();
+}
+
+void update_settings(int init_setup) {
+    if (init_setup || (ts.osd_enable != cs.osd_enable) || (ts.osd_status_timeout != cs.osd_status_timeout)) {
+        osd->osd_config.enable = !!ts.osd_enable;
+        osd->osd_config.status_timeout = ts.osd_status_timeout;
+        if (is_menu_active()) {
+            render_osd_menu();
+            display_menu((rc_code_t)-1, (btn_code_t)-1);
+        }
+    }
+    if (init_setup || (ts.fan_pwm != cs.fan_pwm) || (ts.led_pwm != cs.led_pwm)) {
+        sys_ctrl &= ~(SCTRL_FAN_PWM_MASK|SCTRL_LED_PWM_MASK);
+        sys_ctrl |= (ts.fan_pwm << SCTRL_FAN_PWM_OFFS) | (ts.led_pwm << SCTRL_LED_PWM_OFFS);
+        IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+    }
+    if (init_setup)
+        target_avinput = ts.default_avinput;
+
+    memcpy(&cs, &ts, sizeof(settings_t));
 }
 
 void mainloop()
@@ -1058,11 +1091,11 @@ void mainloop()
             ui_disp_status(1);
         }
 
-        update_settings();
+        update_settings(0);
         status = update_avconfig();
 
         if (enable_tp) {
-            if (status == TP_MODE_CHANGE) {
+            if (status & TP_MODE_CHANGE) {
                 get_standard_mode(cur_avconfig->tp_mode, &vm_conf, &vmode_in, &vmode_out);
                 if (vmode_out.si_pclk_mult > 0) {
                     si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, 0, vmode_out.si_pclk_mult, vmode_out.si_ms_conf.outdiv);
@@ -1100,7 +1133,7 @@ void mainloop()
             }
 
             if (isl_dev.sync_active) {
-                if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status2.pcnt_frame) || (status == MODE_CHANGE)) {
+                if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status2.pcnt_frame) || (status & MODE_CHANGE)) {
                     memset(&vmode_in, 0, sizeof(mode_data_t));
 
 #ifdef ISL_MEAS_HZ
@@ -1206,7 +1239,7 @@ void mainloop()
                         sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
 #endif
                     }
-                } else if (status == SC_CONFIG_CHANGE) {
+                } else if (status & SC_CONFIG_CHANGE) {
                     update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 }
             } else {
@@ -1227,7 +1260,7 @@ void mainloop()
             }
 
             if (advrx_dev.sync_active) {
-                if (adv761x_get_sync_stats(&advrx_dev) || (status == MODE_CHANGE)) {
+                if (adv761x_get_sync_stats(&advrx_dev) || (status & MODE_CHANGE)) {
                     memset(&vmode_in, 0, sizeof(mode_data_t));
 
                     h_hz = advrx_dev.pclk_hz/advrx_dev.ss.h_total;
@@ -1308,7 +1341,7 @@ void mainloop()
                         sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
 #endif
                     }
-                } else if (status == SC_CONFIG_CHANGE) {
+                } else if (status & SC_CONFIG_CHANGE) {
                     update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 }
             } else {
@@ -1393,9 +1426,8 @@ int main()
         sys_ctrl &= ~SCTRL_EMIF_POWERDN_REQ;
         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
-        // Set default input
+        // Invalidate input
         avinput = (avinput_t)-1;
-        target_avinput = default_avinput;
 
         pcm186x_enable_power(&pcm_dev, 1);
 

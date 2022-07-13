@@ -87,6 +87,16 @@ typedef enum {
 } audinput_t;
 #endif
 
+typedef struct {
+    avinput_t default_avinput;
+    uint8_t osd_enable;
+    uint8_t osd_status_timeout;
+#ifndef DExx_FW
+    uint8_t fan_pwm;
+    uint8_t led_pwm;
+#endif
+} settings_t;
+
 void ui_disp_menu(uint8_t osd_mode);
 void ui_disp_status(uint8_t refresh_osd_timer);
 
@@ -102,8 +112,9 @@ int sys_is_powered_on();
 
 void sys_toggle_power();
 
-void sys_update_pwm();
-
 void print_vm_stats();
+
+void set_default_settings();
+void update_settings(int init_setup);
 
 #endif

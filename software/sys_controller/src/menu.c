@@ -23,6 +23,7 @@
 #include "avconfig.h"
 #include "controls.h"
 #include "firmware.h"
+#include "userdata.h"
 #include "us2066.h"
 
 #define MAX_MENU_DEPTH 3
@@ -37,6 +38,7 @@
 #endif
 
 extern avconfig_t tc;
+extern settings_t ts;
 extern isl51002_dev isl_dev;
 #ifndef DExx_FW
 extern adv761x_dev advrx_dev;
@@ -50,9 +52,11 @@ extern uint8_t update_cur_vm;
 extern oper_mode_t oper_mode;
 extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
 extern uint8_t sl_def_iv_x, sl_def_iv_y;
-extern avinput_t target_avinput, default_avinput;
+extern avinput_t target_avinput;
+extern uint8_t profile_sel_menu;
 
-char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
+char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1], func_ret_status[US2066_ROW_LEN+1];
+extern char target_profile_name[USERDATA_NAME_LEN+1];
 
 uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_active, tc_v_synclen, tc_v_bporch, tc_v_active, tc_sampler_phase;
 uint8_t menu_active;
@@ -67,9 +71,6 @@ void (*cstm_f)(menucode_id, int);
 // Listview variables
 uint8_t lw_mp;
 menuitem_t *lw_item;
-
-uint8_t osd_enable, osd_enable_pre, osd_status_timeout, osd_status_timeout_pre;
-uint8_t fan_pwm, fan_pwm_pre, led_pwm, led_pwm_pre;
 
 static const char *off_on_desc[] = { LNG("Off","ｵﾌ"), LNG("On","ｵﾝ") };
 static const char *ypbpr_cs_desc[] = { "Rec. 601", "Rec. 709" };
@@ -165,7 +166,7 @@ static void vm_plm_display_name (uint8_t v) { strncpy(menu_row2, video_modes_plm
 static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes[v].name, US2066_ROW_LEN+1); }
 static void pwm_disp (uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", (v*10)); }
 //static void link_av_desc (avinput_t v) { strncpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
-//static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
+static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
 
@@ -195,8 +196,7 @@ static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mod
 
 static arg_info_t vm_arg_info = {&vm_sel, 0, vm_plm_display_name};
 static arg_info_t smp_arg_info = {&smp_sel, 0, smp_display_name};
-/*static const arg_info_t profile_arg_info = {&profile_sel_menu, MAX_PROFILE, profile_disp};
-static const arg_info_t lt_arg_info = {&lt_sel, (sizeof(lt_desc)/sizeof(char*))-1, lt_disp};*/
+static const arg_info_t profile_arg_info = {&profile_sel_menu, MAX_PROFILE, profile_disp};
 
 
 MENU(menu_advtiming_plm, P99_PROTECT({
@@ -360,7 +360,6 @@ MENU(menu_scanlines, P99_PROTECT({
     { "Sl. method",                             OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_method,   OPT_WRAP,   SETTING_ITEM(sl_method_desc) } } },
     { "Sl. LM Bob altern.",                     OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_altern,   OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { LNG("Sl. alignment","ｽｷｬﾝﾗｲﾝﾎﾟｼﾞｼｮﾝ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_id,       OPT_WRAP,   SETTING_ITEM(sl_id_desc) } } },
-    //{ "Sl. alt interval",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_altiv,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { LNG("Sl. type","ｽｷｬﾝﾗｲﾝﾙｲ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.sl_type,     OPT_WRAP,   SETTING_ITEM_LIST(sl_type_desc) } } },
     { "Custom Sl.",                             OPT_SUBMENU,            { .sub = { &menu_cust_sl, NULL, NULL } } },
 }))
@@ -373,7 +372,7 @@ MENU(menu_postproc, P99_PROTECT({
     { "BFI for 2x Hz",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.bfi_enable,  OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "BFI strength",                            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.bfi_str,     OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
     //{ LNG("Reverse LPF","ｷﾞｬｸLPF"),              OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.reverse_lpf, OPT_NOWRAP, 0, REVERSE_LPF_MAX, value_disp } } },
-    //{ LNG("<DIY lat. test>","DIYﾁｴﾝﾃｽﾄ"),         OPT_FUNC_CALL,          { .fun = { latency_test, &lt_arg_info } } },
+    //{ LNG("DIY lat. test","DIYﾁｴﾝﾃｽﾄ"),         OPT_FUNC_CALL,          { .fun = { latency_test, &lt_arg_info } } },
 }))
 
 MENU(menu_audio, P99_PROTECT({
@@ -395,23 +394,23 @@ MENU(menu_audio, P99_PROTECT({
 
 
 MENU(menu_settings, P99_PROTECT({
-    //{ LNG("<Load profile >","<ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ    >"),   OPT_FUNC_CALL,         { .fun = { load_profile, &profile_arg_info } } },
-    //{ LNG("<Save profile >","<ﾌﾟﾛﾌｧｲﾙｾｰﾌﾞ    >"),  OPT_FUNC_CALL,          { .fun = { save_profile, &profile_arg_info } } },
+    { LNG("Initial input","ｼｮｷﾆｭｳﾘｮｸ"),          OPT_AVCONFIG_SELECTION, { .sel = { &ts.default_avinput,       OPT_WRAP, SETTING_ITEM_LIST(avinput_str) } } },
     //{ LNG("Link prof->input","Link prof->input"), OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.link_av,  OPT_WRAP, AV1_RGBs, AV_LAST, link_av_desc } } },
     //{ LNG("Link input->prof","Link input->prof"),   OPT_AVCONFIG_SELECTION, { .sel = { &profile_link,  OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
-    { LNG("Initial input","ｼｮｷﾆｭｳﾘｮｸ"),          OPT_AVCONFIG_SELECTION, { .sel = { &default_avinput,       OPT_WRAP, SETTING_ITEM_LIST(avinput_str) } } },
     //{ "Autodetect input",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_input,     OPT_WRAP, SETTING_ITEM(auto_input_desc) } } },
     //{ "Auto AV1 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av1_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
     //{ "Auto AV2 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av2_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
     //{ "Auto AV3 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av3_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
-    { "OSD",                                    OPT_AVCONFIG_SELECTION, { .sel = { &osd_enable_pre,   OPT_WRAP,   SETTING_ITEM_LIST(osd_enable_desc) } } },
-    { "OSD status disp.",                       OPT_AVCONFIG_SELECTION, { .sel = { &osd_status_timeout_pre,   OPT_WRAP,   SETTING_ITEM_LIST(osd_status_desc) } } },
+    { "OSD",                                    OPT_AVCONFIG_SELECTION, { .sel = { &ts.osd_enable,   OPT_WRAP,   SETTING_ITEM_LIST(osd_enable_desc) } } },
+    { "OSD status disp.",                       OPT_AVCONFIG_SELECTION, { .sel = { &ts.osd_status_timeout,   OPT_WRAP,   SETTING_ITEM_LIST(osd_status_desc) } } },
 #ifndef DExx_FW
-    { "Fan PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &fan_pwm_pre,   OPT_NOWRAP, 0, 10,  pwm_disp } } },
-    { "Led PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &led_pwm_pre,   OPT_NOWRAP, 1, 10,  pwm_disp } } },
+    { "Fan PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.fan_pwm,   OPT_NOWRAP, 0, 10,  pwm_disp } } },
+    { "Led PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.led_pwm,   OPT_NOWRAP, 1, 10,  pwm_disp } } },
 #endif
-    //{     "<Import sett.  >",                     OPT_FUNC_CALL,        { .fun = { import_userdata, NULL } } },
-    { LNG("Reset settings","ｾｯﾃｲｵｼｮｷｶ"),         OPT_FUNC_CALL,          { .fun = { reset_target_avconfig, NULL } } },
+    { "Bind IR remote",                         OPT_FUNC_CALL,          { .fun = { setup_rc, NULL } } },
+    { LNG("Load profile","ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ"),        OPT_FUNC_CALL,          { .fun = { load_profile, &profile_arg_info } } },
+    { LNG("Save profile","ﾌﾟﾛﾌｧｲﾙｾｰﾌﾞ"),        OPT_FUNC_CALL,          { .fun = { save_profile, &profile_arg_info } } },
+    { LNG("Reset profile","ｾｯﾃｲｵｼｮｷｶ"),          OPT_FUNC_CALL,          { .fun = { reset_profile, NULL } } },
 //#ifdef OSSC_PRO_FINAL_CFG
     { LNG("Fw. update","ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ"),       OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
 //#endif
@@ -457,8 +456,6 @@ void init_menu() {
     osd->osd_config.y_size = 0;
     osd->osd_config.x_offset = 3;
     osd->osd_config.y_offset = 3;
-    osd->osd_config.enable = !!osd_enable;
-    osd->osd_config.status_timeout = osd_status_timeout;
     osd->osd_config.border_color = 1;
 }
 
@@ -527,6 +524,8 @@ void write_option_value(menuitem_t *item, int func_called, int retval)
                     strncpy(menu_row2, "Done", US2066_ROW_LEN+1);
                 else if (retval < 0)
                     sniprintf(menu_row2, US2066_ROW_LEN+1, "Failed (%d)", retval);
+                else
+                    strncpy(menu_row2, func_ret_status, US2066_ROW_LEN+1);
             } else if (item->fun.arg_info) {
                 item->fun.arg_info->df(*item->fun.arg_info->data);
             } else {
@@ -543,7 +542,7 @@ void render_osd_menu() {
     menuitem_t *item;
     uint32_t row_mask[2] = {0, 0};
 
-    if (!menu_active || (osd_enable != 1))
+    if (!menu_active || (ts.osd_enable != 1))
         return;
 
     for (i=0; i < navi[navlvl].m->num_items; i++) {
@@ -1121,6 +1120,8 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
     }
 
     // Generate menu text
+    if (func_called)
+        render_osd_menu();
     item = &navi[navlvl].m->items[navi[navlvl].mp];
     write_option_name(item);
     write_option_value(item, func_called, retval);
@@ -1132,41 +1133,15 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
     ui_disp_menu(0);
 }
 
+void set_func_ret_msg(char *msg) {
+    strncpy(func_ret_status, msg, US2066_ROW_LEN+1);
+}
+
 void update_osd_size(mode_data_t *vm_out) {
     uint8_t osd_size = vm_out->timings.v_active / 700;
 
     osd->osd_config.x_size = osd_size + vm_out->timings.interlaced;
     osd->osd_config.y_size = osd_size;
-}
-
-void set_default_settings() {
-    default_avinput = 0;
-    osd_enable = osd_enable_pre = 1;
-    osd_status_timeout = osd_status_timeout_pre = 1;
-#ifndef DExx_FW
-    fan_pwm = fan_pwm_pre = 0;
-    led_pwm = led_pwm_pre = 5;
-#endif
-}
-
-void update_settings() {
-    if ((osd_enable != osd_enable_pre) || (osd_status_timeout != osd_status_timeout_pre)) {
-        osd_enable = osd_enable_pre;
-        osd_status_timeout = osd_status_timeout_pre;
-        osd->osd_config.enable = !!osd_enable;
-        osd->osd_config.status_timeout = osd_status_timeout;
-        if (is_menu_active()) {
-            render_osd_menu();
-            display_menu((rc_code_t)-1, (btn_code_t)-1);
-        }
-    }
-#ifndef DExx_FW
-    if ((fan_pwm != fan_pwm_pre) || (led_pwm != led_pwm_pre)) {
-        fan_pwm = fan_pwm_pre;
-        led_pwm = led_pwm_pre;
-        sys_update_pwm();
-    }
-#endif
 }
 
 static void vm_select() {

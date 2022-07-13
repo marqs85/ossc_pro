@@ -23,6 +23,8 @@
 #include "controls.h"
 #include "av_controller.h"
 #include "menu.h"
+#include "userdata.h"
+#include "us2066.h"
 
 static const char *rc_keydesc[REMOTE_MAX_KEYS] = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
                                                    "MENU", "OK", "BACK", "UP", "DOWN", "LEFT", "RIGHT",
@@ -61,6 +63,7 @@ btn_code_t b_code;
 extern int enable_tp;
 extern uint8_t smp_cur, smp_edit, dtmg_cur, dtmg_edit;
 extern oper_mode_t oper_mode;
+extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 extern menuitem_t menu_scanlines_items[];
 extern menuitem_t menu_scaler_items[];
@@ -68,41 +71,49 @@ extern menuitem_t menu_output_items[];
 extern menuitem_t menu_settings_items[];
 extern menuitem_t menu_advtiming_items[];
 
-/*void setup_rc()
+int setup_rc()
 {
-    int i, confirm;
-    uint32_t remote_code_prev = 0;
+    int i, confirm, retval=0;
+    uint32_t remote_code_raw_prev;
+    uint8_t btn_press, btn_press_prev = 0;
+
+    remote_code_raw_prev = (IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE) & CONTROLS_RC_MASK) >> CONTROLS_RC_OFFS;
 
     for (i=0; i<REMOTE_MAX_KEYS; i++) {
-        strncpy(menu_row1, "Press", LCD_ROW_LEN+1);
-        strncpy(menu_row2, rc_keydesc[i], LCD_ROW_LEN+1);
-        lcd_write_menu();
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "Press");
+        strncpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
+        ui_disp_menu(1);
         confirm = 0;
 
         while (1) {
-            remote_code = IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE) & RC_MASK;
-            btn_code = ~IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE) & PB_MASK;
+            controls = IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE);
+            remote_code_raw = (controls & CONTROLS_RC_MASK) >> CONTROLS_RC_OFFS;
+            btn_press = !!(((~controls & CONTROLS_BTN_MASK) >> CONTROLS_BTN_OFFS) & PB_PRESS);
 
-            if (remote_code && (remote_code != remote_code_prev)) {
+            if (remote_code_raw && (remote_code_raw != remote_code_raw_prev)) {
                 if (confirm == 0) {
-                    rc_keymap[i] = remote_code;
-                    strncpy(menu_row1, "Confirm", LCD_ROW_LEN+1);
-                    lcd_write_menu();
+                    rc_keymap[i] = remote_code_raw;
+                    sniprintf(menu_row1, US2066_ROW_LEN+1, "Confirm 0x%.4x", remote_code_raw);
+                    sniprintf(menu_row2, US2066_ROW_LEN+1, "by pressing again");
+                    ui_disp_menu(1);
                     confirm = 1;
                 } else {
-                    if (remote_code == rc_keymap[i]) {
+                    if (remote_code_raw == rc_keymap[i]) {
                         confirm = 2;
                     } else {
-                        strncpy(menu_row1, "Mismatch, retry", LCD_ROW_LEN+1);
-                        lcd_write_menu();
+                        sniprintf(menu_row1, US2066_ROW_LEN+1, "Mismatch, retry");
+                        strncpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
+                        ui_disp_menu(1);
                         confirm = 0;
                     }
                 }
             }
 
-            if ((btn_code_prev == 0) && (btn_code == PB0_BIT)) {
+            if (!btn_press_prev && btn_press) {
                 if (i == 0) {
-                    memcpy(rc_keymap, rc_keymap_default, sizeof(rc_keymap));
+                    set_default_keymap();
+                    retval = 1;
+                    set_func_ret_msg("Default map set");
                     i=REMOTE_MAX_KEYS;
                 } else {
                     i-=2;
@@ -110,17 +121,19 @@ extern menuitem_t menu_advtiming_items[];
                 confirm = 2;
             }
 
-            remote_code_prev = remote_code;
-            btn_code_prev = btn_code;
+            remote_code_raw_prev = remote_code_raw;
+            btn_press_prev = btn_press;
 
             if (confirm == 2)
                 break;
 
-            usleep(WAITLOOP_SLEEP_US);
+            usleep(MAINLOOP_INTERVAL_US);
         }
     }
     write_userdata(INIT_CONFIG_SLOT);
-}*/
+
+    return retval;
+}
 
 void set_default_keymap() {
     memcpy(rc_keymap, rc_keymap_default, sizeof(rc_keymap));
