@@ -31,7 +31,7 @@ avconfig_t cc, tc;
 
 uint8_t update_cur_vm;
 
-uint8_t profile_sel, profile_sel_menu;
+uint8_t profile_sel, profile_sel_menu, sd_profile_sel_menu;
 
 // Default configuration
 const avconfig_t tc_default = {
@@ -243,6 +243,20 @@ int save_profile() {
         //input_profiles[profile_link ? cm.avinput : AV_TESTPAT] = profile_sel;
         write_userdata(INIT_CONFIG_SLOT);
     }
+
+    return retval;
+}
+
+int load_profile_sd() {
+    return read_userdata_sd(sd_profile_sel_menu, 0);
+}
+
+int save_profile_sd() {
+    int retval;
+
+    retval = write_userdata_sd(sd_profile_sel_menu);
+    if (retval == 0)
+        write_userdata_sd(SD_INIT_CONFIG_SLOT);
 
     return retval;
 }

@@ -187,5 +187,7 @@ int set_default_profile(int update_cc);
 int reset_profile();
 int save_profile();
 int load_profile();
+int save_profile_sd();
+int load_profile_sd();
 
 #endif
