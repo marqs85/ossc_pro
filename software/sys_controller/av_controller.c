@@ -162,9 +162,7 @@ volatile sc_regs *sc = (volatile sc_regs*)SC_CONFIG_0_BASE;
 volatile osd_regs *osd = (volatile osd_regs*)OSD_GENERATOR_0_BASE;
 
 struct mmc *mmc_dev;
-struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq);
-
-FRESULT res;
+struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq, unsigned int host_caps);
 
 uint32_t sys_ctrl;
 uint32_t sys_status;
@@ -752,7 +750,7 @@ int init_hw()
     si5351_init(&si_dev);
 
     //init ocsdc driver
-    mmc_dev = ocsdc_mmc_init(SDC_CONTROLLER_QSYS_0_BASE, 108000000U);
+    mmc_dev = ocsdc_mmc_init(SDC_CONTROLLER_QSYS_0_BASE, 108000000U, MMC_MODE_HS|MMC_MODE_HS_52MHz);
     mmc_dev->has_init = 0;
     sd_det = sd_det_prev = 0;
 
