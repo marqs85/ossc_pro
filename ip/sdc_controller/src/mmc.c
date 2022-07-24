@@ -190,6 +190,8 @@ static int sd_send_op_cond(struct mmc *mmc)
 
 	mmc->ocr = cmd.response[0];
 
+	DBG_PRINTF("OCR: %08x\n\r", mmc->ocr);
+
 	mmc->high_capacity = ((mmc->ocr & OCR_HCS) == OCR_HCS);
 	mmc->rca = 0;
 
@@ -389,8 +391,8 @@ retry_scr:
 		return err;
 	}
 
-	mmc->scr[0] = scr[0];
-	mmc->scr[1] = scr[1];
+	mmc->scr[0] = __builtin_bswap32(scr[0]);
+	mmc->scr[1] = __builtin_bswap32(scr[1]);
 
 	DBG_PRINTF("SCR: %08x\n\r", mmc->scr[0]);
 	DBG_PRINTF("     %08x\n\r", mmc->scr[1]);
@@ -402,8 +404,11 @@ retry_scr:
 		case 1:
 			mmc->version = SD_VERSION_1_10;
 			break;
-		default:
+		case 2:
 			mmc->version = SD_VERSION_2;
+			break;
+		default:
+			mmc->version = SD_VERSION_1_0;
 			break;
 	}
 
@@ -426,12 +431,12 @@ retry_scr:
 		DBG_PRINTF("switch status 3 %08x\n\r", switch_status[3]);
 		DBG_PRINTF("switch status 4 %08x\n\r", switch_status[4]);
 		/* The high-speed function is busy.  Try again */
-		if (!(switch_status[7] & SD_HIGHSPEED_BUSY))
+		if (!(__builtin_bswap32(switch_status[7]) & SD_HIGHSPEED_BUSY))
 			break;
 	}
 
 	/* If high-speed isn't supported, we return */
-	if (!(switch_status[3] & SD_HIGHSPEED_SUPPORTED))
+	if (!(__builtin_bswap32(switch_status[3]) & SD_HIGHSPEED_SUPPORTED))
 		return 0;
 
 	/*
@@ -449,7 +454,7 @@ retry_scr:
 	if (err)
 		return err;
 
-	if ((switch_status[4] & 0x0f000000) == 0x01000000)
+	if ((__builtin_bswap32(switch_status[4]) & 0x0f000000) == 0x01000000)
 		mmc->card_caps |= MMC_MODE_HS;
 
 	return 0;
