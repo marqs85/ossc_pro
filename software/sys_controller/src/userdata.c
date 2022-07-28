@@ -343,7 +343,10 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
     int i, j, target_map_items, retval=0;
 
     target_profile_name[0] = 0;
-    sniprintf(p_filename, 14, "prof%.2u.bin", entry);
+    if (entry == SD_INIT_CONFIG_SLOT)
+        sniprintf(p_filename, 14, "settings.bin");
+    else
+        sniprintf(p_filename, 14, "prof%.2u.bin", entry);
 
     if (entry > MAX_SD_USERDATA_ENTRY) {
         printf("invalid entry\n");

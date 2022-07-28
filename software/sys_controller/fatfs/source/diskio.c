@@ -11,6 +11,7 @@
 #include "diskio.h"		/* Declarations of disk functions */
 #include "mmc.h"
 #include "system.h"
+#include "sysconfig.h"
 
 
 extern struct mmc *mmc_dev;
@@ -94,7 +95,12 @@ DRESULT disk_write (
     if (mmc_dev->has_init == 0 || !sd_det)
         return RES_NOTRDY;
 
+#ifdef DExx_FW
+    // For some reason SD write source gets offset by 1 word in NiosII-based systems, thus compensation below
+    if (mmc_bwrite(mmc_dev, (LBA_t)sector, (UINT)count, buff-4) == count)
+#else
     if (mmc_bwrite(mmc_dev, (LBA_t)sector, (UINT)count, buff) == count)
+#endif
         return RES_OK;
 
     return RES_PARERR;
