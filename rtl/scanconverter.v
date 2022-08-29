@@ -238,7 +238,7 @@ linebuf_top #(
     .emif_wr_write(emif_wr_write),
     .emif_wr_wdata(emif_wr_wdata),
     .emif_wr_waitrequest(emif_wr_waitrequest),
-    .emif_wr_burstcount(emif_wr_burstcount),
+    .emif_wr_burstcount(emif_wr_burstcount)
 );
 
 
