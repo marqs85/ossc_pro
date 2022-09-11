@@ -55,7 +55,6 @@ typedef struct {
     void *data;
 } ude_item_map;
 
-void init_userdata();
 int write_userdata(uint8_t entry);
 int read_userdata(uint8_t entry, int dry_run);
 int write_userdata_sd(uint8_t entry);

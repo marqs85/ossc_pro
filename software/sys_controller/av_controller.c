@@ -47,7 +47,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 58
+#define FW_VER_MINOR 60
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -784,7 +784,6 @@ int init_hw()
     set_default_profile(1);
     set_default_settings();
     init_menu();
-    init_userdata();
 
     // Load initconfig and profile
     read_userdata(INIT_CONFIG_SLOT, 0);

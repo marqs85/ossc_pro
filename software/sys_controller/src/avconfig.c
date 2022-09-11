@@ -65,6 +65,9 @@ const avconfig_t tc_default = {
 #endif
     .sm_scl_480p = 1,
 #endif
+#ifdef INC_THS7353
+    .syncmux_stc = 1,
+#endif
 #ifndef DExx_FW
     .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL},
 #else

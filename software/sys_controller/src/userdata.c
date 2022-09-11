@@ -29,7 +29,11 @@
 
 #define UDE_ITEM(ID, VER, ITEM) {{ID, VER, sizeof(ITEM)}, &ITEM}
 
-extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
+// include mode array definitions so that sizeof() can be used
+#define VM_STATIC_INCLUDE
+#include "video_modes_list.c"
+#undef VM_STATIC_INCLUDE
+
 extern flash_ctrl_dev flashctrl_dev;
 extern uint8_t sd_det;
 extern uint16_t rc_keymap[REMOTE_MAX_KEYS];
@@ -41,7 +45,7 @@ extern smp_preset_t smp_presets[];
 
 char target_profile_name[USERDATA_NAME_LEN+1];
 
-ude_item_map ude_initcfg_items[] = {
+const ude_item_map ude_initcfg_items[] = {
     UDE_ITEM(0, 58, rc_keymap),
     UDE_ITEM(1, 58, ts.default_avinput),
     UDE_ITEM(2, 58, ts.osd_enable),
@@ -52,10 +56,10 @@ ude_item_map ude_initcfg_items[] = {
 #endif
 };
 
-ude_item_map ude_profile_items[] = {
-    {{0, 58, 0}, video_modes_plm}, //size updated during init
-    {{1, 58, 0}, video_modes}, //size updated during init
-    {{2, 58, 0}, smp_presets}, //size updated during init
+const ude_item_map ude_profile_items[] = {
+    {{0, 58, sizeof(video_modes_plm_default)}, video_modes_plm},
+    {{1, 58, sizeof(video_modes_default)}, video_modes},
+    {{2, 58, sizeof(smp_presets_default)}, smp_presets},
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -151,15 +155,9 @@ ude_item_map ude_profile_items[] = {
 #endif
 };
 
-void init_userdata() {
-    ude_profile_items[0].hdr.data_size = num_video_modes_plm*sizeof(mode_data_t);
-    ude_profile_items[1].hdr.data_size = num_video_modes*sizeof(mode_data_t);
-    ude_profile_items[2].hdr.data_size = num_smp_presets*sizeof(smp_preset_t);
-}
-
 int write_userdata(uint8_t entry) {
     ude_hdr hdr;
-    ude_item_map *target_map;
+    const ude_item_map *target_map;
     uint32_t flash_addr, bytes_written;
     int i;
 
@@ -218,7 +216,7 @@ int write_userdata(uint8_t entry) {
 int read_userdata(uint8_t entry, int dry_run) {
     ude_hdr hdr;
     ude_item_hdr item_hdr;
-    ude_item_map *target_map;
+    const ude_item_map *target_map;
     uint32_t flash_addr, bytes_read;
     int i, j, target_map_items;
 
@@ -266,7 +264,7 @@ int read_userdata(uint8_t entry, int dry_run) {
 int write_userdata_sd(uint8_t entry) {
     FIL p_file;
     ude_hdr hdr;
-    ude_item_map *target_map;
+    const ude_item_map *target_map;
     unsigned int bytes_written, bytes_written_tot;
     char p_filename[14];
     int i, retval=0;
@@ -337,7 +335,7 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
     FIL p_file;
     ude_hdr hdr;
     ude_item_hdr item_hdr;
-    ude_item_map *target_map;
+    const ude_item_map *target_map;
     unsigned int bytes_read, bytes_read_tot;
     char p_filename[14];
     int i, j, target_map_items, retval=0;

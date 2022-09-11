@@ -18,6 +18,9 @@
 //
 
 /* Legacy Pure LM modes */
+#ifdef VM_STATIC_INCLUDE
+static
+#endif
 const mode_data_t video_modes_plm_default[] = {
     /* 240p modes */
     { "1600x240",      HDMI_Unknown,     {1600,  240,   6000,  2046, 0,  262,  202, 15,  150, 3,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,               GROUP_240P,   (MODE_L5_GEN_4_3),                                                        0, 0, 0, {0} },
@@ -79,6 +82,9 @@ const mode_data_t video_modes_plm_default[] = {
 };
 
 /* Output modes for Adaptive LM and Scaler */
+#ifdef VM_STATIC_INCLUDE
+static
+#endif
 const mode_data_t video_modes_default[] = {
     /* 240p/288p */
     { "240p",          HDMI_240p60_PR2x, { 720,  240,   6005,   858, 0,  262,   57, 15,   62, 3,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,               GROUP_240P,   0,  TX_2X, TX_2X,  1, {0, 0, 0, 0, 0, 0, 0, 1, 0} },
@@ -122,6 +128,9 @@ const mode_data_t video_modes_default[] = {
 };
 
 /* Sampling presets for Adaptive LM and Scaler */
+#ifdef VM_STATIC_INCLUDE
+static
+#endif
 const smp_preset_t smp_presets_default[] = {
     /* Generic 240p presets */
     { "Gen. 720x240",   SM_GEN_4_3,        { 720,  240,   6500,   858, 0,  262,   57, 15,   62, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
