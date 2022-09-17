@@ -65,10 +65,9 @@ typedef enum {
 } video_group;
 
 typedef enum {
-    //deprecated
-    MODE_INTERLACED     = (1<<0),
-    MODE_PLLDIVBY2      = (1<<1),
-    //at least one of the flags below must be set for each mode
+    MODE_INTERLACED     = (1<<0), //deprecated
+    MODE_CRT            = (1<<1),
+    //at least one of the flags below must be set for each P-LM mode
     MODE_PT             = (1<<2),
     MODE_L2             = (1<<3),
     MODE_L2_512_COL     = (1<<4),
@@ -96,11 +95,13 @@ typedef enum {
 } mode_flags;
 
 typedef enum {
-    STDMODE_240p,
-    STDMODE_288p,
+    STDMODE_240p_CRT,
+    STDMODE_288p_CRT,
     STDMODE_480i,
     STDMODE_480p,
-    STDMODE_640x480_60,
+    STDMODE_480p_60_CRT,
+    STDMODE_480p_100_CRT,
+    STDMODE_480p_120_CRT,
     STDMODE_576i,
     STDMODE_576p,
     STDMODE_720p_50,
@@ -135,11 +136,11 @@ typedef enum {
     SM_OPT_DTV480P_WS,
     SM_OPT_DTV576P,
     SM_OPT_DTV576P_WS,
-    SM_OPT_VGA_640x350_70,
-    SM_OPT_VGA_720x350_70,
-    SM_OPT_VGA_640x400_70,
-    SM_OPT_VGA_720x400_70,
-    SM_OPT_VGA_640x480_60,
+    SM_OPT_VGA_640x350,
+    SM_OPT_VGA_720x350,
+    SM_OPT_VGA_640x400,
+    SM_OPT_VGA_720x400,
+    SM_OPT_VESA_640x480,
     SM_OPT_PC_HDTV,
     SM_OPT_SNES_256COL,
     SM_OPT_SNES_512COL,
@@ -172,6 +173,7 @@ typedef enum {
 
 typedef enum {
     GEN_WIDTH_SMALLEST,
+    GEN_WIDTH_LARGEST,
     GEN_WIDTH_CLOSEST_PREFER_UNDER,
     GEN_WIDTH_CLOSEST_PREFER_OVER,
 } gen_width_mode_t;
@@ -208,9 +210,6 @@ typedef struct {
     mode_flags flags;
     HDMI_pixelrep_t tx_pixelrep;
     HDMI_pixelrep_t hdmitx_pixr_ifr;
-    // for generation from 27MHz clock
-    uint8_t si_pclk_mult;
-    si5351_ms_config_t si_ms_conf;
 } mode_data_t;
 
 typedef struct {
@@ -235,12 +234,16 @@ typedef struct {
     uint8_t x_start_lb;
     int8_t y_start_lb;
     uint8_t framelock;
+    // for generation from 27MHz clock
+    int8_t si_pclk_mult;
 } vm_proc_config_t;
 
 
 void set_default_vm_table();
 
 uint32_t estimate_dotclk(mode_data_t *vm_in, uint32_t h_hz);
+
+uint32_t calculate_pclk(uint32_t src_clk_hz, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
 
 oper_mode_t get_operating_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
 
@@ -250,6 +253,6 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
 int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
 
-int get_standard_mode(stdmode_t stdmode_id, vm_proc_config_t *vm_conf, mode_data_t *vm_in, mode_data_t *vm_out);
+int get_standard_mode(stdmode_t stdmode_id, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf);
 
 #endif /* VIDEO_MODES_H_ */
