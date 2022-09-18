@@ -185,9 +185,11 @@ linebuf_double linebuf_rgb (
     .data(linebuf_wrdata),
     .rdaddress(linebuf_rdaddr),
     .rdclock(PCLK_OUT_i),
+    .rdclocken(lb_enable),
     .wraddress(linebuf_wraddr),
     .wrclock(emif_br_clk),
     .wren(linebuf_wren),
+    .wrclocken(lb_enable),
     .q({R_linebuf, G_linebuf, B_linebuf})
 );
 
@@ -234,9 +236,11 @@ linebuf linebuf_rgb (
     .data(linebuf_wrdata),
     .rdaddress(linebuf_rdaddr),
     .rdclock(PCLK_OUT_i),
+    .rdclocken(lb_enable),
     .wraddress(linebuf_wraddr),
     .wrclock(PCLK_CAP_i),
     .wren(linebuf_wren),
+    .wrclocken(lb_enable),
     .q({R_linebuf, G_linebuf, B_linebuf})
 );
 
