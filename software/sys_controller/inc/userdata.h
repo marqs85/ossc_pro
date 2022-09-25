@@ -25,9 +25,12 @@
 
 #define USERDATA_NAME_LEN 17
 #define MAX_USERDATA_ENTRY 15
+#define MAX_SD_USERDATA_ENTRY 100
 
 #define MAX_PROFILE (MAX_USERDATA_ENTRY-1)
+#define MAX_SD_PROFILE (MAX_SD_USERDATA_ENTRY-1)
 #define INIT_CONFIG_SLOT MAX_USERDATA_ENTRY
+#define SD_INIT_CONFIG_SLOT MAX_SD_USERDATA_ENTRY
 
 typedef enum {
     UDE_INITCFG  = 0,
@@ -52,9 +55,10 @@ typedef struct {
     void *data;
 } ude_item_map;
 
-void init_userdata();
 int write_userdata(uint8_t entry);
 int read_userdata(uint8_t entry, int dry_run);
+int write_userdata_sd(uint8_t entry);
+int read_userdata_sd(uint8_t entry, int dry_run);
 int import_userdata();
 int export_userdata();
 

@@ -130,7 +130,11 @@ int setup_rc()
             usleep(MAINLOOP_INTERVAL_US);
         }
     }
+#ifdef DE10N
+    write_userdata_sd(SD_INIT_CONFIG_SLOT);
+#else
     write_userdata(INIT_CONFIG_SLOT);
+#endif
 
     return retval;
 }

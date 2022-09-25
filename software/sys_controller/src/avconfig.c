@@ -31,7 +31,7 @@ avconfig_t cc, tc;
 
 uint8_t update_cur_vm;
 
-uint8_t profile_sel, profile_sel_menu;
+uint8_t profile_sel, profile_sel_menu, sd_profile_sel_menu;
 
 // Default configuration
 const avconfig_t tc_default = {
@@ -53,7 +53,7 @@ const avconfig_t tc_default = {
     .mask_br = 8,
     .bfi_str = 15,
 #ifdef VIP
-    .scl_out_mode = 4,
+    .scl_out_mode = 7,
     .scl_edge_thold = 7,
     .scl_dil_motion_shift = 3,
 #ifndef VIP_DIL_B
@@ -63,7 +63,9 @@ const avconfig_t tc_default = {
     .scl_dil_cadence_detect_enable = 0,
     .scl_dil_visualize_motion = 0,
 #endif
-    .sm_scl_480p = 1,
+#endif
+#ifdef INC_THS7353
+    .syncmux_stc = 1,
 #endif
 #ifndef DExx_FW
     .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL},
@@ -86,15 +88,19 @@ status_t update_avconfig() {
         (tc.reverse_lpf != cc.reverse_lpf) ||
         (tc.lm_deint_mode != cc.lm_deint_mode) ||
         (tc.nir_even_offset != cc.nir_even_offset) ||
+        (tc.h_mask != cc.h_mask) ||
+        (tc.v_mask != cc.v_mask) ||
         (tc.ypbpr_cs != cc.ypbpr_cs) ||
         (tc.bfi_enable != cc.bfi_enable) ||
         (tc.bfi_str != cc.bfi_str) ||
         (tc.sl_mode != cc.sl_mode) ||
         (tc.sl_type != cc.sl_type) ||
+        (tc.sl_hybr_str != cc.sl_hybr_str) ||
         (tc.sl_method != cc.sl_method) ||
         (tc.sl_str != cc.sl_str) ||
         (tc.sl_id != cc.sl_id) ||
         (tc.sl_altern != cc.sl_altern) ||
+        (tc.sl_altiv != cc.sl_altiv) ||
         (tc.sl_cust_iv_x != cc.sl_cust_iv_x) ||
         (tc.sl_cust_iv_y != cc.sl_cust_iv_y) ||
         (memcmp(tc.sl_cust_l_str, cc.sl_cust_l_str, 6*sizeof(uint8_t))) ||
@@ -141,8 +147,11 @@ status_t update_avconfig() {
         (tc.sm_ad_480p != cc.sm_ad_480p) ||
         (tc.sm_ad_576p != cc.sm_ad_576p) ||
         (tc.lm_mode != cc.lm_mode) ||
-        (tc.oper_mode != cc.oper_mode) ||
+        (tc.ar_256col != cc.ar_256col) ||
+        (tc.s400p_mode != cc.s400p_mode) ||
+        (tc.s480p_mode != cc.s480p_mode) ||
         (tc.upsample2x != cc.upsample2x) ||
+        (tc.oper_mode != cc.oper_mode) ||
         update_cur_vm
 #ifdef VIP
         || (tc.scl_alg != cc.scl_alg) ||
@@ -243,6 +252,20 @@ int save_profile() {
         //input_profiles[profile_link ? cm.avinput : AV_TESTPAT] = profile_sel;
         write_userdata(INIT_CONFIG_SLOT);
     }
+
+    return retval;
+}
+
+int load_profile_sd() {
+    return read_userdata_sd(sd_profile_sel_menu, 0);
+}
+
+int save_profile_sd() {
+    int retval;
+
+    retval = write_userdata_sd(sd_profile_sel_menu);
+    if (retval == 0)
+        write_userdata_sd(SD_INIT_CONFIG_SLOT);
 
     return retval;
 }

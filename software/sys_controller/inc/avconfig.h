@@ -87,28 +87,21 @@ typedef enum {
 } scl_fl_mode_t;
 
 typedef struct {
-    uint8_t sl_mode;
-    uint8_t sl_type;
-    uint8_t sl_hybr_str;
-    uint8_t sl_method;
-    uint8_t sl_altern;
-    uint8_t sl_altiv;
-    uint8_t sl_str;
-    uint8_t sl_id;
-    uint8_t sl_cust_l_str[6];
-    uint8_t sl_cust_c_str[10];
-    uint8_t sl_cust_iv_x;
-    uint8_t sl_cust_iv_y;
-    uint8_t l2_mode;
-    uint8_t l3_mode;
-    uint8_t l4_mode;
-    uint8_t l5_mode;
-    uint8_t l5_fmt;
+    /* P-LM mode options */
     uint8_t pm_240p;
     uint8_t pm_384p;
     uint8_t pm_480i;
     uint8_t pm_480p;
     uint8_t pm_1080i;
+    uint8_t l2_mode;
+    uint8_t l3_mode;
+    uint8_t l4_mode;
+    uint8_t l5_mode;
+    uint8_t l5_fmt;
+    uint8_t s480p_mode;
+    uint8_t s400p_mode;
+    uint8_t upsample2x;
+    /* A-LM mode options */
     uint8_t pm_ad_240p;
     uint8_t pm_ad_288p;
     uint8_t pm_ad_384p;
@@ -123,31 +116,50 @@ typedef struct {
     uint8_t sm_ad_480i_576i;
     uint8_t sm_ad_480p;
     uint8_t sm_ad_576p;
+    /* Common LM mode options */
     uint8_t lm_mode;
-    uint8_t oper_mode;
-    uint8_t tp_mode;
-    uint8_t lm_deint_mode;
-    uint8_t nir_even_offset;
     uint8_t ar_256col;
+    /* Scaler mode options */
+#ifdef VIP
+    uint8_t scl_out_mode;
+    uint8_t scl_framelock;
+    uint8_t scl_aspect;
+    uint8_t scl_alg;
+    uint8_t sm_scl_240p_288p;
+    uint8_t sm_scl_384p;
+    uint8_t sm_scl_480i_576i;
+    uint8_t sm_scl_480p;
+    uint8_t sm_scl_576p;
+#endif
+    /* Common mode options */
+    uint8_t oper_mode;
+
+    /* Postprocessing settings */
+    uint8_t sl_mode;
+    uint8_t sl_type;
+    uint8_t sl_hybr_str;
+    uint8_t sl_method;
+    uint8_t sl_altern;
+    uint8_t sl_altiv;
+    uint8_t sl_str;
+    uint8_t sl_id;
+    uint8_t sl_cust_l_str[6];
+    uint8_t sl_cust_c_str[10];
+    uint8_t sl_cust_iv_x;
+    uint8_t sl_cust_iv_y;
     uint8_t h_mask;
     uint8_t v_mask;
     uint8_t mask_br;
     uint8_t mask_color;
     uint8_t bfi_enable;
     uint8_t bfi_str;
-    uint8_t s480p_mode;
-    uint8_t s400p_mode;
-    uint8_t upsample2x;
-    uint8_t ypbpr_cs;
-    uint8_t audmux_sel;
-    audinput_t audio_src_map[4];
     uint8_t reverse_lpf;
-    uint8_t audio_fmt;
+    uint8_t ypbpr_cs;
+    /* Common LM settings */
+    uint8_t lm_deint_mode;
+    uint8_t nir_even_offset;
+    /* Scaler settings */
 #ifdef VIP
-    uint8_t scl_out_mode;
-    uint8_t scl_framelock;
-    uint8_t scl_aspect;
-    uint8_t scl_alg;
     uint8_t scl_edge_thold;
     uint8_t scl_dil_motion_shift;
 #ifndef VIP_DIL_B
@@ -157,12 +169,13 @@ typedef struct {
     uint8_t scl_dil_cadence_detect_enable;
     uint8_t scl_dil_visualize_motion;
 #endif
-    uint8_t sm_scl_240p_288p;
-    uint8_t sm_scl_384p;
-    uint8_t sm_scl_480i_576i;
-    uint8_t sm_scl_480p;
-    uint8_t sm_scl_576p;
 #endif
+
+    /* Misc */
+    uint8_t tp_mode;
+    uint8_t audio_fmt;
+    uint8_t audmux_sel;
+    audinput_t audio_src_map[4];
 #ifdef INC_THS7353
     uint8_t syncmux_stc;
 #endif
@@ -187,5 +200,7 @@ int set_default_profile(int update_cc);
 int reset_profile();
 int save_profile();
 int load_profile();
+int save_profile_sd();
+int load_profile_sd();
 
 #endif
