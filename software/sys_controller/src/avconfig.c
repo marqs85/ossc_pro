@@ -53,7 +53,7 @@ const avconfig_t tc_default = {
     .mask_br = 8,
     .bfi_str = 15,
 #ifdef VIP
-    .scl_out_mode = 7,
+    .scl_out_mode = 9,
     .scl_edge_thold = 7,
     .scl_dil_motion_shift = 3,
 #ifndef VIP_DIL_B

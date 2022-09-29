@@ -96,6 +96,9 @@ const mode_data_t video_modes_default[] = {
     { "2560x480_60",   HDMI_Unknown,     {2560,  480,   6000,  3200, 0,  525,  321, 33,  255, 2,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
     { "2560x480_100",  HDMI_Unknown,     {2560,  480,  10000,  3392, 0,  509,  417, 25,  255, 3,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
     { "2560x480_120",  HDMI_Unknown,     {2560,  480,  12000,  3392, 0,  515,  417, 31,  255, 3,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
+    /* 540p CRT modes, based on 1080i */
+    { "1920x540_50",   HDMI_Unknown,     {1920,  540,   5000,  2640, 0,  562,  148, 15,   44, 5,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_HDTV,               GROUP_1080I,  MODE_CRT,  TX_1X, TX_1X },
+    { "1920x540_60",   HDMI_Unknown,     {1920,  540,   6000,  2200, 0,  562,  148, 15,   44, 5,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_HDTV,               GROUP_1080I,  MODE_CRT,  TX_1X, TX_1X },
     /* DTV 576i/576p */
     { "576i",          HDMI_576i50,      { 720,  288,   5000,   864, 0,  625,   69, 19,   63, 3,  1},  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,               GROUP_576I,   0,         TX_2X, TX_2X },
     { "576p",          HDMI_576p50,      { 720,  576,   5000,   864, 0,  625,   68, 39,   64, 5,  0},  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,               GROUP_576P,   0,         TX_1X, TX_1X },
@@ -135,13 +138,13 @@ static
 #endif
 const smp_preset_t smp_presets_default[] = {
     /* Generic 240p presets */
-    { "Gen. 720x240",   SM_GEN_4_3,        { 720,  240,      0,   858, 0,  262,   57, 15,   62, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
+    { "Gen. 704x240",   SM_GEN_4_3,        { 704,  240,      0,   858, 0,  262,   65, 15,   62, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "Gen. 960x240",   SM_GEN_4_3,        { 960,  240,      0,  1170, 0,  262,  128, 15,   54, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "Gen. 1280x240",  SM_GEN_4_3,        {1280,  240,      0,  1560, 0,  262,  170, 15,   72, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "Gen. 1600x240",  SM_GEN_4_3,        {1600,  240,      0,  1950, 0,  262,  212, 15,   90, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     { "Gen. 1920x240",  SM_GEN_4_3,        {1920,  240,      0,  2340, 0,  262,  256, 15,  108, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_240P },
     /* Generic 288p presets */
-    { "Gen. 720x288",   SM_GEN_4_3,        { 720,  288,      0,   864, 0,  312,   69, 19,   63, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_288P },
+    { "Gen. 704x288",   SM_GEN_4_3,        { 704,  288,      0,   864, 0,  312,   77, 19,   63, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_288P },
     { "Gen. 1536x288",  SM_GEN_4_3,        {1536,  288,      0,  1872, 0,  312,  150, 19,  136, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_288P },
     { "Gen. 1920x288",  SM_GEN_4_3,        {1920,  288,      0,  2340, 0,  312,  187, 19,  171, 3,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_288P },
     /* Generic 384p presets */
@@ -149,24 +152,24 @@ const smp_preset_t smp_presets_default[] = {
     { "Gen. 1600x400",  SM_GEN_4_3,        {1600,  400,      0,  2000, 0,  429,  142, 34,  213, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_384P },
     { "Gen. 1920x360",  SM_GEN_4_3,        {1920,  400,      0,  2400, 0,  429,  171, 34,  255, 2,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_384P },
     /* Generic 480i presets */
-    { "Gen. 720x480i",  SM_GEN_4_3,        { 720,  240,      0,   858, 0,  525,   57, 15,   62, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
+    { "Gen. 704x480i",  SM_GEN_4_3,        { 704,  240,      0,   858, 0,  525,   65, 15,   62, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     { "Gen. 1280x480i", SM_GEN_4_3,        {1280,  240,      0,  1560, 0,  525,  170, 15,   72, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     { "Gen. 1920x480i", SM_GEN_4_3,        {1920,  240,      0,  2340, 0,  525,  256, 15,  108, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     /* Generic 480i 16:9 presets */
     { "Gen. 1280x480i", SM_GEN_16_9,       {1280,  240,      0,  1560, 0,  525,  170, 15,   72, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     { "Gen. 1707x480i", SM_GEN_16_9,       {1707,  240,      0,  2080, 0,  525,  228, 15,   96, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_480I },
     /* Generic 576i presets */
-    { "Gen. 720x576i",  SM_GEN_4_3,        { 720,  288,      0,   864, 0,  625,   69, 19,   63, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_576I },
+    { "Gen. 704x576i",  SM_GEN_4_3,        { 704,  288,      0,   864, 0,  625,   77, 19,   63, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_576I },
     { "Gen. 1536x576i", SM_GEN_4_3,        {1536,  288,      0,  1872, 0,  625,  150, 19,  136, 3,  1},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_SDTV,  GROUP_576I },
     /* Generic 480p presets */
-    { "Gen. 720x480",   SM_GEN_4_3,        { 720,  480,      0,   858, 0,  525,   60, 30,   62, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
+    { "Gen. 704x480",   SM_GEN_4_3,        { 704,  480,      0,   858, 0,  525,   68, 30,   62, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     { "Gen. 1280x480",  SM_GEN_4_3,        {1280,  480,      0,  1560, 0,  525,  170, 30,   72, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     { "Gen. 1920x480",  SM_GEN_4_3,        {1920,  480,      0,  2340, 0,  525,  256, 30,  108, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     /* Generic 480p 16:9 presets */
     { "Gen. 1280x480",  SM_GEN_16_9,       {1280,  480,      0,  1560, 0,  525,  170, 30,   72, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     { "Gen. 1707x480",  SM_GEN_16_9,       {1707,  480,      0,  2080, 0,  525,  228, 30,   96, 6,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_480P },
     /* Generic 576p presets */
-    { "Gen. 720x576",   SM_GEN_4_3,        { 720,  576,      0,   864, 0,  625,   68, 39,   64, 5,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_576P },
+    { "Gen. 704x576",   SM_GEN_4_3,        { 704,  576,      0,   864, 0,  625,   76, 39,   64, 5,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_576P },
     { "Gen. 1536x576",  SM_GEN_4_3,        {1536,  576,      0,  1872, 0,  625,  150, 39,  136, 5,  0},  0,  DEFAULT_SAMPLER_PHASE,  VIDEO_EDTV,  GROUP_576P },
 
     /* DTV 480i */

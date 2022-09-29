@@ -296,10 +296,12 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     const stdmode_t pm_scl_map[][4] =    {{-1, STDMODE_240p_CRT, STDMODE_240p_CRT, STDMODE_240p_CRT},
                                          {STDMODE_288p_CRT, STDMODE_288p_CRT, STDMODE_288p_CRT, -1},
                                          {-1, STDMODE_480p_60_CRT, STDMODE_480p_100_CRT, STDMODE_480p_120_CRT},
+                                         {STDMODE_540p_50_CRT, STDMODE_540p_60_CRT, -1, -1},
                                          {-1, STDMODE_480p, -1, -1},
                                          {STDMODE_576p, -1, -1, -1},
                                          {STDMODE_720p_50, STDMODE_720p_60, STDMODE_720p_100, STDMODE_720p_120},
                                          {-1, STDMODE_1280x1024_60, -1, -1},
+                                         {STDMODE_1080i_50, STDMODE_1080i_60, -1, -1},
                                          {STDMODE_1080p_50, STDMODE_1080p_60, STDMODE_1080p_100, STDMODE_1080p_120},
                                          {-1, STDMODE_1600x1200_60, -1, -1},
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60, -1, -1},
@@ -383,7 +385,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
 
     // Calculate target active width for generic modes
     if (scl_aspect < 3)
-        gen_width_target = (aspect_map[scl_aspect][0]*mode_preset->timings.v_active)/aspect_map[scl_aspect][1];
+        gen_width_target = (aspect_map[scl_aspect][0]*mode_preset->timings.v_active<<mode_preset->timings.interlaced)/aspect_map[scl_aspect][1];
     else
         gen_width_target = 0;
 
@@ -420,7 +422,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     }
 
     aspect_map[3][0] = vm_in->timings.h_active;
-    aspect_map[3][1] = vm_in->timings.v_active;
+    aspect_map[3][1] = vm_in->timings.v_active<<vm_in->timings.interlaced;
 
     // Return error if input H/V active is zero for whatever reason
     if (!vm_in->timings.h_active || !vm_in->timings.v_active)
@@ -431,14 +433,15 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
         // Integer scale incrementally in horizontal or vertical direction depending which results to more correct aspect ratio
         while (1) {
             if (scl_aspect < 4) {
-                error_cur = ((1000*int_scl_x*vm_in->timings.h_active)/aspect_map[scl_aspect][0]) - ((1000*int_scl_y*vm_in->timings.v_active)/aspect_map[scl_aspect][1]);
-                error_x_inc = ((1000*(int_scl_x+1)*vm_in->timings.h_active)/aspect_map[scl_aspect][0]) - ((1000*int_scl_y*vm_in->timings.v_active)/aspect_map[scl_aspect][1]);
-                error_y_inc = ((1000*(int_scl_y+1)*vm_in->timings.v_active)/aspect_map[scl_aspect][1]) - ((1000*int_scl_x*vm_in->timings.h_active)/aspect_map[scl_aspect][0]);
+                error_cur = ((1000*int_scl_x*vm_in->timings.h_active)/aspect_map[scl_aspect][0]) - ((1000*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced))/aspect_map[scl_aspect][1]);
+                error_x_inc = ((1000*(int_scl_x+1)*vm_in->timings.h_active)/aspect_map[scl_aspect][0]) - ((1000*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced))/aspect_map[scl_aspect][1]);
+                error_y_inc = ((1000*(int_scl_y+1)*(vm_in->timings.v_active<<vm_in->timings.interlaced))/aspect_map[scl_aspect][1]) - ((1000*int_scl_x*vm_in->timings.h_active)/aspect_map[scl_aspect][0]);
             }
 
             // Up to 1/8 horizontally or vertically allowed to be cropped when overscanning enabled
             allow_x_inc = (cc->scl_alg == 2) ? (7*(int_scl_x+1)*vm_in->timings.h_active <= 8*vm_out->timings.h_active) : ((int_scl_x+1)*vm_in->timings.h_active <= vm_out->timings.h_active);
-            allow_y_inc = (cc->scl_alg == 2) ? (7*(int_scl_y+1)*vm_in->timings.v_active <= 8*vm_out->timings.v_active) : ((int_scl_y+1)*vm_in->timings.v_active <= vm_out->timings.v_active);
+            allow_y_inc = (cc->scl_alg == 2) ? (7*(int_scl_y+1)*(vm_in->timings.v_active<<vm_in->timings.interlaced) <= 8*(vm_out->timings.v_active<<vm_out->timings.interlaced))
+                                             : ((int_scl_y+1)*(vm_in->timings.v_active<<vm_in->timings.interlaced) <= vm_out->timings.v_active<<vm_out->timings.interlaced);
 
             if (!allow_x_inc && !allow_y_inc) {
                 break;
@@ -461,22 +464,23 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
         }
 
         vm_conf->x_size = int_scl_x*vm_in->timings.h_active;
-        vm_conf->y_size = int_scl_y*vm_in->timings.v_active;
+        vm_conf->y_size = int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced);
 
         if (vm_conf->x_size > vm_out->timings.h_active) {
             error_cur = vm_conf->x_size - vm_out->timings.h_active;
             src_crop = (error_cur % int_scl_x) ? ((error_cur/int_scl_x)+1) : (error_cur/int_scl_x);
             vm_in->timings.h_active -= src_crop;
             vm_in->timings.h_backporch += src_crop/2;
-            vm_conf->x_size = int_scl_x*vm_in->timings.h_active;
         }
-        if (vm_conf->y_size > vm_out->timings.v_active) {
-            error_cur = vm_conf->y_size - vm_out->timings.v_active;
-            src_crop = (error_cur % int_scl_y) ? ((error_cur/int_scl_y)+1) : (error_cur/int_scl_y);
+        if (vm_conf->y_size > vm_out->timings.v_active<<vm_out->timings.interlaced) {
+            error_cur = vm_conf->y_size - (vm_out->timings.v_active<<vm_out->timings.interlaced);
+            src_crop = (error_cur % int_scl_y) ? ((error_cur/int_scl_y)+1)>>vm_in->timings.interlaced : (error_cur/int_scl_y)>>vm_in->timings.interlaced;
             vm_in->timings.v_active -= src_crop;
             vm_in->timings.v_backporch += src_crop/2;
-            vm_conf->y_size = int_scl_y*vm_in->timings.v_active;
         }
+
+        vm_conf->x_size = int_scl_x*vm_in->timings.h_active;        
+        vm_conf->y_size = (int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced))>>vm_out->timings.interlaced;
 
         vm_conf->x_offset = (vm_out->timings.h_active - vm_conf->x_size)/2;
         vm_conf->y_offset = (vm_out->timings.v_active - vm_conf->y_size)/2;
@@ -487,15 +491,15 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
         printf("\nint_scl_x: %d int_scl_y: %d", int_scl_x, int_scl_y);
     } else { // Scale to aspect
         if (scl_aspect < 4) {
-            if (vm_out->timings.v_active*aspect_map[scl_aspect][0] <= vm_out->timings.h_active*aspect_map[scl_aspect][1]) {
+            if ((vm_out->timings.v_active<<vm_out->timings.interlaced)*aspect_map[scl_aspect][0] <= vm_out->timings.h_active*aspect_map[scl_aspect][1]) {
                 // Pillarbox
                 vm_conf->y_size = vm_out->timings.v_active;
-                vm_conf->x_size = (aspect_map[scl_aspect][0]*vm_out->timings.v_active)/aspect_map[scl_aspect][1];
+                vm_conf->x_size = (aspect_map[scl_aspect][0]*(vm_out->timings.v_active<<vm_out->timings.interlaced))/aspect_map[scl_aspect][1];
                 vm_conf->x_offset = (vm_out->timings.h_active - vm_conf->x_size)/2;
             } else {
                 // Letterbox
                 vm_conf->x_size = vm_out->timings.h_active;
-                vm_conf->y_size = (aspect_map[scl_aspect][1]*vm_out->timings.h_active)/aspect_map[scl_aspect][0];
+                vm_conf->y_size = (aspect_map[scl_aspect][1]*vm_out->timings.h_active)/(aspect_map[scl_aspect][0]<<vm_out->timings.interlaced);
                 vm_conf->y_offset = (vm_out->timings.v_active - vm_conf->y_size)/2;
             }
         } else {

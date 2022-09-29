@@ -456,7 +456,7 @@ wire DE_vip = VIP_DE_o;
 `endif // PIXPAR2
 
 reg VSYNC_vip_prev;
-wire vip_frame_start = VSYNC_vip_prev & ~VSYNC_vip;
+wire vip_frame_start = VSYNC_vip_prev & ~VSYNC_vip & ~HSYNC_vip;
 
 always @(posedge pclk_out) begin
     VSYNC_vip_prev <= VSYNC_vip;
