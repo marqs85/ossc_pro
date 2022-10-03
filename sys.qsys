@@ -853,7 +853,7 @@
   <parameter name="INTERLACE_PASSTHROUGH" value="0" />
   <parameter name="LIMITED_READBACK" value="1" />
   <parameter name="MAX_HEIGHT" value="1440" />
-  <parameter name="MAX_WIDTH" value="1920" />
+  <parameter name="MAX_WIDTH" value="2560" />
   <parameter name="NUMBER_OF_COLOR_PLANES" value="3" />
   <parameter name="PIXELS_IN_PARALLEL" value="2" />
   <parameter name="RUNTIME_CONTROL" value="1" />
