@@ -83,89 +83,14 @@ avconfig_t* get_current_avconfig() {
 status_t update_avconfig() {
     status_t status = 0;
 
-    if ((tc.mask_br != cc.mask_br) ||
-        (tc.mask_color != cc.mask_color) ||
-        (tc.reverse_lpf != cc.reverse_lpf) ||
-        (tc.lm_deint_mode != cc.lm_deint_mode) ||
-        (tc.nir_even_offset != cc.nir_even_offset) ||
-        (tc.h_mask != cc.h_mask) ||
-        (tc.v_mask != cc.v_mask) ||
-        (tc.ypbpr_cs != cc.ypbpr_cs) ||
-        (tc.bfi_enable != cc.bfi_enable) ||
-        (tc.bfi_str != cc.bfi_str) ||
-        (tc.sl_mode != cc.sl_mode) ||
-        (tc.sl_type != cc.sl_type) ||
-        (tc.sl_hybr_str != cc.sl_hybr_str) ||
-        (tc.sl_method != cc.sl_method) ||
-        (tc.sl_str != cc.sl_str) ||
-        (tc.sl_id != cc.sl_id) ||
-        (tc.sl_altern != cc.sl_altern) ||
-        (tc.sl_altiv != cc.sl_altiv) ||
-        (tc.sl_cust_iv_x != cc.sl_cust_iv_x) ||
-        (tc.sl_cust_iv_y != cc.sl_cust_iv_y) ||
-        (memcmp(tc.sl_cust_l_str, cc.sl_cust_l_str, 6*sizeof(uint8_t))) ||
-        (memcmp(tc.sl_cust_c_str, cc.sl_cust_c_str, 10*sizeof(uint8_t)))
-#ifdef VIP
-        || (tc.scl_edge_thold != cc.scl_edge_thold) ||
-        (tc.scl_dil_motion_shift != cc.scl_dil_motion_shift)
-#ifndef VIP_DIL_B
-        || (tc.scl_dil_alg != cc.scl_dil_alg)
-#else
-        || (tc.scl_dil_motion_scale != cc.scl_dil_motion_scale) ||
-        (tc.scl_dil_cadence_detect_enable != cc.scl_dil_cadence_detect_enable) ||
-        (tc.scl_dil_visualize_motion != cc.scl_dil_visualize_motion)
-#endif
-#endif
-       )
+    if (memcmp(&tc, &cc, offsetof(avconfig_t, sl_mode)) || (update_cur_vm == 1))
+        status |= MODE_CHANGE;
+
+    if (memcmp(&tc.sl_mode, &cc.sl_mode, offsetof(avconfig_t, tp_mode) - offsetof(avconfig_t, sl_mode)))
         status |= SC_CONFIG_CHANGE;
 
     if (tc.tp_mode != cc.tp_mode)
         status |= TP_MODE_CHANGE;
-
-    if ((tc.pm_240p != cc.pm_240p) ||
-        (tc.pm_384p != cc.pm_384p) ||
-        (tc.pm_480i != cc.pm_480i) ||
-        (tc.pm_480p != cc.pm_480p) ||
-        (tc.pm_1080i != cc.pm_1080i) ||
-        (tc.l2_mode != cc.l2_mode) ||
-        (tc.l3_mode != cc.l3_mode) ||
-        (tc.l4_mode != cc.l4_mode) ||
-        (tc.l5_mode != cc.l5_mode) ||
-        (tc.l5_fmt != cc.l5_fmt) ||
-        (tc.pm_ad_240p != cc.pm_ad_240p) ||
-        (tc.pm_ad_288p != cc.pm_ad_288p) ||
-        (tc.pm_ad_384p != cc.pm_ad_384p) ||
-        (tc.pm_ad_480i != cc.pm_ad_480i) ||
-        (tc.pm_ad_576i != cc.pm_ad_576i) ||
-        (tc.pm_ad_480p != cc.pm_ad_480p) ||
-        (tc.pm_ad_576p != cc.pm_ad_576p) ||
-        (tc.pm_ad_720p != cc.pm_ad_720p) ||
-        (tc.pm_ad_1080i != cc.pm_ad_1080i) ||
-        (tc.sm_ad_240p_288p != cc.sm_ad_240p_288p) ||
-        (tc.sm_ad_384p != cc.sm_ad_384p) ||
-        (tc.sm_ad_480i_576i != cc.sm_ad_480i_576i) ||
-        (tc.sm_ad_480p != cc.sm_ad_480p) ||
-        (tc.sm_ad_576p != cc.sm_ad_576p) ||
-        (tc.lm_mode != cc.lm_mode) ||
-        (tc.ar_256col != cc.ar_256col) ||
-        (tc.s400p_mode != cc.s400p_mode) ||
-        (tc.s480p_mode != cc.s480p_mode) ||
-        (tc.upsample2x != cc.upsample2x) ||
-        (tc.oper_mode != cc.oper_mode) ||
-        update_cur_vm
-#ifdef VIP
-        || (tc.scl_alg != cc.scl_alg) ||
-        (tc.scl_out_mode != cc.scl_out_mode) ||
-        (tc.scl_framelock != cc.scl_framelock) ||
-        (tc.scl_aspect != cc.scl_aspect) ||
-        (tc.sm_scl_240p_288p != cc.sm_scl_240p_288p) ||
-        (tc.sm_scl_384p != cc.sm_scl_384p) ||
-        (tc.sm_scl_480i_576i != cc.sm_scl_480i_576i) ||
-        (tc.sm_scl_480p != cc.sm_scl_480p) ||
-        (tc.sm_scl_576p != cc.sm_scl_576p)
-#endif
-        )
-        status |= MODE_CHANGE;
 
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)

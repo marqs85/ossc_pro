@@ -374,7 +374,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_in_config2.interlaced = vm_in->timings.interlaced;
     hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+12;
     hv_in_config3.h_skip = vm_conf->h_skip;
-    hv_in_config3.h_sample_sel = vm_conf->h_skip / 2; // TODO: fix
+    hv_in_config3.h_sample_sel = vm_conf->h_sample_sel;
 
     // Set output params
     hv_out_config.h_total = vm_out->timings.h_total;
@@ -927,6 +927,43 @@ void print_vm_stats() {
     osd->osd_sec_enable[1].mask = (1<<(row+1))-1;
 }
 
+uint16_t get_sampler_phase() {
+    uint32_t sample_rng_x1000;
+    uint32_t isl_phase_x1000 = isl_get_sampler_phase(&isl_dev)*5625;
+    
+    if (vm_conf.h_skip == 0) {
+        return isl_phase_x1000/1000;
+    } else {
+        sample_rng_x1000 = 360000 / (vm_conf.h_skip+1);
+        return ((vm_conf.h_sample_sel*sample_rng_x1000)+(isl_phase_x1000/(vm_conf.h_skip+1)))/1000;
+    }
+}
+
+void set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc) {
+    uint32_t sample_rng_x1000;
+    uint8_t isl_phase;
+
+    vmode_in.sampler_phase = sampler_phase;
+
+    if ((sampler_phase == 0) || (vm_conf.h_skip == 0)) {
+        vm_conf.h_sample_sel = vm_conf.h_skip / 2;
+        isl_phase = sampler_phase;
+    } else {
+        sample_rng_x1000 = 360000 / (vm_conf.h_skip+1);
+        vm_conf.h_sample_sel = ((sampler_phase-1)*5625)/sample_rng_x1000;
+        isl_phase = (((((sampler_phase-1)*5625) % sample_rng_x1000)*64)/sample_rng_x1000) + 1;
+    }
+    
+    if (vm_conf.h_skip > 0)
+        printf("Sample sel: %u/%u\n", (vm_conf.h_sample_sel+1), (vm_conf.h_skip+1));
+
+    if (update_isl)
+        isl_set_sampler_phase(&isl_dev, isl_phase);
+
+    if (update_sc)
+        update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
+}
+
 void set_default_settings() {
     memcpy(&ts, &ts_default, sizeof(settings_t));
     set_default_keymap();
@@ -957,6 +994,7 @@ void mainloop()
     int i, man_input_change;
     char op_status[4];
     uint32_t pclk_i_hz, pclk_o_hz, dotclk_hz, h_hz, pll_h_total, pll_h_total_prev=0;
+    uint8_t h_skip_prev, sampler_phase_prev;
     ths_channel_t target_ths_ch;
     ths_input_t target_ths_input;
     isl_input_t target_isl_input=0;
@@ -1082,6 +1120,8 @@ void mainloop()
                 isl_source_sel(&isl_dev, target_isl_input, target_isl_sync, target_format);
                 isl_dev.sync_active = 0;
                 pll_h_total_prev = 0;
+                vmode_in.sampler_phase = (uint8_t)-1;
+                vm_conf.h_skip = (uint8_t)-1;
 
                 // send current PLL h_total to isl_frontend for mode detection
                 sc->hv_in_config.h_total = isl_get_pll_htotal(&isl_dev);
@@ -1153,6 +1193,9 @@ void mainloop()
 
             if (isl_dev.sync_active) {
                 if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status2.pcnt_frame) || (status & MODE_CHANGE)) {
+                    h_skip_prev = vm_conf.h_skip;
+                    sampler_phase_prev = vmode_in.sampler_phase;                    
+
                     memset(&vmode_in, 0, sizeof(mode_data_t));
 
 #ifdef ISL_MEAS_HZ
@@ -1214,9 +1257,9 @@ void mainloop()
                         isl_source_setup(&isl_dev, pll_h_total);
 
                         isl_set_afe_bw(&isl_dev, dotclk_hz);
-
-                        if (pll_h_total != pll_h_total_prev)
-                            isl_set_sampler_phase(&isl_dev, vmode_in.sampler_phase);
+                        
+                        if ((pll_h_total != pll_h_total_prev) || (vm_conf.h_skip != h_skip_prev))
+                            set_sampler_phase(vmode_in.sampler_phase, !((pll_h_total == pll_h_total_prev) && !sampler_phase_prev && !vmode_in.sampler_phase), 0);
 
                         pll_h_total_prev = pll_h_total;
 

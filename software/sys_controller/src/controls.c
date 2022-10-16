@@ -60,7 +60,7 @@ uint8_t btn_vec, btn_vec_prev, btn_rpt;
 rc_code_t r_code;
 btn_code_t b_code;
 
-extern int enable_tp;
+extern int enable_tp, enable_isl;
 extern uint8_t smp_cur, smp_edit, dtmg_cur, dtmg_edit;
 extern oper_mode_t oper_mode;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
@@ -216,6 +216,10 @@ void parse_control()
                     quick_adjust(&menu_output_items[1], -1);
                 if ((r_code == RC_RIGHT) || (b_code == BC_RIGHT))
                     quick_adjust(&menu_output_items[1], 1);
+            }
+            if (enable_isl) {
+                if ((r_code == RC_PHASE_PLUS) || (r_code == RC_PHASE_MINUS))
+                    quick_adjust_phase(r_code == RC_PHASE_PLUS);
             }
             if (r_code == RC_INFO)
                 print_vm_stats();

@@ -186,7 +186,7 @@ static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mod
     } else {
         if (active_mode) {
             if (!update_cur_vm)
-                sniprintf(dst, max_len, "Auto (%u deg)", (isl_get_sampler_phase(&isl_dev)*5625)/1000);
+                sniprintf(dst, max_len, "Auto (%u deg)", get_sampler_phase());
             else
                 sniprintf(dst, max_len, "Auto (refresh)");
         } else {
@@ -617,12 +617,12 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
     case PREV_PAGE:
         smp->sampler_phase = (smp->sampler_phase == SAMPLER_PHASE_MAX) ? 0 : smp->sampler_phase+1;
         if (active_mode)
-            isl_set_sampler_phase(&isl_dev, smp->sampler_phase);
+            set_sampler_phase(smp->sampler_phase, 1, 1);
         break;
     case NEXT_PAGE:
         smp->sampler_phase = (smp->sampler_phase == 0) ? SAMPLER_PHASE_MAX : smp->sampler_phase-1;
         if (active_mode)
-            isl_set_sampler_phase(&isl_dev, smp->sampler_phase);
+            set_sampler_phase(smp->sampler_phase, 1, 1);
         break;
     case VAL_MINUS:
         if (sr_step == 2) {
@@ -976,6 +976,29 @@ void quick_adjust(menuitem_t *item, int adj) {
     osd->osd_sec_enable[1].mask = 0;
 }
 
+void quick_adjust_phase(uint8_t dir) {
+    uint8_t *sampler_phase;
+    
+    sampler_phase = (oper_mode == OPERMODE_PURE_LM) ? &video_modes_plm[vm_cur].sampler_phase : &smp_presets[smp_cur].sampler_phase;
+
+    if (isl_dev.powered_on && isl_dev.sync_active) {
+        if (dir)
+            *sampler_phase = (*sampler_phase == SAMPLER_PHASE_MAX) ? 0 : *sampler_phase+1;
+        else
+            *sampler_phase = (*sampler_phase == 0) ? SAMPLER_PHASE_MAX : *sampler_phase-1;
+
+        set_sampler_phase(*sampler_phase, 1, 1);
+
+        strncpy((char*)osd->osd_array.data[0][0], menu_advtiming_plm_items[8].name, OSD_CHAR_COLS);
+        sampler_phase_disp(menu_row2, US2066_ROW_LEN+1, *sampler_phase, 1);
+        strncpy((char*)osd->osd_array.data[1][0], menu_row2, OSD_CHAR_COLS);
+        osd->osd_config.status_refresh = 1;
+        osd->osd_row_color.mask = 0;
+        osd->osd_sec_enable[0].mask = 3;
+        osd->osd_sec_enable[1].mask = 0;
+    }
+}
+
 void display_menu(rc_code_t rcode, btn_code_t bcode)
 {
     menucode_id code = NO_ACTION;
@@ -1184,7 +1207,7 @@ static void vm_tweak(uint16_t *v) {
             (video_modes_plm[vm_cur].timings.v_active != tc_v_active))
             update_cur_vm = 1;
         if (video_modes_plm[vm_cur].sampler_phase != tc_sampler_phase)
-            isl_set_sampler_phase(&isl_dev, tc_sampler_phase);
+            set_sampler_phase(tc_sampler_phase, 1, 1);
     }
     video_modes_plm[vm_edit].timings.h_total = tc_h_samplerate;
     video_modes_plm[vm_edit].timings.h_total_adj = (uint8_t)tc_h_samplerate_adj;

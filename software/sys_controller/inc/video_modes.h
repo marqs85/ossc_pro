@@ -228,6 +228,7 @@ typedef struct {
     int8_t x_rpt;
     int8_t y_rpt;
     uint8_t h_skip;
+    uint8_t h_sample_sel;
     int16_t x_offset;
     int16_t y_offset;
     uint16_t x_size;
