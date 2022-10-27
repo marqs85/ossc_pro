@@ -682,6 +682,8 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
         if ((target_sm_list[vm_in->group] == SM_OPT_DTV480I_WS) || (target_sm_list[vm_in->group] == SM_OPT_DTV480P_WS))
             vm_conf->x_rpt++;
+        else if (target_sm_list[vm_in->group] == SM_OPT_GBI_240COL)
+            vm_conf->x_rpt = 5;
         break;
     case STDMODE_1920x1440_50:
     case STDMODE_1920x1440_60:
@@ -702,6 +704,8 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
         if ((target_sm_list[vm_in->group] == SM_OPT_DTV480I_WS) || (target_sm_list[vm_in->group] == SM_OPT_DTV480P_WS))
             vm_conf->x_rpt++;
+        else if (target_sm_list[vm_in->group] == SM_OPT_GBI_240COL)
+            vm_conf->x_rpt = 7;
         break;
     default:
         break;
