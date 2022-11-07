@@ -96,9 +96,9 @@ static const char *pm_ad_720p_desc[] = { "1280x720 (Passthru)", "2560x1440 (Line
 static const char *pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080i (Dint+L2x)" };
 static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col" };
 static const char *sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
-static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col" };
-static const char *sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480", "PS2-GSM 512col" };
-static const char *sm_ad_576p_desc[] = { "Generic 4:3" };
+static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
+static const char *sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col" };
+static const char *sm_ad_576p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 576p 4:3", "DTV 576p 16:9" };
 static const char *lm_deint_mode_desc[] = { "Bob", "Noninterlace restore" };
 static const char *ar_256col_desc[] = { "Pseudo 4:3 DAR", "1:1 PAR" };
 static const char *tx_mode_desc[] = { "HDMI (RGB Full)", "HDMI (RGB Limited)", "HDMI (YCbCr444)", "DVI" };
@@ -125,9 +125,11 @@ static const char *mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red"
 static const char *adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char *oper_mode_desc[] = { "Line multiplier", "Scaler" };
 static const char *lm_mode_desc[] = { "Pure", "Adaptive" };
-static const char *scl_out_mode_desc[] = { "240p_CRT (60-120Hz)", "288p_CRT (50-100Hz)", "480p_CRT (60-120Hz)", "540p_CRT (50-60Hz)", "720x480 4:3 (60Hz)", "720x576 4:3 (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080i (50-60Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)" };
+static const char *scl_out_mode_desc[] = { "720x480 (60Hz)", "720x480 WS (60Hz)", "720x576 (50Hz)", "720x576 WS (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080i (50-60Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)" };
+static const char *scl_crt_out_mode_desc[] = { "240p (60-120Hz)", "288p (50-100Hz)", "480i (60Hz)", "480i WS (60Hz)", "576i (50Hz)", "576i WS (50Hz)", "480p (60-120Hz)", "540p (50-60Hz)" };
+static const char *scl_out_type_desc[] = { "DFP", "CRT" };
 static const char *scl_framelock_desc[] = { "On", "On (2x source Hz)", "Off (source Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
-static const char *scl_aspect_desc[] = { "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
+static const char *scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
 static const char *scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "SL sharp", "Custom scaler1.txt", "Custom scaler2.txt" };
 #ifndef VIP_DIL_B
 #ifdef DEBUG
@@ -324,7 +326,9 @@ MENU(menu_lm, P99_PROTECT({
 
 #ifdef VIP
 MENU(menu_scaler, P99_PROTECT({
-    { "Output resolution",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_out_mode,    OPT_WRAP, SETTING_ITEM_LIST(scl_out_mode_desc) } } },
+    { "DFP output mode",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_out_mode,    OPT_WRAP, SETTING_ITEM_LIST(scl_out_mode_desc) } } },
+    { "CRT output mode",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_crt_out_mode,OPT_WRAP, SETTING_ITEM_LIST(scl_crt_out_mode_desc) } } },
+    { "Output type",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_out_type,    OPT_WRAP, SETTING_ITEM_LIST(scl_out_type_desc) } } },
     { "Framelock",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_framelock,   OPT_WRAP, SETTING_ITEM_LIST(scl_framelock_desc) } } },
     { "Aspect ratio",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_aspect,      OPT_WRAP, SETTING_ITEM_LIST(scl_aspect_desc) } } },
     { "Scaling algorithm",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_alg,         OPT_WRAP, SETTING_ITEM_LIST(scl_alg_desc) } } },
@@ -344,6 +348,7 @@ MENU(menu_scaler, P99_PROTECT({
     { LNG("350-400p mode","350-400pﾓｰﾄﾞ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_384p,      OPT_WRAP, SETTING_ITEM_LIST(sm_scl_384p_desc) } } },
     { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480i_576i, OPT_WRAP, SETTING_ITEM_LIST(sm_scl_480i_576i_desc) } } },
     { LNG("480p mode","480pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480p,      OPT_WRAP, SETTING_ITEM_LIST(sm_scl_480p_desc) } } },
+    { LNG("576p mode","576pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_576p,      OPT_WRAP, SETTING_ITEM_LIST(sm_scl_576p_desc) } } },
     { "Adv. timing",                            OPT_SUBMENU,            { .sub = { &menu_advtiming,     &smp_arg_info, smp_select } } },
 }))
 #endif
@@ -1168,12 +1173,15 @@ void set_func_ret_msg(char *msg) {
 
 void update_osd_size(mode_data_t *vm_out) {
     uint8_t osd_size = vm_out->timings.v_active / 700;
+    uint8_t par = (((100*vm_out->timings.h_active*vm_out->ar.v)/((vm_out->timings.v_active<<vm_out->timings.interlaced)*vm_out->ar.h))+50)/100;
+    uint8_t par_log2 = 0;
 
-    if ((vm_out->timings.h_active/vm_out->timings.v_active) > 4)
-        osd->osd_config.x_size = 2;
-    else
-        osd->osd_config.x_size = osd_size + vm_out->timings.interlaced;
+    while (par > 1) {
+        par >>= 1;
+        par_log2++;
+    }
 
+    osd->osd_config.x_size = osd_size + vm_out->timings.interlaced + par_log2;
     osd->osd_config.y_size = osd_size;
 
     if ((vm_out->tx_pixelrep == TX_2X) && (vm_out->hdmitx_pixr_ifr == TX_1X))

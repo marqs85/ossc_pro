@@ -235,13 +235,13 @@ void parse_control()
                 if (r_code == RC_SCL_RES)
                     enter_cstm(&menu_scaler_items[0], 1);
                 if (r_code == RC_SCL_FL)
-                    enter_cstm(&menu_scaler_items[1], 1);
-                if (r_code == RC_SCL_SCL_ALG)
                     enter_cstm(&menu_scaler_items[3], 1);
-                if (r_code == RC_SCL_DIL_ALG)
+                if (r_code == RC_SCL_SCL_ALG)
                     enter_cstm(&menu_scaler_items[5], 1);
+                if (r_code == RC_SCL_DIL_ALG)
+                    enter_cstm(&menu_scaler_items[7], 1);
                 if (r_code == RC_SCL_AR)
-                    enter_cstm(&menu_scaler_items[2], 1);
+                    enter_cstm(&menu_scaler_items[4], 1);
                 /*if (r_code == RC_SCL_ROT)
                     TODO*/
             }

@@ -240,6 +240,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     smp_sel = mindiff_id;
 
     vm_in->group = smp_preset->group;
+    vm_in->ar = smp_preset->ar;
 
     // write vm_in timings for digital sources
     if (vm_in->timings.h_total) {
@@ -285,20 +286,17 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
 int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
 {
     int i, mode_hz_index, gen_width_target=0, allow_x_inc, allow_y_inc, int_scl_x=1, int_scl_y=1, src_crop;
-    uint8_t scl_aspect;
-    int32_t error_cur=1, error_x_inc=0, error_y_inc=0;
+    int32_t error_cur, error_x_inc, error_y_inc;
     mode_data_t *mode_preset = NULL;
     gen_width_mode_t gen_width_mode = (cc->scl_alg == 2) ? GEN_WIDTH_CLOSEST_PREFER_OVER : GEN_WIDTH_CLOSEST_PREFER_UNDER;
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
     // {50Hz, 60Hz, 100Hz, 120Hz} id array for each output resolution
-    const stdmode_t pm_scl_map[][4] =    {{-1, STDMODE_240p_CRT, STDMODE_240p_CRT, STDMODE_240p_CRT},
-                                         {STDMODE_288p_CRT, STDMODE_288p_CRT, STDMODE_288p_CRT, -1},
-                                         {-1, STDMODE_480p_60_CRT, STDMODE_480p_100_CRT, STDMODE_480p_120_CRT},
-                                         {STDMODE_540p_50_CRT, STDMODE_540p_60_CRT, -1, -1},
-                                         {-1, STDMODE_480p, -1, -1},
+    const stdmode_t pm_scl_map_dfp[][4] = {{-1, STDMODE_480p, -1, -1},
+                                         {-1, STDMODE_480p_WS, -1, -1},
                                          {STDMODE_576p, -1, -1, -1},
+                                         {STDMODE_576p_WS, -1, -1, -1},
                                          {STDMODE_720p_50, STDMODE_720p_60, STDMODE_720p_100, STDMODE_720p_120},
                                          {-1, STDMODE_1280x1024_60, -1, -1},
                                          {STDMODE_1080i_50, STDMODE_1080i_60, -1, -1},
@@ -307,6 +305,17 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60, -1, -1},
                                          {STDMODE_1920x1440_50, STDMODE_1920x1440_60, -1, -1},
                                          {STDMODE_2560x1440_50, STDMODE_2560x1440_60, -1, -1}};
+
+    const stdmode_t pm_scl_map_crt[][4] = {{-1, STDMODE_240p_CRT, STDMODE_240p_CRT, STDMODE_240p_CRT},
+                                         {STDMODE_288p_CRT, STDMODE_288p_CRT, STDMODE_288p_CRT, -1},
+                                         {-1, STDMODE_480i_CRT, -1, -1},
+                                         {-1, STDMODE_480i_WS_CRT, -1, -1},
+                                         {STDMODE_576i_CRT, -1, -1, -1},
+                                         {STDMODE_576i_WS_CRT, -1, -1, -1},
+                                         {-1, STDMODE_480p_60_CRT, STDMODE_480p_100_CRT, STDMODE_480p_120_CRT},
+                                         {STDMODE_540p_50_CRT, STDMODE_540p_60_CRT, -1, -1}};
+
+    const stdmode_t *pm_scl_map = cc->scl_out_type ? pm_scl_map_crt[cc->scl_crt_out_mode] : pm_scl_map_dfp[cc->scl_out_mode];
 
     const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
                                           SM_OPT_SNES_256COL, SM_OPT_SNES_512COL,
@@ -328,8 +337,10 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_OPT_DTV576P};
 
     unsigned aspect_map[][2] = {{4, 3},
+                                {4, 3},
                                 {16, 9},
                                 {8, 7},
+                                {0, 0},
                                 {0, 0}};
 
     if (vm_in->timings.v_hz_x100 < 5500)
@@ -341,12 +352,12 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     else
         mode_hz_index = 3;
 
-    if ((cc->scl_framelock == SCL_FL_ON_2X) && (mode_hz_index < 2) && (pm_scl_map[cc->scl_out_mode][mode_hz_index+2] != (stdmode_t)-1)) {
+    if ((cc->scl_framelock == SCL_FL_ON_2X) && (mode_hz_index < 2) && (pm_scl_map[mode_hz_index+2] != (stdmode_t)-1)) {
         mode_hz_index += 2;
         vm_conf->framelock = 2;
-    } else if ((cc->scl_framelock <= SCL_FL_ON_2X) && (pm_scl_map[cc->scl_out_mode][mode_hz_index] != (stdmode_t)-1)) {
+    } else if ((cc->scl_framelock <= SCL_FL_ON_2X) && (pm_scl_map[mode_hz_index] != (stdmode_t)-1)) {
         vm_conf->framelock = 1;
-    } else if ((cc->scl_framelock >= SCL_FL_OFF_50HZ) && (pm_scl_map[cc->scl_out_mode][cc->scl_framelock-SCL_FL_OFF_50HZ] != (stdmode_t)-1)) {
+    } else if ((cc->scl_framelock >= SCL_FL_OFF_50HZ) && (pm_scl_map[cc->scl_framelock-SCL_FL_OFF_50HZ] != (stdmode_t)-1)) {
         mode_hz_index = cc->scl_framelock-SCL_FL_OFF_50HZ;
     }
 
@@ -364,28 +375,24 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
 
 
     // Use lowest available vertical frequency if preferred is not available
-    if (pm_scl_map[cc->scl_out_mode][mode_hz_index] == (stdmode_t)-1) {
+    if (pm_scl_map[mode_hz_index] == (stdmode_t)-1) {
         for (i=0; i<4; i++) {
-            if (pm_scl_map[cc->scl_out_mode][i] != (stdmode_t)-1) {
+            if (pm_scl_map[i] != (stdmode_t)-1) {
                 mode_hz_index = i;
                 break;
             }
         }
     }
 
-    mode_preset = (mode_data_t*)&video_modes[pm_scl_map[cc->scl_out_mode][mode_hz_index]];
+    mode_preset = (mode_data_t*)&video_modes[pm_scl_map[mode_hz_index]];
 
-    // Force full-screen scale for CRT output modes
-    if (mode_preset->flags & MODE_CRT) {
-        scl_aspect = 4;
+    // Force largest generic width for CRT output modes
+    if (mode_preset->flags & MODE_CRT)
         gen_width_mode = GEN_WIDTH_LARGEST;
-    } else {
-        scl_aspect = cc->scl_aspect;
-    }
 
     // Calculate target active width for generic modes
-    if (scl_aspect < 3)
-        gen_width_target = (aspect_map[scl_aspect][0]*mode_preset->timings.v_active<<mode_preset->timings.interlaced)/aspect_map[scl_aspect][1];
+    if (cc->scl_aspect < 4)
+        gen_width_target = (aspect_map[cc->scl_aspect][0]*mode_preset->timings.v_active<<mode_preset->timings.interlaced)/aspect_map[cc->scl_aspect][1];
     else
         gen_width_target = 0;
 
@@ -421,8 +428,13 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
             vm_out->timings.v_hz_x100 = 12000;
     }
 
-    aspect_map[3][0] = vm_in->timings.h_active;
-    aspect_map[3][1] = vm_in->timings.v_active<<vm_in->timings.interlaced;
+    // Fill in source AR values for Auto and 1:1 PAR
+    aspect_map[0][0] = vm_in->ar.h;
+    aspect_map[0][1] = vm_in->ar.v;
+    aspect_map[4][0] = vm_in->timings.h_active;
+    aspect_map[4][1] = vm_in->timings.v_active<<vm_in->timings.interlaced;
+    aspect_map[5][0] = vm_out->ar.h;
+    aspect_map[5][1] = vm_out->ar.v;
 
     // Return error if input H/V active is zero for whatever reason
     if (!vm_in->timings.h_active || !vm_in->timings.v_active)
@@ -432,11 +444,12 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     if ((cc->scl_alg == 1) || (cc->scl_alg == 2)) { // Integer
         // Integer scale incrementally in horizontal or vertical direction depending which results to more correct aspect ratio
         while (1) {
-            if (scl_aspect < 4) {
-                error_cur = ((1000*int_scl_x*vm_in->timings.h_active)/aspect_map[scl_aspect][0]) - ((1000*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced))/aspect_map[scl_aspect][1]);
-                error_x_inc = ((1000*(int_scl_x+1)*vm_in->timings.h_active)/aspect_map[scl_aspect][0]) - ((1000*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced))/aspect_map[scl_aspect][1]);
-                error_y_inc = ((1000*(int_scl_y+1)*(vm_in->timings.v_active<<vm_in->timings.interlaced))/aspect_map[scl_aspect][1]) - ((1000*int_scl_x*vm_in->timings.h_active)/aspect_map[scl_aspect][0]);
-            }
+            error_cur = ((100*int_scl_x*vm_in->timings.h_active*vm_out->timings.v_active)/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
+                        ((100*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced)*vm_out->timings.h_active)/(aspect_map[cc->scl_aspect][1]*vm_out->ar.h));
+            error_x_inc = ((100*(int_scl_x+1)*vm_in->timings.h_active*vm_out->timings.v_active)/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
+                          ((100*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced)*vm_out->timings.h_active)/(aspect_map[cc->scl_aspect][1]*vm_out->ar.h));
+            error_y_inc = ((100*(int_scl_y+1)*(vm_in->timings.v_active<<vm_in->timings.interlaced)*vm_out->timings.h_active)/(aspect_map[cc->scl_aspect][1]*vm_out->ar.h)) -
+                          ((100*int_scl_x*vm_in->timings.h_active*vm_out->timings.v_active)/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v));
 
             // Up to 1/8 horizontally or vertically allowed to be cropped when overscanning enabled
             allow_x_inc = (cc->scl_alg == 2) ? (7*(int_scl_x+1)*vm_in->timings.h_active <= 8*vm_out->timings.h_active) : ((int_scl_x+1)*vm_in->timings.h_active <= vm_out->timings.h_active);
@@ -490,21 +503,16 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
 
         printf("\nint_scl_x: %d int_scl_y: %d", int_scl_x, int_scl_y);
     } else { // Scale to aspect
-        if (scl_aspect < 4) {
-            if ((vm_out->timings.v_active<<vm_out->timings.interlaced)*aspect_map[scl_aspect][0] <= vm_out->timings.h_active*aspect_map[scl_aspect][1]) {
-                // Pillarbox
-                vm_conf->y_size = vm_out->timings.v_active;
-                vm_conf->x_size = (aspect_map[scl_aspect][0]*(vm_out->timings.v_active<<vm_out->timings.interlaced))/aspect_map[scl_aspect][1];
-                vm_conf->x_offset = (vm_out->timings.h_active - vm_conf->x_size)/2;
-            } else {
-                // Letterbox
-                vm_conf->x_size = vm_out->timings.h_active;
-                vm_conf->y_size = (aspect_map[scl_aspect][1]*vm_out->timings.h_active)/(aspect_map[scl_aspect][0]<<vm_out->timings.interlaced);
-                vm_conf->y_offset = (vm_out->timings.v_active - vm_conf->y_size)/2;
-            }
-        } else {
-            vm_conf->x_size = vm_out->timings.h_active;
+        if (vm_out->ar.v*aspect_map[cc->scl_aspect][0] <= vm_out->ar.h*aspect_map[cc->scl_aspect][1]) {
+            // Pillarbox
             vm_conf->y_size = vm_out->timings.v_active;
+            vm_conf->x_size = (vm_out->timings.h_active*aspect_map[cc->scl_aspect][0]*vm_out->ar.v)/(vm_out->ar.h*aspect_map[cc->scl_aspect][1]);
+            vm_conf->x_offset = (vm_out->timings.h_active - vm_conf->x_size)/2;
+        } else {
+            // Letterbox
+            vm_conf->x_size = vm_out->timings.h_active;
+            vm_conf->y_size = (vm_out->timings.v_active*vm_out->ar.h*aspect_map[cc->scl_aspect][1])/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v);
+            vm_conf->y_offset = (vm_out->timings.v_active - vm_conf->y_size)/2;
         }
 
         vm_conf->y_rpt = (vm_conf->y_size < vm_in->timings.v_active) ? 0 : (vm_conf->y_size / vm_in->timings.v_active) - 1;
@@ -554,10 +562,17 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
                                      SM_OPT_MD_320COL,
                                      SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
-                                     SM_OPT_N64_640COL};
-    const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV576I, SM_OPT_DTV576I};
-    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VESA_640x480, SM_OPT_PS2_512COL};
-    const smp_mode_t sm_576p_map[] = {SM_GEN_4_3};
+                                     SM_OPT_N64_640COL,
+                                     SM_OPT_DC_640COL};
+    const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV576I, SM_OPT_DTV576I_WS,
+                                     SM_OPT_SNES_512COL,
+                                     SM_OPT_MD_320COL,
+                                     SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
+                                     SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
+                                     SM_OPT_N64_640COL,
+                                     SM_OPT_DC_640COL};
+    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL};
+    const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV576P, SM_OPT_DTV576P_WS};
 
     ad_mode_t ad_mode_list[] = { {-1, 0},                                   // GROUP_NONE
                                  pm_ad_240p_map[cc->pm_ad_240p],            // GROUP_240P
@@ -594,6 +609,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     if (vm_in->group == GROUP_NONE) {
         strncpy(vm_out->name, smp_presets_default[smp_cur].name, 16);
         memcpy(&vm_out->timings, &smp_presets_default[smp_cur].timings_i, sizeof(sync_timings_t));
+        vm_out->ar = smp_presets_default[smp_cur].ar;
         vm_out->type = smp_presets_default[smp_cur].type;
         vm_out->group = GROUP_NONE;
     } else {
@@ -680,7 +696,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
                 vm_conf->x_rpt = 1;
         }
 
-        if ((target_sm_list[vm_in->group] == SM_OPT_DTV480I_WS) || (target_sm_list[vm_in->group] == SM_OPT_DTV480P_WS))
+        if ((target_sm_list[vm_in->group] == SM_OPT_DTV480I_WS) || (target_sm_list[vm_in->group] == SM_OPT_DTV480P_WS) || (target_sm_list[vm_in->group] == SM_OPT_DTV576I_WS) || (target_sm_list[vm_in->group] == SM_OPT_DTV576P_WS))
             vm_conf->x_rpt++;
         else if (target_sm_list[vm_in->group] == SM_OPT_GBI_240COL)
             vm_conf->x_rpt = 5;

@@ -42,8 +42,6 @@
 #define V_ACTIVE_MIN 160
 #define V_ACTIVE_MAX 1440
 
-#define DEFAULT_SAMPLER_PHASE 0
-
 typedef enum {
     VIDEO_SDTV      = (1<<0),
     VIDEO_EDTV      = (1<<1),
@@ -97,15 +95,21 @@ typedef enum {
 typedef enum {
     STDMODE_240p_CRT,
     STDMODE_288p_CRT,
-    STDMODE_480i,
-    STDMODE_480p,
+    STDMODE_480i_CRT,
+    STDMODE_480i_WS_CRT,
+    STDMODE_576i_CRT,
+    STDMODE_576i_WS_CRT,
     STDMODE_480p_60_CRT,
     STDMODE_480p_100_CRT,
     STDMODE_480p_120_CRT,
     STDMODE_540p_50_CRT,
     STDMODE_540p_60_CRT,
+    STDMODE_480i,
+    STDMODE_480p,
+    STDMODE_480p_WS,
     STDMODE_576i,
     STDMODE_576p,
+    STDMODE_576p_WS,
     STDMODE_720p_50,
     STDMODE_720p_60,
     STDMODE_720p_100,
@@ -203,10 +207,16 @@ typedef struct {
 } sync_timings_t;
 
 typedef struct {
+    uint8_t h;
+    uint8_t v;
+} aspect_ratio_t;
+
+typedef struct {
     char name[16];
     HDMI_vic_t vic;
     sync_timings_t timings;
     uint8_t sampler_phase;
+    aspect_ratio_t ar;
     video_type type;
     video_group group;
     mode_flags flags;
@@ -220,6 +230,7 @@ typedef struct {
     sync_timings_t timings_i;
     uint8_t h_skip;
     uint8_t sampler_phase;
+    aspect_ratio_t ar;
     video_type type;
     video_group group;
 } smp_preset_t;
