@@ -57,9 +57,9 @@ const ude_item_map ude_initcfg_items[] = {
 };
 
 const ude_item_map ude_profile_items[] = {
-    {{0, 60, sizeof(video_modes_plm_default)}, video_modes_plm},
-    {{1, 60, sizeof(video_modes_default)}, video_modes},
-    {{2, 60, sizeof(smp_presets_default)}, smp_presets},
+    {{0, 62, sizeof(video_modes_plm_default)}, video_modes_plm},
+    {{1, 62, sizeof(video_modes_default)}, video_modes},
+    {{2, 62, sizeof(smp_presets_default)}, smp_presets},
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -99,7 +99,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
-    UDE_ITEM(41, 60, tc.tp_mode),
+    UDE_ITEM(41, 62, tc.tp_mode),
     UDE_ITEM(42, 58, tc.lm_deint_mode),
     UDE_ITEM(43, 58, tc.nir_even_offset),
     UDE_ITEM(44, 58, tc.ar_256col),
@@ -118,9 +118,9 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(57, 58, tc.reverse_lpf),
     UDE_ITEM(58, 58, tc.audio_fmt),
 #ifdef VIP
-    UDE_ITEM(59, 60, tc.scl_out_mode),
+    UDE_ITEM(59, 62, tc.scl_out_mode),
     UDE_ITEM(60, 58, tc.scl_framelock),
-    UDE_ITEM(61, 58, tc.scl_aspect),
+    UDE_ITEM(61, 62, tc.scl_aspect),
     UDE_ITEM(62, 58, tc.scl_alg),
     UDE_ITEM(63, 58, tc.scl_edge_thold),
     UDE_ITEM(64, 58, tc.scl_dil_motion_shift),
@@ -152,6 +152,10 @@ const ude_item_map ude_profile_items[] = {
 #endif
 #ifdef INC_PCM186X
     UDE_ITEM(79, 58, tc.pcm_cfg),
+#endif
+#ifdef VIP
+    UDE_ITEM(80, 62, tc.scl_crt_out_mode),
+    UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
 };
 

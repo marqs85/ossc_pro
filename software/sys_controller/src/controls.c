@@ -60,7 +60,7 @@ uint8_t btn_vec, btn_vec_prev, btn_rpt;
 rc_code_t r_code;
 btn_code_t b_code;
 
-extern int enable_tp;
+extern int enable_tp, enable_isl;
 extern uint8_t smp_cur, smp_edit, dtmg_cur, dtmg_edit;
 extern oper_mode_t oper_mode;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
@@ -217,6 +217,10 @@ void parse_control()
                 if ((r_code == RC_RIGHT) || (b_code == BC_RIGHT))
                     quick_adjust(&menu_output_items[1], 1);
             }
+            if (enable_isl) {
+                if ((r_code == RC_PHASE_PLUS) || (r_code == RC_PHASE_MINUS))
+                    quick_adjust_phase(r_code == RC_PHASE_PLUS);
+            }
             if (r_code == RC_INFO)
                 print_vm_stats();
             if (r_code == RC_SL_MODE)
@@ -231,13 +235,13 @@ void parse_control()
                 if (r_code == RC_SCL_RES)
                     enter_cstm(&menu_scaler_items[0], 1);
                 if (r_code == RC_SCL_FL)
-                    enter_cstm(&menu_scaler_items[1], 1);
-                if (r_code == RC_SCL_SCL_ALG)
                     enter_cstm(&menu_scaler_items[3], 1);
-                if (r_code == RC_SCL_DIL_ALG)
+                if (r_code == RC_SCL_SCL_ALG)
                     enter_cstm(&menu_scaler_items[5], 1);
+                if (r_code == RC_SCL_DIL_ALG)
+                    enter_cstm(&menu_scaler_items[7], 1);
                 if (r_code == RC_SCL_AR)
-                    enter_cstm(&menu_scaler_items[2], 1);
+                    enter_cstm(&menu_scaler_items[4], 1);
                 /*if (r_code == RC_SCL_ROT)
                     TODO*/
             }

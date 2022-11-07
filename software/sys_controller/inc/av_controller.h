@@ -114,6 +114,8 @@ void sys_toggle_power();
 
 void print_vm_stats();
 
+uint16_t get_sampler_phase();
+void set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc);
 void set_default_settings();
 void update_settings(int init_setup);
 

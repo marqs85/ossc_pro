@@ -122,6 +122,8 @@ typedef struct {
     /* Scaler mode options */
 #ifdef VIP
     uint8_t scl_out_mode;
+    uint8_t scl_crt_out_mode;
+    uint8_t scl_out_type;
     uint8_t scl_framelock;
     uint8_t scl_aspect;
     uint8_t scl_alg;

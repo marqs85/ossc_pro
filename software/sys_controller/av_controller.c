@@ -47,7 +47,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 60
+#define FW_VER_MINOR 62
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -120,6 +120,8 @@ ths7353_dev ths_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
 si5351_dev si_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                      .i2c_addr = SI5351_BASE,
                      .xtal_freq = 27000000LU};
+
+#define SI_PCLK_PIN SI_CLK0
 
 adv761x_dev advrx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                          .io_base = ADV7610_IO_BASE,
@@ -276,7 +278,14 @@ typedef struct {
     uint32_t motion_shift;
     uint32_t unused2;
     uint32_t mode;
-} vip_dli_ii_regs;
+} vip_dil_ii_regs;
+
+typedef struct {
+    uint32_t ctrl;
+    uint32_t status;
+    uint32_t irq;
+    uint32_t config;
+} vip_il_ii_regs;
 
 typedef struct {
     uint32_t ctrl;
@@ -292,9 +301,10 @@ typedef struct {
 } vip_vfb_ii_regs;
 
 volatile vip_cvi_ii_regs *vip_cvi = (volatile vip_cvi_ii_regs*)ALT_VIP_CL_CVI_0_BASE;
-volatile vip_dli_ii_regs *vip_dli = (volatile vip_dli_ii_regs*)ALT_VIP_CL_DIL_0_BASE;
+volatile vip_dil_ii_regs *vip_dil = (volatile vip_dil_ii_regs*)ALT_VIP_CL_DIL_0_BASE;
 volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)ALT_VIP_CL_VFB_0_BASE;
 volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)ALT_VIP_CL_SCL_0_BASE;
+volatile vip_il_ii_regs *vip_il = (volatile vip_il_ii_regs*)ALT_VIP_CL_IL_0_BASE;
 volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)ALT_VIP_CL_CVO_0_BASE;
 #endif
 
@@ -366,7 +376,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_in_config2.interlaced = vm_in->timings.interlaced;
     hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+12;
     hv_in_config3.h_skip = vm_conf->h_skip;
-    hv_in_config3.h_sample_sel = vm_conf->h_skip / 2; // TODO: fix
+    hv_in_config3.h_sample_sel = vm_conf->h_sample_sel;
 
     // Set output params
     hv_out_config.h_total = vm_out->timings.h_total;
@@ -461,7 +471,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
 #ifdef VIP
     vip_cvi->ctrl = vip_enable;
-    vip_dli->ctrl = vip_enable;
+    vip_dil->ctrl = vip_enable;
+    vip_il->ctrl = vip_enable;
 
     if (avconfig->scl_alg == 0)
         scl_target_pp_coeff = ((vm_in->group >= GROUP_240P) && (vm_in->group <= GROUP_384P)) ? 0 : 2; // Nearest or Lanchos3_sharp
@@ -481,16 +492,18 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     }
 
     if (avconfig->scl_dil_alg == 0) {
-        vip_dli->mode = (1<<1);
+        vip_dil->mode = (1<<1);
     } else if (avconfig->scl_dil_alg == 1) {
-        vip_dli->mode = (1<<2);
+        vip_dil->mode = (1<<2);
     } else if (avconfig->scl_dil_alg == 3) {
-        vip_dli->mode = (1<<0);
+        vip_dil->mode = (1<<0);
     } else {
-        vip_dli->mode = 0;
+        vip_dil->mode = 0;
     }
 
-    vip_dli->motion_shift = avconfig->scl_dil_motion_shift;
+    vip_dil->motion_shift = avconfig->scl_dil_motion_shift;
+    
+    vip_il->config = !vm_out->timings.interlaced;
 
     if (scl_target_pp_coeff != scl_loaded_pp_coeff) {
         if (scl_target_pp_coeff >= PP_COEFF_SIZE) { // Custom
@@ -546,17 +559,15 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_scl_pp->edge_thold = avconfig->scl_edge_thold;
 
     vip_scl_pp->width = vm_conf->x_size;
-    vip_scl_pp->height = vm_conf->y_size;
+    vip_scl_pp->height = vm_conf->y_size<<vm_out->timings.interlaced;
 
     vip_fb->input_rate = vm_in->timings.v_hz_x100;
     vip_fb->output_rate = vm_out->timings.v_hz_x100;
     //vip_fb->locked = vm_conf->framelock;  // causes cvo fifo underflows
     vip_fb->locked = 0;
-    if (vm_conf->framelock)
-        vip_cvo->ctrl |= (1<<4);
 
     h_blank = vm_out->timings.h_total-vm_conf->x_size;
-    v_blank = vm_out->timings.v_total-vm_conf->y_size;
+    v_blank = (vm_out->timings.v_total>>vm_out->timings.interlaced)-vm_conf->y_size;
     h_frontporch = h_blank-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
     v_frontporch = v_blank-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
 
@@ -567,23 +578,35 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         (vip_cvo->h_frontporch != h_frontporch) ||
         (vip_cvo->v_frontporch != v_frontporch) ||
         (vip_cvo->h_blank != h_blank) ||
-        (vip_cvo->v_blank != v_blank))
+        (vip_cvo->v_blank != v_blank) ||
+        (vip_cvo->mode_ctrl != vm_out->timings.interlaced))
     {
         vip_cvo->banksel = 0;
         vip_cvo->valid = 0;
-        vip_cvo->mode_ctrl = 0;
+        vip_cvo->mode_ctrl = vm_out->timings.interlaced;
         vip_cvo->h_active = vm_conf->x_size;
         vip_cvo->v_active = vm_conf->y_size;
+        vip_cvo->v_active_f1 = vm_conf->y_size;
         vip_cvo->h_synclen = vm_out->timings.h_synclen;
         vip_cvo->v_synclen = vm_out->timings.v_synclen;
+        vip_cvo->v_synclen_f0 = vm_out->timings.v_synclen;
         vip_cvo->h_frontporch = h_frontporch;
         vip_cvo->v_frontporch = v_frontporch;
+        vip_cvo->v_frontporch_f0 = v_frontporch+1;
         vip_cvo->h_blank = h_blank;
         vip_cvo->v_blank = v_blank;
+        vip_cvo->v_blank_f0 = v_blank+1;
+        vip_cvo->active_start = 0;
+        vip_cvo->v_blank_start = vm_conf->y_size;
+        vip_cvo->fid_r = vm_conf->y_size + v_frontporch;
+        vip_cvo->fid_f = 2*vm_conf->y_size + vip_cvo->v_blank_f0 + vip_cvo->v_frontporch_f0;
         vip_cvo->h_polarity = 0;
         vip_cvo->v_polarity = 0;
         vip_cvo->valid = 1;
     }
+
+    if (vm_conf->framelock)
+        vip_cvo->ctrl |= (1<<4);
 #endif
 }
 
@@ -899,10 +922,48 @@ void print_vm_stats() {
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "v%u.%.2u @ " __DATE__, FW_VER_MAJOR, FW_VER_MINOR);
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Uptime:");
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%luh %lumin", (uint32_t)((ts/TIMER_0_FREQ)/3600), ((uint32_t)((ts/TIMER_0_FREQ)/60) % 60));
+    
     osd->osd_config.status_refresh = 1;
     osd->osd_row_color.mask = 0;
     osd->osd_sec_enable[0].mask = (1<<(row+1))-1;
     osd->osd_sec_enable[1].mask = (1<<(row+1))-1;
+}
+
+uint16_t get_sampler_phase() {
+    uint32_t sample_rng_x1000;
+    uint32_t isl_phase_x1000 = isl_get_sampler_phase(&isl_dev)*5625;
+    
+    if (vm_conf.h_skip == 0) {
+        return isl_phase_x1000/1000;
+    } else {
+        sample_rng_x1000 = 360000 / (vm_conf.h_skip+1);
+        return ((vm_conf.h_sample_sel*sample_rng_x1000)+(isl_phase_x1000/(vm_conf.h_skip+1)))/1000;
+    }
+}
+
+void set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc) {
+    uint32_t sample_rng_x1000;
+    uint8_t isl_phase;
+
+    vmode_in.sampler_phase = sampler_phase;
+
+    if ((sampler_phase == 0) || (vm_conf.h_skip == 0)) {
+        vm_conf.h_sample_sel = vm_conf.h_skip / 2;
+        isl_phase = sampler_phase;
+    } else {
+        sample_rng_x1000 = 360000 / (vm_conf.h_skip+1);
+        vm_conf.h_sample_sel = ((sampler_phase-1)*5625)/sample_rng_x1000;
+        isl_phase = (((((sampler_phase-1)*5625) % sample_rng_x1000)*64)/sample_rng_x1000) + 1;
+    }
+    
+    if (vm_conf.h_skip > 0)
+        printf("Sample sel: %u/%u\n", (vm_conf.h_sample_sel+1), (vm_conf.h_skip+1));
+
+    if (update_isl)
+        isl_set_sampler_phase(&isl_dev, isl_phase);
+
+    if (update_sc)
+        update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
 }
 
 void set_default_settings() {
@@ -935,6 +996,7 @@ void mainloop()
     int i, man_input_change;
     char op_status[4];
     uint32_t pclk_i_hz, pclk_o_hz, dotclk_hz, h_hz, pll_h_total, pll_h_total_prev=0;
+    uint8_t h_skip_prev, sampler_phase_prev;
     ths_channel_t target_ths_ch;
     ths_input_t target_ths_input;
     isl_input_t target_isl_input=0;
@@ -1060,6 +1122,8 @@ void mainloop()
                 isl_source_sel(&isl_dev, target_isl_input, target_isl_sync, target_format);
                 isl_dev.sync_active = 0;
                 pll_h_total_prev = 0;
+                vmode_in.sampler_phase = (uint8_t)-1;
+                vm_conf.h_skip = (uint8_t)-1;
 
                 // send current PLL h_total to isl_frontend for mode detection
                 sc->hv_in_config.h_total = isl_get_pll_htotal(&isl_dev);
@@ -1098,9 +1162,9 @@ void mainloop()
                 printf("PCLK_OUT: %luHz\n", pclk_o_hz);
 
                 if (vm_conf.si_pclk_mult == 0)
-                    si5351_set_frac_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, 0, pclk_o_hz/1000, si_dev.xtal_freq/1000, NULL);
+                    si5351_set_frac_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, SI_XTAL, 0, pclk_o_hz/1000, si_dev.xtal_freq/1000, NULL);
                 else
-                    si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, SI_XTAL, 0, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
+                    si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, SI_XTAL, 0, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
 
                 update_osd_size(&vmode_out);
                 update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
@@ -1131,6 +1195,9 @@ void mainloop()
 
             if (isl_dev.sync_active) {
                 if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status2.pcnt_frame) || (status & MODE_CHANGE)) {
+                    h_skip_prev = vm_conf.h_skip;
+                    sampler_phase_prev = vmode_in.sampler_phase;
+
                     memset(&vmode_in, 0, sizeof(mode_data_t));
 
 #ifdef ISL_MEAS_HZ
@@ -1193,8 +1260,8 @@ void mainloop()
 
                         isl_set_afe_bw(&isl_dev, dotclk_hz);
 
-                        if (pll_h_total != pll_h_total_prev)
-                            isl_set_sampler_phase(&isl_dev, vmode_in.sampler_phase);
+                        if ((pll_h_total != pll_h_total_prev) || (vm_conf.h_skip != h_skip_prev))
+                            set_sampler_phase(vmode_in.sampler_phase, !((pll_h_total == pll_h_total_prev) && !sampler_phase_prev && !vmode_in.sampler_phase), 0);
 
                         pll_h_total_prev = pll_h_total;
 
@@ -1202,14 +1269,14 @@ void mainloop()
                         if (vm_conf.si_pclk_mult == 0)
                             si5351_set_frac_mult(&si_dev,
                                                  SI_PLLA,
-                                                 SI_CLK0,
+                                                 SI_PCLK_PIN,
                                                  si_clk_src,
                                                  pclk_i_hz,
                                                  vm_conf.framelock ? vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock : pclk_o_hz/1000,
                                                  vm_conf.framelock ? pll_h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
                                                  NULL);
                         else
-                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
+                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
 
                         if (vm_conf.framelock)
                             sys_ctrl |= SCTRL_FRAMELOCK;
@@ -1307,14 +1374,14 @@ void mainloop()
                         if (vm_conf.si_pclk_mult == 0)
                             si5351_set_frac_mult(&si_dev,
                                                  SI_PLLA,
-                                                 SI_CLK0,
+                                                 SI_PCLK_PIN,
                                                  si_clk_src,
                                                  pclk_i_hz,
                                                  vm_conf.framelock ? vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock : pclk_o_hz/1000,
                                                  vm_conf.framelock ? vmode_in.timings.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
                                                  NULL);
                         else
-                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_CLK0, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
+                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
 
                         if (vm_conf.framelock)
                             sys_ctrl |= SCTRL_FRAMELOCK;
@@ -1438,7 +1505,8 @@ int main()
 #ifdef VIP
         // Disable VIP on powerdown
         vip_cvi->ctrl = 0;
-        vip_dli->ctrl = 0;
+        vip_dil->ctrl = 0;
+        vip_il->ctrl = 0;
         vip_scl_pp->ctrl = 0;
         vip_fb->ctrl = 0;
         vip_cvo->ctrl = 0;

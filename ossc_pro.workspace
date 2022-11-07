@@ -5,14 +5,14 @@
   <Project Name="ossc_pro_sw" Path="software/sys_controller/ossc_pro_sw.project" Active="Yes"/>
   <Project Name="tools" Path="tools/tools.project" Active="No"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="no">
+    <WorkspaceConfiguration Name="Debug">
       <Environment/>
       <Project Name="ossc_pro_rtl" ConfigName="Debug"/>
       <Project Name="ossc_pro_sw_bsp" ConfigName="Debug"/>
       <Project Name="ossc_pro_sw" ConfigName="Debug"/>
       <Project Name="tools" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release">
       <Environment/>
       <Project Name="ossc_pro_rtl" ConfigName="Release"/>
       <Project Name="ossc_pro_sw_bsp" ConfigName="Release"/>
