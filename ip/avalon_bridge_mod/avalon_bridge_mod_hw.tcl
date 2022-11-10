@@ -107,6 +107,7 @@ proc elaborate {} {
     add_interface_port avalon_master_rd avalon_rd_burstcount burstcount Output 6
 
     add_interface_port external_interface clk_o clk_o Output 1
+    add_interface_port external_interface reset_o reset_o Output 1
     add_interface_port external_interface wr_address wr_address Input $addr_width
     add_interface_port external_interface rd_address rd_address Input $addr_width
     add_interface_port external_interface rd_read rd_read Input 1

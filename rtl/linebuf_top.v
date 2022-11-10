@@ -40,6 +40,7 @@ module linebuf_top (
     output [7:0] B_linebuf,
     // optional EMIF if
     input emif_br_clk,
+    input emif_br_reset,
     output reg [27:0] emif_rd_addr,
     output reg emif_rd_read,
     input [255:0] emif_rd_rdata,
@@ -102,7 +103,8 @@ wire [8:0] emif_wr_fifo_blksleft_q;
 reg [8:0] emif_wr_blksleft;
 wire [19:0] emif_wr_fifo_addr_q;
 wire [23:0] emif_wr_fifo_pixs_q[7:0];
-reg emif_wr_fifo_iniread_prev, emif_wr_fifo_rdempty;
+reg emif_wr_fifo_iniread_prev;
+wire emif_wr_fifo_rdempty;
 wire [8:0] emif_wr_fifo_rdusedw;
 wire emif_wr_fifo_iniread = (lb_enable & (emif_wr_blksleft == 0) & !emif_wr_fifo_iniread_prev & !emif_wr_fifo_rdempty);
 wire emif_wr_fifo_rdreq = emif_wr_fifo_iniread | ((emif_wr_burstcount > 1) & !emif_wr_waitrequest);
@@ -147,23 +149,28 @@ always @(posedge PCLK_CAP_i) begin
     end
 end
 
-always @(posedge emif_br_clk) begin
-    if (emif_wr_burstcount > 0) begin
-        if (!emif_wr_waitrequest) begin
-            emif_wr_burstcount <= emif_wr_burstcount - 1'b1;
-            if (emif_wr_burstcount == 1) begin
-                emif_wr_blksleft <= 0;
-                emif_wr_write <= 1'b0;
+always @(posedge emif_br_clk or posedge emif_br_reset) begin
+    if (emif_br_reset) begin
+        emif_wr_write <= 1'b0;
+        emif_wr_burstcount <= 1'b0;
+    end else begin
+        if (emif_wr_burstcount > 0) begin
+            if (!emif_wr_waitrequest) begin
+                emif_wr_burstcount <= emif_wr_burstcount - 1'b1;
+                if (emif_wr_burstcount == 1) begin
+                    emif_wr_blksleft <= 0;
+                    emif_wr_write <= 1'b0;
+                end
             end
+        end else if (lb_enable & (emif_wr_blksleft > 0) & ((emif_wr_fifo_rdusedw >= emif_wr_blksleft-1) | (emif_wr_fifo_rdusedw >= 31))) begin
+            emif_wr_write <= 1'b1;
+            emif_wr_burstcount <= (emif_wr_blksleft > EMIF_WR_MAXBURST) ? EMIF_WR_MAXBURST : emif_wr_blksleft;
+        end else if (emif_wr_fifo_iniread_prev) begin
+            emif_wr_blksleft <= emif_wr_fifo_blksleft_q;
         end
-    end else if ((emif_wr_blksleft > 0) & ((emif_wr_fifo_rdusedw >= emif_wr_blksleft-1) | (emif_wr_fifo_rdusedw >= 31))) begin
-        emif_wr_write <= 1'b1;
-        emif_wr_burstcount <= (emif_wr_blksleft > EMIF_WR_MAXBURST) ? EMIF_WR_MAXBURST : emif_wr_blksleft;
-    end else if (emif_wr_fifo_iniread_prev) begin
-        emif_wr_blksleft <= emif_wr_fifo_blksleft_q;
-    end
 
-    emif_wr_fifo_iniread_prev <= emif_wr_fifo_iniread;
+        emif_wr_fifo_iniread_prev <= emif_wr_fifo_iniread;
+    end
 end
 
 /* ------------------------------ EMIF RD interface ------------------------------ */
@@ -194,28 +201,33 @@ linebuf_double linebuf_rgb (
 );
 
 // BRAM linebuffer operation
-always @(posedge emif_br_clk) begin
-    if (emif_rd_burstcount > 0) begin // always finish read first, make sure doesn't last longer than line length
-        if (emif_rd_readdatavalid) begin
-            blocks_copied <= blocks_copied + 1'b1;
-            emif_rd_burstcount <= emif_rd_burstcount - 1'b1;
-        end
-        if (!emif_rd_waitrequest)
-            emif_rd_read <= 1'b0;
+always @(posedge emif_br_clk or posedge emif_br_reset) begin
+    if (emif_br_reset) begin
+        emif_rd_read <= 1'b0;
+        emif_rd_burstcount <= 1'b0;
+    end else begin
+        if (emif_rd_burstcount > 0) begin // always finish read first, make sure doesn't last longer than line length
+            if (emif_rd_readdatavalid) begin
+                blocks_copied <= blocks_copied + 1'b1;
+                emif_rd_burstcount <= emif_rd_burstcount - 1'b1;
+            end
+            if (!emif_rd_waitrequest)
+                emif_rd_read <= 1'b0;
 `ifdef DEBUG
-        emif_rd_line_missed <= (line_id_brclk_sync2_reg != line_id_brclk_sync3_reg);
+            emif_rd_line_missed <= (line_id_brclk_sync2_reg != line_id_brclk_sync3_reg);
 `endif
-    end else if (line_id_brclk_sync2_reg != line_id_brclk_sync3_reg) begin
-        blocks_copied <= 0;
-    end else if (lb_enable & (blocks_copied < blocks_per_line)) begin
-        emif_rd_read <= 1'b1;
-        emif_rd_burstcount <= ((blocks_per_line-blocks_copied) > EMIF_RD_MAXBURST) ? EMIF_RD_MAXBURST : (blocks_per_line-blocks_copied);
-        emif_rd_addr <= {3'b001, emif_rd_block_addr, 5'h0};
-    end
+        end else if (line_id_brclk_sync2_reg != line_id_brclk_sync3_reg) begin
+            blocks_copied <= 0;
+        end else if (lb_enable & (blocks_copied < blocks_per_line)) begin
+            emif_rd_read <= 1'b1;
+            emif_rd_burstcount <= ((blocks_per_line-blocks_copied) > EMIF_RD_MAXBURST) ? EMIF_RD_MAXBURST : (blocks_per_line-blocks_copied);
+            emif_rd_addr <= {3'b001, emif_rd_block_addr, 5'h0};
+        end
 
-    line_id_brclk_sync1_reg <= line_id;
-    line_id_brclk_sync2_reg <= line_id_brclk_sync1_reg;
-    line_id_brclk_sync3_reg <= line_id_brclk_sync2_reg;
+        line_id_brclk_sync1_reg <= line_id;
+        line_id_brclk_sync2_reg <= line_id_brclk_sync1_reg;
+        line_id_brclk_sync3_reg <= line_id_brclk_sync2_reg;
+    end
 end
 
 end else begin // EMIF_ENABLE

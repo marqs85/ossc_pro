@@ -128,6 +128,7 @@ wire framelock = sys_ctrl[14];
 wire hdmirx_spdif = sys_ctrl[15];
 wire [3:0] fan_duty = sys_ctrl[19:16];
 wire [3:0] led_duty = sys_ctrl[23:20];
+wire dram_refresh_enable = sys_ctrl[24];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -150,9 +151,10 @@ wire sys_reset_n = (po_reset_n & ~jtagm_reset_req & pll_locked);
 `endif
 
 wire emif_status_init_done, emif_status_cal_success, emif_status_cal_fail, emif_status_powerdn_ack;
+wire dram_refresh_req, dram_refresh_ack;
 
 /* EMIF IF for LM */
-wire emif_br_clk;
+wire emif_br_clk, emif_br_reset;
 wire [27:0] emif_rd_addr, emif_wr_addr;
 wire [255:0] emif_rd_rdata, emif_wr_wdata;
 wire [5:0] emif_rd_burstcount, emif_wr_burstcount;
@@ -361,8 +363,9 @@ assign HDMITX_PCLK_o = ~pclk_out;
 `endif
 
 
-// VIP
+// VIP / LB
 wire vip_select = misc_config[15];
+wire lb_enable = sys_poweron & ~testpattern_enable & ~vip_select;
 
 always @(posedge pclk_capture) begin
     pclk_capture_div2 <= pclk_capture_div2 ^ 1'b1;
@@ -647,6 +650,7 @@ sys sys_inst (
     .osd_generator_0_osd_if_osd_enable      (osd_enable),
     .osd_generator_0_osd_if_osd_color       (osd_color),
     .emif_bridge_0_clk_o                    (emif_br_clk),
+    .emif_bridge_0_reset_o                  (emif_br_reset),
     .emif_bridge_0_wr_address               (emif_wr_addr),
     .emif_bridge_0_wr_write                 (emif_wr_write),
     .emif_bridge_0_wr_write_data            (emif_wr_wdata),
@@ -668,6 +672,9 @@ sys sys_inst (
     .mem_if_lpddr2_emif_0_deep_powerdn_local_deep_powerdn_ack  (emif_status_powerdn_ack),
     .mem_if_lpddr2_emif_0_pll_sharing_pll_locked               (emif_pll_locked),
     .mem_if_lpddr2_emif_0_mpfe_reset_reset_n       (emif_mpfe_reset_n),
+    .mem_if_lpddr2_emif_0_user_refresh_local_refresh_req   (dram_refresh_req),
+    .mem_if_lpddr2_emif_0_user_refresh_local_refresh_chip  (1'b1),
+    .mem_if_lpddr2_emif_0_user_refresh_local_refresh_ack   (dram_refresh_ack),
     .memory_mem_ca                                 (DDR_CA_o),
     .memory_mem_ck                                 (DDR_CK_o_p),
     .memory_mem_ck_n                               (DDR_CK_o_n),
@@ -728,8 +735,8 @@ sys sys_inst (
 );
 
 scanconverter #(
-    .EMIF_ENABLE(0),
-    .NUM_LINE_BUFFERS(40)
+    .EMIF_ENABLE(1),
+    .NUM_LINE_BUFFERS(2048)
   ) scanconverter_inst (
     .PCLK_CAP_i(pclk_capture),
     .PCLK_OUT_i(SI_PCLK_i),
@@ -757,6 +764,7 @@ scanconverter #(
     .sl_config2(sl_config2),
     .sl_config3(sl_config3),
     .testpattern_enable(testpattern_enable),
+    .lb_enable(lb_enable),
     .ext_sync_mode(vip_select),
     .ext_frame_change_i(vip_frame_start),
     .ext_R_i(R_vip),
@@ -773,6 +781,7 @@ scanconverter #(
     .ypos_o(ypos_sc),
     .resync_strobe(resync_strobe_i),
     .emif_br_clk(emif_br_clk),
+    .emif_br_reset(emif_br_reset),
     .emif_rd_addr(emif_rd_addr),
     .emif_rd_read(emif_rd_read),
     .emif_rd_rdata(emif_rd_rdata),
@@ -802,6 +811,14 @@ pwm_2ch #(.PERIOD(1024)) pwm_inst (
     .ch2_duty       (led_duty),
     .ch1_pwm        (fan_pwm),
     .ch2_pwm        (led_pwm)
+);
+
+dram_refresh_sched #(.REFRESH_INTERVAL(842)) dram_refresh_sched_inst (
+    .clk            (emif_br_clk),
+    .reset_n        (~emif_br_reset),
+    .enable         (dram_refresh_enable),
+    .refresh_ack    (dram_refresh_ack),
+    .refresh_req    (dram_refresh_req)
 );
 
 endmodule

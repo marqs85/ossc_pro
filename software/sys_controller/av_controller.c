@@ -873,6 +873,15 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
     *aud_tx_fmt = (audsrc == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
 }
 
+void set_dram_refresh(uint8_t enable) {
+    if (enable)
+        sys_ctrl |= SCTRL_DRAM_RFR_ENA;
+    else
+        sys_ctrl &= ~SCTRL_DRAM_RFR_ENA;
+
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+}
+
 int sys_is_powered_on() {
     return sys_powered_on;
 }

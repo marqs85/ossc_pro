@@ -66,10 +66,12 @@ extern oper_mode_t oper_mode;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 extern menuitem_t menu_scanlines_items[];
-extern menuitem_t menu_scaler_items[];
 extern menuitem_t menu_output_items[];
 extern menuitem_t menu_settings_items[];
 extern menuitem_t menu_advtiming_items[];
+#ifdef VIP
+extern menuitem_t menu_scaler_items[];
+#endif
 
 int setup_rc()
 {
@@ -231,6 +233,7 @@ void parse_control()
                 quick_adjust(&menu_scanlines_items[4], 1);
             if ((r_code == RC_SL_PLUS) || (r_code == RC_SL_MINUS))
                 quick_adjust(&menu_scanlines_items[1], (r_code == RC_SL_PLUS) ? 1 : -1);
+#ifdef VIP
             if (oper_mode == OPERMODE_SCALER) {
                 if (r_code == RC_SCL_RES)
                     enter_cstm(&menu_scaler_items[0], 1);
@@ -245,6 +248,7 @@ void parse_control()
                 /*if (r_code == RC_SCL_ROT)
                     TODO*/
             }
+#endif
             if ((oper_mode == OPERMODE_ADAPT_LM) || (oper_mode == OPERMODE_SCALER)) {
                 if ((r_code == RC_SCL_SIZE) || (r_code == RC_SCL_POS)) {
                     smp_edit = smp_cur;
