@@ -46,6 +46,7 @@
 #define SCTRL_FAN_PWM_MASK      (0xf<<SCTRL_FAN_PWM_OFFS)
 #define SCTRL_LED_PWM_OFFS      20
 #define SCTRL_LED_PWM_MASK      (0xf<<SCTRL_LED_PWM_OFFS)
+#define SCTRL_DRAM_RFR_ENA      (1<<24)
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -107,6 +108,8 @@ void set_syncmux_biasmode(uint8_t syncmux_stc);
 void switch_audmux(uint8_t audmux_sel);
 
 void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
+
+void set_dram_refresh(uint8_t enable);
 
 int sys_is_powered_on();
 

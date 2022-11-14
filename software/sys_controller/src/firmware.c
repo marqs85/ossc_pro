@@ -87,6 +87,7 @@ int fw_update() {
         }
 
         printf("Copying images to DRAM...\n");
+        set_dram_refresh(1);
         if ((f_read(&fw_file, dram_tmp, bytes_to_copy, &bytes_read) != F_OK) || (bytes_read != bytes_to_copy)) {
             printf("FW data read error\n");
             retval = -8;
@@ -118,6 +119,7 @@ int fw_update() {
 
 close_file:
     file_close(&fw_file);
+    set_dram_refresh(0);
     return retval;
 }
 

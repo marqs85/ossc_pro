@@ -606,7 +606,7 @@ set_global_assignment -name UNIPHY_SEQUENCER_DQS_CONFIG_ENABLE ON
 
 set_global_assignment -name SMART_RECOMPILE ON
 
-set_global_assignment -name SEED 1
+set_global_assignment -name SEED 3
 
 
 
@@ -624,6 +624,7 @@ set_global_assignment -name VERILOG_FILE rtl/scanconverter.v
 set_global_assignment -name VERILOG_FILE rtl/linebuf_top.v
 set_global_assignment -name VERILOG_FILE rtl/ir_rcv.v
 set_global_assignment -name VERILOG_FILE rtl/pwm_2ch.v
+set_global_assignment -name VERILOG_FILE rtl/dram_refresh_sched.v
 set_global_assignment -name SIP_FILE sys/simulation/sys.sip
 set_global_assignment -name QIP_FILE software/sys_controller/mem_init/meminit.qip
 set_global_assignment -name SIP_FILE software/sys_controller/mem_init/meminit.sip

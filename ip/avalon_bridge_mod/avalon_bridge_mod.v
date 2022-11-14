@@ -5,6 +5,7 @@ module avalon_bridge_mod (
 
     // Outputs
     clk_o,
+    reset_o,
 
     // Inputs from Avalon Switch Fabric
     avalon_rd_readdata,
@@ -72,6 +73,7 @@ input           [5:0]       rd_burstcount;
 
 // Outputs
 output                  clk_o;
+output                  reset_o;
 
 output      [(AW-1): 0] avalon_wr_address;
 output      [(AW-1): 0] avalon_rd_address;
@@ -113,6 +115,7 @@ output      [(DW-1): 0] rd_read_data;
  *                            Combinational Logic                            *
  *****************************************************************************/
 assign clk_o                = clk;
+assign reset_o              = reset;
 assign avalon_wr_address    = wr_address;
 assign avalon_rd_address    = rd_address;
 assign avalon_wr_write      = wr_write;
