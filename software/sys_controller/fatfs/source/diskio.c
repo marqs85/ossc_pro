@@ -11,17 +11,11 @@
 #include "diskio.h"		/* Declarations of disk functions */
 #include "mmc.h"
 #include "system.h"
-#include "altera_avalon_pio_regs.h"
-#include "av_controller.h"
+#include "sysconfig.h"
 
 
 extern struct mmc *mmc_dev;
-
-
-static uint8_t is_sdcard_present()
-{
-    return !!(IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE) & (1<<SSTAT_SD_DETECT_BIT));
-}
+extern uint8_t sd_det;
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -34,7 +28,7 @@ DSTATUS disk_status (
     DSTATUS stat;
     if (mmc_dev->has_init != 0)
     {
-        return is_sdcard_present() != 0 ? RES_OK : STA_NODISK;
+        return sd_det ? RES_OK : STA_NODISK;
     }
 
     return STA_NOINIT;
@@ -55,7 +49,6 @@ DSTATUS disk_initialize (
 
     if (err != 0 || mmc_dev->has_init == 0)
     {
-        printf("mmc_init failed: %d\n\n", err);
         return STA_NOINIT;
     }
 
@@ -75,7 +68,7 @@ DRESULT disk_read (
     UINT count      /* Number of sectors to read */
 )
 {
-    if (mmc_dev->has_init == 0 || is_sdcard_present() == 0)
+    if (mmc_dev->has_init == 0 || !sd_det)
         return RES_NOTRDY;
 
     if (mmc_bread(mmc_dev, (LBA_t)sector, (UINT)count, buff) == count)
@@ -99,7 +92,7 @@ DRESULT disk_write (
     UINT count          /* Number of sectors to write */
 )
 {
-    if (mmc_dev->has_init == 0 || is_sdcard_present() == 0)
+    if (mmc_dev->has_init == 0 || !sd_det)
         return RES_NOTRDY;
 
     if (mmc_bwrite(mmc_dev, (LBA_t)sector, (UINT)count, buff) == count)
@@ -124,7 +117,7 @@ DRESULT disk_ioctl (
     DRESULT res;
     int result;
 
-    if (mmc_dev->has_init == 0 || is_sdcard_present() == 0)
+    if (mmc_dev->has_init == 0 || !sd_det)
         return RES_NOTRDY;
 
     return RES_PARERR;

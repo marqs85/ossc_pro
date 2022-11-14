@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "27";
+         value = "28";
          type = "int";
       }
    }
@@ -69,6 +69,27 @@
       datum baseAddress
       {
          value = "512";
+         type = "String";
+      }
+   }
+   element alt_vip_cl_interlacer_0
+   {
+      datum _sortIndex
+      {
+         value = "27";
+         type = "int";
+      }
+   }
+   element alt_vip_cl_interlacer_0.control
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "3072";
          type = "String";
       }
    }
@@ -636,6 +657,11 @@
    type="conduit"
    dir="end" />
  <interface
+   name="mem_if_lpddr2_emif_0_user_refresh"
+   internal="mem_if_lpddr2_emif_0.user_refresh"
+   type="conduit"
+   dir="end" />
+ <interface
    name="memory"
    internal="mem_if_lpddr2_emif_0.memory"
    type="conduit"
@@ -816,6 +842,27 @@
   <parameter name="USER_PACKET_SUPPORT" value="PASSTHROUGH" />
   <parameter name="WRITE_MASTER_BURST_TARGET" value="32" />
   <parameter name="WRITE_MASTER_FIFO_DEPTH" value="64" />
+ </module>
+ <module
+   name="alt_vip_cl_interlacer_0"
+   kind="alt_vip_cl_interlacer"
+   version="21.1"
+   enabled="1">
+  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
+  <parameter name="BITS_PER_SYMBOL" value="8" />
+  <parameter name="COLOR_PLANES_ARE_IN_PARALLEL" value="1" />
+  <parameter name="CTRL_OVERRIDE" value="1" />
+  <parameter name="EXTRA_PIPELINING" value="0" />
+  <parameter name="INTERLACE_PASSTHROUGH" value="0" />
+  <parameter name="LIMITED_READBACK" value="1" />
+  <parameter name="MAX_HEIGHT" value="1440" />
+  <parameter name="MAX_WIDTH" value="2560" />
+  <parameter name="NUMBER_OF_COLOR_PLANES" value="3" />
+  <parameter name="PIXELS_IN_PARALLEL" value="2" />
+  <parameter name="RUNTIME_CONTROL" value="1" />
+  <parameter name="SEND_F1_FIRST" value="0" />
  </module>
  <module
    name="alt_vip_cl_scl_0"
@@ -1051,7 +1098,7 @@
   <parameter name="CTL_HRB_ENABLED" value="false" />
   <parameter name="CTL_LOOK_AHEAD_DEPTH" value="4" />
   <parameter name="CTL_SELF_REFRESH_EN" value="false" />
-  <parameter name="CTL_USR_REFRESH_EN" value="false" />
+  <parameter name="CTL_USR_REFRESH_EN" value="true" />
   <parameter name="CTL_ZQCAL_EN" value="false" />
   <parameter name="CUT_NEW_FAMILY_TIMING" value="true" />
   <parameter name="DAT_DATA_WIDTH" value="32" />
@@ -1140,7 +1187,7 @@
   <parameter name="MEM_TRAS_NS" value="42.0" />
   <parameter name="MEM_TRCD_NS" value="18.0" />
   <parameter name="MEM_TREFI_US" value="7.8" />
-  <parameter name="MEM_TRFC_NS" value="90.0" />
+  <parameter name="MEM_TRFC_NS" value="130.0" />
   <parameter name="MEM_TRP_NS" value="18.0" />
   <parameter name="MEM_TRRD_NS" value="10.0" />
   <parameter name="MEM_TRTP_NS" value="7.5" />
@@ -1980,6 +2027,15 @@
  <connection
    kind="avalon"
    version="21.1"
+   start="mm_clock_crossing_bridge_2.m0"
+   end="alt_vip_cl_interlacer_0.control">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0c00" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="21.1"
    start="alt_vip_cl_dil_0.ma_read_master"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2072,6 +2128,11 @@
    kind="avalon_streaming"
    version="21.1"
    start="alt_vip_cl_scl_0.dout"
+   end="alt_vip_cl_interlacer_0.din" />
+ <connection
+   kind="avalon_streaming"
+   version="21.1"
+   start="alt_vip_cl_interlacer_0.dout"
    end="alt_vip_cl_cvo_0.din" />
  <connection
    kind="avalon_streaming"
@@ -2256,6 +2317,11 @@
    start="pll_0.outclk1"
    end="alt_vip_cl_cvo_0.main_clock" />
  <connection
+   kind="clock"
+   version="21.1"
+   start="pll_0.outclk1"
+   end="alt_vip_cl_interlacer_0.main_clock" />
+ <connection
    kind="interrupt"
    version="21.1"
    start="pulpino_0.interrupt_receiver"
@@ -2439,6 +2505,11 @@
    version="21.1"
    start="reset_bridge_0.out_reset"
    end="alt_vip_cl_cvo_0.main_reset" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="reset_bridge_0.out_reset"
+   end="alt_vip_cl_interlacer_0.main_reset" />
  <connection
    kind="reset"
    version="21.1"

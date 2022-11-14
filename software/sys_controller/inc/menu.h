@@ -136,6 +136,7 @@ void cstm_position(menucode_id code, int setup_disp);
 void cstm_listview(menucode_id code, int setup_disp);
 void enter_cstm(menuitem_t *item, int detached_mode);
 void quick_adjust(menuitem_t *item, int adj);
+void quick_adjust_phase(uint8_t dir);
 void display_menu(rc_code_t rcode, btn_code_t bcode);
 void set_func_ret_msg(char *msg);
 void update_osd_size(mode_data_t *vm_out);

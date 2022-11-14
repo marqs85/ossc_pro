@@ -85,6 +85,7 @@ SECTIONS
         PROVIDE (__ram_text_start = ABSOLUTE(.));
         . = ALIGN(4);
         *(.text_bram);
+        LONG(0)
         PROVIDE (__ram_text_end = ABSOLUTE(.));
     } > dataram
 

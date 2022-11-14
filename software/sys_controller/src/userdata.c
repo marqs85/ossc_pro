@@ -22,13 +22,20 @@
 #include "userdata.h"
 #include "avconfig.h"
 #include "controls.h"
+#include "menu.h"
+#include "file.h"
 #include "flash.h"
 #include "video_modes.h"
 
 #define UDE_ITEM(ID, VER, ITEM) {{ID, VER, sizeof(ITEM)}, &ITEM}
 
-extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
+// include mode array definitions so that sizeof() can be used
+#define VM_STATIC_INCLUDE
+#include "video_modes_list.c"
+#undef VM_STATIC_INCLUDE
+
 extern flash_ctrl_dev flashctrl_dev;
+extern uint8_t sd_det;
 extern uint16_t rc_keymap[REMOTE_MAX_KEYS];
 extern avconfig_t tc;
 extern settings_t ts;
@@ -38,7 +45,7 @@ extern smp_preset_t smp_presets[];
 
 char target_profile_name[USERDATA_NAME_LEN+1];
 
-ude_item_map ude_initcfg_items[] = {
+const ude_item_map ude_initcfg_items[] = {
     UDE_ITEM(0, 58, rc_keymap),
     UDE_ITEM(1, 58, ts.default_avinput),
     UDE_ITEM(2, 58, ts.osd_enable),
@@ -49,10 +56,10 @@ ude_item_map ude_initcfg_items[] = {
 #endif
 };
 
-ude_item_map ude_profile_items[] = {
-    {{0, 58, 0}, video_modes_plm}, //size updated during init
-    {{1, 58, 0}, video_modes}, //size updated during init
-    {{2, 58, 0}, smp_presets}, //size updated during init
+const ude_item_map ude_profile_items[] = {
+    {{0, 62, sizeof(video_modes_plm_default)}, video_modes_plm},
+    {{1, 62, sizeof(video_modes_default)}, video_modes},
+    {{2, 62, sizeof(smp_presets_default)}, smp_presets},
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -92,7 +99,7 @@ ude_item_map ude_profile_items[] = {
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
-    UDE_ITEM(41, 58, tc.tp_mode),
+    UDE_ITEM(41, 62, tc.tp_mode),
     UDE_ITEM(42, 58, tc.lm_deint_mode),
     UDE_ITEM(43, 58, tc.nir_even_offset),
     UDE_ITEM(44, 58, tc.ar_256col),
@@ -105,15 +112,15 @@ ude_item_map ude_profile_items[] = {
     UDE_ITEM(51, 58, tc.s480p_mode),
     UDE_ITEM(52, 58, tc.s400p_mode),
     UDE_ITEM(53, 58, tc.upsample2x),
-    UDE_ITEM(54, 58, tc.ypbpr_cs),
+    UDE_ITEM(54, 60, tc.ypbpr_cs),
     UDE_ITEM(55, 58, tc.audmux_sel),
     UDE_ITEM(56, 58, tc.audio_src_map),
     UDE_ITEM(57, 58, tc.reverse_lpf),
     UDE_ITEM(58, 58, tc.audio_fmt),
 #ifdef VIP
-    UDE_ITEM(59, 58, tc.scl_out_mode),
+    UDE_ITEM(59, 62, tc.scl_out_mode),
     UDE_ITEM(60, 58, tc.scl_framelock),
-    UDE_ITEM(61, 58, tc.scl_aspect),
+    UDE_ITEM(61, 62, tc.scl_aspect),
     UDE_ITEM(62, 58, tc.scl_alg),
     UDE_ITEM(63, 58, tc.scl_edge_thold),
     UDE_ITEM(64, 58, tc.scl_dil_motion_shift),
@@ -127,7 +134,7 @@ ude_item_map ude_profile_items[] = {
     UDE_ITEM(69, 58, tc.sm_scl_240p_288p),
     UDE_ITEM(70, 58, tc.sm_scl_384p),
     UDE_ITEM(71, 58, tc.sm_scl_480i_576i),
-    UDE_ITEM(72, 58, tc.sm_scl_480p),
+    UDE_ITEM(72, 60, tc.sm_scl_480p),
     UDE_ITEM(73, 58, tc.sm_scl_576p),
 #endif
 #ifdef INC_THS7353
@@ -146,17 +153,15 @@ ude_item_map ude_profile_items[] = {
 #ifdef INC_PCM186X
     UDE_ITEM(79, 58, tc.pcm_cfg),
 #endif
+#ifdef VIP
+    UDE_ITEM(80, 62, tc.scl_crt_out_mode),
+    UDE_ITEM(81, 62, tc.scl_out_type),
+#endif
 };
-
-void init_userdata() {
-    ude_profile_items[0].hdr.data_size = num_video_modes_plm*sizeof(mode_data_t);
-    ude_profile_items[1].hdr.data_size = num_video_modes*sizeof(mode_data_t);
-    ude_profile_items[2].hdr.data_size = num_smp_presets*sizeof(smp_preset_t);
-}
 
 int write_userdata(uint8_t entry) {
     ude_hdr hdr;
-    ude_item_map *target_map;
+    const ude_item_map *target_map;
     uint32_t flash_addr, bytes_written;
     int i;
 
@@ -207,7 +212,7 @@ int write_userdata(uint8_t entry) {
     flash_write_protect(&flashctrl_dev, 1);
 #endif
 
-    printf("%u bytes written into userdata entry %u\n", bytes_written, entry);
+    printf("%lu bytes written into userdata entry %u\n", bytes_written, entry);
 
     return 0;
 }
@@ -215,7 +220,7 @@ int write_userdata(uint8_t entry) {
 int read_userdata(uint8_t entry, int dry_run) {
     ude_hdr hdr;
     ude_item_hdr item_hdr;
-    ude_item_map *target_map;
+    const ude_item_map *target_map;
     uint32_t flash_addr, bytes_read;
     int i, j, target_map_items;
 
@@ -255,7 +260,150 @@ int read_userdata(uint8_t entry, int dry_run) {
         bytes_read += item_hdr.data_size;
     }
 
-    printf("%u bytes read from userdata entry %u\n", bytes_read, entry);
+    printf("%lu bytes read from userdata entry %u\n", bytes_read, entry);
 
     return 0;
+}
+
+int write_userdata_sd(uint8_t entry) {
+    FIL p_file;
+    ude_hdr hdr;
+    const ude_item_map *target_map;
+    unsigned int bytes_written, bytes_written_tot;
+    char p_filename[14];
+    int i, retval=0;
+
+    if (entry == SD_INIT_CONFIG_SLOT)
+        sniprintf(p_filename, 14, "settings.bin");
+    else
+        sniprintf(p_filename, 14, "prof%.2u.bin", entry);
+
+    if (entry > MAX_SD_USERDATA_ENTRY) {
+        printf("invalid entry\n");
+        return -1;
+    } else if (!sd_det) {
+        return -2;
+    } else if (f_open(&p_file, p_filename, FA_WRITE|FA_CREATE_ALWAYS) != F_OK) {
+        return -3;
+    }
+
+    memset(&hdr, 0x00, sizeof(ude_hdr));
+    strncpy(hdr.userdata_key, "USRDATA", 8);
+    hdr.type = (entry > MAX_SD_PROFILE) ? UDE_INITCFG : UDE_PROFILE;
+
+    if (hdr.type == UDE_INITCFG) {
+        target_map = ude_initcfg_items;
+        hdr.num_items = sizeof(ude_initcfg_items)/sizeof(ude_item_map);
+
+        sniprintf(hdr.name, USERDATA_NAME_LEN+1, "INITCFG");
+    } else if (hdr.type == UDE_PROFILE) {
+        target_map = ude_profile_items;
+        hdr.num_items = sizeof(ude_profile_items)/sizeof(ude_item_map);
+
+        if (target_profile_name[0] == 0)
+            sniprintf(target_profile_name, USERDATA_NAME_LEN+1, "<used>");
+
+        strncpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
+    }
+
+    // Write header
+    if ((f_write(&p_file, &hdr, sizeof(ude_hdr), &bytes_written) != F_OK) || (bytes_written != sizeof(ude_hdr))) {
+        retval = -4;
+        goto close_file;
+    }
+    bytes_written_tot = bytes_written;
+
+    // Write data
+    for (i=0; i<hdr.num_items; i++) {
+        if ((f_write(&p_file, &target_map[i].hdr, sizeof(ude_item_hdr), &bytes_written) != F_OK) || (bytes_written != sizeof(ude_item_hdr))) {
+            retval = -5;
+            goto close_file;
+        }
+        bytes_written_tot += bytes_written;
+
+        if ((f_write(&p_file, target_map[i].data, target_map[i].hdr.data_size, &bytes_written) != F_OK) || (bytes_written != target_map[i].hdr.data_size)) {
+            retval = -6;
+            goto close_file;
+        }
+        bytes_written_tot += bytes_written;
+    }
+
+    printf("%u bytes written into userdata entry %u\n", bytes_written_tot, entry);
+
+close_file:
+    file_close(&p_file);
+    return retval;
+}
+
+int read_userdata_sd(uint8_t entry, int dry_run) {
+    FIL p_file;
+    ude_hdr hdr;
+    ude_item_hdr item_hdr;
+    const ude_item_map *target_map;
+    unsigned int bytes_read, bytes_read_tot;
+    char p_filename[14];
+    int i, j, target_map_items, retval=0;
+
+    target_profile_name[0] = 0;
+    if (entry == SD_INIT_CONFIG_SLOT)
+        sniprintf(p_filename, 14, "settings.bin");
+    else
+        sniprintf(p_filename, 14, "prof%.2u.bin", entry);
+
+    if (entry > MAX_SD_USERDATA_ENTRY) {
+        printf("invalid entry\n");
+        return -1;
+    } else if (!sd_det) {
+        return -2;
+    } else if (file_open(&p_file, p_filename) != F_OK) {
+        return -3;
+    }
+
+    if ((f_read(&p_file, &hdr, sizeof(ude_hdr), &bytes_read) != F_OK) || (bytes_read != sizeof(ude_hdr))) {
+        printf("Hdr read error\n");
+        retval = -4;
+        goto close_file;
+    }
+    bytes_read_tot = bytes_read;
+
+    if (strncmp(hdr.userdata_key, "USRDATA", 8)) {
+        printf("No userdata found on file\n");
+        retval = -5;
+        goto close_file;
+    }
+
+    strncpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
+    if (dry_run)
+        goto close_file;
+
+    target_map = (hdr.type == UDE_INITCFG) ? ude_initcfg_items : ude_profile_items;
+    target_map_items = (hdr.type == UDE_INITCFG) ? sizeof(ude_initcfg_items)/sizeof(ude_item_map) : sizeof(ude_profile_items)/sizeof(ude_item_map);
+
+    for (i=0; i<hdr.num_items; i++) {
+        if ((f_read(&p_file, &item_hdr, sizeof(ude_item_hdr), &bytes_read) != F_OK) || (bytes_read != sizeof(ude_item_hdr))) {
+            printf("Item header read fail\n");
+            retval = -6;
+            goto close_file;
+        }
+        bytes_read_tot += sizeof(ude_item_hdr);
+        for (j=0; j<target_map_items; j++) {
+            if (!memcmp(&item_hdr, &target_map[i].hdr, sizeof(ude_item_hdr))) {
+                if ((f_read(&p_file, target_map[i].data, item_hdr.data_size, &bytes_read) != F_OK) || (bytes_read != item_hdr.data_size)) {
+                    printf("Item data read fail\n");
+                    retval = -7;
+                    goto close_file;
+                }
+                break;
+            }
+        }
+        bytes_read_tot += item_hdr.data_size;
+        if (j == target_map_items)
+            f_lseek(&p_file, bytes_read_tot);
+    }
+
+    printf("%u bytes read from userdata entry %u\n", bytes_read_tot, entry);
+
+close_file:
+    file_close(&p_file);
+    return retval;
 }

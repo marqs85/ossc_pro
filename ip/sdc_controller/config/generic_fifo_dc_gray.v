@@ -108,7 +108,7 @@ aw	Address bus width (Determines the FIFO size by evaluating 2^aw)
 Synthesis Results
 -----------------
 In a Spartan 2e a 8 bit wide, 8 entries deep FIFO, takes 97 LUTs and runs
-at about 113 MHz (IO insertion disabled). 
+at about 113 MHz (IO insertion disabled).
 
 Misc
 ----
@@ -131,7 +131,7 @@ input	[dw-1:0]	din;
 input			we;
 output	[dw-1:0]	dout;
 input			re;
-output			full; 
+output			full;
 output			empty;
 output	[1:0]		wr_level;
 output	[1:0]		rd_level;
@@ -223,6 +223,7 @@ generic_dpram  #(aw,dw) u0(
 // Read/Write Pointers Logic
 //
 
+`ifdef WRRST_SYNC_CIRCUITRY
 always @(posedge wr_clk)
 	if(!wr_rst)	wp_bin <= {aw+1{1'b0}};
 	else
@@ -236,10 +237,27 @@ always @(posedge wr_clk)
 	if(wr_clr)	wp_gray <= {aw+1{1'b0}};
 	else
 	if(we)		wp_gray <= wp_gray_next;
+`else
+always @(posedge wr_clk or negedge rst) begin
+    if (!rst) begin
+        wp_bin <= {aw+1{1'b0}};
+        wp_gray <= {aw+1{1'b0}};
+    end else begin
+        if (wr_clr) begin
+            wp_bin <= {aw+1{1'b0}};
+            wp_gray <= {aw+1{1'b0}};
+        end else if (we) begin
+            wp_bin <= wp_bin_next;
+            wp_gray <= wp_gray_next;
+        end
+    end
+end
+`endif
 
 assign wp_bin_next  = wp_bin + {{aw{1'b0}},1'b1};
 assign wp_gray_next = wp_bin_next ^ {1'b0, wp_bin_next[aw:1]};
 
+`ifdef RDRST_SYNC_CIRCUITRY
 always @(posedge rd_clk)
 	if(!rd_rst)	rp_bin <= {aw+1{1'b0}};
 	else
@@ -253,6 +271,22 @@ always @(posedge rd_clk)
 	if(rd_clr)	rp_gray <= {aw+1{1'b0}};
 	else
 	if(re)		rp_gray <= rp_gray_next;
+`else
+always @(posedge rd_clk or negedge rst) begin
+    if (!rst) begin
+        rp_bin <= {aw+1{1'b0}};
+        rp_gray <= {aw+1{1'b0}};
+    end else begin
+        if (rd_clr) begin
+            rp_bin <= {aw+1{1'b0}};
+            rp_gray <= {aw+1{1'b0}};
+        end else if (re) begin
+            rp_bin <= rp_bin_next;
+            rp_gray <= rp_gray_next;
+        end
+    end
+end
+`endif
 
 assign rp_bin_next  = rp_bin + {{aw{1'b0}},1'b1};
 assign rp_gray_next = rp_bin_next ^ {1'b0, rp_bin_next[aw:1]};
