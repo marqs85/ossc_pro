@@ -149,18 +149,21 @@ wire [7:0] MASK_G = MISC_MASK_COLOR[1] ? {2{MISC_MASK_BR}} : 8'h00;
 wire [7:0] MASK_B = MISC_MASK_COLOR[0] ? {2{MISC_MASK_BR}} : 8'h00;
 
 
-reg frame_change_sync1_reg, frame_change_sync2_reg, frame_change_prev;
+reg frame_change_sync1_reg, frame_change_sync2_reg, frame_change_prev, frame_change_resync;
 wire frame_change = frame_change_sync2_reg;
 
 reg [11:0] h_cnt;
 reg [10:0] v_cnt;
+reg h_avidstart, v_avidstart;
 reg src_fid, dst_fid;
 
-reg [10:0] xpos_lb, xpos_lb_start;
+reg [10:0] xpos_lb;
+wire [10:0] xpos_lb_start = (X_OFFSET < 10'sd0) ? 11'd0 : {1'b0, X_OFFSET};
 reg [10:0] ypos_lb, ypos_lb_next;
 reg [3:0] x_ctr;
 reg [3:0] y_ctr;
 reg line_id;
+reg ypos_pp_init;
 
 reg [7:0] sl_str;
 reg sl_method;
@@ -250,6 +253,8 @@ always @(posedge PCLK_OUT_i) begin
     frame_change_sync1_reg <= frame_change_i;
     frame_change_sync2_reg <= frame_change_sync1_reg;
     frame_change_prev <= frame_change_sync2_reg;
+
+    frame_change_resync <= ~frame_change_prev & frame_change & ((v_cnt != V_STARTLINE_PREV) & (v_cnt != V_STARTLINE));
 end
 
 // H/V counters
@@ -258,7 +263,7 @@ always @(posedge PCLK_OUT_i) begin
         h_cnt <= PP_SRCSEL_START; // compensate pipeline delays
         v_cnt <= 0;
         bfi_frame <= bfi_frame ^ 1'b1;
-    end else if (~ext_sync_mode & ~frame_change_prev & frame_change & ((v_cnt != V_STARTLINE_PREV) & (v_cnt != V_STARTLINE))) begin
+    end else if (~ext_sync_mode & frame_change_resync) begin
         h_cnt <= 0;
         v_cnt <= V_STARTLINE;
         bfi_frame <= 0;
@@ -272,15 +277,19 @@ always @(posedge PCLK_OUT_i) begin
                 (V_INTERLACED & (dst_fid == FID_EVEN) & (v_cnt == V_TOTAL-1)))
             begin
                 v_cnt <= 0;
+                v_avidstart <= (V_SYNCLEN+V_BACKPORCH-1'b1 == 0);
                 src_fid <= interlaced_in_i ? (src_fid ^ 1'b1) : FID_ODD;
                 dst_fid <= V_INTERLACED ? (dst_fid ^ 1'b1) : FID_ODD;
                 resync_strobe <= 1'b0;
             end else begin
                 v_cnt <= v_cnt + 1'b1;
+                v_avidstart <= (v_cnt == V_SYNCLEN+V_BACKPORCH-2'h2);
             end
             h_cnt <= 0;
+            h_avidstart <= 1'b0;
         end else begin
             h_cnt <= h_cnt + 1'b1;
+            h_avidstart <= (h_cnt == H_SYNCLEN+H_BACKPORCH-1'b1);
         end
     end
 end
@@ -306,10 +315,11 @@ always @(posedge PCLK_OUT_i) begin
         VSYNC_pp[1] <= ((v_cnt < V_SYNCLEN-1) | ((v_cnt == V_SYNCLEN-1) & (h_cnt < (H_TOTAL/2)))) ? 1'b0 : 1'b1;
     DE_pp[1] <= (h_cnt >= H_SYNCLEN+H_BACKPORCH) & (h_cnt < H_SYNCLEN+H_BACKPORCH+H_ACTIVE) & (v_cnt >= V_SYNCLEN+V_BACKPORCH) & (v_cnt < V_SYNCLEN+V_BACKPORCH+V_ACTIVE);
 
-    if (h_cnt == H_SYNCLEN+H_BACKPORCH) begin
+    if (h_avidstart) begin
         // Start 1 line before active so that linebuffer can be filled from DRAM in time
-        if (v_cnt == V_SYNCLEN+V_BACKPORCH-1'b1) begin
+        if (v_avidstart) begin
             ypos_pp[1] <= 11'(-1);
+            ypos_pp_init <= 1'b1;
             // Bob deinterlace adjusts linebuf start position and y_ctr for even source fields if
             // output is progressive mode. Noninterlace restore as raw output mode is an exception
             // which ignores LM deinterlace mode setting.
@@ -330,25 +340,25 @@ always @(posedge PCLK_OUT_i) begin
                 y_ctr <= 0;
                 y_ctr_sl_pp[1] <= 0;
             end
-            xpos_lb_start <= (X_OFFSET < 10'sd0) ? 11'd0 : {1'b0, X_OFFSET};
             line_id <= ~line_id;
         end else begin
-            if ((ypos_pp[1] == 11'(-1)) | (ypos_pp[1] < V_ACTIVE)) begin
+            if (ypos_pp[1] != V_ACTIVE) begin
                 ypos_pp[1] <= ypos_pp[1] + 1'b1;
 
-                if ((ypos_pp[1] == 11'(-1)) | (y_ctr == Y_RPT) | Y_SKIP) begin
+                if (ypos_pp_init | (y_ctr == Y_RPT) | Y_SKIP) begin
                     if ((ypos_lb_next >= NUM_LINE_BUFFERS-Y_STEP) & (ypos_lb_next < NUM_LINE_BUFFERS))
                         ypos_lb_next <= ypos_lb_next + Y_STEP - NUM_LINE_BUFFERS;
                     else
                         ypos_lb_next <= ypos_lb_next + Y_STEP;
                     ypos_lb <= ypos_lb_next;
                     line_id <= ~line_id;
-                    if (ypos_pp[1] != 11'(-1))
+                    ypos_pp_init <= 1'b0;
+                    if (!ypos_pp_init)
                         y_ctr <= 0;
                 end else begin
                     y_ctr <= y_ctr + 1'b1;
                 end
-                if (ypos_pp[1] != 11'(-1))
+                if (!ypos_pp_init)
                     y_ctr_sl_pp[1] <= (y_ctr_sl_pp[1] == SL_IV_Y) ? 0 : y_ctr_sl_pp[1] + 1'b1;
             end
         end
@@ -357,7 +367,7 @@ always @(posedge PCLK_OUT_i) begin
         x_ctr <= 0;
         x_ctr_sl_pp[1] <= 0;
     end else begin
-        if (xpos_pp[1] < H_ACTIVE) begin
+        if (xpos_pp[1] != H_ACTIVE) begin
             xpos_pp[1] <= xpos_pp[1] + 1'b1;
         end
 
