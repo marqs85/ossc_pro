@@ -177,6 +177,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     int i, diff_lines, diff_width, mindiff_id=0, mindiff_lines=1000, mindiff_width, v_active_ref;
     mode_data_t *mode_preset;
     smp_preset_t *smp_preset;
+    aspect_ratio_t gen_ar_target = {4, 3};
 
     // Force fixed preset for digital sources
     if (vm_in->timings.h_total) {
@@ -189,21 +190,23 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     // Go through sampling presets and find closest one
     for (i=0; i<sizeof(smp_presets)/sizeof(smp_preset_t); i++) {
         smp_preset = &smp_presets[i];
-        if (!vm_in->timings.h_total && ad_mode_list && (smp_preset->group != GROUP_NONE)) {
+        if (!vm_in->timings.h_total && ad_mode_list && (smp_preset->group != GROUP_NONE) && (smp_preset->sm <= SM_GEN_16_9)) {
             mode_preset = (mode_data_t*)&video_modes[ad_mode_list[smp_preset->group].stdmode_id];
             v_active_ref = (ad_mode_list[smp_preset->group].y_rpt < 0) ? ((smp_preset->timings_i.v_active*(mode_preset->timings.interlaced+1)) / (-1*ad_mode_list[smp_preset->group].y_rpt+1)) :
                                                                          smp_preset->timings_i.v_active*(mode_preset->timings.interlaced+1) * (ad_mode_list[smp_preset->group].y_rpt+1);
+            gen_ar_target.h = (target_sm_list[smp_preset->group] == SM_GEN_16_9) ? 16 : 4;
+            gen_ar_target.v = (target_sm_list[smp_preset->group] == SM_GEN_16_9) ? 9 : 3;
             if (mode_preset->flags & MODE_CRT) {
                 // BRAM linebuffer is only <= 2048 samples, thus select lower sampling rate for CRT output mode
-                gen_width_target = mode_preset->timings.h_active/2;
+                gen_width_target = (mode_preset->timings.h_active > 2048) ? mode_preset->timings.h_active/2 : mode_preset->timings.h_active;
             } else {
-                gen_width_target = ((((smp_preset->sm == SM_GEN_16_9) ? 16 : 12)*v_active_ref)/9)+1;
+                gen_width_target = ((gen_ar_target.h*v_active_ref)/gen_ar_target.v)+1;
             }
         }
 
         if ((vm_in->timings.interlaced == smp_preset->timings_i.interlaced) &&
             (!smp_preset->timings_i.v_hz_x100 || (vm_in->timings.v_hz_x100 <= smp_preset->timings_i.v_hz_x100)) &&
-            (target_sm_list[smp_preset->group] == smp_preset->sm))
+            ((target_sm_list[smp_preset->group] == smp_preset->sm) || ((target_sm_list[smp_preset->group] <= SM_GEN_16_9) && (smp_preset->sm <= SM_GEN_16_9))))
         {
             diff_lines = abs(vm_in->timings.v_total - smp_preset->timings_i.v_total);
 
@@ -240,7 +243,10 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     smp_sel = mindiff_id;
 
     vm_in->group = smp_preset->group;
-    vm_in->ar = smp_preset->ar;
+    if (smp_preset->sm <= SM_GEN_16_9)
+        vm_in->ar = gen_ar_target;
+    else
+        vm_in->ar = smp_preset->ar;
 
     // write vm_in timings for digital sources
     if (vm_in->timings.h_total) {
@@ -492,7 +498,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
             vm_in->timings.v_backporch += src_crop/2;
         }
 
-        vm_conf->x_size = int_scl_x*vm_in->timings.h_active;        
+        vm_conf->x_size = int_scl_x*vm_in->timings.h_active;
         vm_conf->y_size = (int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced))>>vm_out->timings.interlaced;
 
         vm_conf->x_offset = (vm_out->timings.h_active - vm_conf->x_size)/2;
@@ -541,10 +547,10 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
                                         {STDMODE_1600x1200_60, 2}, {STDMODE_1920x1200_60, 2}, {STDMODE_1920x1440_60, 3}, {STDMODE_2560x1440_60, 3}};
     const ad_mode_t pm_ad_480i_map[] = {{STDMODE_480i, 0}, {STDMODE_240p_CRT, 0}, {STDMODE_480p, 1}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3},
                                         {STDMODE_1920x1440_60, 5}, {STDMODE_2560x1440_60, 5}};
-    const ad_mode_t pm_ad_576i_map[] = {{STDMODE_576i, 0}, {STDMODE_288p_CRT, 0}, {STDMODE_576p, 1}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3}};
+    const ad_mode_t pm_ad_576i_map[] = {{STDMODE_576i, 0}, {STDMODE_288p_CRT, 0}, {STDMODE_576p, 1}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3}, {STDMODE_1920x1200_50, 3}};
     const ad_mode_t pm_ad_480p_map[] = {{STDMODE_480p, 0}, {STDMODE_240p_CRT, -1}, {STDMODE_1280x1024_60, 1}, {STDMODE_1080i_60, 0}, {STDMODE_1080p_60, 1},
                                         {STDMODE_1920x1440_60, 2}, {STDMODE_2560x1440_60, 2}};
-    const ad_mode_t pm_ad_576p_map[] = {{STDMODE_576p, 0}, {STDMODE_288p_CRT, -1}, {STDMODE_1920x1200_50, 1}};
+    const ad_mode_t pm_ad_576p_map[] = {{STDMODE_576p, 0}, {STDMODE_288p_CRT, -1}, {STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}, {STDMODE_1920x1200_50, 1}};
     const ad_mode_t pm_ad_720p_map[] = {{STDMODE_720p_50, 0}, {STDMODE_2560x1440_50, 1}};
     const ad_mode_t pm_ad_1080i_map[] = {{STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}};
 

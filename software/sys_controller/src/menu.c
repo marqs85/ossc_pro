@@ -89,11 +89,11 @@ static const char *pm_ad_240p_desc[] = { "240p_CRT (Passthru)", "720x480 (Line2x
 static const char *pm_ad_288p_desc[] = { "288p_CRT (Passthru)", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1200 (Line4x)", "1920x1440 (Line5x)", "2560x1440 (Line5x)" };
 static const char *pm_ad_384p_desc[] = { "1280x720 (Line2x)", "1024x768 (Line2x)", "1920x1080 (Line3x)", "1600x1200 (Line3x)", "1920x1200 (Line3x)", "1920x1440 (Line4x)", "2560x1440 (Line4x)" };
 static const char *pm_ad_480i_desc[] = { "720x480i (Passthru)", "240p_CRT (240p rest.)", "720x480 (Dint+L2x)", "1280x1024 (Dint+L4x)", "1080i (240p rest+L2x)", "1920x1080 (Dint+L4x)", "1920x1440 (Dint+L6x)", "2560x1440 (Dint+L6x)" };
-static const char *pm_ad_576i_desc[] = { "720x576i (Passthru)", "288p_CRT (288p rest.)", "720x576 (Dint+L2x)", "1080i (288p rest+L2x)", "1920x1080 (Dint+L4x)" };
+static const char *pm_ad_576i_desc[] = { "720x576i (Passthru)", "288p_CRT (288p rest.)", "720x576 (Dint+L2x)", "1080i (288p rest+L2x)", "1920x1080 (Dint+L4x)", "1920x1200 (Dint+L4x)" };
 static const char *pm_ad_480p_desc[] = { "720x480 (Passthru)", "240p_CRT (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)", "2560x1440 (Line3x)" };
-static const char *pm_ad_576p_desc[] = { "720x576 (Passthru)", "288p_CRT (Line drop)", "1920x1200 (Line2x)" };
+static const char *pm_ad_576p_desc[] = { "720x576 (Passthru)", "288p_CRT (Line drop)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1200 (Line2x)" };
 static const char *pm_ad_720p_desc[] = { "1280x720 (Passthru)", "2560x1440 (Line2x)" };
-static const char *pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080i (Dint+L2x)" };
+static const char *pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint+L2x)" };
 static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col" };
 static const char *sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
@@ -983,7 +983,7 @@ void quick_adjust(menuitem_t *item, int adj) {
 
 void quick_adjust_phase(uint8_t dir) {
     uint8_t *sampler_phase;
-    
+
     sampler_phase = (oper_mode == OPERMODE_PURE_LM) ? &video_modes_plm[vm_cur].sampler_phase : &smp_presets[smp_cur].sampler_phase;
 
     if (isl_dev.powered_on && isl_dev.sync_active) {
