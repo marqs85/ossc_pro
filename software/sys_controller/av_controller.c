@@ -47,7 +47,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 62
+#define FW_VER_MINOR 63
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -502,7 +502,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     }
 
     vip_dil->motion_shift = avconfig->scl_dil_motion_shift;
-    
+
     vip_il->config = !vm_out->timings.interlaced;
 
     if (scl_target_pp_coeff != scl_loaded_pp_coeff) {
@@ -931,7 +931,7 @@ void print_vm_stats() {
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "v%u.%.2u @ " __DATE__, FW_VER_MAJOR, FW_VER_MINOR);
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Uptime:");
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%luh %lumin", (uint32_t)((ts/TIMER_0_FREQ)/3600), ((uint32_t)((ts/TIMER_0_FREQ)/60) % 60));
-    
+
     osd->osd_config.status_refresh = 1;
     osd->osd_row_color.mask = 0;
     osd->osd_sec_enable[0].mask = (1<<(row+1))-1;
@@ -941,7 +941,7 @@ void print_vm_stats() {
 uint16_t get_sampler_phase() {
     uint32_t sample_rng_x1000;
     uint32_t isl_phase_x1000 = isl_get_sampler_phase(&isl_dev)*5625;
-    
+
     if (vm_conf.h_skip == 0) {
         return isl_phase_x1000/1000;
     } else {
@@ -964,7 +964,7 @@ void set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update
         vm_conf.h_sample_sel = ((sampler_phase-1)*5625)/sample_rng_x1000;
         isl_phase = (((((sampler_phase-1)*5625) % sample_rng_x1000)*64)/sample_rng_x1000) + 1;
     }
-    
+
     if (vm_conf.h_skip > 0)
         printf("Sample sel: %u/%u\n", (vm_conf.h_sample_sel+1), (vm_conf.h_skip+1));
 

@@ -23,6 +23,7 @@
 #include "file.h"
 #include "flash.h"
 #include "utils.h"
+#include "menu.h"
 #include "us2066.h"
 #include "av_controller.h"
 
@@ -85,6 +86,19 @@ int fw_update() {
                 goto close_file;
             }
         }
+
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "v%u.%u%s%s (%lu parts)", hdr.fw_version_major, hdr.fw_version_minor, hdr.fw_suffix[0] ? "-" : "", hdr.fw_suffix, hdr.num_images);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Update? Y:> N:<");
+        ui_disp_menu(1);
+
+        if (prompt_yesno(RC_RIGHT, JOY_RIGHT, RC_LEFT, JOY_LEFT) != 1) {
+            set_func_ret_msg("Cancelled");
+            retval = 1;
+            goto close_file;
+        }
+
+        strncpy(menu_row2, "Please wait...", OSD_CHAR_COLS);
+        ui_disp_menu(1);
 
         printf("Copying images to DRAM...\n");
         set_dram_refresh(1);
