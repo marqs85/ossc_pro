@@ -108,6 +108,7 @@ typedef enum {
 #define CONTROLS_BTN_OFFS                  24
 
 int setup_rc();
+int prompt_yesno(rc_code_t rem_yes, btn_code_t btn_yes, rc_code_t rem_no, btn_code_t btn_no);
 void set_default_keymap();
 void read_controls();
 void parse_control();

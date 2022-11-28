@@ -88,7 +88,7 @@ static
 const mode_data_t video_modes_default[] = {
     /* 240p/288p CRT modes */
     { "2560x240",      HDMI_Unknown,     {2560,  240,   6000,  3120, 0,  262,  340, 15,  144, 3,  0},  0,  { 4,  3},  VIDEO_SDTV,               GROUP_240P,   MODE_CRT,  TX_1X, TX_1X },
-    { "2560x288",      HDMI_Unknown,     {2560,  288,   5000,  3120, 0,  312,  340, 19,  144, 3,  0},  0,  { 4,  3},  VIDEO_SDTV,               GROUP_288P,   MODE_CRT,  TX_1X, TX_1X },
+    { "2048x288",      HDMI_Unknown,     {2048,  288,   5000,  2496, 0,  312,  272, 19,  115, 3,  0},  0,  { 4,  3},  VIDEO_SDTV,               GROUP_288P,   MODE_CRT,  TX_1X, TX_1X },
     /* 480i CRT modes */
     { "2560x480i",     HDMI_Unknown,     {2560,  240,   6000,  3120, 0,  525,  340, 15,  144, 3,  1},  0,  { 4,  3},  VIDEO_SDTV,               GROUP_480I,   MODE_CRT,  TX_1X, TX_1X },
     { "2560x480i ws",  HDMI_Unknown,     {2560,  240,   6000,  3120, 0,  525,  340, 15,  144, 3,  1},  0,  {16,  9},  VIDEO_SDTV,               GROUP_480I,   MODE_CRT,  TX_1X, TX_1X },
@@ -162,27 +162,21 @@ const smp_preset_t smp_presets_default[] = {
     /* Generic 480i presets */
     { "Gen. 704x480i",  SM_GEN_4_3,        { 704,  240,      0,   858, 0,  525,   65, 15,   62, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
     { "Gen. 1280x480i", SM_GEN_4_3,        {1280,  240,      0,  1560, 0,  525,  170, 15,   72, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
-    { "Gen. 1920x480i", SM_GEN_4_3,        {1920,  240,      0,  2340, 0,  525,  256, 15,  108, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
-    /* Generic 480i 16:9 presets */
-    { "Gen. 1280x480i", SM_GEN_16_9,       {1280,  240,      0,  1560, 0,  525,  170, 15,   72, 3,  1},  0,  0,  {16,  9},  VIDEO_SDTV,  GROUP_480I },
     { "Gen. 1707x480i", SM_GEN_16_9,       {1707,  240,      0,  2080, 0,  525,  228, 15,   96, 3,  1},  0,  0,  {16,  9},  VIDEO_SDTV,  GROUP_480I },
+    { "Gen. 1920x480i", SM_GEN_4_3,        {1920,  240,      0,  2340, 0,  525,  256, 15,  108, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
     /* Generic 576i presets */
     { "Gen. 704x576i",  SM_GEN_4_3,        { 704,  288,      0,   864, 0,  625,   77, 19,   63, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
     { "Gen. 1536x576i", SM_GEN_4_3,        {1536,  288,      0,  1872, 0,  625,  150, 19,  136, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
-    /* Generic 576i 16:9 presets */
     { "Gen. 2048x576i", SM_GEN_16_9,       {2048,  288,      0,  2496, 0,  625,  200, 19,  181, 3,  1},  0,  0,  {16,  9},  VIDEO_SDTV,  GROUP_576I },
     /* Generic 480p presets */
     { "Gen. 704x480",   SM_GEN_4_3,        { 704,  480,      0,   858, 0,  525,   68, 30,   62, 6,  0},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_480P },
     { "Gen. 1280x480",  SM_GEN_4_3,        {1280,  480,      0,  1560, 0,  525,  170, 30,   72, 6,  0},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_480P },
-    { "Gen. 1920x480",  SM_GEN_4_3,        {1920,  480,      0,  2340, 0,  525,  256, 30,  108, 6,  0},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_480P },
-    /* Generic 480p 16:9 presets */
-    { "Gen. 1280x480",  SM_GEN_16_9,       {1280,  480,      0,  1560, 0,  525,  170, 30,   72, 6,  0},  0,  0,  {16,  9},  VIDEO_EDTV,  GROUP_480P },
     { "Gen. 1707x480",  SM_GEN_16_9,       {1707,  480,      0,  2080, 0,  525,  228, 30,   96, 6,  0},  0,  0,  {16,  9},  VIDEO_EDTV,  GROUP_480P },
+    { "Gen. 1920x480",  SM_GEN_4_3,        {1920,  480,      0,  2340, 0,  525,  256, 30,  108, 6,  0},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_480P },
     /* Generic 576p presets */
     { "Gen. 704x576",   SM_GEN_4_3,        { 704,  576,      0,   864, 0,  625,   76, 39,   64, 5,  0},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_576P },
     { "Gen. 1536x576",  SM_GEN_4_3,        {1536,  576,      0,  1872, 0,  625,  150, 39,  136, 5,  0},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_576P },
-    /* Generic 576p 16:9 presets */
-    { "Gen. 2048x576p", SM_GEN_16_9,       {2048,  576,      0,  2496, 0,  625,  200, 39,  181, 5,  0},  0,  0,  {16,  9},  VIDEO_EDTV,  GROUP_576P },
+    { "Gen. 2048x576",  SM_GEN_16_9,       {2048,  576,      0,  2496, 0,  625,  200, 39,  181, 5,  0},  0,  0,  {16,  9},  VIDEO_EDTV,  GROUP_576P },
 
     /* DTV 480i */
     { "DTV 480i",       SM_OPT_DTV480I,    { 720,  240,   6500,   858, 0,  525,   57, 15,   62, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
@@ -227,6 +221,7 @@ const smp_preset_t smp_presets_default[] = {
     { "PC 1600x1200_60",SM_OPT_PC_HDTV,    {1600, 1200,      0,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  0,  { 4,  3},    VIDEO_PC,  GROUP_NONE },
     /* CVT misc */
     { "PC 1920x1200_60",SM_OPT_PC_HDTV,    {1920, 1200,      0,  2080, 0, 1235,   80, 26,   32, 6,  0},  0,  0,  {16, 10},    VIDEO_PC,  GROUP_NONE },
+    { "PC 1920x1440_60",SM_OPT_PC_HDTV,    {1920, 1440,      0,  2080, 0, 1481,   80, 34,   32, 4,  0},  0,  0,  { 4,  3},    VIDEO_PC,  GROUP_NONE },
 
     /* NES/SNES */
     { "SNES 256x240",   SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  262,   39, 14,   25, 3,  0},  3,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },

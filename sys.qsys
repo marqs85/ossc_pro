@@ -894,8 +894,8 @@
   <parameter name="IS_422" value="0" />
   <parameter name="LIMITED_READBACK" value="1" />
   <parameter name="LOAD_AT_RUNTIME" value="1" />
-  <parameter name="MAX_IN_HEIGHT" value="1080" />
-  <parameter name="MAX_IN_WIDTH" value="1920" />
+  <parameter name="MAX_IN_HEIGHT" value="1440" />
+  <parameter name="MAX_IN_WIDTH" value="2048" />
   <parameter name="MAX_OUT_HEIGHT" value="1440" />
   <parameter name="MAX_OUT_WIDTH" value="2560" />
   <parameter name="NO_BLANKING" value="0" />
@@ -938,9 +938,9 @@
   <parameter name="IS_SYNC_MASTER" value="0" />
   <parameter name="IS_SYNC_SLAVE" value="0" />
   <parameter name="LINE_BASED_BUFFERING" value="0" />
-  <parameter name="MAX_HEIGHT" value="1200" />
+  <parameter name="MAX_HEIGHT" value="1440" />
   <parameter name="MAX_SYMBOLS_PER_PACKET" value="10" />
-  <parameter name="MAX_WIDTH" value="1920" />
+  <parameter name="MAX_WIDTH" value="2048" />
   <parameter name="MEM_BASE_ADDR" value="33554432" />
   <parameter name="MEM_BUFFER_OFFSET" value="33554432" />
   <parameter name="MEM_PORT_WIDTH" value="256" />
