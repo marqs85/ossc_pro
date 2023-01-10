@@ -35,6 +35,7 @@
 #define H_BPORCH_MAX 511
 #define H_ACTIVE_MIN 200
 #define H_ACTIVE_MAX 2560
+#define H_ACTIVE_SMP_MAX 2048
 #define V_SYNCLEN_MIN 1
 #define V_SYNCLEN_MAX 15
 #define V_BPORCH_MIN 0

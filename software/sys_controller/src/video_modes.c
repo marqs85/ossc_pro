@@ -190,17 +190,23 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     // Go through sampling presets and find closest one
     for (i=0; i<sizeof(smp_presets)/sizeof(smp_preset_t); i++) {
         smp_preset = &smp_presets[i];
+
+        // Calculate generic width target for A-LM modes
         if (!vm_in->timings.h_total && ad_mode_list && (smp_preset->group != GROUP_NONE) && (smp_preset->sm <= SM_GEN_16_9)) {
             mode_preset = (mode_data_t*)&video_modes[ad_mode_list[smp_preset->group].stdmode_id];
             v_active_ref = (ad_mode_list[smp_preset->group].y_rpt < 0) ? ((smp_preset->timings_i.v_active*(mode_preset->timings.interlaced+1)) / (-1*ad_mode_list[smp_preset->group].y_rpt+1)) :
                                                                          smp_preset->timings_i.v_active*(mode_preset->timings.interlaced+1) * (ad_mode_list[smp_preset->group].y_rpt+1);
             gen_ar_target.h = (target_sm_list[smp_preset->group] == SM_GEN_16_9) ? 16 : 4;
             gen_ar_target.v = (target_sm_list[smp_preset->group] == SM_GEN_16_9) ? 9 : 3;
+
+            // BRAM linebuffer is only <= 2048 samples, thus halve sampling rate and pixel-repeat if necessary
             if (mode_preset->flags & MODE_CRT) {
-                // BRAM linebuffer is only <= 2048 samples, thus select lower sampling rate for CRT output mode
                 gen_width_target = (mode_preset->timings.h_active > 2048) ? mode_preset->timings.h_active/2 : mode_preset->timings.h_active;
             } else {
                 gen_width_target = ((gen_ar_target.h*v_active_ref)/gen_ar_target.v)+1;
+
+                if (gen_width_target >= 2100)
+                    gen_width_target /= 2;
             }
         }
 
@@ -235,7 +241,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
         }
     }
 
-    if (mindiff_lines >= 100)
+    if (mindiff_lines >= 110)
         return -1;
 
     smp_preset = &smp_presets[mindiff_id];
@@ -338,7 +344,13 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                      SM_OPT_N64_640COL,
                                      SM_OPT_DC_640COL};
-    const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_OPT_DTV576I};
+    const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_OPT_DTV576I,
+                                     SM_OPT_SNES_512COL,
+                                     SM_OPT_MD_320COL,
+                                     SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
+                                     SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
+                                     SM_OPT_N64_640COL,
+                                     SM_OPT_DC_640COL};
     const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_OPT_DTV576P};
 
@@ -399,6 +411,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     // Calculate target active width for generic modes
     if (cc->scl_aspect < 4)
         gen_width_target = (aspect_map[cc->scl_aspect][0]*mode_preset->timings.v_active<<mode_preset->timings.interlaced)/aspect_map[cc->scl_aspect][1];
+    else if (cc->scl_aspect == 5)
+        gen_width_target = mode_preset->timings.h_active;
     else
         gen_width_target = 0;
 

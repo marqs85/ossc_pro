@@ -764,8 +764,8 @@ void cstm_size(menucode_id code, int setup_disp) {
         adj = (code == VAL_PLUS) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
         if ((int)st->h_active+adj < H_ACTIVE_MIN)
             adj = H_ACTIVE_MIN - st->h_active;
-        else if ((int)st->h_active+adj > H_ACTIVE_MAX)
-            adj = H_ACTIVE_MAX - st->h_active;
+        else if ((int)st->h_active+adj > H_ACTIVE_SMP_MAX)
+            adj = H_ACTIVE_SMP_MAX - st->h_active;
 
         if ((adj == -1) || (adj == 1)) {
             if (((int)st->h_backporch - adj >= H_BPORCH_MIN) && ((int)st->h_backporch - adj <= H_BPORCH_MAX))
