@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "23";
+         value = "24";
          type = "int";
       }
    }
@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "28";
+         value = "29";
          type = "int";
       }
    }
@@ -55,7 +55,7 @@
    {
       datum _sortIndex
       {
-         value = "24";
+         value = "25";
          type = "int";
       }
    }
@@ -76,7 +76,7 @@
    {
       datum _sortIndex
       {
-         value = "27";
+         value = "28";
          type = "int";
       }
    }
@@ -97,7 +97,7 @@
    {
       datum _sortIndex
       {
-         value = "26";
+         value = "27";
          type = "int";
       }
    }
@@ -118,7 +118,7 @@
    {
       datum _sortIndex
       {
-         value = "25";
+         value = "26";
          type = "int";
       }
    }
@@ -511,6 +511,14 @@
          type = "int";
       }
    }
+   element reset_bridge_1
+   {
+      datum _sortIndex
+      {
+         value = "23";
+         type = "int";
+      }
+   }
    element sc_config_0
    {
       datum _sortIndex
@@ -714,6 +722,11 @@
    internal="sdc_controller_0.sd_clk_o"
    type="clock"
    dir="start" />
+ <interface
+   name="vip_dil_reset"
+   internal="reset_bridge_1.in_reset"
+   type="reset"
+   dir="end" />
  <module
    name="alt_vip_cl_cvi_0"
    kind="alt_vip_cl_cvi"
@@ -1727,6 +1740,17 @@
   <parameter name="SYNCHRONOUS_EDGES" value="none" />
   <parameter name="USE_RESET_REQUEST" value="0" />
  </module>
+ <module
+   name="reset_bridge_1"
+   kind="altera_reset_bridge"
+   version="21.1"
+   enabled="1">
+  <parameter name="ACTIVE_LOW_RESET" value="1" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="-1" />
+  <parameter name="NUM_RESET_OUTPUTS" value="1" />
+  <parameter name="SYNCHRONOUS_EDGES" value="none" />
+  <parameter name="USE_RESET_REQUEST" value="0" />
+ </module>
  <module name="sc_config_0" kind="sc_config" version="1.0" enabled="1" />
  <module
    name="sdc_controller_0"
@@ -2478,12 +2502,12 @@
  <connection
    kind="reset"
    version="21.1"
-   start="reset_bridge_0.out_reset"
+   start="reset_bridge_1.out_reset"
    end="alt_vip_cl_dil_0.av_mm_reset" />
  <connection
    kind="reset"
    version="21.1"
-   start="reset_bridge_0.out_reset"
+   start="reset_bridge_1.out_reset"
    end="alt_vip_cl_dil_0.av_st_reset" />
  <connection
    kind="reset"

@@ -47,6 +47,7 @@
 #define SCTRL_LED_PWM_OFFS      20
 #define SCTRL_LED_PWM_MASK      (0xf<<SCTRL_LED_PWM_OFFS)
 #define SCTRL_DRAM_RFR_ENA      (1<<24)
+#define SCTRL_VIP_DIL_RESET_N   (1<<25)
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007

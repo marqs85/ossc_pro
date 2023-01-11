@@ -129,6 +129,7 @@ wire hdmirx_spdif = sys_ctrl[15];
 wire [3:0] fan_duty = sys_ctrl[19:16];
 wire [3:0] led_duty = sys_ctrl[23:20];
 wire dram_refresh_enable = sys_ctrl[24];
+wire vip_dil_reset_n = sys_ctrl[25];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -694,6 +695,7 @@ sys sys_inst (
     pclk_capture
 `endif
     ),
+    .vip_dil_reset_reset_n                                     (vip_dil_reset_n),
     .alt_vip_cl_cvi_0_clocked_video_vid_data                   (VIP_DATA_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_de                     (VIP_DE_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_datavalid              (!dc_fifo_in_rdempty_prev),
