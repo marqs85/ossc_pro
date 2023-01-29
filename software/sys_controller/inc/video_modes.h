@@ -61,6 +61,7 @@ typedef enum {
     GROUP_576P      = 7,
     GROUP_720P      = 8,
     GROUP_1080I     = 9,
+    GROUP_1080P     = 10,
 } video_group;
 
 typedef enum {
@@ -185,7 +186,7 @@ typedef enum {
     GEN_WIDTH_CLOSEST_PREFER_OVER,
 } gen_width_mode_t;
 
-#define NUM_VIDEO_GROUPS (GROUP_1080I+1)
+#define NUM_VIDEO_GROUPS (GROUP_1080P+1)
 #define NUM_VIDEO_MODES  (STDMODE_2560x1440_60+1)
 
 typedef struct {

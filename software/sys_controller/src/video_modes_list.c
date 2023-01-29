@@ -75,8 +75,8 @@ const mode_data_t video_modes_plm_default[] = {
     /* CEA 1080i/p modes */
     { "1080i_50",      HDMI_1080i50,     {1920,  540,   5000,  2640, 0, 1125,  148, 15,   44, 5,  1},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  (MODE_PT | MODE_L2),                                                      0, 0 },
     { "1080i_60",      HDMI_1080i60,     {1920,  540,   6000,  2200, 0, 1125,  148, 15,   44, 5,  1},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  (MODE_PT | MODE_L2),                                                      0, 0 },
-    { "1080p_50",      HDMI_1080p50,     {1920, 1080,   5000,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  0, 0 },
-    { "1080p_60",      HDMI_1080p60,     {1920, 1080,   6000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   MODE_PT,                                                                  0, 0 },
+    { "1080p_50",      HDMI_1080p50,     {1920, 1080,   5000,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  MODE_PT,                                                                  0, 0 },
+    { "1080p_60",      HDMI_1080p60,     {1920, 1080,   6000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  MODE_PT,                                                                  0, 0 },
     /* VESA UXGA mode */
     { "1600x1200_60",  HDMI_Unknown,     {1600, 1200,   6000,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  { 4,  3},  VIDEO_PC,                 GROUP_NONE,   MODE_PT,                                                                  0, 0 },
 };
@@ -122,11 +122,11 @@ const mode_data_t video_modes_default[] = {
     /* CEA 1080i/p modes */
     { "1080i_50",      HDMI_1080i50,     {1920,  540,   5000,  2640, 0, 1125,  148, 15,   44, 5,  1},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  0,         TX_1X, TX_1X },
     { "1080i_60",      HDMI_1080i60,     {1920,  540,   6000,  2200, 0, 1125,  148, 15,   44, 5,  1},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  0,         TX_1X, TX_1X },
-    { "1080p_50",      HDMI_1080p50,     {1920, 1080,   5000,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   0,         TX_1X, TX_1X },
-    { "1080p_60",      HDMI_1080p60,     {1920, 1080,   6000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   0,         TX_1X, TX_1X },
+    { "1080p_50",      HDMI_1080p50,     {1920, 1080,   5000,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_60",      HDMI_1080p60,     {1920, 1080,   6000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     /* 1080p 100/120Hz (CVT-RB) */
-    { "1080p_100",     HDMI_Unknown,     {1920, 1080,  10000,  2080, 0, 1133,   80, 45,   32, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   0,         TX_1X, TX_1X },
-    { "1080p_120",     HDMI_Unknown,     {1920, 1080,  12000,  2080, 0, 1144,   80, 56,   32, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_NONE,   0,         TX_1X, TX_1X },
+    { "1080p_100",     HDMI_Unknown,     {1920, 1080,  10000,  2080, 0, 1133,   80, 45,   32, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_120",     HDMI_Unknown,     {1920, 1080,  12000,  2080, 0, 1144,   80, 56,   32, 5,  0},  0,  {16,  9},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     /* VESA UXGA mode */
     { "1600x1200_60",  HDMI_Unknown,     {1600, 1200,   6000,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  { 4,  3},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     /* CVT 1920x1200 modes (60Hz with reduced blanking) */
@@ -197,8 +197,8 @@ const smp_preset_t smp_presets_default[] = {
     { "DTV 1080i_50",   SM_OPT_PC_HDTV,    {1920,  540,   5500,  2640, 0, 1125,  148, 15,   44, 5,  1},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080I},
     { "DTV 1080i_60",   SM_OPT_PC_HDTV,    {1920,  540,      0,  2200, 0, 1125,  148, 15,   44, 5,  1},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080I},
     /* DTV 1080p */
-    { "DTV 1080p_50",   SM_OPT_PC_HDTV,    {1920, 1080,   5500,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_NONE },
-    { "DTV 1080p_60",   SM_OPT_PC_HDTV,    {1920, 1080,      0,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_NONE },
+    { "DTV 1080p_50",   SM_OPT_PC_HDTV,    {1920, 1080,   5500,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080P },
+    { "DTV 1080p_60",   SM_OPT_PC_HDTV,    {1920, 1080,      0,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080P },
 
     /* 640x350@70Hz, VGA Mode 0*,1*,2*,3*,F,10 */
     { "PC 640x350_70",  SM_OPT_VGA_640x350, { 640,  350,   7500,   800, 0,  449,   48, 59,   96, 2,  0},  0,  0,  { 4,  3},  VIDEO_PC,  GROUP_384P },

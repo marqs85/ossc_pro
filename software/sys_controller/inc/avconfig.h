@@ -111,6 +111,7 @@ typedef struct {
     uint8_t pm_ad_576p;
     uint8_t pm_ad_720p;
     uint8_t pm_ad_1080i;
+    uint8_t pm_ad_1080p;
     uint8_t sm_ad_240p_288p;
     uint8_t sm_ad_384p;
     uint8_t sm_ad_480i_576i;

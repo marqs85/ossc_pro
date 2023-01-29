@@ -57,9 +57,9 @@ const ude_item_map ude_initcfg_items[] = {
 };
 
 const ude_item_map ude_profile_items[] = {
-    {{0, 62, sizeof(video_modes_plm_default)}, video_modes_plm},
-    {{1, 63, sizeof(video_modes_default)}, video_modes},
-    {{2, 63, sizeof(smp_presets_default)}, smp_presets},
+    {{0, 64, sizeof(video_modes_plm_default)}, video_modes_plm},
+    {{1, 64, sizeof(video_modes_default)}, video_modes},
+    {{2, 64, sizeof(smp_presets_default)}, smp_presets},
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -87,9 +87,9 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(26, 58, tc.pm_ad_288p),
     UDE_ITEM(27, 58, tc.pm_ad_384p),
     UDE_ITEM(28, 58, tc.pm_ad_480i),
-    UDE_ITEM(29, 58, tc.pm_ad_576i),
-    UDE_ITEM(30, 58, tc.pm_ad_480p),
-    UDE_ITEM(31, 58, tc.pm_ad_576p),
+    UDE_ITEM(29, 64, tc.pm_ad_576i),
+    UDE_ITEM(30, 64, tc.pm_ad_480p),
+    UDE_ITEM(31, 64, tc.pm_ad_576p),
     UDE_ITEM(32, 58, tc.pm_ad_720p),
     UDE_ITEM(33, 58, tc.pm_ad_1080i),
     UDE_ITEM(34, 58, tc.sm_ad_240p_288p),
@@ -157,6 +157,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(80, 62, tc.scl_crt_out_mode),
     UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
+    UDE_ITEM(82, 64, tc.pm_ad_1080p),
 };
 
 int write_userdata(uint8_t entry) {

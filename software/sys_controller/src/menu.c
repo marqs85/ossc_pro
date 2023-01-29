@@ -90,10 +90,11 @@ static const char *pm_ad_288p_desc[] = { "288p_CRT (Passthru)", "720x576 (Line2x
 static const char *pm_ad_384p_desc[] = { "1280x720 (Line2x)", "1024x768 (Line2x)", "1920x1080 (Line3x)", "1600x1200 (Line3x)", "1920x1200 (Line3x)", "1920x1440 (Line4x)", "2560x1440 (Line4x)" };
 static const char *pm_ad_480i_desc[] = { "720x480i (Passthru)", "240p_CRT (240p rest.)", "720x480 (Dint+L2x)", "1280x1024 (Dint+L4x)", "1080i (240p rest+L2x)", "1920x1080 (Dint+L4x)", "1920x1440 (Dint+L6x)", "2560x1440 (Dint+L6x)" };
 static const char *pm_ad_576i_desc[] = { "720x576i (Passthru)", "288p_CRT (288p rest.)", "720x576 (Dint+L2x)", "1080i (288p rest+L2x)", "1920x1080 (Dint+L4x)", "1920x1200 (Dint+L4x)" };
-static const char *pm_ad_480p_desc[] = { "720x480 (Passthru)", "240p_CRT (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)", "2560x1440 (Line3x)" };
-static const char *pm_ad_576p_desc[] = { "720x576 (Passthru)", "288p_CRT (Line drop)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1200 (Line2x)" };
+static const char *pm_ad_480p_desc[] = { "720x480 (Passthru)", "720x480i (Line drop)", "240p_CRT (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)", "2560x1440 (Line3x)" };
+static const char *pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x576i (Line drop)", "288p_CRT (Line drop)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1200 (Line2x)" };
 static const char *pm_ad_720p_desc[] = { "1280x720 (Passthru)", "2560x1440 (Line2x)" };
 static const char *pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint+L2x)" };
+static const char *pm_ad_1080p_desc[] = { "1920x1080 (Passthru)", "1920x1080i (Line drop)" };
 static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col" };
 static const char *sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
@@ -143,7 +144,7 @@ static const char *sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350
 static const char *sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
 static const char *sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col" };
 static const char *sm_scl_576p_desc[] = { "Generic", "DTV 576p" };
-static const char *hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i" };
+static const char *hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -306,6 +307,7 @@ MENU(menu_adap_lm, P99_PROTECT({
     { LNG("576p proc","576pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_576p,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_576p_desc) } } },
     { LNG("720p proc","720pｼｮﾘ"),               OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_720p,      OPT_WRAP, SETTING_ITEM_LIST(pm_ad_720p_desc) } } },
     { LNG("1080i proc","1080iｼｮﾘ"),             OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_1080i,     OPT_WRAP, SETTING_ITEM_LIST(pm_ad_1080i_desc) } } },
+    { LNG("1080p proc","1080pｼｮﾘ"),             OPT_AVCONFIG_SELECTION, { .sel = { &tc.pm_ad_1080p,     OPT_WRAP, SETTING_ITEM_LIST(pm_ad_1080p_desc) } } },
     { LNG("240p/288p mode","240p/288pﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_240p_288p, OPT_WRAP, SETTING_ITEM_LIST(sm_ad_240p_288p_desc) } } },
     { LNG("350-400p mode","350-400pﾓｰﾄﾞ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_384p,      OPT_WRAP, SETTING_ITEM_LIST(sm_ad_384p_desc) } } },
     { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_ad_480i_576i, OPT_WRAP, SETTING_ITEM_LIST(sm_ad_480i_576i_desc) } } },
