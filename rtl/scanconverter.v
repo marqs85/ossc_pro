@@ -263,6 +263,7 @@ always @(posedge PCLK_OUT_i) begin
         h_cnt <= PP_SRCSEL_START; // compensate pipeline delays
         v_cnt <= 0;
         bfi_frame <= bfi_frame ^ 1'b1;
+        resync_strobe <= (v_cnt != 0);
     end else if (~ext_sync_mode & frame_change_resync) begin
         h_cnt <= 0;
         v_cnt <= V_STARTLINE;
@@ -280,13 +281,13 @@ always @(posedge PCLK_OUT_i) begin
                 v_avidstart <= (V_SYNCLEN+V_BACKPORCH-1'b1 == 0);
                 src_fid <= interlaced_in_i ? (src_fid ^ 1'b1) : FID_ODD;
                 dst_fid <= V_INTERLACED ? (dst_fid ^ 1'b1) : FID_ODD;
-                resync_strobe <= 1'b0;
             end else begin
                 v_cnt <= v_cnt + 1'b1;
                 v_avidstart <= (v_cnt == V_SYNCLEN+V_BACKPORCH-2'h2);
             end
             h_cnt <= 0;
             h_avidstart <= 1'b0;
+            resync_strobe <= 1'b0;
         end else begin
             h_cnt <= h_cnt + 1'b1;
             h_avidstart <= (h_cnt == H_SYNCLEN+H_BACKPORCH-1'b1);
