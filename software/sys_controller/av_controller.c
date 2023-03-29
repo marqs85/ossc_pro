@@ -47,7 +47,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 64
+#define FW_VER_MINOR 65
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -477,7 +477,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_il->ctrl = vip_enable;
 
     if (avconfig->scl_alg == 0)
-        scl_target_pp_coeff = ((vm_in->group >= GROUP_240P) && (vm_in->group <= GROUP_384P)) ? 0 : 2; // Nearest or Lanchos3_sharp
+        scl_target_pp_coeff = ((vm_in->group >= GROUP_240P) && (vm_in->group <= GROUP_288P)) ? 0 : 2; // Nearest or Lanchos3_sharp
     else if (avconfig->scl_alg < SCL_ALG_COEFF_START)
         scl_target_pp_coeff = 0; // Nearest for integer scale
     else
