@@ -82,7 +82,7 @@ static const char *l2l4l5_mode_desc[] = { LNG("Generic 4:3","ｼﾞｪﾈﾘｯ�
 static const char *l5_fmt_desc[] = { "1920x1080", "1600x1200", "1920x1200" };
 static const char *pm_240p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line3x", "Line4x", "Line5x" };
 static const char *pm_480i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Deint + Line2x", "Line3x (laced)", "Deint + Line4x" };
-static const char *pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line2x 240x360", "Line3x 240x360", "Line3x Generic" };
+static const char *pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line3x Generic", "Line2x 240x360", "Line3x 240x360" };
 static const char *pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x" };
 static const char *pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Deint + Line2x" };
 static const char *pm_ad_240p_desc[] = { "240p_CRT (Passthru)", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)", "2560x1440 (Line6x)" };
@@ -1195,10 +1195,10 @@ static void vm_select() {
     tc_h_samplerate = video_modes_plm[vm_edit].timings.h_total;
     tc_h_samplerate_adj = (uint16_t)video_modes_plm[vm_edit].timings.h_total_adj;
     tc_h_synclen = (uint16_t)video_modes_plm[vm_edit].timings.h_synclen;
-    tc_h_bporch = (uint16_t)video_modes_plm[vm_edit].timings.h_backporch;
+    tc_h_bporch = video_modes_plm[vm_edit].timings.h_backporch;
     tc_h_active = video_modes_plm[vm_edit].timings.h_active;
     tc_v_synclen = (uint16_t)video_modes_plm[vm_edit].timings.v_synclen;
-    tc_v_bporch = (uint16_t)video_modes_plm[vm_edit].timings.v_backporch;
+    tc_v_bporch = video_modes_plm[vm_edit].timings.v_backporch;
     tc_v_active = video_modes_plm[vm_edit].timings.v_active;
     tc_sampler_phase = video_modes_plm[vm_edit].sampler_phase;
 }
@@ -1209,11 +1209,11 @@ static void vm_tweak(uint16_t *v) {
     if (active_mode) {
         if ((video_modes_plm[vm_cur].timings.h_total != tc_h_samplerate) ||
             (video_modes_plm[vm_cur].timings.h_total_adj != (uint8_t)tc_h_samplerate_adj) ||
-            (video_modes_plm[vm_cur].timings.h_synclen != tc_h_synclen) ||
-            (video_modes_plm[vm_cur].timings.h_backporch != (uint8_t)tc_h_bporch) ||
+            (video_modes_plm[vm_cur].timings.h_synclen != (uint8_t)tc_h_synclen) ||
+            (video_modes_plm[vm_cur].timings.h_backporch != tc_h_bporch) ||
             (video_modes_plm[vm_cur].timings.h_active != tc_h_active) ||
-            (video_modes_plm[vm_cur].timings.v_synclen != tc_v_synclen) ||
-            (video_modes_plm[vm_cur].timings.v_backporch != (uint8_t)tc_v_bporch) ||
+            (video_modes_plm[vm_cur].timings.v_synclen != (uint8_t)tc_v_synclen) ||
+            (video_modes_plm[vm_cur].timings.v_backporch != tc_v_bporch) ||
             (video_modes_plm[vm_cur].timings.v_active != tc_v_active))
             update_cur_vm = 1;
         if (video_modes_plm[vm_cur].sampler_phase != tc_sampler_phase)
@@ -1222,10 +1222,10 @@ static void vm_tweak(uint16_t *v) {
     video_modes_plm[vm_edit].timings.h_total = tc_h_samplerate;
     video_modes_plm[vm_edit].timings.h_total_adj = (uint8_t)tc_h_samplerate_adj;
     video_modes_plm[vm_edit].timings.h_synclen = (uint8_t)tc_h_synclen;
-    video_modes_plm[vm_edit].timings.h_backporch = (uint8_t)tc_h_bporch;
+    video_modes_plm[vm_edit].timings.h_backporch = tc_h_bporch;
     video_modes_plm[vm_edit].timings.h_active = tc_h_active;
     video_modes_plm[vm_edit].timings.v_synclen = (uint8_t)tc_v_synclen;
-    video_modes_plm[vm_edit].timings.v_backporch = (uint8_t)tc_v_bporch;
+    video_modes_plm[vm_edit].timings.v_backporch = tc_v_bporch;
     video_modes_plm[vm_edit].timings.v_active = tc_v_active;
     video_modes_plm[vm_edit].sampler_phase = tc_sampler_phase;
 

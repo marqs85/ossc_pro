@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2020-2021  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2020-2023  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -43,8 +43,8 @@ const mode_data_t video_modes_plm_default[] = {
     /* 360p: GBI */
     { "480x360",       HDMI_Unknown,     { 480,  360,   6000,   600, 0,  375,   63, 10,   38, 3,  0},  0,  { 4,  3},  VIDEO_EDTV,               GROUP_384P,   (MODE_PT | MODE_L2),                                                      0, 0 },
     { "240x360",       HDMI_Unknown,     { 256,  360,   6000,   300, 0,  375,   24, 10,   18, 3,  0},  0,  { 4,  3},  VIDEO_EDTV,               GROUP_384P,   (MODE_L2_240x360 | MODE_L3_240x360),                                      0, 0 },
-    /* 384p: Sega Model 2 (real vtotal=423, avoid collision with PC88/98 and VGA400p) */
-    { "384p",          HDMI_Unknown,     { 496,  384,   5500,   640, 0,  408,   50, 29,   62, 3,  0},  0,  { 4,  3},  VIDEO_EDTV,               GROUP_384P,   (MODE_PT | MODE_L2),                                                      0, 0 },
+    /* 384p: Sega Model 2 */
+    { "384p",          HDMI_Unknown,     { 496,  384,   5500,   640, 0,  423,   50, 29,   62, 3,  0},  0,  { 4,  3},  VIDEO_EDTV,               GROUP_384P,   (MODE_PT | MODE_L2),                                                      0, 0 },
     /* 400p line3x */
     { "1600x400",      HDMI_Unknown,     {1600,  400,   7000,  2000, 0,  449,  120, 34,  240, 2,  0},  0,  { 4,  3},  VIDEO_PC,                 GROUP_384P,   (MODE_L3_GEN_16_9),                                                       0, 0 },
     /* 720x400@70Hz, VGA Mode 3+/7+ */
@@ -58,7 +58,7 @@ const mode_data_t video_modes_plm_default[] = {
     { "480p",          HDMI_480p60,      { 720,  480,   5994,   858, 0,  525,   60, 30,   62, 6,  0},  0,  { 4,  3},  VIDEO_EDTV,               GROUP_480P,   (MODE_PT | MODE_L2),                                                      0, 0 },
     { "640x480_60",    HDMI_640x480p60,  { 640,  480,   6000,   800, 0,  525,   48, 33,   96, 2,  0},  0,  { 4,  3},  VIDEO_PC,                 GROUP_480P,   (MODE_PT | MODE_L2),                                                      0, 0 },
     /* X68k @ 31kHz */
-    { "640x512",       HDMI_Unknown,     { 640,  512,   6000,   800, 0,  568,   48, 28,   96, 2,  0},  0,  { 4,  3},  VIDEO_PC,                 GROUP_480P,   (MODE_PT | MODE_L2),                                                      0, 0 },
+    { "640x512",       HDMI_Unknown,     { 640,  512,   6000,   800, 0,  568,   48, 34,   96, 6,  0},  0,  { 4,  3},  VIDEO_PC,                 GROUP_480P,   (MODE_PT | MODE_L2),                                                      0, 0 },
     /* ~625-line modes */
     { "576i",          HDMI_576i50,      { 720,  288,   5000,   864, 0,  625,   69, 19,   63, 3,  1},  0,  { 4,  3},  VIDEO_SDTV,               GROUP_576I,   (MODE_PT | MODE_L2 | MODE_L3_GEN_16_9 | MODE_L4_GEN_4_3),                 0, 0 },
     { "576p",          HDMI_576p50,      { 720,  576,   5000,   864, 0,  625,   68, 39,   64, 5,  0},  0,  { 4,  3},  VIDEO_EDTV,               GROUP_576P,   (MODE_PT | MODE_L2),                                                      0, 0 },

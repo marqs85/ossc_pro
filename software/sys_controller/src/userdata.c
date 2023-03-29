@@ -57,9 +57,9 @@ const ude_item_map ude_initcfg_items[] = {
 };
 
 const ude_item_map ude_profile_items[] = {
-    {{0, 64, sizeof(video_modes_plm_default)}, video_modes_plm},
-    {{1, 64, sizeof(video_modes_default)}, video_modes},
-    {{2, 64, sizeof(smp_presets_default)}, smp_presets},
+    {{0, 65, sizeof(video_modes_plm_default)}, video_modes_plm},
+    {{1, 65, sizeof(video_modes_default)}, video_modes},
+    {{2, 65, sizeof(smp_presets_default)}, smp_presets},
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
