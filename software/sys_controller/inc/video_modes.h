@@ -217,11 +217,19 @@ typedef struct {
 } aspect_ratio_t;
 
 typedef struct {
+    uint8_t h;
+    uint8_t v;
+} mask_t;
+
+typedef struct {
     char name[16];
     HDMI_vic_t vic;
     sync_timings_t timings;
     uint8_t sampler_phase;
-    aspect_ratio_t ar;
+    union {
+        aspect_ratio_t ar;
+        mask_t mask;
+    };
     video_type type;
     video_group group;
     mode_flags flags;
