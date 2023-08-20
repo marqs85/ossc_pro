@@ -275,9 +275,9 @@ void parse_control()
             if (r_code == RC_SL_MODE)
                 enter_cstm(&menu_scanlines_items[0], 1);
             if (r_code == RC_SL_TYPE)
-                enter_cstm(&menu_scanlines_items[5], 1);
+                enter_cstm(&menu_scanlines_items[6], 1);
             if (r_code == RC_SL_ALIGNM)
-                quick_adjust(&menu_scanlines_items[4], 1);
+                quick_adjust(&menu_scanlines_items[5], 1);
             if ((r_code == RC_SL_PLUS) || (r_code == RC_SL_MINUS))
                 quick_adjust(&menu_scanlines_items[1], (r_code == RC_SL_PLUS) ? 1 : -1);
 #ifdef VIP

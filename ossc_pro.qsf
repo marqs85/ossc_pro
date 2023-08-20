@@ -125,7 +125,7 @@ set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_DE_o
 set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCQ128
 set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 3.3V
 set_global_assignment -name ENABLE_SIGNALTAP OFF
-set_global_assignment -name USE_SIGNALTAP_FILE output_files/ossc_pro_emif.stp
+set_global_assignment -name USE_SIGNALTAP_FILE output_files/ossc_pro_syncdebug.stp
 set_global_assignment -name GENERATE_RBF_FILE ON
 
 
@@ -636,7 +636,10 @@ set_global_assignment -name QIP_FILE rtl/char_array.qip
 set_global_assignment -name QIP_FILE rtl/char_rom.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_in.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_out.qip
+set_global_assignment -name QIP_FILE rtl/lpm_mult_hybr_ref_pre.qip
+set_global_assignment -name QIP_FILE rtl/lpm_mult_hybr_ref.qip
 set_global_assignment -name QIP_FILE rtl/lpm_mult_sl.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_emif_wr.qip
+
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
