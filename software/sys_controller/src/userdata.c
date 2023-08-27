@@ -57,7 +57,7 @@ const ude_item_map ude_initcfg_items[] = {
 };
 
 const ude_item_map ude_profile_items[] = {
-    {{0, 66, sizeof(video_modes_plm_default)}, video_modes_plm},
+    {{0, 67, sizeof(video_modes_plm_default)}, video_modes_plm},
     {{1, 65, sizeof(video_modes_default)}, video_modes},
     {{2, 67, sizeof(smp_presets_default)}, smp_presets},
     // avconfig_t
@@ -78,7 +78,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(17, 58, tc.l4_mode),
     UDE_ITEM(18, 58, tc.l5_mode),
     UDE_ITEM(19, 58, tc.l5_fmt),
-    UDE_ITEM(20, 58, tc.pm_240p),
+    UDE_ITEM(20, 67, tc.pm_240p),
     UDE_ITEM(21, 58, tc.pm_384p),
     UDE_ITEM(22, 58, tc.pm_480i),
     UDE_ITEM(23, 58, tc.pm_480p),
@@ -158,6 +158,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
     UDE_ITEM(82, 64, tc.pm_ad_1080p),
+    UDE_ITEM(83, 67, tc.l6_mode),
 };
 
 int write_userdata(uint8_t entry) {

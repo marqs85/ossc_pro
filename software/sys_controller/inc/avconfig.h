@@ -97,6 +97,7 @@ typedef struct {
     uint8_t l3_mode;
     uint8_t l4_mode;
     uint8_t l5_mode;
+    uint8_t l6_mode;
     uint8_t l5_fmt;
     uint8_t s480p_mode;
     uint8_t s400p_mode;

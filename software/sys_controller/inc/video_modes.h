@@ -41,7 +41,7 @@
 #define V_BPORCH_MIN 0
 #define V_BPORCH_MAX 511
 #define V_ACTIVE_MIN 160
-#define V_ACTIVE_MAX 1440
+#define V_ACTIVE_MAX 1728
 
 typedef enum {
     VIDEO_SDTV      = (1<<0),
@@ -92,6 +92,11 @@ typedef enum {
     MODE_L5_384_COL     = (1<<23),
     MODE_L5_320_COL     = (1<<24),
     MODE_L5_256_COL     = (1<<25),
+    MODE_L6_GEN_4_3     = (1<<26),
+    MODE_L6_512_COL     = (1<<27),
+    MODE_L6_384_COL     = (1<<28),
+    MODE_L6_320_COL     = (1<<29),
+    MODE_L6_256_COL     = (1<<30),
 } mode_flags;
 
 typedef enum {
