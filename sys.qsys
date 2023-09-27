@@ -1380,11 +1380,11 @@
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
-  <parameter name="COMMAND_FIFO_DEPTH" value="4" />
+  <parameter name="COMMAND_FIFO_DEPTH" value="64" />
   <parameter name="DATA_WIDTH" value="32" />
   <parameter name="MASTER_SYNC_DEPTH" value="2" />
   <parameter name="MAX_BURST_SIZE" value="1" />
-  <parameter name="RESPONSE_FIFO_DEPTH" value="4" />
+  <parameter name="RESPONSE_FIFO_DEPTH" value="64" />
   <parameter name="SLAVE_SYNC_DEPTH" value="2" />
   <parameter name="SYMBOL_WIDTH" value="8" />
   <parameter name="SYSINFO_ADDR_WIDTH" value="25" />
@@ -1397,11 +1397,11 @@
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
-  <parameter name="COMMAND_FIFO_DEPTH" value="4" />
+  <parameter name="COMMAND_FIFO_DEPTH" value="64" />
   <parameter name="DATA_WIDTH" value="32" />
   <parameter name="MASTER_SYNC_DEPTH" value="2" />
   <parameter name="MAX_BURST_SIZE" value="1" />
-  <parameter name="RESPONSE_FIFO_DEPTH" value="4" />
+  <parameter name="RESPONSE_FIFO_DEPTH" value="64" />
   <parameter name="SLAVE_SYNC_DEPTH" value="2" />
   <parameter name="SYMBOL_WIDTH" value="8" />
   <parameter name="SYSINFO_ADDR_WIDTH" value="28" />
@@ -1414,11 +1414,11 @@
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
-  <parameter name="COMMAND_FIFO_DEPTH" value="4" />
+  <parameter name="COMMAND_FIFO_DEPTH" value="64" />
   <parameter name="DATA_WIDTH" value="32" />
   <parameter name="MASTER_SYNC_DEPTH" value="2" />
   <parameter name="MAX_BURST_SIZE" value="1" />
-  <parameter name="RESPONSE_FIFO_DEPTH" value="4" />
+  <parameter name="RESPONSE_FIFO_DEPTH" value="64" />
   <parameter name="SLAVE_SYNC_DEPTH" value="2" />
   <parameter name="SYMBOL_WIDTH" value="8" />
   <parameter name="SYSINFO_ADDR_WIDTH" value="12" />

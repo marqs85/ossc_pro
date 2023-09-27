@@ -19,6 +19,7 @@
 
 `define PO_RESET_WIDTH 27000
 //`define PCB_1P3
+//`define PCB_1P5
 //`define EXTRA_AV_OUT
 
 `define VIP
@@ -38,8 +39,10 @@ module ossc_pro (
     input ISL_INT_N_i,
     output ISL_EXT_PCLK_o,
     output ISL_RESET_N_o,
+`ifndef PCB_1P5
     output ISL_COAST_o,
     output ISL_CLAMP_o,
+`endif
 
     input HDMIRX_PCLK_i,
     input HDMIRX_AP_i,
@@ -101,6 +104,11 @@ module ossc_pro (
     inout SD_CMD_io,
     inout [3:0] SD_DATA_io,
     input SD_DETECT_i,
+
+`ifdef PCB_1P5
+    inout USB_DP_io,
+    inout USB_DN_io,
+`endif
 
     inout [5:0] EXT_IO_A_io,
 
@@ -202,9 +210,7 @@ wire sd_cmd_oe_o, sd_cmd_out_o, sd_dat_oe_o;
 wire [3:0] sd_dat_out_o;
 
 assign SD_CMD_io = sd_cmd_oe_o ? sd_cmd_out_o : 1'bz;
-assign SD_DATA_io[3] = sd_dat_oe_o ? sd_dat_out_o[3] : 1'bz;
-assign SD_DATA_io[2:1] = 2'bzz;
-assign SD_DATA_io[0] = sd_dat_oe_o ? sd_dat_out_o[0] : 1'bz;
+assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
 
 assign FPGA_PCLK1x_o = pclk_capture;
 
@@ -622,7 +628,7 @@ sys sys_inst (
     .sdc_controller_0_sd_sd_cmd_dat_i       (SD_CMD_io),
     .sdc_controller_0_sd_sd_cmd_out_o       (sd_cmd_out_o),
     .sdc_controller_0_sd_sd_cmd_oe_o        (sd_cmd_oe_o),
-    .sdc_controller_0_sd_sd_dat_dat_i       ({SD_DATA_io[3], 2'b11, SD_DATA_io[0]}),
+    .sdc_controller_0_sd_sd_dat_dat_i       (SD_DATA_io),
     .sdc_controller_0_sd_sd_dat_out_o       (sd_dat_out_o),
     .sdc_controller_0_sd_sd_dat_oe_o        (sd_dat_oe_o),
     .sdc_controller_0_sd_clk_o_clk          (SD_CLK_o),

@@ -114,7 +114,7 @@ int fw_update() {
             crcval = crc32(dram_tmp, hdr.image_info[i].size, 1);
             dram_tmp += PAD_TO_ALIGN4(hdr.image_info[i].size);
             if (crcval != hdr.image_info[i].crc) {
-                printf("Image %u: Invalid CRC (0x%.8x)\n", crcval);
+                printf("Image %u: Invalid CRC (0x%.8x)\n", i, crcval);
                 retval = -9;
                 goto close_file;
             }
@@ -123,6 +123,8 @@ int fw_update() {
         file_close(&fw_file);
 
         printf("Starting update procedure...\n");
+        strncpy(menu_row1, "Updating", OSD_CHAR_COLS);
+        ui_disp_menu(1);
 
         // No return from here
         fw_update_commit(&hdr);
@@ -166,6 +168,9 @@ void __attribute__((noinline, __section__(".text_bram"))) fw_update_commit(fw_he
             *data_to++ = *data_from++;
         }
     }
+
+    // flush command FIFO before FPGA reconfiguration start
+    *(volatile uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE);
 
     rem_reconfig_dev.regs->reconfig_start = 1;
 
