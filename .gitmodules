@@ -10,3 +10,9 @@
 [submodule "rtl/ic_frontends"]
 	path = rtl/ic_frontends
 	url = https://github.com/marqs85/ic_frontends.git
+[submodule "ip/core_usb_fs_phy"]
+	path = ip/core_usb/core_usb_fs_phy
+	url = https://github.com/ultraembedded/core_usb_fs_phy
+[submodule "ip/core_usb_host"]
+	path = ip/core_usb/core_usb_host
+	url = https://github.com/ultraembedded/core_usb_host
