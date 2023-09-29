@@ -198,6 +198,8 @@ wire [11:0] xpos_sc;
 wire [10:0] ypos_sc;
 wire osd_enable;
 wire [1:0] osd_color;
+wire [3:0] x_ctr_shmask, y_ctr_shmask;
+wire [10:0] shmask_data;
 
 assign ISL_RESET_N_o = isl_reset_n;
 assign HDMIRX_RESET_N_o = hdmirx_reset_n;
@@ -653,6 +655,10 @@ sys sys_inst (
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
     .sc_config_0_sc_if_sl_config3_o         (sl_config3),
+    .sc_config_0_shmask_if_vclk             (PCLK_sc),
+    .sc_config_0_shmask_if_shmask_xpos      (x_ctr_shmask),
+    .sc_config_0_shmask_if_shmask_ypos      (y_ctr_shmask),
+    .sc_config_0_shmask_if_shmask_data      (shmask_data),
     .osd_generator_0_osd_if_vclk            (PCLK_sc),
     .osd_generator_0_osd_if_xpos            (xpos_sc),
     .osd_generator_0_osd_if_ypos            (ypos_sc),
@@ -789,6 +795,9 @@ scanconverter #(
     .DE_o(DE_sc),
     .xpos_o(xpos_sc),
     .ypos_o(ypos_sc),
+    .x_ctr_shmask(x_ctr_shmask),
+    .y_ctr_shmask(y_ctr_shmask),
+    .shmask_data(shmask_data),
     .resync_strobe(resync_strobe_i),
     .emif_br_clk(emif_br_clk),
     .emif_br_reset(emif_br_reset),

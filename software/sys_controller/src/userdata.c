@@ -159,6 +159,7 @@ const ude_item_map ude_profile_items[] = {
 #endif
     UDE_ITEM(82, 64, tc.pm_ad_1080p),
     UDE_ITEM(83, 67, tc.l6_mode),
+    UDE_ITEM(84, 68, tc.shmask_mode),
 };
 
 int write_userdata(uint8_t entry) {

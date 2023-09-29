@@ -47,7 +47,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 67
+#define FW_VER_MINOR 68
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -193,11 +193,18 @@ extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 extern const char *avinput_str[];
 
-#ifdef VIP
-#include "src/scl_pp_coeffs.c"
-
 FIL file;
 char char_buff[256];
+
+#include "src/shmask_arrays.c"
+
+const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_tv, &shmask_pvm, &shmask_pvm_2530, &shmask_xc_3315c, &shmask_c_1084, &shmask_jvc, &shmask_vga};
+shmask_data_arr shmask_data_arr_custom;
+int shmask_loaded_array = 0;
+#define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
+
+#ifdef VIP
+#include "src/scl_pp_coeffs.c"
 
 const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
                                             {{&pp_coeff_lanczos3, NULL}, {&pp_coeff_lanczos3, NULL}},
@@ -352,8 +359,9 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 {
     int vip_enable, scl_target_pp_coeff, scl_ea, i, p, t, n;
     int v0,v1,v2,v3;
-    char coeff_filename[16];
+    char target_filename[16];
     uint32_t h_blank, v_blank, h_frontporch, v_frontporch;
+    shmask_data_arr *shmask_data_arr_ptr;
 
     hv_config_reg hv_in_config = {.data=0x00000000};
     hv_config2_reg hv_in_config2 = {.data=0x00000000};
@@ -373,6 +381,58 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 #else
     vip_enable = 0;
 #endif
+
+    if (avconfig->shmask_mode && (avconfig->shmask_mode != shmask_loaded_array)) {
+        if (avconfig->shmask_mode >= SHMASKS_SIZE) { // Custom
+            snprintf(target_filename, sizeof(target_filename), "shmask%d.txt", (avconfig->shmask_mode + 1 - SHMASKS_SIZE) );
+            if (!file_open(&file, target_filename)) {
+                i = 0;
+                while (file_get_string(&file, char_buff, sizeof(char_buff))) {
+                    if (char_buff[0] == '#')
+                        continue;
+                    if (!i && (sscanf(char_buff, "%d,%d", &v0, &v1) == 2)) {
+                        shmask_data_arr_custom.iv_x = v0-1;
+                        shmask_data_arr_custom.iv_y = v1-1;
+                        i = 1;
+                    } else if (i && (v1 > 0)) {
+                        p = shmask_data_arr_custom.iv_y+1-v1;
+                        if (sscanf(char_buff, "%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx", &shmask_data_arr_custom.v[p][0],
+                                                                                                                 &shmask_data_arr_custom.v[p][1],
+                                                                                                                 &shmask_data_arr_custom.v[p][2],
+                                                                                                                 &shmask_data_arr_custom.v[p][3],
+                                                                                                                 &shmask_data_arr_custom.v[p][4],
+                                                                                                                 &shmask_data_arr_custom.v[p][5],
+                                                                                                                 &shmask_data_arr_custom.v[p][6],
+                                                                                                                 &shmask_data_arr_custom.v[p][7],
+                                                                                                                 &shmask_data_arr_custom.v[p][8],
+                                                                                                                 &shmask_data_arr_custom.v[p][9],
+                                                                                                                 &shmask_data_arr_custom.v[p][10],
+                                                                                                                 &shmask_data_arr_custom.v[p][11],
+                                                                                                                 &shmask_data_arr_custom.v[p][12],
+                                                                                                                 &shmask_data_arr_custom.v[p][13],
+                                                                                                                 &shmask_data_arr_custom.v[p][14],
+                                                                                                                 &shmask_data_arr_custom.v[p][15]) == v0)
+                            v1--;
+                    }
+                }
+                file_close(&file);
+            }
+
+            shmask_data_arr_ptr = &shmask_data_arr_custom;
+        } else {
+            shmask_data_arr_ptr = (shmask_data_arr*)shmask_data_arr_list[avconfig->shmask_mode];
+        }
+
+        for (p=0; p<=shmask_data_arr_ptr->iv_y; p++) {
+            for (t=0; t<=shmask_data_arr_ptr->iv_x; t++)
+                sc->shmask_data_array.data[p][t] = shmask_data_arr_ptr->v[p][t];
+
+            misc_config.shmask_iv_x = shmask_data_arr_ptr->iv_x;
+            misc_config.shmask_iv_y = shmask_data_arr_ptr->iv_y;
+        }
+
+        shmask_loaded_array = avconfig->shmask_mode;
+    }
 
     // Set input params
     hv_in_config.h_total = vm_in->timings.h_total;
@@ -417,6 +477,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     misc_config.vip_enable = vip_enable;
     misc_config.bfi_enable = avconfig->bfi_enable & ((uint32_t)vm_out->timings.v_hz_x100*5 >= (uint32_t)vm_in->timings.v_hz_x100*9);
     misc_config.bfi_str = avconfig->bfi_str;
+    misc_config.shmask_enable = (avconfig->shmask_mode != 0);
 
     // set default/custom scanline interval
     sl_def_iv_y = (vm_conf->y_rpt > 0) ? vm_conf->y_rpt : 1;
@@ -517,8 +578,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
     if (scl_target_pp_coeff != scl_loaded_pp_coeff) {
         if (scl_target_pp_coeff >= PP_COEFF_SIZE) { // Custom
-            snprintf(coeff_filename, sizeof(coeff_filename), "scaler%d.txt", (scl_target_pp_coeff + 1 - PP_COEFF_SIZE) );
-            if (!file_open(&file, coeff_filename)) {
+            snprintf(target_filename, sizeof(target_filename), "scaler%d.txt", (scl_target_pp_coeff + 1 - PP_COEFF_SIZE) );
+            if (!file_open(&file, target_filename)) {
                 p = 0;
                 while (file_get_string(&file, char_buff, sizeof(char_buff))) {
                     n = sscanf(char_buff, "%d,%d,%d,%d", &v0, &v1, &v2, &v3);

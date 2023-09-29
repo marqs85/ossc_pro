@@ -713,6 +713,11 @@
    type="conduit"
    dir="end" />
  <interface
+   name="sc_config_0_shmask_if"
+   internal="sc_config_0.shmask_if"
+   type="conduit"
+   dir="end" />
+ <interface
    name="sdc_controller_0_sd"
    internal="sdc_controller_0.sd"
    type="conduit"
@@ -1039,8 +1044,8 @@
   <parameter name="readIRQThreshold" value="8" />
   <parameter name="simInputCharacterStream" value="" />
   <parameter name="simInteractiveOptions">NO_INTERACTIVE_WINDOWS</parameter>
-  <parameter name="useRegistersForReadBuffer" value="true" />
-  <parameter name="useRegistersForWriteBuffer" value="true" />
+  <parameter name="useRegistersForReadBuffer" value="false" />
+  <parameter name="useRegistersForWriteBuffer" value="false" />
   <parameter name="useRelativePathForSimFile" value="false" />
   <parameter name="writeBufferDepth" value="64" />
   <parameter name="writeIRQThreshold" value="8" />

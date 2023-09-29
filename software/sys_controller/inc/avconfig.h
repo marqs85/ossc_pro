@@ -157,6 +157,7 @@ typedef struct {
     uint8_t mask_color;
     uint8_t bfi_enable;
     uint8_t bfi_str;
+    uint8_t shmask_mode;
     uint8_t reverse_lpf;
     uint8_t ypbpr_cs;
     /* Common LM settings */

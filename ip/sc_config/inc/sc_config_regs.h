@@ -111,7 +111,10 @@ typedef union {
         uint8_t vip_enable:1;
         uint8_t bfi_str:4;
         uint8_t bfi_enable:1;
-        uint32_t misc_rsv:11;
+        uint8_t shmask_enable:1;
+        uint8_t shmask_iv_x:4;
+        uint8_t shmask_iv_y:4;
+        uint32_t misc_rsv:2;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } misc_config_reg;
@@ -145,6 +148,11 @@ typedef union {
     uint32_t data;
 } sl_config3_reg;
 
+// shmask regs
+typedef struct {
+    uint32_t data[16][16];
+} shmask_array;
+
 typedef struct {
     fe_status_reg fe_status;
     fe_status2_reg fe_status2;
@@ -161,6 +169,8 @@ typedef struct {
     sl_config_reg sl_config;
     sl_config2_reg sl_config2;
     sl_config3_reg sl_config3;
+    uint32_t reserved;
+    shmask_array shmask_data_array;
 } sc_regs;
 
 #endif //SC_CONFIG_REGS_H_
