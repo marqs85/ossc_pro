@@ -177,7 +177,7 @@ wire cvi_overflow, cvo_underflow;
 wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
 wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
-wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2;
+wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2, xy_out_config3;
 wire [31:0] misc_config, sl_config, sl_config2, sl_config3;
 
 reg [23:0] resync_led_ctr;
@@ -195,7 +195,7 @@ wire fan_pwm;
 assign FAN_PWM_o = ~(sys_poweron & fan_pwm);
 
 wire [11:0] xpos_sc;
-wire [10:0] ypos_sc;
+wire [11:0] ypos_sc;
 wire osd_enable;
 wire [1:0] osd_color;
 wire [3:0] x_ctr_shmask, y_ctr_shmask;
@@ -640,8 +640,7 @@ sys sys_inst (
     .pio_0_sys_ctrl_out_export              (sys_ctrl),
     .pio_1_controls_in_export               (controls),
     .pio_2_sys_status_in_export             (sys_status),
-    .sc_config_0_sc_if_fe_status_i          ({20'h0, ISL_fe_interlace, ISL_fe_vtotal}),
-    .sc_config_0_sc_if_fe_status2_i         ({12'h0, ISL_fe_pcnt_frame}),
+    .sc_config_0_sc_if_fe_status_i          ({ISL_fe_pcnt_frame, ISL_fe_interlace, ISL_fe_vtotal}),
     .sc_config_0_sc_if_lt_status_i          (32'h00000000),
     .sc_config_0_sc_if_hv_in_config_o       (hv_in_config),
     .sc_config_0_sc_if_hv_in_config2_o      (hv_in_config2),
@@ -651,6 +650,7 @@ sys sys_inst (
     .sc_config_0_sc_if_hv_out_config3_o     (hv_out_config3),
     .sc_config_0_sc_if_xy_out_config_o      (xy_out_config),
     .sc_config_0_sc_if_xy_out_config2_o     (xy_out_config2),
+    .sc_config_0_sc_if_xy_out_config3_o     (xy_out_config3),
     .sc_config_0_sc_if_misc_config_o        (misc_config),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
@@ -775,6 +775,7 @@ scanconverter #(
     .hv_out_config3(hv_out_config3),
     .xy_out_config(xy_out_config),
     .xy_out_config2(xy_out_config2),
+    .xy_out_config3(xy_out_config3),
     .misc_config(misc_config),
     .sl_config(sl_config),
     .sl_config2(sl_config2),

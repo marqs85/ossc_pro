@@ -41,7 +41,7 @@
 #define V_BPORCH_MIN 0
 #define V_BPORCH_MAX 511
 #define V_ACTIVE_MIN 160
-#define V_ACTIVE_MAX 1728
+#define V_ACTIVE_MAX 2160
 
 typedef enum {
     VIDEO_SDTV      = (1<<0),
@@ -101,7 +101,9 @@ typedef enum {
 
 typedef enum {
     STDMODE_240p_CRT,
+    STDMODE_240p_WS_CRT,
     STDMODE_288p_CRT,
+    STDMODE_288p_WS_CRT,
     STDMODE_480i_CRT,
     STDMODE_480i_WS_CRT,
     STDMODE_576i_CRT,
@@ -135,7 +137,9 @@ typedef enum {
     STDMODE_1920x1440_50,
     STDMODE_1920x1440_60,
     STDMODE_2560x1440_50,
-    STDMODE_2560x1440_60
+    STDMODE_2560x1440_60,
+    STDMODE_2880x2160_50,
+    STDMODE_2880x2160_60,
 } stdmode_t;
 
 typedef enum {
@@ -196,7 +200,7 @@ typedef enum {
 } gen_width_mode_t;
 
 #define NUM_VIDEO_GROUPS (GROUP_1080P+1)
-#define NUM_VIDEO_MODES  (STDMODE_2560x1440_60+1)
+#define NUM_VIDEO_MODES  (STDMODE_2880x2160_60+1)
 
 typedef struct {
     stdmode_t stdmode_id;

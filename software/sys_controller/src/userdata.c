@@ -99,7 +99,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
-    UDE_ITEM(41, 62, tc.tp_mode),
+    UDE_ITEM(41, 68, tc.tp_mode),
     UDE_ITEM(42, 58, tc.lm_deint_mode),
     UDE_ITEM(43, 58, tc.nir_even_offset),
     UDE_ITEM(44, 58, tc.ar_256col),
@@ -118,7 +118,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(57, 58, tc.reverse_lpf),
     UDE_ITEM(58, 58, tc.audio_fmt),
 #ifdef VIP
-    UDE_ITEM(59, 62, tc.scl_out_mode),
+    UDE_ITEM(59, 68, tc.scl_out_mode),
     UDE_ITEM(60, 58, tc.scl_framelock),
     UDE_ITEM(61, 62, tc.scl_aspect),
     UDE_ITEM(62, 58, tc.scl_alg),
@@ -154,7 +154,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(79, 58, tc.pcm_cfg),
 #endif
 #ifdef VIP
-    UDE_ITEM(80, 62, tc.scl_crt_out_mode),
+    UDE_ITEM(80, 68, tc.scl_crt_out_mode),
     UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
     UDE_ITEM(82, 64, tc.pm_ad_1080p),

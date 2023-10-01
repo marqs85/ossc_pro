@@ -314,10 +314,13 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {-1, STDMODE_1600x1200_60, -1, -1},
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60, -1, -1},
                                          {STDMODE_1920x1440_50, STDMODE_1920x1440_60, -1, -1},
-                                         {STDMODE_2560x1440_50, STDMODE_2560x1440_60, -1, -1}};
+                                         {STDMODE_2560x1440_50, STDMODE_2560x1440_60, -1, -1},
+                                         {STDMODE_2880x2160_50, STDMODE_2880x2160_60, -1, -1}};
 
     const stdmode_t pm_scl_map_crt[][4] = {{-1, STDMODE_240p_CRT, STDMODE_240p_CRT, STDMODE_240p_CRT},
+                                         {-1, STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT},
                                          {STDMODE_288p_CRT, STDMODE_288p_CRT, STDMODE_288p_CRT, -1},
+                                         {STDMODE_288p_WS_CRT, STDMODE_288p_WS_CRT, STDMODE_288p_WS_CRT, -1},
                                          {-1, STDMODE_480i_CRT, -1, -1},
                                          {-1, STDMODE_480i_WS_CRT, -1, -1},
                                          {STDMODE_576i_CRT, -1, -1, -1},

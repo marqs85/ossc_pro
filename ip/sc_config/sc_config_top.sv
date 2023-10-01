@@ -32,7 +32,6 @@ module sc_config_top(
     output avalon_s_waitrequest_n,
     // SC interface
     input [31:0] fe_status_i,
-    input [31:0] fe_status2_i,
     input [31:0] lt_status_i,
     output [31:0] hv_in_config_o,
     output [31:0] hv_in_config2_o,
@@ -42,6 +41,7 @@ module sc_config_top(
     output [31:0] hv_out_config3_o,
     output [31:0] xy_out_config_o,
     output [31:0] xy_out_config2_o,
+    output [31:0] xy_out_config3_o,
     output [31:0] misc_config_o,
     output [31:0] sl_config_o,
     output [31:0] sl_config2_o,
@@ -54,22 +54,22 @@ module sc_config_top(
 );
 
 localparam FE_STATUS_REGNUM =       9'h0;
-localparam FE_STATUS2_REGNUM =      9'h1;
-localparam LT_STATUS_REGNUM =       9'h2;
-localparam HV_IN_CONFIG_REGNUM =    9'h3;
-localparam HV_IN_CONFIG2_REGNUM =   9'h4;
-localparam HV_IN_CONFIG3_REGNUM =   9'h5;
-localparam HV_OUT_CONFIG_REGNUM =   9'h6;
-localparam HV_OUT_CONFIG2_REGNUM =  9'h7;
-localparam HV_OUT_CONFIG3_REGNUM =  9'h8;
-localparam XY_OUT_CONFIG_REGNUM =   9'h9;
-localparam XY_OUT_CONFIG2_REGNUM =  9'ha;
+localparam LT_STATUS_REGNUM =       9'h1;
+localparam HV_IN_CONFIG_REGNUM =    9'h2;
+localparam HV_IN_CONFIG2_REGNUM =   9'h3;
+localparam HV_IN_CONFIG3_REGNUM =   9'h4;
+localparam HV_OUT_CONFIG_REGNUM =   9'h5;
+localparam HV_OUT_CONFIG2_REGNUM =  9'h6;
+localparam HV_OUT_CONFIG3_REGNUM =  9'h7;
+localparam XY_OUT_CONFIG_REGNUM =   9'h8;
+localparam XY_OUT_CONFIG2_REGNUM =  9'h9;
+localparam XY_OUT_CONFIG3_REGNUM =  9'ha;
 localparam MISC_CONFIG_REGNUM =     9'hb;
 localparam SL_CONFIG_REGNUM =       9'hc;
 localparam SL_CONFIG2_REGNUM =      9'hd;
 localparam SL_CONFIG3_REGNUM =      9'he;
 
-localparam SHMASK_DATA_OFFSET =     9'h10;
+localparam SHMASK_DATA_OFFSET =     9'h100;
 
 reg [31:0] config_reg[HV_IN_CONFIG_REGNUM:SL_CONFIG3_REGNUM] /* synthesis ramstyle = "logic" */;
 
@@ -113,7 +113,6 @@ always @(*) begin
     if (avalon_s_chipselect && avalon_s_read) begin
         case (avalon_s_address)
             FE_STATUS_REGNUM: avalon_s_readdata = fe_status_i;
-            FE_STATUS2_REGNUM: avalon_s_readdata = fe_status2_i;
             LT_STATUS_REGNUM: avalon_s_readdata = lt_status_i;
             default: avalon_s_readdata = 32'h00000000;
         endcase
@@ -130,6 +129,7 @@ assign hv_out_config2_o = config_reg[HV_OUT_CONFIG2_REGNUM];
 assign hv_out_config3_o = config_reg[HV_OUT_CONFIG3_REGNUM];
 assign xy_out_config_o = config_reg[XY_OUT_CONFIG_REGNUM];
 assign xy_out_config2_o = config_reg[XY_OUT_CONFIG2_REGNUM];
+assign xy_out_config3_o = config_reg[XY_OUT_CONFIG3_REGNUM];
 assign misc_config_o = config_reg[MISC_CONFIG_REGNUM];
 assign sl_config_o = config_reg[SL_CONFIG_REGNUM];
 assign sl_config2_o = config_reg[SL_CONFIG2_REGNUM];

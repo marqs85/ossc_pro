@@ -371,6 +371,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_config3_reg hv_out_config3 = {.data=0x00000000};
     xy_config_reg xy_out_config = {.data=0x00000000};
     xy_config2_reg xy_out_config2 = {.data=0x00000000};
+    xy_config3_reg xy_out_config3 = {.data=0x00000000};
     misc_config_reg misc_config = {.data=0x00000000};
     sl_config_reg sl_config = {.data=0x00000000};
     sl_config2_reg sl_config2 = {.data=0x00000000};
@@ -439,13 +440,13 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_in_config.h_active = vm_in->timings.h_active;
     hv_in_config.h_synclen = vm_in->timings.h_synclen;
     hv_in_config2.h_backporch = vm_in->timings.h_backporch;
-    hv_in_config2.v_active = vm_in->timings.v_active;
+    hv_in_config3.v_active = vm_in->timings.v_active;
     hv_in_config3.v_synclen = vm_in->timings.v_synclen;
-    hv_in_config3.v_backporch = vm_in->timings.v_backporch;
+    hv_in_config2.v_backporch = vm_in->timings.v_backporch;
     hv_in_config2.interlaced = vm_in->timings.interlaced;
     hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+12;
-    hv_in_config3.h_skip = vm_conf->h_skip;
-    hv_in_config3.h_sample_sel = vm_conf->h_sample_sel;
+    hv_in_config2.h_skip = vm_conf->h_skip;
+    hv_in_config2.h_sample_sel = vm_conf->h_sample_sel;
 
     // Set output params
     hv_out_config.h_total = vm_out->timings.h_total;
@@ -453,20 +454,20 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_out_config.h_synclen = vm_out->timings.h_synclen;
     hv_out_config2.h_backporch = vm_out->timings.h_backporch;
     hv_out_config2.v_total = vm_out->timings.v_total;
-    hv_out_config2.v_active = vm_out->timings.v_active;
+    hv_out_config3.v_active = vm_out->timings.v_active;
     hv_out_config3.v_synclen = vm_out->timings.v_synclen;
-    hv_out_config3.v_backporch = vm_out->timings.v_backporch;
+    hv_out_config2.v_backporch = vm_out->timings.v_backporch;
     hv_out_config2.interlaced = vm_out->timings.interlaced;
     hv_out_config3.v_startline = vm_conf->framesync_line;
 
     xy_out_config.x_size = vm_conf->x_size;
     xy_out_config.y_size = vm_conf->y_size;
-    xy_out_config.y_offset = vm_conf->y_offset;
+    xy_out_config2.y_offset = vm_conf->y_offset;
     xy_out_config2.x_offset = vm_conf->x_offset;
-    xy_out_config2.x_start_lb = vm_conf->x_start_lb;
-    xy_out_config2.y_start_lb = vm_conf->y_start_lb;
-    xy_out_config2.x_rpt = vm_conf->x_rpt;
-    xy_out_config2.y_rpt = vm_conf->y_rpt;
+    xy_out_config3.x_start_lb = vm_conf->x_start_lb;
+    xy_out_config3.y_start_lb = vm_conf->y_start_lb;
+    xy_out_config.x_rpt = vm_conf->x_rpt;
+    xy_out_config.y_rpt = vm_conf->y_rpt;
 
     misc_config.mask_br = avconfig->mask_br;
     misc_config.mask_color = avconfig->mask_color;
@@ -535,6 +536,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     sc->hv_out_config3 = hv_out_config3;
     sc->xy_out_config = xy_out_config;
     sc->xy_out_config2 = xy_out_config2;
+    sc->xy_out_config3 = xy_out_config3;
     sc->misc_config = misc_config;
     sc->sl_config = sl_config;
     sc->sl_config2 = sl_config2;
@@ -1312,7 +1314,7 @@ void mainloop()
             }
 
             if (isl_dev.sync_active) {
-                if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status2.pcnt_frame) || (status & MODE_CHANGE)) {
+                if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status.pcnt_frame) || (status & MODE_CHANGE)) {
                     h_skip_prev = vm_conf.h_skip;
                     sampler_phase_prev = vmode_in.sampler_phase;
 

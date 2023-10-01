@@ -39,6 +39,7 @@ module scanconverter (
     input [31:0] hv_out_config3,
     input [31:0] xy_out_config,
     input [31:0] xy_out_config2,
+    input [31:0] xy_out_config3,
     input [31:0] misc_config,
     input [31:0] sl_config,
     input [31:0] sl_config2,
@@ -58,7 +59,7 @@ module scanconverter (
     output VSYNC_o,
     output DE_o,
     output [11:0] xpos_o,
-    output [10:0] ypos_o,
+    output [11:0] ypos_o,
     output reg [3:0] x_ctr_shmask,
     output reg [3:0] y_ctr_shmask,
     input [11:0] shmask_data,
@@ -114,26 +115,26 @@ wire [11:0] H_ACTIVE = hv_out_config[23:12];
 wire [7:0] H_SYNCLEN = hv_out_config[31:24];
 wire [8:0] H_BACKPORCH = hv_out_config2[8:0];
 
-wire V_INTERLACED = hv_out_config2[31];
-wire [10:0] V_TOTAL = hv_out_config2[19:9] >> V_INTERLACED;
-wire [10:0] V_ACTIVE = hv_out_config2[30:20];
-wire [3:0] V_SYNCLEN = hv_out_config3[3:0];
-wire [8:0] V_BACKPORCH = hv_out_config3[12:4];
+wire V_INTERLACED = hv_out_config2[30];
+wire [11:0] V_TOTAL = hv_out_config2[20:9] >> V_INTERLACED;
+wire [11:0] V_ACTIVE = hv_out_config3[11:0];
+wire [3:0] V_SYNCLEN = hv_out_config3[15:12];
+wire [8:0] V_BACKPORCH = hv_out_config2[29:21];
 
-wire [10:0] V_STARTLINE = hv_out_config3[23:13];
+wire [11:0] V_STARTLINE = hv_out_config3[27:16];
 
-wire [10:0] V_STARTLINE_PREV = (V_STARTLINE == 0) ? (V_TOTAL-1) : (V_STARTLINE-1);
+wire [11:0] V_STARTLINE_PREV = (V_STARTLINE == 0) ? (V_TOTAL-1) : (V_STARTLINE-1);
 
 wire [11:0] X_SIZE = xy_out_config[11:0];
-wire [10:0] Y_SIZE = xy_out_config[22:12];
+wire [11:0] Y_SIZE = xy_out_config[23:12];
 wire signed [9:0] X_OFFSET = xy_out_config2[9:0];
-wire signed [8:0] Y_OFFSET = xy_out_config[31:23];
+wire signed [8:0] Y_OFFSET = xy_out_config2[18:10];
 
-wire [7:0] X_START_LB = xy_out_config2[17:10];
-wire signed [5:0] Y_START_LB = xy_out_config2[23:18];
+wire [7:0] X_START_LB = xy_out_config3[7:0];
+wire signed [5:0] Y_START_LB = xy_out_config3[13:8];
 
-wire signed [3:0] X_RPT = xy_out_config2[27:24];
-wire signed [3:0] Y_RPT = xy_out_config2[31:28];
+wire signed [3:0] X_RPT = xy_out_config[27:24];
+wire signed [3:0] Y_RPT = xy_out_config[31:28];
 
 wire Y_SKIP = (Y_RPT == 4'(-1));
 wire [1:0] Y_STEP = Y_SKIP+1'b1;
@@ -167,7 +168,7 @@ reg frame_change_sync1_reg, frame_change_sync2_reg, frame_change_prev, frame_cha
 wire frame_change = frame_change_sync2_reg;
 
 reg [11:0] h_cnt;
-reg [10:0] v_cnt;
+reg [11:0] v_cnt;
 reg h_avidstart, v_avidstart;
 reg src_fid, dst_fid;
 
@@ -203,7 +204,7 @@ reg HSYNC_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg VSYNC_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg DE_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg [11:0] xpos_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
-reg [10:0] ypos_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
+reg [11:0] ypos_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg mask_enable_pp[PP_MASK_END:PP_TP_START] /* synthesis ramstyle = "logic" */;
 reg draw_sl_pp[(PP_SLGEN_START+1):(PP_SLGEN_END-1)] /* synthesis ramstyle = "logic" */;
 reg [3:0] x_ctr_sl_pp[PP_PL_START:PP_SLGEN_START] /* synthesis ramstyle = "logic" */;
