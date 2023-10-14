@@ -19,6 +19,8 @@
 
 `define PO_RESET_WIDTH 27000
 //`define PCB_1P3
+//`define PCB_1P5
+//`define EXTRA_AV_OUT
 
 `define VIP
 `define PIXPAR2
@@ -37,8 +39,10 @@ module ossc_pro (
     input ISL_INT_N_i,
     output ISL_EXT_PCLK_o,
     output ISL_RESET_N_o,
+`ifndef PCB_1P5
     output ISL_COAST_o,
     output ISL_CLAMP_o,
+`endif
 
     input HDMIRX_PCLK_i,
     input HDMIRX_AP_i,
@@ -101,6 +105,11 @@ module ossc_pro (
     inout [3:0] SD_DATA_io,
     input SD_DETECT_i,
 
+`ifdef PCB_1P5
+    inout USB_DP_io,
+    inout USB_DN_io,
+`endif
+
     inout [5:0] EXT_IO_A_io,
 
     inout [31:0] EXT_IO_B_io,
@@ -129,6 +138,7 @@ wire hdmirx_spdif = sys_ctrl[15];
 wire [3:0] fan_duty = sys_ctrl[19:16];
 wire [3:0] led_duty = sys_ctrl[23:20];
 wire dram_refresh_enable = sys_ctrl[24];
+wire vip_dil_reset_n = sys_ctrl[25];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -167,7 +177,7 @@ wire cvi_overflow, cvo_underflow;
 wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
 wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
-wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2;
+wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2, xy_out_config3;
 wire [31:0] misc_config, sl_config, sl_config2, sl_config3;
 
 reg [23:0] resync_led_ctr;
@@ -185,9 +195,11 @@ wire fan_pwm;
 assign FAN_PWM_o = ~(sys_poweron & fan_pwm);
 
 wire [11:0] xpos_sc;
-wire [10:0] ypos_sc;
+wire [11:0] ypos_sc;
 wire osd_enable;
 wire [1:0] osd_color;
+wire [3:0] x_ctr_shmask, y_ctr_shmask;
+wire [10:0] shmask_data;
 
 assign ISL_RESET_N_o = isl_reset_n;
 assign HDMIRX_RESET_N_o = hdmirx_reset_n;
@@ -200,9 +212,7 @@ wire sd_cmd_oe_o, sd_cmd_out_o, sd_dat_oe_o;
 wire [3:0] sd_dat_out_o;
 
 assign SD_CMD_io = sd_cmd_oe_o ? sd_cmd_out_o : 1'bz;
-assign SD_DATA_io[3] = sd_dat_oe_o ? sd_dat_out_o[3] : 1'bz;
-assign SD_DATA_io[2:1] = 2'bzz;
-assign SD_DATA_io[0] = sd_dat_oe_o ? sd_dat_out_o[0] : 1'bz;
+assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
 
 assign FPGA_PCLK1x_o = pclk_capture;
 
@@ -256,6 +266,7 @@ isl51002_frontend u_isl_frontend (
     .hv_in_config(hv_in_config),
     .hv_in_config2(hv_in_config2),
     .hv_in_config3(hv_in_config3),
+    .misc_config(misc_config),
     .R_o(ISL_R_post),
     .G_o(ISL_G_post),
     .B_o(ISL_B_post),
@@ -619,7 +630,7 @@ sys sys_inst (
     .sdc_controller_0_sd_sd_cmd_dat_i       (SD_CMD_io),
     .sdc_controller_0_sd_sd_cmd_out_o       (sd_cmd_out_o),
     .sdc_controller_0_sd_sd_cmd_oe_o        (sd_cmd_oe_o),
-    .sdc_controller_0_sd_sd_dat_dat_i       ({SD_DATA_io[3], 2'b11, SD_DATA_io[0]}),
+    .sdc_controller_0_sd_sd_dat_dat_i       (SD_DATA_io),
     .sdc_controller_0_sd_sd_dat_out_o       (sd_dat_out_o),
     .sdc_controller_0_sd_sd_dat_oe_o        (sd_dat_oe_o),
     .sdc_controller_0_sd_clk_o_clk          (SD_CLK_o),
@@ -629,8 +640,7 @@ sys sys_inst (
     .pio_0_sys_ctrl_out_export              (sys_ctrl),
     .pio_1_controls_in_export               (controls),
     .pio_2_sys_status_in_export             (sys_status),
-    .sc_config_0_sc_if_fe_status_i          ({20'h0, ISL_fe_interlace, ISL_fe_vtotal}),
-    .sc_config_0_sc_if_fe_status2_i         ({12'h0, ISL_fe_pcnt_frame}),
+    .sc_config_0_sc_if_fe_status_i          ({ISL_fe_pcnt_frame, ISL_fe_interlace, ISL_fe_vtotal}),
     .sc_config_0_sc_if_lt_status_i          (32'h00000000),
     .sc_config_0_sc_if_hv_in_config_o       (hv_in_config),
     .sc_config_0_sc_if_hv_in_config2_o      (hv_in_config2),
@@ -640,10 +650,15 @@ sys sys_inst (
     .sc_config_0_sc_if_hv_out_config3_o     (hv_out_config3),
     .sc_config_0_sc_if_xy_out_config_o      (xy_out_config),
     .sc_config_0_sc_if_xy_out_config2_o     (xy_out_config2),
+    .sc_config_0_sc_if_xy_out_config3_o     (xy_out_config3),
     .sc_config_0_sc_if_misc_config_o        (misc_config),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
     .sc_config_0_sc_if_sl_config3_o         (sl_config3),
+    .sc_config_0_shmask_if_vclk             (PCLK_sc),
+    .sc_config_0_shmask_if_shmask_xpos      (x_ctr_shmask),
+    .sc_config_0_shmask_if_shmask_ypos      (y_ctr_shmask),
+    .sc_config_0_shmask_if_shmask_data      (shmask_data),
     .osd_generator_0_osd_if_vclk            (PCLK_sc),
     .osd_generator_0_osd_if_xpos            (xpos_sc),
     .osd_generator_0_osd_if_ypos            (ypos_sc),
@@ -694,6 +709,7 @@ sys sys_inst (
     pclk_capture
 `endif
     ),
+    .vip_dil_reset_reset_n                                     (vip_dil_reset_n),
     .alt_vip_cl_cvi_0_clocked_video_vid_data                   (VIP_DATA_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_de                     (VIP_DE_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_datavalid              (!dc_fifo_in_rdempty_prev),
@@ -759,6 +775,7 @@ scanconverter #(
     .hv_out_config3(hv_out_config3),
     .xy_out_config(xy_out_config),
     .xy_out_config2(xy_out_config2),
+    .xy_out_config3(xy_out_config3),
     .misc_config(misc_config),
     .sl_config(sl_config),
     .sl_config2(sl_config2),
@@ -779,6 +796,9 @@ scanconverter #(
     .DE_o(DE_sc),
     .xpos_o(xpos_sc),
     .ypos_o(ypos_sc),
+    .x_ctr_shmask(x_ctr_shmask),
+    .y_ctr_shmask(y_ctr_shmask),
+    .shmask_data(shmask_data),
     .resync_strobe(resync_strobe_i),
     .emif_br_clk(emif_br_clk),
     .emif_br_reset(emif_br_reset),

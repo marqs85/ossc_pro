@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "23";
+         value = "24";
          type = "int";
       }
    }
@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "28";
+         value = "29";
          type = "int";
       }
    }
@@ -55,7 +55,7 @@
    {
       datum _sortIndex
       {
-         value = "24";
+         value = "25";
          type = "int";
       }
    }
@@ -76,7 +76,7 @@
    {
       datum _sortIndex
       {
-         value = "27";
+         value = "28";
          type = "int";
       }
    }
@@ -97,7 +97,7 @@
    {
       datum _sortIndex
       {
-         value = "26";
+         value = "27";
          type = "int";
       }
    }
@@ -118,7 +118,7 @@
    {
       datum _sortIndex
       {
-         value = "25";
+         value = "26";
          type = "int";
       }
    }
@@ -511,6 +511,14 @@
          type = "int";
       }
    }
+   element reset_bridge_1
+   {
+      datum _sortIndex
+      {
+         value = "23";
+         type = "int";
+      }
+   }
    element sc_config_0
    {
       datum _sortIndex
@@ -705,6 +713,11 @@
    type="conduit"
    dir="end" />
  <interface
+   name="sc_config_0_shmask_if"
+   internal="sc_config_0.shmask_if"
+   type="conduit"
+   dir="end" />
+ <interface
    name="sdc_controller_0_sd"
    internal="sdc_controller_0.sd"
    type="conduit"
@@ -714,6 +727,11 @@
    internal="sdc_controller_0.sd_clk_o"
    type="clock"
    dir="start" />
+ <interface
+   name="vip_dil_reset"
+   internal="reset_bridge_1.in_reset"
+   type="reset"
+   dir="end" />
  <module
    name="alt_vip_cl_cvi_0"
    kind="alt_vip_cl_cvi"
@@ -822,7 +840,7 @@
   <parameter name="INCOMING_VIDEO_IS_YCBCR" value="0" />
   <parameter name="MAX_HEIGHT" value="1080" />
   <parameter name="MAX_SYMBOLS_PER_PACKET" value="10" />
-  <parameter name="MAX_WIDTH" value="1920" />
+  <parameter name="MAX_WIDTH" value="2048" />
   <parameter name="MA_READ_MASTER_BURST_TARGET" value="32" />
   <parameter name="MA_READ_MASTER_FIFO_DEPTH" value="64" />
   <parameter name="MEM_BASE_ADDR" value="0" />
@@ -857,7 +875,7 @@
   <parameter name="EXTRA_PIPELINING" value="0" />
   <parameter name="INTERLACE_PASSTHROUGH" value="0" />
   <parameter name="LIMITED_READBACK" value="1" />
-  <parameter name="MAX_HEIGHT" value="1440" />
+  <parameter name="MAX_HEIGHT" value="2160" />
   <parameter name="MAX_WIDTH" value="2560" />
   <parameter name="NUMBER_OF_COLOR_PLANES" value="3" />
   <parameter name="PIXELS_IN_PARALLEL" value="2" />
@@ -896,7 +914,7 @@
   <parameter name="LOAD_AT_RUNTIME" value="1" />
   <parameter name="MAX_IN_HEIGHT" value="1440" />
   <parameter name="MAX_IN_WIDTH" value="2048" />
-  <parameter name="MAX_OUT_HEIGHT" value="1440" />
+  <parameter name="MAX_OUT_HEIGHT" value="2160" />
   <parameter name="MAX_OUT_WIDTH" value="2560" />
   <parameter name="NO_BLANKING" value="0" />
   <parameter name="PIXELS_IN_PARALLEL" value="2" />
@@ -1026,8 +1044,8 @@
   <parameter name="readIRQThreshold" value="8" />
   <parameter name="simInputCharacterStream" value="" />
   <parameter name="simInteractiveOptions">NO_INTERACTIVE_WINDOWS</parameter>
-  <parameter name="useRegistersForReadBuffer" value="true" />
-  <parameter name="useRegistersForWriteBuffer" value="true" />
+  <parameter name="useRegistersForReadBuffer" value="false" />
+  <parameter name="useRegistersForWriteBuffer" value="false" />
   <parameter name="useRelativePathForSimFile" value="false" />
   <parameter name="writeBufferDepth" value="64" />
   <parameter name="writeIRQThreshold" value="8" />
@@ -1367,11 +1385,11 @@
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
-  <parameter name="COMMAND_FIFO_DEPTH" value="4" />
+  <parameter name="COMMAND_FIFO_DEPTH" value="64" />
   <parameter name="DATA_WIDTH" value="32" />
   <parameter name="MASTER_SYNC_DEPTH" value="2" />
   <parameter name="MAX_BURST_SIZE" value="1" />
-  <parameter name="RESPONSE_FIFO_DEPTH" value="4" />
+  <parameter name="RESPONSE_FIFO_DEPTH" value="64" />
   <parameter name="SLAVE_SYNC_DEPTH" value="2" />
   <parameter name="SYMBOL_WIDTH" value="8" />
   <parameter name="SYSINFO_ADDR_WIDTH" value="25" />
@@ -1384,11 +1402,11 @@
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
-  <parameter name="COMMAND_FIFO_DEPTH" value="4" />
+  <parameter name="COMMAND_FIFO_DEPTH" value="64" />
   <parameter name="DATA_WIDTH" value="32" />
   <parameter name="MASTER_SYNC_DEPTH" value="2" />
   <parameter name="MAX_BURST_SIZE" value="1" />
-  <parameter name="RESPONSE_FIFO_DEPTH" value="4" />
+  <parameter name="RESPONSE_FIFO_DEPTH" value="64" />
   <parameter name="SLAVE_SYNC_DEPTH" value="2" />
   <parameter name="SYMBOL_WIDTH" value="8" />
   <parameter name="SYSINFO_ADDR_WIDTH" value="28" />
@@ -1401,11 +1419,11 @@
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
-  <parameter name="COMMAND_FIFO_DEPTH" value="4" />
+  <parameter name="COMMAND_FIFO_DEPTH" value="64" />
   <parameter name="DATA_WIDTH" value="32" />
   <parameter name="MASTER_SYNC_DEPTH" value="2" />
   <parameter name="MAX_BURST_SIZE" value="1" />
-  <parameter name="RESPONSE_FIFO_DEPTH" value="4" />
+  <parameter name="RESPONSE_FIFO_DEPTH" value="64" />
   <parameter name="SLAVE_SYNC_DEPTH" value="2" />
   <parameter name="SYMBOL_WIDTH" value="8" />
   <parameter name="SYSINFO_ADDR_WIDTH" value="12" />
@@ -1718,6 +1736,17 @@
  </module>
  <module
    name="reset_bridge_0"
+   kind="altera_reset_bridge"
+   version="21.1"
+   enabled="1">
+  <parameter name="ACTIVE_LOW_RESET" value="1" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="-1" />
+  <parameter name="NUM_RESET_OUTPUTS" value="1" />
+  <parameter name="SYNCHRONOUS_EDGES" value="none" />
+  <parameter name="USE_RESET_REQUEST" value="0" />
+ </module>
+ <module
+   name="reset_bridge_1"
    kind="altera_reset_bridge"
    version="21.1"
    enabled="1">
@@ -2478,12 +2507,12 @@
  <connection
    kind="reset"
    version="21.1"
-   start="reset_bridge_0.out_reset"
+   start="reset_bridge_1.out_reset"
    end="alt_vip_cl_dil_0.av_mm_reset" />
  <connection
    kind="reset"
    version="21.1"
-   start="reset_bridge_0.out_reset"
+   start="reset_bridge_1.out_reset"
    end="alt_vip_cl_dil_0.av_st_reset" />
  <connection
    kind="reset"

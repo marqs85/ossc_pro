@@ -97,6 +97,7 @@ typedef struct {
     uint8_t l3_mode;
     uint8_t l4_mode;
     uint8_t l5_mode;
+    uint8_t l6_mode;
     uint8_t l5_fmt;
     uint8_t s480p_mode;
     uint8_t s400p_mode;
@@ -111,6 +112,7 @@ typedef struct {
     uint8_t pm_ad_576p;
     uint8_t pm_ad_720p;
     uint8_t pm_ad_1080i;
+    uint8_t pm_ad_1080p;
     uint8_t sm_ad_240p_288p;
     uint8_t sm_ad_384p;
     uint8_t sm_ad_480i_576i;
@@ -155,6 +157,7 @@ typedef struct {
     uint8_t mask_color;
     uint8_t bfi_enable;
     uint8_t bfi_str;
+    uint8_t shmask_mode;
     uint8_t reverse_lpf;
     uint8_t ypbpr_cs;
     /* Common LM settings */

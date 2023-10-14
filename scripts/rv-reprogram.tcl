@@ -63,16 +63,17 @@ for {set i 0} {$i<$num_sectors} {incr i} {
 }
 
 puts "Writing flash"
-# does hang for some reason after ~70 bytes. Write polling issue?
+# writes garbage and occasionally hangs when mm clk crossing FIFO starts backpressure
 #master_write_from_file $claim_path mem_init/flash.bin $flash_imem_base
 
+# work around the issue by writing into small chunks so that FIFO does not fill up
 set chunks [llength [glob mem_init/chunks/*]]
 puts "Programming $chunks chunks"
 set addr $flash_imem_base
 for {set i 0} {$i<$chunks} {incr i} {
     set file [format "flash.%04d" $i]
     master_write_from_file $claim_path mem_init/chunks/$file $addr
-    set addr [expr $addr + 64]
+    set addr [expr $addr + 512]
 }
 #master_read_to_file $claim_path mem_init/flash_readback.bin $flash_imem_base $bin_size
 #master_read_to_file $claim_path mem_init/ram_readback.bin 0x010000 65536
