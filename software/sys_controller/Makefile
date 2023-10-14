@@ -1132,7 +1132,7 @@ mem_init/flash.hex: sys_controller.elf
 	$(RV_OBJCOPY) --change-addresses -0x02A00000 -O ihex --gap-fill 0 $< mem_init/flash.hex
 	mkdir -p mem_init/chunks
 	rm -f mem_init/chunks/*
-	split -d -b 64 -a 4 mem_init/flash.bin mem_init/chunks/flash.
+	split -d -b 512 -a 4 mem_init/flash.bin mem_init/chunks/flash.
 
 .PHONY: mem_init_generate_new
 mem_init_generate_new: mem_init/flash.hex

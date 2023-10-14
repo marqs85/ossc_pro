@@ -63,12 +63,17 @@ btn_code_t b_code;
 extern int enable_tp, enable_isl;
 extern uint8_t smp_cur, smp_edit, dtmg_cur, dtmg_edit;
 extern oper_mode_t oper_mode;
+extern mode_data_t vmode_in;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 extern menuitem_t menu_scanlines_items[];
 extern menuitem_t menu_output_items[];
 extern menuitem_t menu_settings_items[];
 extern menuitem_t menu_advtiming_items[];
+extern menuitem_t menu_lm_items[];
+extern menuitem_t menu_pure_lm_items[];
+extern menuitem_t menu_adap_lm_items[];
+extern menuitem_t menu_profile_load;
 #ifdef VIP
 extern menuitem_t menu_scaler_items[];
 #endif
@@ -253,6 +258,7 @@ void read_controls() {
 void parse_control()
 {
     int prof_x10=0, ret=0, retval;
+    int plm_group_proc_map[] = {-1, 0, 0, 1, 2, 2, 3, 3, -1, 4, -1};
 
     if (sys_is_powered_on()) {
         if (!is_menu_active()) {
@@ -262,9 +268,9 @@ void parse_control()
                 display_menu(r_code, b_code);
             if (enable_tp) {
                 if ((r_code == RC_LEFT) || (b_code == BC_LEFT))
-                    quick_adjust(&menu_output_items[1], -1);
+                    quick_adjust(&menu_output_items[1], -1, 1);
                 if ((r_code == RC_RIGHT) || (b_code == BC_RIGHT))
-                    quick_adjust(&menu_output_items[1], 1);
+                    quick_adjust(&menu_output_items[1], 1, 1);
             }
             if (enable_isl) {
                 if ((r_code == RC_PHASE_PLUS) || (r_code == RC_PHASE_MINUS))
@@ -277,9 +283,9 @@ void parse_control()
             if (r_code == RC_SL_TYPE)
                 enter_cstm(&menu_scanlines_items[6], 1);
             if (r_code == RC_SL_ALIGNM)
-                quick_adjust(&menu_scanlines_items[5], 1);
+                quick_adjust(&menu_scanlines_items[5], 1, 1);
             if ((r_code == RC_SL_PLUS) || (r_code == RC_SL_MINUS))
-                quick_adjust(&menu_scanlines_items[1], (r_code == RC_SL_PLUS) ? 1 : -1);
+                quick_adjust(&menu_scanlines_items[1], (r_code == RC_SL_PLUS) ? 1 : -1, 1);
 #ifdef VIP
             if (oper_mode == OPERMODE_SCALER) {
                 if (r_code == RC_SCL_RES)
@@ -303,8 +309,24 @@ void parse_control()
                     enter_cstm(&menu_advtiming_items[(r_code == RC_SCL_SIZE) ? 1 : 2], 1);
                 }
             }
+            if (r_code == RC_SCL)
+                quick_adjust(&menu_output_items[0], 1, 0);
+            if ((r_code == RC_LM_PURE) || (r_code == RC_LM_ADAPT)) {
+                quick_adjust(&menu_output_items[0], 0, 0);
+                quick_adjust(&menu_lm_items[0], (r_code == RC_LM_ADAPT), 0);
+            }
+            if (r_code == RC_LM_DIL)
+                quick_adjust(&menu_lm_items[1], 1, 1);
+            if (r_code == RC_LM_PROC) {
+                if (oper_mode == OPERMODE_ADAPT_LM && (vmode_in.group != GROUP_NONE))
+                    enter_cstm(&menu_adap_lm_items[vmode_in.group-1], 1);
+                else if (oper_mode == OPERMODE_PURE_LM && (plm_group_proc_map[vmode_in.group] != -1))
+                    enter_cstm(&menu_pure_lm_items[plm_group_proc_map[vmode_in.group]], 1);
+            }
             if (r_code == RC_OSD)
                 enter_cstm(&menu_settings_items[1], 1);
+            if (r_code == RC_PROF_HOTKEY)
+                enter_cstm(&menu_profile_load, 1);
         } else {
             if ((r_code <= RC_RIGHT) || ((b_code >= BC_OK) && (b_code <= BC_RIGHT)))
                 display_menu(r_code, b_code);

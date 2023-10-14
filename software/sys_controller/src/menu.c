@@ -381,7 +381,7 @@ MENU(menu_scanlines, P99_PROTECT({
 MENU(menu_postproc, P99_PROTECT({
     { "Border color",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.mask_color,  OPT_NOWRAP,   SETTING_ITEM_LIST(mask_color_desc) } } },
     { LNG("Border brightness","ﾏｽｸｱｶﾙｻ"),         OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.mask_br,     OPT_NOWRAP, 0, HV_MASK_MAX_BR, value_disp } } },
-    { "Shadow mask",                             OPT_AVCONFIG_SELECTION, { .sel = { &tc.shmask_mode, OPT_WRAP,   SETTING_ITEM(shmask_mode_desc) } } },
+    { "Shadow mask",                             OPT_AVCONFIG_SELECTION, { .sel = { &tc.shmask_mode, OPT_WRAP,   SETTING_ITEM_LIST(shmask_mode_desc) } } },
     { "BFI for 2x Hz",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.bfi_enable,  OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "BFI strength",                            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.bfi_str,     OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
     //{ LNG("DIY lat. test","DIYﾁｴﾝﾃｽﾄ"),         OPT_FUNC_CALL,          { .fun = { latency_test, &lt_arg_info } } },
@@ -450,6 +450,8 @@ MENU(menu_main, P99_PROTECT({
     { LNG("Post-proc.","ｱﾄｼｮﾘ"),                OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },
     { "Settings",                               OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
+
+menuitem_t menu_profile_load = {"Profile load", OPT_CUSTOMMENU,         { .cstm = { &cstm_profile_load } } };
 
 
 int is_menu_active() {
@@ -902,6 +904,72 @@ void cstm_position(menucode_id code, int setup_disp) {
     ui_disp_menu(0);
 }
 
+void cstm_profile_load(menucode_id code, int setup_disp) {
+    uint32_t row_mask[2] = {0x03, 0x00};
+    int i, retval, items_curpage;
+    static int nav = 0, page = 0;
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+        nav--;
+        break;
+    case NEXT_PAGE:
+        nav++;
+        break;
+    case VAL_MINUS:
+        page = (page == 0) ? 5 : (page - 1) % 6;
+        setup_disp = 1;
+        break;
+    case VAL_PLUS:
+        page = (page + 1) % 6;
+        setup_disp = 1;
+        break;
+    case OPT_SELECT:
+        if (page == 0)
+            retval = read_userdata(nav, 0);
+        else
+            retval = read_userdata_sd((page-1)*20+nav, 0);
+        if (retval < 0)
+            sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, "Failed (%d)", retval);
+        else
+            sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, (retval > 0) ? func_ret_status : "OK");
+        row_mask[1] = (1<<(nav+2));
+        osd->osd_sec_enable[1].mask = row_mask[1];
+        break;
+    default:
+        break;
+    }
+
+    items_curpage = (page == 0) ? MAX_PROFILE+1 : (MAX_SD_PROFILE+1 - (page-1)*20 >= 20 ? 20 : (MAX_SD_PROFILE % 20));
+
+    if (nav < 0)
+        nav = items_curpage-1;
+    else if (nav >= items_curpage)
+        nav = 0;
+
+    if (setup_disp) {
+        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+
+        sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%s (%s)", menu_profile_load.name, ((page == 0) ? "int" : "SD"));
+        for (i=0; i<OSD_CHAR_COLS; i++)
+            osd->osd_array.data[1][0][i] = '-';
+
+        for (i=0; i<items_curpage; i++) {
+            if (page == 0)
+                read_userdata(i, 1);
+            else
+                read_userdata_sd((page-1)*20+i, 1);
+            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%u: %s", (page == 0) ? i : (page-1)*20+i, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name);
+            row_mask[0] |= (1<<(i+2));
+        }
+        osd->osd_sec_enable[0].mask = row_mask[0];
+        osd->osd_sec_enable[1].mask = row_mask[1];
+    }
+
+    osd->osd_row_color.mask = (1<<(nav+2));
+}
+
 void cstm_listview(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x03, 0x00};
     int i;
@@ -963,8 +1031,8 @@ void enter_cstm(menuitem_t *item, int detached_mode) {
     cstm_f(NO_ACTION, 1);
 }
 
-void quick_adjust(menuitem_t *item, int adj) {
-    int adj_data = (int)(*item->num.data) + adj;
+void quick_adjust(menuitem_t *item, int adj, int is_relative) {
+    int adj_data = is_relative ? ((int)(*item->num.data) + adj) : adj;
 
     if (adj_data < (int)item->num.min)
         *item->num.data = item->num.wrap_cfg ? item->num.max : item->num.min;
@@ -999,7 +1067,7 @@ void quick_adjust_phase(uint8_t dir) {
 
         set_sampler_phase(*sampler_phase, 1, 1);
 
-        strncpy((char*)osd->osd_array.data[0][0], menu_advtiming_plm_items[8].name, OSD_CHAR_COLS);
+        strncpy((char*)osd->osd_array.data[0][0], menu_advtiming_plm_items[10].name, OSD_CHAR_COLS);
         sampler_phase_disp(menu_row2, US2066_ROW_LEN+1, *sampler_phase, 1);
         strncpy((char*)osd->osd_array.data[1][0], menu_row2, OSD_CHAR_COLS);
         osd->osd_config.status_refresh = 1;
@@ -1178,19 +1246,16 @@ void set_func_ret_msg(char *msg) {
 
 void update_osd_size(mode_data_t *vm_out) {
     uint8_t osd_size = vm_out->timings.v_active / 700;
-    uint8_t par = (((100*vm_out->timings.h_active*vm_out->ar.v)/((vm_out->timings.v_active<<vm_out->timings.interlaced)*vm_out->ar.h))+50)/100;
-    uint8_t par_log2 = 0;
+    uint8_t par_x4 = (((400*vm_out->timings.h_active*vm_out->ar.v)/((vm_out->timings.v_active<<vm_out->timings.interlaced)*vm_out->ar.h))+50)/100;
+    int8_t xadj_log2 = -2;
 
-    while (par > 1) {
-        par >>= 1;
-        par_log2++;
+    while (par_x4 > 1) {
+        par_x4 >>= 1;
+        xadj_log2++;
     }
 
-    osd->osd_config.x_size = osd_size + vm_out->timings.interlaced + par_log2;
+    osd->osd_config.x_size = ((osd_size + vm_out->timings.interlaced + xadj_log2) >= 0) ? (osd_size + vm_out->timings.interlaced + xadj_log2) : 0;
     osd->osd_config.y_size = osd_size;
-
-    if ((vm_out->tx_pixelrep == TX_2X) && (vm_out->hdmitx_pixr_ifr == TX_1X))
-        osd->osd_config.x_size /= 2;
 }
 
 static void vm_select() {

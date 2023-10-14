@@ -200,6 +200,7 @@ char char_buff[256];
 
 const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_tv, &shmask_pvm, &shmask_pvm_2530, &shmask_xc_3315c, &shmask_c_1084, &shmask_jvc, &shmask_vga};
 shmask_data_arr shmask_data_arr_custom;
+shmask_data_arr *shmask_data_arr_ptr = &shmask_data_arr_custom;
 int shmask_loaded_array = 0;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
 
@@ -361,7 +362,6 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     int v0,v1,v2,v3;
     char target_filename[16];
     uint32_t h_blank, v_blank, h_frontporch, v_frontporch;
-    shmask_data_arr *shmask_data_arr_ptr;
 
     hv_config_reg hv_in_config = {.data=0x00000000};
     hv_config2_reg hv_in_config2 = {.data=0x00000000};
@@ -427,9 +427,6 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         for (p=0; p<=shmask_data_arr_ptr->iv_y; p++) {
             for (t=0; t<=shmask_data_arr_ptr->iv_x; t++)
                 sc->shmask_data_array.data[p][t] = shmask_data_arr_ptr->v[p][t];
-
-            misc_config.shmask_iv_x = shmask_data_arr_ptr->iv_x;
-            misc_config.shmask_iv_y = shmask_data_arr_ptr->iv_y;
         }
 
         shmask_loaded_array = avconfig->shmask_mode;
@@ -479,6 +476,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     misc_config.bfi_enable = avconfig->bfi_enable & ((uint32_t)vm_out->timings.v_hz_x100*5 >= (uint32_t)vm_in->timings.v_hz_x100*9);
     misc_config.bfi_str = avconfig->bfi_str;
     misc_config.shmask_enable = (avconfig->shmask_mode != 0);
+    misc_config.shmask_iv_x = shmask_data_arr_ptr->iv_x;
+    misc_config.shmask_iv_y = shmask_data_arr_ptr->iv_y;
 
     // set default/custom scanline interval
     sl_def_iv_y = (vm_conf->y_rpt > 0) ? vm_conf->y_rpt : 1;
