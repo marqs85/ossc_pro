@@ -19,7 +19,7 @@
 
 `define PO_RESET_WIDTH 27000
 //`define PCB_1P3
-//`define PCB_1P5
+`define PCB_1P5
 //`define EXTRA_AV_OUT
 
 `define VIP

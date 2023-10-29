@@ -585,7 +585,7 @@
 }
 ]]></parameter>
  <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
- <parameter name="device" value="5CEFA7F23I7" />
+ <parameter name="device" value="5CEFA5F23I7" />
  <parameter name="deviceFamily" value="Cyclone V" />
  <parameter name="deviceSpeedGrade" value="7" />
  <parameter name="fabricMode" value="QSYS" />
@@ -739,7 +739,7 @@
    enabled="1">
   <parameter name="ACCEPT_COLOURS_IN_SEQ" value="0" />
   <parameter name="ANC_DEPTH" value="1" />
-  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23I7" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BPS" value="8" />
@@ -775,7 +775,7 @@
   <parameter name="ACCEPT_SYNC" value="1" />
   <parameter name="ANC_LINE" value="0" />
   <parameter name="AP_LINE" value="0" />
-  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23I7" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BPS" value="8" />
@@ -822,7 +822,7 @@
    kind="alt_vip_cl_dil"
    version="21.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23I7" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BITS_PER_SYMBOL" value="8" />
   <parameter name="BOB_BEHAVIOUR" value="FRAME_FOR_FIELD" />
@@ -866,7 +866,7 @@
    kind="alt_vip_cl_interlacer"
    version="21.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23I7" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BITS_PER_SYMBOL" value="8" />
@@ -890,7 +890,7 @@
   <parameter name="ALGORITHM_NAME" value="EDGE_ADAPT" />
   <parameter name="ALWAYS_DOWNSCALE" value="0" />
   <parameter name="ARE_IDENTICAL" value="0" />
-  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23I7" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BITS_PER_SYMBOL" value="8" />
   <parameter name="DEFAULT_EDGE_THRESH" value="7" />
@@ -939,7 +939,7 @@
    kind="alt_vip_cl_vfb"
    version="21.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23I7" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="BITS_PER_SYMBOL" value="8" />
   <parameter name="BURST_ALIGNMENT" value="1" />
@@ -960,7 +960,7 @@
   <parameter name="MAX_SYMBOLS_PER_PACKET" value="10" />
   <parameter name="MAX_WIDTH" value="2048" />
   <parameter name="MEM_BASE_ADDR" value="33554432" />
-  <parameter name="MEM_BUFFER_OFFSET" value="33554432" />
+  <parameter name="MEM_BUFFER_OFFSET" value="16777216" />
   <parameter name="MEM_PORT_WIDTH" value="256" />
   <parameter name="MULTI_FRAME_DELAY" value="1" />
   <parameter name="NUMBER_OF_COLOR_PLANES" value="3" />
@@ -1005,7 +1005,7 @@
    kind="intel_generic_serial_flash_interface_top"
    version="21.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23I7" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="CHIP_SELECT_BYPASS" value="false" />
   <parameter name="CHIP_SELS" value="1" />
@@ -1055,7 +1055,7 @@
    kind="altera_jtag_avalon_master"
    version="21.1"
    enabled="1">
-  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23I7" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="COMPONENT_CLOCK" value="0" />
@@ -1084,7 +1084,7 @@
   <parameter name="ALTMEMPHY_COMPATIBLE_MODE" value="false" />
   <parameter name="AP_MODE" value="false" />
   <parameter name="AP_MODE_EN" value="0" />
-  <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
+  <parameter name="AUTO_DEVICE" value="5CEFA5F23I7" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="AUTO_PD_CYCLES" value="0" />
   <parameter name="AUTO_POWERDN_EN" value="false" />
@@ -1197,7 +1197,7 @@
   <parameter name="MEM_NUMBER_OF_RANKS_PER_DEVICE" value="1" />
   <parameter name="MEM_NUMBER_OF_RANKS_PER_DIMM" value="1" />
   <parameter name="MEM_RANK_MULTIPLICATION_FACTOR" value="1" />
-  <parameter name="MEM_ROW_ADDR_WIDTH" value="14" />
+  <parameter name="MEM_ROW_ADDR_WIDTH" value="13" />
   <parameter name="MEM_TCL" value="4" />
   <parameter name="MEM_TFAW_NS" value="50.0" />
   <parameter name="MEM_TINIT_US" value="200" />
@@ -1409,7 +1409,7 @@
   <parameter name="RESPONSE_FIFO_DEPTH" value="64" />
   <parameter name="SLAVE_SYNC_DEPTH" value="2" />
   <parameter name="SYMBOL_WIDTH" value="8" />
-  <parameter name="SYSINFO_ADDR_WIDTH" value="28" />
+  <parameter name="SYSINFO_ADDR_WIDTH" value="27" />
   <parameter name="USE_AUTO_ADDRESS_WIDTH" value="1" />
  </module>
  <module
@@ -1507,7 +1507,7 @@
  <module name="pll_0" kind="altera_pll" version="21.1" enabled="1">
   <parameter name="debug_print_output" value="false" />
   <parameter name="debug_use_rbc_taf_method" value="false" />
-  <parameter name="device" value="5CEFA7F23I7" />
+  <parameter name="device" value="5CEFA5F23I7" />
   <parameter name="device_family" value="Cyclone V" />
   <parameter name="gui_active_clk" value="false" />
   <parameter name="gui_actual_output_clock_frequency0" value="0 MHz" />
@@ -1726,7 +1726,7 @@
    enabled="1">
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="CBX_AUTO_BLACKBOX" value="ALL" />
-  <parameter name="DEVICE" value="5CEFA7F23I7" />
+  <parameter name="DEVICE" value="5CEFA5F23I7" />
   <parameter name="DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="GUI_config_device" value="EPCQ128" />
   <parameter name="check_app_pof" value="false" />

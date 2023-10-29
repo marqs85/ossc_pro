@@ -37,7 +37,7 @@
 
 
 set_global_assignment -name FAMILY "Cyclone V"
-set_global_assignment -name DEVICE 5CEFA7F23I7
+set_global_assignment -name DEVICE 5CEFA5F23I7
 set_global_assignment -name TOP_LEVEL_ENTITY ossc_pro
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 17.1.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:23:54  SEPTEMBER 01, 2019"
@@ -275,8 +275,7 @@ set_location_assignment PIN_U12 -to ISL_B_i[3]
 set_location_assignment PIN_P12 -to ISL_B_i[2]
 set_location_assignment PIN_R10 -to ISL_B_i[1]
 set_location_assignment PIN_R11 -to ISL_B_i[0]
-set_location_assignment PIN_U8 -to ISL_CLAMP_o
-set_location_assignment PIN_R5 -to ISL_COAST_o
+set_location_assignment PIN_R5 -to ISL_VSYNC_i
 set_location_assignment PIN_AB10 -to ISL_EXT_PCLK_o
 set_location_assignment PIN_AA8 -to ISL_G_i[7]
 set_location_assignment PIN_T9 -to ISL_G_i[6]
@@ -299,7 +298,8 @@ set_location_assignment PIN_P8 -to ISL_R_i[3]
 set_location_assignment PIN_AA7 -to ISL_R_i[2]
 set_location_assignment PIN_N8 -to ISL_R_i[1]
 set_location_assignment PIN_AB7 -to ISL_R_i[0]
-set_location_assignment PIN_U7 -to ISL_VSYNC_i
+set_location_assignment PIN_U8 -to USB_DP_io
+set_location_assignment PIN_U7 -to USB_DN_io
 set_location_assignment PIN_G13 -to LED_o[2]
 set_location_assignment PIN_H13 -to LED_o[1]
 set_location_assignment PIN_H15 -to LED_o[0]
@@ -640,6 +640,7 @@ set_global_assignment -name QIP_FILE rtl/dc_fifo_out.qip
 set_global_assignment -name QIP_FILE rtl/lpm_mult_8x5_9.qip
 set_global_assignment -name QIP_FILE rtl/lpm_mult_sl.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_emif_wr.qip
+
 
 
 

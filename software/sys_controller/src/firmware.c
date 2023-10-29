@@ -27,7 +27,7 @@
 #include "us2066.h"
 #include "av_controller.h"
 
-#define DRAM_TMP_ADDR (0x10000000 + 0x08000000)
+#define DRAM_TMP_ADDR (0x10000000 + 0x05000000)
 
 #define PAD_TO_ALIGN4(x) (4*((x+3)/4))
 
