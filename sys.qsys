@@ -960,7 +960,7 @@
   <parameter name="MAX_SYMBOLS_PER_PACKET" value="10" />
   <parameter name="MAX_WIDTH" value="2048" />
   <parameter name="MEM_BASE_ADDR" value="33554432" />
-  <parameter name="MEM_BUFFER_OFFSET" value="33554432" />
+  <parameter name="MEM_BUFFER_OFFSET" value="16777216" />
   <parameter name="MEM_PORT_WIDTH" value="256" />
   <parameter name="MULTI_FRAME_DELAY" value="1" />
   <parameter name="NUMBER_OF_COLOR_PLANES" value="3" />

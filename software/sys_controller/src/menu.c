@@ -427,9 +427,9 @@ MENU(menu_settings, P99_PROTECT({
     { "SD Load profile" ,                      OPT_FUNC_CALL,          { .fun = { load_profile_sd, &sd_profile_arg_info } } },
     { "SD Save profile" ,                      OPT_FUNC_CALL,          { .fun = { save_profile_sd, &sd_profile_arg_info } } },
     { LNG("Reset profile","ｾｯﾃｲｵｼｮｷｶ"),          OPT_FUNC_CALL,          { .fun = { reset_profile, NULL } } },
-//#ifdef OSSC_PRO_FINAL_CFG
+#ifdef OSSC_PRO_FINAL_CFG
     { LNG("Fw. update","ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ"),       OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
-//#endif
+#endif
 }))
 
 
