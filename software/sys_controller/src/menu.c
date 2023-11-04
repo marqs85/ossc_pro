@@ -132,7 +132,7 @@ static const char *scl_crt_out_mode_desc[] = { "240p (60-120Hz)", "240p WS (60-1
 static const char *scl_out_type_desc[] = { "DFP", "CRT" };
 static const char *scl_framelock_desc[] = { "On", "On (2x source Hz)", "Off (source Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
 static const char *scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
-static const char *scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "SL sharp", "Custom scaler1.txt", "Custom scaler2.txt" };
+static const char *scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "Custom scaler1.txt", "Custom scaler2.txt" };
 #ifndef VIP_DIL_B
 #ifdef DEBUG
 static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Visualize motion" };
@@ -197,6 +197,13 @@ static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mod
             sniprintf(dst, max_len, "Auto");
         }
     }
+}
+
+static void pixelderep_mode_disp(uint8_t v) {
+    if (v)
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", v);
+    else
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Auto (%lux)", advrx_dev.pixelrep+1);
 }
 
 static arg_info_t vm_arg_info = {&vm_sel, 0, vm_plm_display_name};
@@ -282,6 +289,7 @@ MENU(menu_isl_sync_opt, P99_PROTECT({
 #ifdef INC_ADV761X
 MENU(menu_adv_video_opt, P99_PROTECT({
     { "Default RGB range",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmirx_cfg.default_rgb_range,    OPT_WRAP,   SETTING_ITEM(adv761x_rgb_range_desc) } } },
+    { "Pixel de-repetition",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.hdmirx_cfg.pixelderep_mode,      OPT_NOWRAP, 0, 10, pixelderep_mode_disp } } },
 }))
 #endif
 
@@ -364,6 +372,7 @@ MENU(menu_output, P99_PROTECT({
     { "Operating mode",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.oper_mode,       OPT_WRAP, SETTING_ITEM(oper_mode_desc) } } },
     { "Test pattern mode",                      OPT_AVCONFIG_NUMVALUE, { .num = { &tc.tp_mode,          OPT_WRAP, 0, (NUM_VIDEO_MODES-1), vm_display_name} } },
     { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM_LIST(tx_mode_desc) } } },
+    { "HDMI HDR flag",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.hdr,      OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 }))
 
@@ -749,6 +758,9 @@ void cstm_size(menucode_id code, int setup_disp) {
         else if ((int)st->v_active+adj > V_ACTIVE_MAX)
             adj = V_ACTIVE_MAX - st->v_active;
 
+        if ((int)st->v_backporch+adj+st->v_synclen+st->v_active > st->v_total)
+            adj = 0;
+
         if ((adj == -1) || (adj == 1)) {
             if (((int)st->v_backporch - adj >= V_BPORCH_MIN) && ((int)st->v_backporch - adj <= V_BPORCH_MAX))
                 st->v_backporch -= !(st->v_active % 2) ? adj : 0;
@@ -773,6 +785,9 @@ void cstm_size(menucode_id code, int setup_disp) {
             adj = H_ACTIVE_MIN - st->h_active;
         else if ((int)st->h_active+adj > H_ACTIVE_SMP_MAX)
             adj = H_ACTIVE_SMP_MAX - st->h_active;
+
+        if ((int)st->h_backporch+adj+st->h_synclen+st->h_active > st->h_total)
+            adj = 0;
 
         if ((adj == -1) || (adj == 1)) {
             if (((int)st->h_backporch - adj >= H_BPORCH_MIN) && ((int)st->h_backporch - adj <= H_BPORCH_MAX))
@@ -865,6 +880,9 @@ void cstm_position(menucode_id code, int setup_disp) {
         else if ((int)st->v_backporch+adj > V_BPORCH_MAX)
             adj = V_BPORCH_MAX - st->v_backporch;
 
+        if ((int)st->v_backporch+adj+st->v_synclen+st->v_active > st->v_total)
+            adj = st->v_total - st->v_backporch - st->v_synclen - st->v_active;
+
         st->v_backporch += adj;
 
         if (active_mode && (adj != 0))
@@ -878,6 +896,9 @@ void cstm_position(menucode_id code, int setup_disp) {
             adj = H_BPORCH_MIN - st->h_backporch;
         else if ((int)st->h_backporch+adj > H_BPORCH_MAX)
             adj = H_BPORCH_MAX - st->h_backporch;
+
+        if ((int)st->h_backporch+adj+st->h_synclen+st->h_active > st->h_total)
+            adj = st->h_total - st->h_backporch - st->h_synclen - st->h_active;
 
         st->h_backporch += adj;
 

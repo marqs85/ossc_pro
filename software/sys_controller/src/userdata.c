@@ -121,7 +121,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(59, 68, tc.scl_out_mode),
     UDE_ITEM(60, 58, tc.scl_framelock),
     UDE_ITEM(61, 62, tc.scl_aspect),
-    UDE_ITEM(62, 58, tc.scl_alg),
+    UDE_ITEM(62, 69, tc.scl_alg),
     UDE_ITEM(63, 58, tc.scl_edge_thold),
     UDE_ITEM(64, 58, tc.scl_dil_motion_shift),
 #ifndef VIP_DIL_B
@@ -145,10 +145,10 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(76, 58, tc.hdmitx_cfg),
 #endif
 #ifdef INC_SII1136
-    UDE_ITEM(77, 58, tc.hdmitx_cfg),
+    UDE_ITEM(77, 69, tc.hdmitx_cfg),
 #endif
 #ifdef INC_ADV761X
-    UDE_ITEM(78, 58, tc.hdmirx_cfg),
+    UDE_ITEM(78, 69, tc.hdmirx_cfg),
 #endif
 #ifdef INC_PCM186X
     UDE_ITEM(79, 58, tc.pcm_cfg),
