@@ -122,6 +122,38 @@ set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_B_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_HSYNC_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_VSYNC_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_DE_o
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[0]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[1]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[2]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[3]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[4]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[5]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[6]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[7]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[8]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[9]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[10]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[11]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[12]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[13]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[14]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[15]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[16]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[17]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[18]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[19]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[20]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[21]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[22]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[23]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[24]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[25]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[26]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[27]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[28]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[29]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[30]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[31]
 set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCQ128
 set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 3.3V
 set_global_assignment -name ENABLE_SIGNALTAP OFF
@@ -147,9 +179,6 @@ set_global_assignment -name EDA_TEST_BENCH_FILE rtl/tb/lpddr2model/mobile_ddr2.v
 
 set_global_assignment -name FLOW_ENABLE_POWER_ANALYZER ON
 set_global_assignment -name POWER_DEFAULT_INPUT_IO_TOGGLE_RATE "12.5 %"
-
-
-
 
 
 set_location_assignment PIN_T19 -to AUDMUX_o
@@ -598,22 +627,11 @@ set_global_assignment -name USE_DLL_FREQUENCY_FOR_DQS_DELAY_CHAIN ON
 set_global_assignment -name UNIPHY_SEQUENCER_DQS_CONFIG_ENABLE ON
 
 
-
-
-
-
-
-
 set_global_assignment -name SMART_RECOMPILE ON
 
 set_global_assignment -name SEED 1
 
-
-
-
-
 set_global_assignment -name STRATIXIII_UPDATE_MODE REMOTE
-
 
 
 set_global_assignment -name SDC_FILE ossc_pro.sdc
@@ -640,8 +658,6 @@ set_global_assignment -name QIP_FILE rtl/dc_fifo_out.qip
 set_global_assignment -name QIP_FILE rtl/lpm_mult_8x5_9.qip
 set_global_assignment -name QIP_FILE rtl/lpm_mult_sl.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_emif_wr.qip
-
-
 
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
