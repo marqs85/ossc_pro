@@ -175,6 +175,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     int i, diff_lines, diff_width, mindiff_id=0, mindiff_lines=1000, mindiff_width, v_active_ref;
     mode_data_t *mode_preset;
     smp_preset_t *smp_preset;
+    const smp_preset_t *smp_preset_default;
     aspect_ratio_t gen_ar_target = {4, 3};
 
     // Force fixed preset for digital sources
@@ -188,6 +189,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     // Go through sampling presets and find closest one
     for (i=0; i<sizeof(smp_presets)/sizeof(smp_preset_t); i++) {
         smp_preset = &smp_presets[i];
+        smp_preset_default = &smp_presets_default[i];
 
         // Calculate generic width target for A-LM modes
         if (!vm_in->timings.h_total && ad_mode_list && (smp_preset->group != GROUP_NONE) && (smp_preset->sm <= SM_GEN_16_9)) {
@@ -218,13 +220,13 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
                 mindiff_id = i;
                 mindiff_lines = diff_lines;
                 if (smp_preset->sm <= SM_GEN_16_9) {
-                    mindiff_width = gen_width_target - smp_preset->timings_i.h_active;
+                    mindiff_width = gen_width_target - smp_preset_default->timings_i.h_active;
                     adjust_gen_width_diff(gen_width_mode, &mindiff_width);
                 }
             } else if ((diff_lines == mindiff_lines) && (gen_width_mode != GEN_WIDTH_SMALLEST)) {
                 // Find closest matching generic sampling width
                 if (smp_preset->sm <= SM_GEN_16_9) {
-                    diff_width = gen_width_target - smp_preset->timings_i.h_active;
+                    diff_width = gen_width_target - smp_preset_default->timings_i.h_active;
                     adjust_gen_width_diff(gen_width_mode, &diff_width);
 
                     if ((gen_width_mode == GEN_WIDTH_LARGEST) || (diff_width < mindiff_width)) {

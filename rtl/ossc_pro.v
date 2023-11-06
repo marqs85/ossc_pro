@@ -20,7 +20,7 @@
 `define PO_RESET_WIDTH 27000
 //`define PCB_1P3
 //`define PCB_1P5
-//`define EXTRA_AV_OUT
+`define EXTRA_AV_OUT
 
 `define VIP
 `define PIXPAR2
@@ -116,6 +116,11 @@ module ossc_pro (
     output [1:0] LS_DIR_o
 );
 
+localparam EXT_OUT_OFF = 0;
+localparam EXT_OUT_RGBHV = 1;
+localparam EXT_OUT_RGBCS_RGBS = 2;
+localparam EXT_OUT_RGsB = 3;
+
 wire jtagm_reset_req;
 
 wire [31:0] sys_ctrl;
@@ -139,6 +144,7 @@ wire [3:0] fan_duty = sys_ctrl[19:16];
 wire [3:0] led_duty = sys_ctrl[23:20];
 wire dram_refresh_enable = sys_ctrl[24];
 wire vip_dil_reset_n = sys_ctrl[25];
+wire [1:0] ext_out_mode = sys_ctrl[27:26];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -531,19 +537,29 @@ assign LS_DIR_o = 2'b11;
 
 `ifdef EXTRA_AV_OUT
 // VGA DAC
-reg [7:0] VGA_R, VGA_G, VGA_B;
-reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N;
+reg [7:0] VGA_R, VGA_G, VGA_B, VGA_R_pre, VGA_G_pre, VGA_B_pre;
+reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N, VGA_HS_pre, VGA_VS_pre, VGA_SYNC_N_pre, VGA_BLANK_N_pre;
 always @(posedge pclk_out) begin
-    VGA_R <= R_out;
-    VGA_G <= G_out;
-    VGA_B <= B_out;
-    VGA_HS <= HSYNC_out;
-    VGA_VS <= VSYNC_out;
-    VGA_BLANK_N <= DE_out;
-    VGA_SYNC_N <= 1'b0;
+    if (ext_out_mode != EXT_OUT_OFF) begin
+        VGA_R_pre <= R_out;
+        VGA_G_pre <= G_out;
+        VGA_B_pre <= B_out;
+        VGA_HS_pre <= (ext_out_mode == EXT_OUT_RGBHV) ? HSYNC_out : ~(HSYNC_out ^ VSYNC_out);
+        VGA_VS_pre <= (ext_out_mode == EXT_OUT_RGBHV) ? VSYNC_out : 1'b1;
+        VGA_BLANK_N_pre <= DE_out;
+        VGA_SYNC_N_pre <= (ext_out_mode == EXT_OUT_RGsB) ? ~(HSYNC_out ^ VSYNC_out) : 1'b0;
+
+        VGA_R <= VGA_R_pre;
+        VGA_G <= VGA_G_pre;
+        VGA_B <= VGA_B_pre;
+        VGA_HS <= VGA_HS_pre;
+        VGA_VS <= VGA_VS_pre;
+        VGA_BLANK_N <= VGA_BLANK_N_pre;
+        VGA_SYNC_N <= VGA_SYNC_N_pre;
+    end
 end
-assign EXT_IO_A_io[4] = sys_poweron; // VGA_PSAVE_N
-assign EXT_IO_A_io[5] = sys_poweron; // AUDIO_MUTE_N
+assign EXT_IO_A_io[4] = sys_poweron & (ext_out_mode != EXT_OUT_OFF); // VGA_PSAVE_N
+assign EXT_IO_A_io[5] = sys_poweron & (ext_out_mode != EXT_OUT_OFF); // AUDIO_MUTE_N
 assign EXT_IO_B_io[27] = ~pclk_out;
 assign {EXT_IO_B_io[6], EXT_IO_B_io[7], EXT_IO_B_io[4], EXT_IO_B_io[5], EXT_IO_B_io[2], EXT_IO_B_io[3], EXT_IO_B_io[0], EXT_IO_B_io[1]} = VGA_R;
 assign {EXT_IO_B_io[14], EXT_IO_B_io[15], EXT_IO_B_io[12], EXT_IO_B_io[13], EXT_IO_B_io[10], EXT_IO_B_io[11], EXT_IO_B_io[8], EXT_IO_B_io[9]} = VGA_G;
