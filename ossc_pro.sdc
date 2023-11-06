@@ -1,4 +1,4 @@
-set extra_av_out 0
+set extra_av_out 1
 
 ### Clock definitions ###
 
@@ -36,12 +36,12 @@ create_generated_clock -name pclk_hdmirx_postmux -master_clock pclk_hdmirx -sour
 
 # specify output clocks that drive PCLK output pin
 set pclk_out_port [get_ports HDMITX_PCLK_o]
-create_generated_clock -name pclk_si_out -master_clock pclk_si -source [get_ports SI_PCLK_i] -multiply_by 1 $pclk_out_port
+create_generated_clock -name pclk_si_out -master_clock pclk_si -source [get_ports SI_PCLK_i] -multiply_by 1 -invert $pclk_out_port
 #create_generated_clock -name pclk_isl_out -master_clock pclk_isl_postmux -source $clkmux_output -multiply_by 1 $pclk_out_port -add
 #create_generated_clock -name pclk_hdmirx_out -master_clock pclk_hdmirx_postmux -source $clkmux_output -multiply_by 1 $pclk_out_port -add
 
 if {$extra_av_out} {
-    create_generated_clock -name pclk_si_out_vga -master_clock pclk_si -source [get_ports SI_PCLK_i] -multiply_by 1 [get_ports EXT_IO_B_io[27]]
+    create_generated_clock -name pclk_si_out_vga -master_clock pclk_si -source [get_ports SI_PCLK_i] -multiply_by 1 -invert [get_ports EXT_IO_B_io[27]]
 }
 
 # specify div2 capture and output clocks
@@ -129,7 +129,7 @@ if {$extra_av_out} {
                                      EXT_IO_B_io[29] EXT_IO_B_io[30] EXT_IO_B_io[17] EXT_IO_B_io[16]}]
     set_output_delay -clock pclk_si_out_vga -min $vga_dmin $vga_data_outputs -add_delay
     set_output_delay -clock pclk_si_out_vga -max $vga_dmax $vga_data_outputs -add_delay
-    set_false_path -to [get_ports {EXT_IO_A_io[29] EXT_IO_A_io[5]}]
+    set_false_path -to [get_ports {EXT_IO_A_io[4] EXT_IO_A_io[5]}]
 } else {
     set_false_path -to [get_ports {EXT_IO_A_io* EXT_IO_B_io*}]
 }

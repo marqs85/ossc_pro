@@ -47,7 +47,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 68
+#define FW_VER_MINOR 69
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -212,7 +212,7 @@ const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_co
                                             {{&pp_coeff_lanczos3_13, NULL}, {&pp_coeff_lanczos3_13, NULL}},
                                             {{&pp_coeff_lanczos3, &pp_coeff_lanczos3_13}, {&pp_coeff_lanczos3, &pp_coeff_lanczos3_13}},
                                             {{&pp_coeff_lanczos4, NULL}, {&pp_coeff_lanczos4, NULL}},
-                                            {{&pp_coeff_nearest, NULL}, {&pp_coeff_sl_sharp, NULL}}};
+                                            {{&pp_coeff_gs_sharp, NULL}, {&pp_coeff_gs_sharp, NULL}}};
 int scl_loaded_pp_coeff = -1;
 #define PP_COEFF_SIZE  (sizeof(scl_pp_coeff_list) / sizeof((scl_pp_coeff_list)[0]))
 #define PP_TAPS 4
@@ -1494,7 +1494,7 @@ void mainloop()
                         si_clk_src = vm_conf.framelock ? SI_CLKIN : SI_XTAL;
                         pclk_i_hz = h_hz * advrx_dev.ss.h_total;
                         pclk_o_hz = calculate_pclk((si_clk_src == SI_CLKIN) ? pclk_i_hz : si_dev.xtal_freq, &vmode_out, &vm_conf);
-                        printf("H: %u.%.2ukHz V: %u.%.2uHz", h_hz/1000, (((h_hz%1000)+5)/10), (vmode_in.timings.v_hz_x100/100), (vmode_in.timings.v_hz_x100%100));
+                        printf("H: %u.%.2ukHz V: %u.%.2uHz\n", h_hz/1000, (((h_hz%1000)+5)/10), (vmode_in.timings.v_hz_x100/100), (vmode_in.timings.v_hz_x100%100));
                         printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_i_hz, pclk_o_hz);
 
                         // Setup Si5351
