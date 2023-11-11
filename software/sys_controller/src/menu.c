@@ -145,6 +145,8 @@ static const char *sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350
 static const char *sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
 static const char *sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "X68k 512col", "X68k 768col" };
 static const char *sm_scl_576p_desc[] = { "Generic", "DTV 576p" };
+static const char *timing_1080p120_desc[] = { "CVT-RB", "CVT-RB2", "Custom min. blank", "CEA-861 PR2x" };
+static const char *extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB" };
 static const char *hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
@@ -364,6 +366,7 @@ MENU(menu_scaler, P99_PROTECT({
     { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480i_576i, OPT_WRAP, SETTING_ITEM_LIST(sm_scl_480i_576i_desc) } } },
     { LNG("480-512p mode","480-512pﾓｰﾄﾞ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480p,      OPT_WRAP, SETTING_ITEM_LIST(sm_scl_480p_desc) } } },
     { LNG("576p mode","576pﾓｰﾄﾞ"),              OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_576p,      OPT_WRAP, SETTING_ITEM_LIST(sm_scl_576p_desc) } } },
+    { "1080p120 out preset",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_1080p120,  OPT_WRAP, SETTING_ITEM_LIST(timing_1080p120_desc) } } },
     { "Adv. timing",                            OPT_SUBMENU,            { .sub = { &menu_advtiming,     &smp_arg_info, smp_select } } },
 }))
 #endif
@@ -374,6 +377,9 @@ MENU(menu_output, P99_PROTECT({
     { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM_LIST(tx_mode_desc) } } },
     { "HDMI HDR flag",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.hdr,      OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
+#ifndef DExx_FW
+    { "Extra AV out",                          OPT_AVCONFIG_SELECTION, { .sel = { &ts.extra_av_out_mode,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_mode_desc) } } },
+#endif
 }))
 
 MENU(menu_scanlines, P99_PROTECT({
