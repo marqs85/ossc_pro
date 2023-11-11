@@ -48,6 +48,8 @@
 #define SCTRL_LED_PWM_MASK      (0xf<<SCTRL_LED_PWM_OFFS)
 #define SCTRL_DRAM_RFR_ENA      (1<<24)
 #define SCTRL_VIP_DIL_RESET_N   (1<<25)
+#define SCTRL_EXTRA_AV_O_OFFS   26
+#define SCTRL_EXTRA_AV_O_MASK   (0x3<<SCTRL_EXTRA_AV_O_OFFS)
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -97,6 +99,7 @@ typedef struct {
     uint8_t fan_pwm;
     uint8_t led_pwm;
 #endif
+    uint8_t extra_av_out_mode;
 } settings_t;
 
 void ui_disp_menu(uint8_t osd_mode);

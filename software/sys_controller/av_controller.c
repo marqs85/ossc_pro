@@ -109,6 +109,7 @@ const settings_t ts_default = {
     .osd_status_timeout = 1,
     .fan_pwm = 0,
     .led_pwm = 5,
+    .extra_av_out_mode = 0,
 };
 
 isl51002_dev isl_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
@@ -1099,9 +1100,9 @@ void update_settings(int init_setup) {
             display_menu((rc_code_t)-1, (btn_code_t)-1);
         }
     }
-    if (init_setup || (ts.fan_pwm != cs.fan_pwm) || (ts.led_pwm != cs.led_pwm)) {
-        sys_ctrl &= ~(SCTRL_FAN_PWM_MASK|SCTRL_LED_PWM_MASK);
-        sys_ctrl |= (ts.fan_pwm << SCTRL_FAN_PWM_OFFS) | (ts.led_pwm << SCTRL_LED_PWM_OFFS);
+    if (init_setup || (ts.fan_pwm != cs.fan_pwm) || (ts.led_pwm != cs.led_pwm) || (ts.extra_av_out_mode != cs.extra_av_out_mode)) {
+        sys_ctrl &= ~(SCTRL_FAN_PWM_MASK|SCTRL_LED_PWM_MASK|SCTRL_EXTRA_AV_O_MASK);
+        sys_ctrl |= (ts.fan_pwm << SCTRL_FAN_PWM_OFFS) | (ts.led_pwm << SCTRL_LED_PWM_OFFS) | (ts.extra_av_out_mode << SCTRL_EXTRA_AV_O_OFFS);
         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     }
     if (init_setup)
