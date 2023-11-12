@@ -100,6 +100,11 @@
       <File Name="ic_drivers/pcm186x/pcm186x.h"/>
       <File Name="ic_drivers/pcm186x/pcm186x.c"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="pcm514x">
+      <File Name="ic_drivers/pcm514x/pcm514x_regs.h"/>
+      <File Name="ic_drivers/pcm514x/pcm514x.h"/>
+      <File Name="ic_drivers/pcm514x/pcm514x.c"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="isl51002">
       <File Name="ic_drivers/isl51002/isl51002_regs.h"/>
       <File Name="ic_drivers/isl51002/isl51002.h"/>

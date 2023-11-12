@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2019-2021  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2019-2023  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -32,6 +32,7 @@
 #include "isl51002.h"
 #include "ths7353.h"
 #include "pcm186x.h"
+#include "pcm514x.h"
 #include "us2066.h"
 #include "controls.h"
 #include "menu.h"
@@ -61,6 +62,7 @@
 #define THS7353_BASE (0x58>>1)
 #define SI5351_BASE (0xC0>>1)
 #define PCM1863_BASE (0x94>>1)
+#define PCM5142_BASE (0x9C>>1)
 #define US2066_BASE (0x7A>>1)
 
 #define ADV7610_IO_BASE 0x98
@@ -154,6 +156,10 @@ sii1136_dev siitx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
 
 pcm186x_dev pcm_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                        .i2c_addr = PCM1863_BASE};
+
+pcm514x_dev pcm_out_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                           .i2c_addr = PCM5142_BASE};
+uint8_t pcm_out_dev_avail;
 
 us2066_dev chardisp_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                            .i2c_addr = US2066_BASE};
@@ -896,6 +902,10 @@ int init_hw()
     }
     //pcm_source_sel(PCM_INPUT1);
 
+    // Init PCM5142 (expansion card)
+    ret = pcm514x_init(&pcm_out_dev);
+    pcm_out_dev_avail = (ret == 0);
+
     // Init ADV7610
     adv761x_init(&advrx_dev);
 
@@ -1266,9 +1276,11 @@ void mainloop()
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
-            strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
-            strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
-            ui_disp_status(1);
+            if (!enable_tp) {
+                strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
+                strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
+                ui_disp_status(1);
+            }
         }
 
         update_settings(0);
@@ -1294,7 +1306,12 @@ void mainloop()
 #ifdef INC_SII1136
                 sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
 #endif
-                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c %u.%.2uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', (vmode_out.timings.v_hz_x100/100), (vmode_out.timings.v_hz_x100%100));
+                sniprintf(row1, US2066_ROW_LEN+1, "TP  %s", vmode_out.name);
+                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c %u.%.2uHz", ((vmode_out.timings.h_active*(1<<vmode_out.tx_pixelrep))/(1<<vmode_out.hdmitx_pixr_ifr)),
+                                                                       vmode_out.timings.v_active<<vmode_out.timings.interlaced,
+                                                                       vmode_out.timings.interlaced ? 'i' : ' ',
+                                                                       (vmode_out.timings.v_hz_x100/100),
+                                                                       (vmode_out.timings.v_hz_x100%100));
                 ui_disp_status(1);
             }
         } else if (enable_isl) {
