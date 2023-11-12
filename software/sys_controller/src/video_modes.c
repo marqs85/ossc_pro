@@ -304,6 +304,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
+    const stdmode_t timings_1080p120[] = {STDMODE_1080p_120, STDMODE_1080p_120_RB2, STDMODE_1080p_120_MB, STDMODE_1080p_120_CEA_PR2};
+
     // {50Hz, 60Hz, 100Hz, 120Hz} id array for each output resolution
     const stdmode_t pm_scl_map_dfp[][4] = {{-1, STDMODE_480p, -1, -1},
                                          {-1, STDMODE_480p_WS, -1, -1},
@@ -312,7 +314,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_720p_50, STDMODE_720p_60, STDMODE_720p_100, STDMODE_720p_120},
                                          {-1, STDMODE_1280x1024_60, -1, -1},
                                          {STDMODE_1080i_50, STDMODE_1080i_60, -1, -1},
-                                         {STDMODE_1080p_50, STDMODE_1080p_60, STDMODE_1080p_100, STDMODE_1080p_120},
+                                         {STDMODE_1080p_50, STDMODE_1080p_60, STDMODE_1080p_100, timings_1080p120[cc->timing_1080p120]},
                                          {-1, STDMODE_1600x1200_60, -1, -1},
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60, -1, -1},
                                          {STDMODE_1920x1440_50, STDMODE_1920x1440_60, -1, -1},

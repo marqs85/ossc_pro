@@ -129,6 +129,10 @@ const mode_data_t video_modes_default[] = {
     /* 1080p 100/120Hz (CVT-RB) */
     { "1080p_100",     HDMI_Unknown,     {1920, 1080,  10000,  2080, 0, 1133,   80, 45,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120",     HDMI_Unknown,     {1920, 1080,  12000,  2080, 0, 1144,   80, 56,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    /* 1080p 120Hz alternative modes */
+    { "1080p_120_RB2", HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1144,   40,  6,   32, 8,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_120_MB",  HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1086,   40,  1,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_120_PR2", HDMI_Unknown,     { 960, 1080,  12000,  1100, 0, 1125,   74, 36,   22, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_2X, TX_1X },
     /* VESA UXGA mode */
     { "1600x1200_60",  HDMI_Unknown,     {1600, 1200,   6000,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     /* CVT 1920x1200 modes (60Hz with reduced blanking) */
