@@ -89,8 +89,8 @@ const mode_data_t video_modes_default[] = {
     { "2560x240",      HDMI_Unknown,     {2560,  240,   6000,  3120, 0,  262,  340, 15,  144, 3,  0},  0,  {{ 4,  3}},  VIDEO_SDTV,               GROUP_240P,   MODE_CRT,  TX_1X, TX_1X },
     { "2560x240 ws",   HDMI_Unknown,     {2560,  240,   6000,  3120, 0,  262,  340, 15,  144, 3,  0},  0,  {{16,  9}},  VIDEO_SDTV,               GROUP_240P,   MODE_CRT,  TX_1X, TX_1X },
     /* 288p CRT modes */
-    { "2048x288",      HDMI_Unknown,     {2048,  288,   5000,  2496, 0,  312,  272, 19,  115, 3,  0},  0,  {{ 4,  3}},  VIDEO_SDTV,               GROUP_288P,   MODE_CRT,  TX_1X, TX_1X },
-    { "2048x288 ws",   HDMI_Unknown,     {2048,  288,   5000,  2496, 0,  312,  272, 19,  115, 3,  0},  0,  {{16,  9}},  VIDEO_SDTV,               GROUP_288P,   MODE_CRT,  TX_1X, TX_1X },
+    { "2048x288",      HDMI_Unknown,     {2048,  288,   5000,  2496, 0,  312,  272, 19,  116, 3,  0},  0,  {{ 4,  3}},  VIDEO_SDTV,               GROUP_288P,   MODE_CRT,  TX_1X, TX_1X },
+    { "2048x288 ws",   HDMI_Unknown,     {2048,  288,   5000,  2496, 0,  312,  272, 19,  116, 3,  0},  0,  {{16,  9}},  VIDEO_SDTV,               GROUP_288P,   MODE_CRT,  TX_1X, TX_1X },
     /* 480i CRT modes */
     { "2560x480i",     HDMI_Unknown,     {2560,  240,   6000,  3120, 0,  525,  340, 15,  144, 3,  1},  0,  {{ 4,  3}},  VIDEO_SDTV,               GROUP_480I,   MODE_CRT,  TX_1X, TX_1X },
     { "2560x480i ws",  HDMI_Unknown,     {2560,  240,   6000,  3120, 0,  525,  340, 15,  144, 3,  1},  0,  {{16,  9}},  VIDEO_SDTV,               GROUP_480I,   MODE_CRT,  TX_1X, TX_1X },
@@ -98,9 +98,9 @@ const mode_data_t video_modes_default[] = {
     { "2560x576i",     HDMI_Unknown,     {2560,  288,   5000,  3120, 0,  625,  340, 19,  144, 3,  1},  0,  {{ 4,  3}},  VIDEO_SDTV,               GROUP_576I,   MODE_CRT,  TX_1X, TX_1X },
     { "2560x576i ws",  HDMI_Unknown,     {2560,  288,   5000,  3120, 0,  625,  340, 19,  144, 3,  1},  0,  {{16,  9}},  VIDEO_SDTV,               GROUP_576I,   MODE_CRT,  TX_1X, TX_1X },
     /* 640x480 VESA/GTF modes with 4x horizontal for CRT */
-    { "2560x480_60",   HDMI_Unknown,     {2560,  480,   6000,  3200, 0,  525,  321, 33,  255, 2,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
-    { "2560x480_100",  HDMI_Unknown,     {2560,  480,  10000,  3392, 0,  509,  417, 25,  255, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
-    { "2560x480_120",  HDMI_Unknown,     {2560,  480,  12000,  3392, 0,  515,  417, 31,  255, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
+    { "2560x480_60",   HDMI_Unknown,     {2560,  480,   6000,  3200, 0,  525,  324, 33,  252, 2,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
+    { "2560x480_100",  HDMI_Unknown,     {2560,  480,  10000,  3392, 0,  509,  420, 25,  252, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
+    { "2560x480_120",  HDMI_Unknown,     {2560,  480,  12000,  3392, 0,  515,  420, 31,  252, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
     /* 540p CRT modes, based on 1080i */
     { "1920x540_50",   HDMI_Unknown,     {1920,  540,   5000,  2640, 0,  562,  148, 15,   44, 5,  0},  0,  {{16,  9}},  VIDEO_HDTV,               GROUP_1080I,  MODE_CRT,  TX_1X, TX_1X },
     { "1920x540_60",   HDMI_Unknown,     {1920,  540,   6000,  2200, 0,  562,  148, 15,   44, 5,  0},  0,  {{16,  9}},  VIDEO_HDTV,               GROUP_1080I,  MODE_CRT,  TX_1X, TX_1X },
@@ -167,7 +167,7 @@ const smp_preset_t smp_presets_default[] = {
     /* Generic 384p presets */
     { "Gen. 1024x384",  SM_GEN_4_3,        {1024,  384,      0,  1280, 0,  429,  91,  34,  137, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     { "Gen. 1600x400",  SM_GEN_4_3,        {1600,  400,      0,  2000, 0,  429,  142, 34,  213, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
-    { "Gen. 1920x360",  SM_GEN_4_3,        {1920,  400,      0,  2400, 0,  429,  171, 34,  255, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
+    { "Gen. 1920x400",  SM_GEN_4_3,        {1920,  400,      0,  2400, 0,  429,  171, 34,  255, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     /* Generic 480i presets */
     { "Gen. 704x480i",  SM_GEN_4_3,        { 704,  240,      0,   858, 0,  525,   65, 15,   62, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
     { "Gen. 1280x480i", SM_GEN_4_3,        {1280,  240,      0,  1560, 0,  525,  170, 15,   72, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
