@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2019-2021  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2019-2023  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -32,6 +32,7 @@
 #include "isl51002.h"
 #include "ths7353.h"
 #include "pcm186x.h"
+#include "pcm514x.h"
 #include "us2066.h"
 #include "controls.h"
 #include "menu.h"
@@ -47,7 +48,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 69
+#define FW_VER_MINOR 70
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -61,6 +62,7 @@
 #define THS7353_BASE (0x58>>1)
 #define SI5351_BASE (0xC0>>1)
 #define PCM1863_BASE (0x94>>1)
+#define PCM5142_BASE (0x9C>>1)
 #define US2066_BASE (0x7A>>1)
 
 #define ADV7610_IO_BASE 0x98
@@ -92,14 +94,14 @@ unsigned char pro_edid_bin[] = {
   0x50, 0x9f, 0x90, 0x14, 0x05, 0x20, 0x13, 0x04, 0x12, 0x03, 0x11, 0x02,
   0x16, 0x07, 0x15, 0x06, 0x01, 0x29, 0x0f, 0x7f, 0x07, 0x17, 0x7f, 0xff,
   0x3f, 0x7f, 0xff, 0x83, 0x4f, 0x00, 0x00, 0x78, 0x03, 0x0c, 0x00, 0x10,
-  0x00, 0xb8, 0x26, 0x2f, 0x01, 0x01, 0x01, 0x01, 0xff, 0xfc, 0x06, 0x16,
+  0x00, 0x88, 0x26, 0x2f, 0x01, 0x01, 0x01, 0x01, 0xff, 0xfc, 0x06, 0x16,
   0x08, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe3, 0x05, 0x1f, 0x01,
   0x01, 0x1d, 0x80, 0xd0, 0x72, 0x1c, 0x16, 0x20, 0x10, 0x2c, 0x25, 0x80,
   0xba, 0x88, 0x21, 0x00, 0x00, 0x9e, 0x01, 0x1d, 0x80, 0x18, 0x71, 0x1c,
   0x16, 0x20, 0x58, 0x2c, 0x25, 0x00, 0xba, 0x88, 0x21, 0x00, 0x00, 0x9e,
   0x01, 0x1d, 0x00, 0xbc, 0x52, 0xd0, 0x1e, 0x20, 0xb8, 0x28, 0x55, 0x40,
   0xba, 0x88, 0x21, 0x00, 0x00, 0x1e, 0x01, 0x1d, 0x00, 0x72, 0x51, 0xd0,
-  0x1e, 0x20, 0x6e, 0x0c
+  0x1e, 0x20, 0x6e, 0x3c
 };
 
 // Default settings
@@ -154,6 +156,10 @@ sii1136_dev siitx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
 
 pcm186x_dev pcm_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                        .i2c_addr = PCM1863_BASE};
+
+pcm514x_dev pcm_out_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                           .i2c_addr = PCM5142_BASE};
+uint8_t pcm_out_dev_avail;
 
 us2066_dev chardisp_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                            .i2c_addr = US2066_BASE};
@@ -896,6 +902,10 @@ int init_hw()
     }
     //pcm_source_sel(PCM_INPUT1);
 
+    // Init PCM5142 (expansion card)
+    ret = pcm514x_init(&pcm_out_dev);
+    pcm_out_dev_avail = (ret == 0);
+
     // Init ADV7610
     adv761x_init(&advrx_dev);
 
@@ -1266,9 +1276,11 @@ void mainloop()
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
-            strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
-            strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
-            ui_disp_status(1);
+            if (!enable_tp) {
+                strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
+                strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
+                ui_disp_status(1);
+            }
         }
 
         update_settings(0);
@@ -1294,7 +1306,12 @@ void mainloop()
 #ifdef INC_SII1136
                 sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
 #endif
-                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c %u.%.2uHz", vmode_out.timings.h_active, vmode_out.timings.v_active<<vmode_out.timings.interlaced, vmode_out.timings.interlaced ? 'i' : ' ', (vmode_out.timings.v_hz_x100/100), (vmode_out.timings.v_hz_x100%100));
+                sniprintf(row1, US2066_ROW_LEN+1, "TP  %s", vmode_out.name);
+                sniprintf(row2, US2066_ROW_LEN+1, "%ux%u%c %u.%.2uHz", ((vmode_out.timings.h_active*(1<<vmode_out.tx_pixelrep))/(1<<vmode_out.hdmitx_pixr_ifr)),
+                                                                       vmode_out.timings.v_active<<vmode_out.timings.interlaced,
+                                                                       vmode_out.timings.interlaced ? 'i' : ' ',
+                                                                       (vmode_out.timings.v_hz_x100/100),
+                                                                       (vmode_out.timings.v_hz_x100%100));
                 ui_disp_status(1);
             }
         } else if (enable_isl) {
@@ -1456,19 +1473,26 @@ void mainloop()
                     if (advrx_dev.ss.interlace_flag)
                         vmode_in.timings.v_hz_x100 *= 2;
 
-                    sniprintf(vmode_in.name, 16, "%ux%u%c", advrx_dev.ss.h_active, (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
-                    vmode_in.timings.h_active = advrx_dev.ss.h_active;
+                    h_skip_prev = (advrx_dev.cfg.pixelderep_mode == 0) ? (advrx_dev.pixelderep_ifr-advrx_dev.pixelderep) : 0;
+
+                    sniprintf(vmode_in.name, 16, "%ux%u%c", advrx_dev.ss.h_active/(h_skip_prev+1), (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
+                    vmode_in.timings.h_active = advrx_dev.ss.h_active/(h_skip_prev+1);
                     vmode_in.timings.v_active = advrx_dev.ss.v_active;
-                    vmode_in.timings.h_total = advrx_dev.ss.h_total;
+                    vmode_in.timings.h_total = advrx_dev.ss.h_total/(h_skip_prev+1);
                     vmode_in.timings.v_total = advrx_dev.ss.v_total;
-                    vmode_in.timings.h_backporch = advrx_dev.ss.h_backporch;
+                    vmode_in.timings.h_backporch = advrx_dev.ss.h_backporch/(h_skip_prev+1);
                     vmode_in.timings.v_backporch = advrx_dev.ss.v_backporch;
-                    vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen;
+                    vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen/(h_skip_prev+1);
                     vmode_in.timings.v_synclen = advrx_dev.ss.v_synclen;
                     vmode_in.timings.interlaced = advrx_dev.ss.interlace_flag;
-                    //TODO: VIC+pixelrep
+                    //TODO: VIC
 
                     oper_mode = get_operating_mode(cur_avconfig, &vmode_in, &vmode_out, &vm_conf);
+                    vm_conf.h_skip = h_skip_prev;
+
+                    // Disable integer mult for output clock if input pixel clock is pre-multiplied
+                    if (vm_conf.h_skip != 0)
+                        vm_conf.si_pclk_mult = 0;
 
                     if (oper_mode == OPERMODE_PURE_LM)
                         sniprintf(op_status, 4, "x%u", vm_conf.y_rpt+1);
@@ -1506,7 +1530,7 @@ void mainloop()
                                                  si_clk_src,
                                                  pclk_i_hz,
                                                  vm_conf.framelock ? vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock : pclk_o_hz/1000,
-                                                 vm_conf.framelock ? vmode_in.timings.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
+                                                 vm_conf.framelock ? (vm_conf.h_skip+1)*vmode_in.timings.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
                                                  NULL);
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);

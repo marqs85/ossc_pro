@@ -151,7 +151,7 @@ static const char *hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 28
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
-static void hsync_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", 400+(v*187)); }
+static void hsync_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", ((v+2)*280)); }
 static void sync_gf_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u ns", ((((v+14)%16)+1)*37)); }
 static void sl_str_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", ((v+1)*625)/100); }
 static void sl_cust_str_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", ((v)*625)/100); }
@@ -203,9 +203,9 @@ static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mod
 
 static void pixelderep_mode_disp(uint8_t v) {
     if (v)
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", v);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%ux", v);
     else
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "Auto (%lux)", advrx_dev.pixelrep+1);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Auto (%lux)", advrx_dev.pixelderep_ifr+1);
 }
 
 static arg_info_t vm_arg_info = {&vm_sel, 0, vm_plm_display_name};
