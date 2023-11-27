@@ -291,10 +291,10 @@ isl51002_frontend u_isl_frontend (
 );
 
 // ADV7611 HDMI RX
-reg [7:0] HDMIRX_R, HDMIRX_G, HDMIRX_B;
+reg [7:0] HDMIRX_R, HDMIRX_G, HDMIRX_B /* synthesis ramstyle = "logic" */;
 reg HDMIRX_HSYNC, HDMIRX_VSYNC, HDMIRX_DE;
-reg [7:0] HDMIRX_R_iq, HDMIRX_G_iq, HDMIRX_B_iq;
-reg HDMIRX_HSYNC_iq, HDMIRX_VSYNC_iq, HDMIRX_DE_iq;
+reg [7:0] HDMIRX_R_iq, HDMIRX_G_iq, HDMIRX_B_iq, HDMIRX_R_iqq, HDMIRX_G_iqq, HDMIRX_B_iqq /* synthesis ramstyle = "logic" */;
+reg HDMIRX_HSYNC_iq, HDMIRX_VSYNC_iq, HDMIRX_DE_iq, HDMIRX_HSYNC_iqq, HDMIRX_VSYNC_iqq, HDMIRX_DE_iqq;
 always @(posedge HDMIRX_PCLK_i) begin
     HDMIRX_R_iq <= HDMIRX_R_i;
     HDMIRX_G_iq <= HDMIRX_G_i;
@@ -303,16 +303,23 @@ always @(posedge HDMIRX_PCLK_i) begin
     HDMIRX_VSYNC_iq <= HDMIRX_VSYNC_i;
     HDMIRX_DE_iq <= HDMIRX_DE_i;
 
-    HDMIRX_R <= HDMIRX_R_iq;
-    HDMIRX_G <= HDMIRX_G_iq;
-    HDMIRX_B <= HDMIRX_B_iq;
-    HDMIRX_HSYNC <= HDMIRX_HSYNC_iq;
-    HDMIRX_VSYNC <= HDMIRX_VSYNC_iq;
-    HDMIRX_DE <= HDMIRX_DE_iq;
+    HDMIRX_R_iqq <= HDMIRX_R_iq;
+    HDMIRX_G_iqq <= HDMIRX_G_iq;
+    HDMIRX_B_iqq <= HDMIRX_B_iq;
+    HDMIRX_HSYNC_iqq <= HDMIRX_HSYNC_iq;
+    HDMIRX_VSYNC_iqq <= HDMIRX_VSYNC_iq;
+    HDMIRX_DE_iqq <= HDMIRX_DE_iq;
+
+    HDMIRX_R <= HDMIRX_R_iqq;
+    HDMIRX_G <= HDMIRX_G_iqq;
+    HDMIRX_B <= HDMIRX_B_iqq;
+    HDMIRX_HSYNC <= HDMIRX_HSYNC_iqq;
+    HDMIRX_VSYNC <= HDMIRX_VSYNC_iqq;
+    HDMIRX_DE <= HDMIRX_DE_iqq;
 end
 
 wire [7:0] HDMIRX_R_post, HDMIRX_G_post, HDMIRX_B_post;
-wire HDMIRX_HSYNC_post, HDMIRX_VSYNC_post, HDMIRX_DE_post, HDMIRX_FID_post;
+wire HDMIRX_HSYNC_post, HDMIRX_VSYNC_post, HDMIRX_DE_post, HDMIRX_FID_post, HDMIRX_datavalid_post;
 wire HDMIRX_fe_interlace, HDMIRX_fe_frame_change, HDMIRX_sof_scaler;
 wire [10:0] HDMIRX_fe_xpos, HDMIRX_fe_ypos;
 adv7611_frontend u_hdmirx_frontend ( 
@@ -336,6 +343,7 @@ adv7611_frontend u_hdmirx_frontend (
     .DE_o(HDMIRX_DE_post),
     .FID_o(HDMIRX_FID_post),
     .interlace_flag(HDMIRX_fe_interlace),
+    .datavalid_o(HDMIRX_datavalid_post),
     .xpos_o(HDMIRX_fe_xpos),
     .ypos_o(HDMIRX_fe_ypos),
     .frame_change(HDMIRX_fe_frame_change),
@@ -361,7 +369,7 @@ always @(posedge pclk_capture) begin
     HSYNC_capt <= capture_sel ? HDMIRX_HSYNC_post : ISL_HSYNC_post;
     VSYNC_capt <= capture_sel ? HDMIRX_VSYNC_post : ISL_VSYNC_post;
     DE_capt <= capture_sel ? HDMIRX_DE_post : ISL_DE_post;
-    datavalid_capt <= capture_sel ? 1'b1 : ISL_datavalid_post;
+    datavalid_capt <= capture_sel ? HDMIRX_datavalid_post : ISL_datavalid_post;
     FID_capt <= capture_sel ? HDMIRX_FID_post : ISL_FID_post;
     interlace_flag_capt <= capture_sel ? HDMIRX_fe_interlace : ISL_fe_interlace;
     frame_change_capt <= capture_sel ? HDMIRX_fe_frame_change : ISL_fe_frame_change;
