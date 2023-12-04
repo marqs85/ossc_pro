@@ -48,7 +48,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 70
+#define FW_VER_MINOR 71
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -757,7 +757,7 @@ int init_emif()
         return -3;
     }
 
-    // Place LPDDR2 into deep powerdown mode
+    // Place LPDDR2 into deep powerdown mode (occasionally fails on some boards for unknown reason)
     sys_ctrl |= (SCTRL_EMIF_POWERDN_REQ);
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     start_ts = alt_timestamp();
@@ -766,7 +766,8 @@ int init_emif()
         if (sys_status & (1<<SSTAT_EMIF_POWERDN_ACK_BIT))
             break;
         else if (alt_timestamp() >= start_ts + 100000*(TIMER_0_FREQ/1000000))
-            return -4;
+            break;
+            //return -4;
     }
 
     return 0;
@@ -991,6 +992,15 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
     if (audsrc <= AUD_AV3_ANALOG)
         pcm186x_source_sel(&pcm_dev, audsrc);
 
+    if (avinput == AV4) {
+        sys_ctrl &= ~SCTRL_HDMIRX_AUD_SEL;
+
+        if (audsrc == AUD_AV4_DIGITAL)
+            sys_ctrl |= SCTRL_HDMIRX_AUD_SEL;
+
+        IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+    }
+
     *aud_tx_fmt = (audsrc == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
 }
 
@@ -1133,11 +1143,12 @@ void mainloop()
     video_sync target_isl_sync=0;
     video_format target_format=0;
     status_t status;
-    avconfig_t *cur_avconfig;
+    avconfig_t *cur_avconfig, *tgt_avconfig;
     si5351_clk_src si_clk_src;
     alt_timestamp_type start_ts;
 
     cur_avconfig = get_current_avconfig();
+    tgt_avconfig = get_target_avconfig();
 
     while (1) {
         start_ts = alt_timestamp();
@@ -1244,7 +1255,7 @@ void mainloop()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_SPDIF);
+            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL);
 
             ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, cur_avconfig->syncmux_stc ? THS_BIAS_STC_MID : THS_BIAS_AC, (3-cur_avconfig->syncmux_stc), (3-cur_avconfig->syncmux_stc));
 
@@ -1272,7 +1283,7 @@ void mainloop()
 
             adv761x_enable_power(&advrx_dev, enable_hdmirx);
 
-            switch_audsrc(cur_avconfig->audio_src_map, &cur_avconfig->hdmitx_cfg.audio_fmt);
+            switch_audsrc(cur_avconfig->audio_src_map, &tgt_avconfig->hdmitx_cfg.audio_fmt);
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
@@ -1569,12 +1580,6 @@ void mainloop()
                 cur_avconfig->hdmitx_cfg.i2s_fs = adv761x_get_i2s_fs(&advrx_dev);
                 cur_avconfig->hdmitx_cfg.audio_cc_val = adv761x_get_audio_cc(&advrx_dev);
                 cur_avconfig->hdmitx_cfg.audio_ca_val = adv761x_get_audio_ca(&advrx_dev);
-                if (!!(sys_ctrl & SCTRL_HDMIRX_SPDIF) != cur_avconfig->hdmitx_cfg.audio_fmt) {
-                    sys_ctrl &= ~SCTRL_HDMIRX_SPDIF;
-                    if (cur_avconfig->hdmitx_cfg.audio_fmt == AUDIO_SPDIF)
-                        sys_ctrl |= SCTRL_HDMIRX_SPDIF;
-                    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
-                }
             }
             adv761x_update_config(&advrx_dev, &cur_avconfig->hdmirx_cfg);
         }

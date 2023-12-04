@@ -46,6 +46,7 @@ extern adv761x_dev advrx_dev;
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
 extern mode_data_t video_modes[];
+extern mode_data_t vmode_in;
 extern smp_preset_t smp_presets[], smp_presets_default[];
 extern sync_timings_t hdmi_timings[];
 extern uint8_t update_cur_vm;
@@ -731,6 +732,9 @@ void cstm_size(menucode_id code, int setup_disp) {
         mode_name = smp_presets[smp_edit].name;
     }
 
+    if (active_mode)
+        st->v_total = vmode_in.timings.v_total;
+
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
@@ -853,6 +857,9 @@ void cstm_position(menucode_id code, int setup_disp) {
         st = &smp_presets[smp_edit].timings_i;
         mode_name = smp_presets[smp_edit].name;
     }
+
+    if (active_mode)
+        st->v_total = vmode_in.timings.v_total;
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));

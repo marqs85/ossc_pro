@@ -139,7 +139,7 @@ wire audmux_sel = sys_ctrl[11];
 wire testpattern_enable = sys_ctrl[12];
 wire csc_enable = sys_ctrl[13];
 wire framelock = sys_ctrl[14];
-wire hdmirx_spdif = sys_ctrl[15];
+wire hdmirx_aud_sel = sys_ctrl[15];
 wire [3:0] fan_duty = sys_ctrl[19:16];
 wire [3:0] led_duty = sys_ctrl[23:20];
 wire dram_refresh_enable = sys_ctrl[24];
@@ -533,10 +533,10 @@ always @(posedge pclk_out) begin
 end
 
 //audio
-assign HDMITX_I2S_BCK_o = capture_sel ? HDMIRX_I2S_BCK_i : PCM_I2S_BCK_i;
-assign HDMITX_I2S_WS_o = capture_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
-assign HDMITX_I2S_DATA_o = capture_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
-assign HDMITX_SPDIF_o = hdmirx_spdif ? HDMIRX_AP_i : SPDIF_EXT_i;
+assign HDMITX_I2S_BCK_o = hdmirx_aud_sel ? HDMIRX_I2S_BCK_i : PCM_I2S_BCK_i;
+assign HDMITX_I2S_WS_o = hdmirx_aud_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
+assign HDMITX_I2S_DATA_o = hdmirx_aud_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
+assign HDMITX_SPDIF_o = hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i;
 
 assign AUDMUX_o = ~audmux_sel;
 

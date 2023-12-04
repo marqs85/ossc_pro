@@ -79,6 +79,10 @@ avconfig_t* get_current_avconfig() {
     return &cc;
 }
 
+avconfig_t* get_target_avconfig() {
+    return &tc;
+}
+
 status_t update_avconfig() {
     status_t status = 0;
 

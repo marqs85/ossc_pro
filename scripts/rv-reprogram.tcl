@@ -73,7 +73,7 @@ set addr $flash_imem_base
 for {set i 0} {$i<$chunks} {incr i} {
     set file [format "flash.%04d" $i]
     master_write_from_file $claim_path mem_init/chunks/$file $addr
-    set addr [expr $addr + 512]
+    set addr [expr $addr + 64]
 }
 #master_read_to_file $claim_path mem_init/flash_readback.bin $flash_imem_base $bin_size
 #master_read_to_file $claim_path mem_init/ram_readback.bin 0x010000 65536
