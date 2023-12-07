@@ -172,8 +172,20 @@ static void vm_plm_display_name (uint8_t v) { strncpy(menu_row2, video_modes_plm
 static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes[v].name, US2066_ROW_LEN+1); }
 static void pwm_disp (uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", (v*10)); }
 //static void link_av_desc (avinput_t v) { strncpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
-static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
-static void sd_profile_disp(uint8_t v) { read_userdata_sd(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
+static void profile_disp(uint8_t v) { 
+    char saved_target_profile_name[USERDATA_NAME_LEN+1];
+    strncpy(saved_target_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
+    read_userdata(v, 1); 
+    sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name);
+    strncpy(target_profile_name, saved_target_profile_name, USERDATA_NAME_LEN+1);
+}
+static void sd_profile_disp(uint8_t v) { 
+    char saved_target_profile_name[USERDATA_NAME_LEN+1];
+    strncpy(saved_target_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
+    read_userdata_sd(v, 1);
+    sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); 
+    strncpy(target_profile_name, saved_target_profile_name, USERDATA_NAME_LEN+1);
+}
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
 
