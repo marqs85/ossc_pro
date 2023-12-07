@@ -176,7 +176,7 @@ int write_userdata(uint8_t entry) {
     }
 
     memset(&hdr, 0x00, sizeof(ude_hdr));
-    strncpy(hdr.userdata_key, "USRDATA", 8);
+    strlcpy(hdr.userdata_key, "USRDATA", 8);
     hdr.type = (entry > MAX_PROFILE) ? UDE_INITCFG : UDE_PROFILE;
 
     if (hdr.type == UDE_INITCFG) {
@@ -191,7 +191,7 @@ int write_userdata(uint8_t entry) {
         if (target_profile_name[0] == 0)
             sniprintf(target_profile_name, USERDATA_NAME_LEN+1, "<used>");
 
-        strncpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
+        strlcpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
     }
 
     flash_addr = flashctrl_dev.flash_size - (16-entry)*FLASH_SECTOR_SIZE;
@@ -246,7 +246,7 @@ int read_userdata(uint8_t entry, int dry_run) {
         return 1;
     }
 
-    strncpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
+    strlcpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
     if (dry_run)
         return 0;
 
@@ -293,7 +293,7 @@ int write_userdata_sd(uint8_t entry) {
     }
 
     memset(&hdr, 0x00, sizeof(ude_hdr));
-    strncpy(hdr.userdata_key, "USRDATA", 8);
+    strlcpy(hdr.userdata_key, "USRDATA", 8);
     hdr.type = (entry > MAX_SD_PROFILE) ? UDE_INITCFG : UDE_PROFILE;
 
     if (hdr.type == UDE_INITCFG) {
@@ -308,7 +308,7 @@ int write_userdata_sd(uint8_t entry) {
         if (target_profile_name[0] == 0)
             sniprintf(target_profile_name, USERDATA_NAME_LEN+1, "<used>");
 
-        strncpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
+        strlcpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
     }
 
     // Write header
@@ -377,7 +377,7 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
         goto close_file;
     }
 
-    strncpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
+    strlcpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
     if (dry_run)
         goto close_file;
 

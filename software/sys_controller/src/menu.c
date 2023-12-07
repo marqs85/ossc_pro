@@ -169,10 +169,10 @@ static void pct_x10_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u
 static void aud_db_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d dB", ((int8_t)v-PCM_GAIN_0DB)); }
 #endif
 static void audio_src_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", audio_src_desc[v]); }
-static void vm_plm_display_name (uint8_t v) { strncpy(menu_row2, video_modes_plm[v].name, US2066_ROW_LEN+1); }
-static void vm_display_name (uint8_t v) { strncpy(menu_row2, video_modes[v].name, US2066_ROW_LEN+1); }
+static void vm_plm_display_name (uint8_t v) { strlcpy(menu_row2, video_modes_plm[v].name, US2066_ROW_LEN+1); }
+static void vm_display_name (uint8_t v) { strlcpy(menu_row2, video_modes[v].name, US2066_ROW_LEN+1); }
 static void pwm_disp (uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", (v*10)); }
-//static void link_av_desc (avinput_t v) { strncpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
+//static void link_av_desc (avinput_t v) { strlcpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
 static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
 static void sd_profile_disp(uint8_t v) { read_userdata_sd(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
@@ -181,10 +181,10 @@ static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1
 static void smp_display_name(uint8_t v) {
 #ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active)
-        strncpy(menu_row2, hdmi_timings_groups[v % NUM_VIDEO_GROUPS], US2066_ROW_LEN+1);
+        strlcpy(menu_row2, hdmi_timings_groups[v % NUM_VIDEO_GROUPS], US2066_ROW_LEN+1);
     else
 #endif
-        strncpy(menu_row2, smp_presets[v].name, US2066_ROW_LEN+1);
+        strlcpy(menu_row2, smp_presets[v].name, US2066_ROW_LEN+1);
 }
 
 static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mode) {
@@ -524,7 +524,7 @@ void write_option_name(menuitem_t *item)
         menu_row1[US2066_ROW_LEN-1] = '>';
         menu_row1[US2066_ROW_LEN] = 0;
     } else {
-        strncpy(menu_row1, item->name, US2066_ROW_LEN+1);
+        strlcpy(menu_row1, item->name, US2066_ROW_LEN+1);
     }
 }
 
@@ -533,7 +533,7 @@ void write_option_value(menuitem_t *item, int func_called, int retval)
     switch (item->type) {
         case OPT_AVCONFIG_SELECTION:
             if (item->sel.list_view < 2)
-                strncpy(menu_row2, item->sel.setting_str[*(item->sel.data)], US2066_ROW_LEN+1);
+                strlcpy(menu_row2, item->sel.setting_str[*(item->sel.data)], US2066_ROW_LEN+1);
             else
                 menu_row2[0] = 0;
             break;
@@ -555,11 +555,11 @@ void write_option_value(menuitem_t *item, int func_called, int retval)
         case OPT_FUNC_CALL:
             if (func_called) {
                 if (retval == 0)
-                    strncpy(menu_row2, "Done", US2066_ROW_LEN+1);
+                    strlcpy(menu_row2, "Done", US2066_ROW_LEN+1);
                 else if (retval < 0)
                     sniprintf(menu_row2, US2066_ROW_LEN+1, "Failed (%d)", retval);
                 else
-                    strncpy(menu_row2, func_ret_status, US2066_ROW_LEN+1);
+                    strlcpy(menu_row2, func_ret_status, US2066_ROW_LEN+1);
             } else if (item->fun.arg_info) {
                 item->fun.arg_info->df(*item->fun.arg_info->data);
             } else {
@@ -1013,7 +1013,7 @@ void cstm_listview(menucode_id code, int setup_disp) {
         lw_mp = *lw_item->sel.data;
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%s", lw_item->name);
-        strncpy(menu_row1, lw_item->name, US2066_ROW_LEN+1);
+        strlcpy(menu_row1, lw_item->name, US2066_ROW_LEN+1);
         for (i=0; i<OSD_CHAR_COLS; i++)
             osd->osd_array.data[1][0][i] = '-';
 
@@ -1275,7 +1275,7 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
 }
 
 void set_func_ret_msg(char *msg) {
-    strncpy(func_ret_status, msg, US2066_ROW_LEN+1);
+    strlcpy(func_ret_status, msg, US2066_ROW_LEN+1);
 }
 
 void update_osd_size(mode_data_t *vm_out) {

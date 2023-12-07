@@ -277,7 +277,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     vm_in->timings.h_total_adj = smp_preset->timings_i.h_total_adj;
     vm_in->sampler_phase = smp_preset->sampler_phase;
     vm_in->type = smp_preset->type;
-    strncpy(vm_in->name, smp_preset->name, 16);
+    strlcpy(vm_in->name, smp_preset->name, sizeof(vm_in->name));
 
     // adjust sampling preset by reducing active height if needed
     diff_lines = vm_in->timings.v_total-(vm_in->timings.v_synclen+vm_in->timings.v_backporch+vm_in->timings.v_active);
@@ -636,7 +636,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
     // Copy default sampling preset timings to output mode if no group found
     if (vm_in->group == GROUP_NONE) {
-        strncpy(vm_out->name, smp_presets_default[smp_cur].name, 16);
+        strlcpy(vm_out->name, smp_presets_default[smp_cur].name, sizeof(vm_out->name));
         memcpy(&vm_out->timings, &smp_presets_default[smp_cur].timings_i, sizeof(sync_timings_t));
         vm_out->ar = smp_presets_default[smp_cur].ar;
         vm_out->type = smp_presets_default[smp_cur].type;
@@ -911,7 +911,7 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
     if (!vm_in->vic)
         vm_in->vic = mode_preset->vic;
     if (vm_in->name[0] == 0)
-        strncpy(vm_in->name, mode_preset->name, 16);
+        strlcpy(vm_in->name, mode_preset->name, sizeof(vm_in->name));
 
     memcpy(vm_out, vm_in, sizeof(mode_data_t));
     vm_out->vic = HDMI_Unknown;

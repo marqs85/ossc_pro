@@ -87,7 +87,7 @@ int setup_rc()
 
     for (i=0; i<REMOTE_MAX_KEYS; i++) {
         sniprintf(menu_row1, US2066_ROW_LEN+1, "Press");
-        strncpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
+        strlcpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
         ui_disp_menu(1);
         confirm = 0;
 
@@ -108,7 +108,7 @@ int setup_rc()
                         confirm = 2;
                     } else {
                         sniprintf(menu_row1, US2066_ROW_LEN+1, "Mismatch, retry");
-                        strncpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
+                        strlcpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
                         ui_disp_menu(1);
                         confirm = 0;
                     }
@@ -140,7 +140,7 @@ int setup_rc()
 #ifdef DE10N
         sniprintf(menu_row2, US2066_ROW_LEN+1, "Y:KEY0 N:KEY1");
 #else
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "Y:> N:<");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "N:< Y:>");
 #endif
         ui_disp_menu(1);
 

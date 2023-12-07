@@ -1288,8 +1288,8 @@ void mainloop()
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
             if (!enable_tp) {
-                strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
-                strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
+                strlcpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
+                strlcpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
                 ui_disp_status(1);
             }
         }
@@ -1334,8 +1334,8 @@ void mainloop()
                 } else {
                     isl_enable_power(&isl_dev, 0);
                     isl_enable_outputs(&isl_dev, 0);
-                    strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
-                    strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
+                    strlcpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
+                    strlcpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
                     ui_disp_status(1);
                     printf("ISL51002 sync lost\n");
                 }
@@ -1467,8 +1467,8 @@ void mainloop()
                 if (advrx_dev.sync_active) {
                     printf("adv sync up\n");
                 } else {
-                    strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
-                    strncpy(row2, "    free-run", US2066_ROW_LEN+1);
+                    strlcpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
+                    strlcpy(row2, "    free-run", US2066_ROW_LEN+1);
                     ui_disp_status(1);
                     printf("adv sync lost\n");
                 }
@@ -1486,7 +1486,7 @@ void mainloop()
 
                     h_skip_prev = (advrx_dev.cfg.pixelderep_mode == 0) ? (advrx_dev.pixelderep_ifr-advrx_dev.pixelderep) : 0;
 
-                    sniprintf(vmode_in.name, 16, "%ux%u%c", advrx_dev.ss.h_active/(h_skip_prev+1), (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
+                    sniprintf(vmode_in.name, sizeof(vmode_in.name), "%ux%u%c", advrx_dev.ss.h_active/(h_skip_prev+1), (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active/(h_skip_prev+1);
                     vmode_in.timings.v_active = advrx_dev.ss.v_active;
                     vmode_in.timings.h_total = advrx_dev.ss.h_total/(h_skip_prev+1);
