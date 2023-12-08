@@ -392,7 +392,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
     if (avconfig->shmask_mode && (avconfig->shmask_mode != shmask_loaded_array)) {
         if (avconfig->shmask_mode >= SHMASKS_SIZE) { // Custom
-            snprintf(target_filename, sizeof(target_filename), "shmask%d.txt", (avconfig->shmask_mode + 1 - SHMASKS_SIZE) );
+            sniprintf(target_filename, sizeof(target_filename), "shmask%d.txt", (avconfig->shmask_mode + 1 - SHMASKS_SIZE) );
             if (!file_open(&file, target_filename)) {
                 i = 0;
                 while (file_get_string(&file, char_buff, sizeof(char_buff))) {
@@ -586,7 +586,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
     if (scl_target_pp_coeff != scl_loaded_pp_coeff) {
         if (scl_target_pp_coeff >= PP_COEFF_SIZE) { // Custom
-            snprintf(target_filename, sizeof(target_filename), "scaler%d.txt", (scl_target_pp_coeff + 1 - PP_COEFF_SIZE) );
+            sniprintf(target_filename, sizeof(target_filename), "scaler%d.txt", (scl_target_pp_coeff + 1 - PP_COEFF_SIZE) );
             if (!file_open(&file, target_filename)) {
                 p = 0;
                 while (file_get_string(&file, char_buff, sizeof(char_buff))) {

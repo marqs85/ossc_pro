@@ -173,8 +173,8 @@ static void vm_plm_display_name (uint8_t v) { strlcpy(menu_row2, video_modes_plm
 static void vm_display_name (uint8_t v) { strlcpy(menu_row2, video_modes[v].name, US2066_ROW_LEN+1); }
 static void pwm_disp (uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%", (v*10)); }
 //static void link_av_desc (avinput_t v) { strlcpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
-static void profile_disp(uint8_t v) { read_userdata(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
-static void sd_profile_disp(uint8_t v) { read_userdata_sd(v, 1); sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name); }
+static void profile_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (read_userdata(v, 1) != 0) ? "<empty>" : target_profile_name); }
+static void sd_profile_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (read_userdata_sd(v, 1) != 0) ? "<empty>" : target_profile_name); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
 
@@ -991,12 +991,16 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
 
         for (i=0; i<items_curpage; i++) {
             if (page == 0)
-                read_userdata(i, 1);
+                retval = read_userdata(i, 1);
             else
-                read_userdata_sd((page-1)*20+i, 1);
-            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%u: %s", (page == 0) ? i : (page-1)*20+i, (target_profile_name[0] == 0) ? "<empty>" : target_profile_name);
+                retval = read_userdata_sd((page-1)*20+i, 1);
+            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%u: %s", (page == 0) ? i : (page-1)*20+i, (retval != 0) ? "<empty>" : target_profile_name);
             row_mask[0] |= (1<<(i+2));
         }
+
+        sniprintf((char*)osd->osd_array.data[i+3][0], OSD_CHAR_COLS, "< Prev        Next >");
+        row_mask[0] |= (3<<(i+2));
+
         osd->osd_sec_enable[0].mask = row_mask[0];
         osd->osd_sec_enable[1].mask = row_mask[1];
     }
