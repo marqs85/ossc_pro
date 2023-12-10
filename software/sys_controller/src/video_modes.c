@@ -883,7 +883,7 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
         }
     }
 
-    if (mindiff_lines >= 110)
+    if (mindiff_lines >= 130)
         return -1;
 
     mode_preset = &video_modes_plm[mindiff_id];

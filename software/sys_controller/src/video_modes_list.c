@@ -208,6 +208,8 @@ const smp_preset_t smp_presets_default[] = {
     /* DTV 1080p */
     { "DTV 1080p_50",   SM_OPT_PC_HDTV,    {1920, 1080,   5500,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080P },
     { "DTV 1080p_60",   SM_OPT_PC_HDTV,    {1920, 1080,      0,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080P },
+    /* EUREKA 1250/50 */
+    { "DTV 1152i_50",   SM_OPT_PC_HDTV,    {1920,  576,   5500,  2304, 0, 1250,  192, 39,   64, 5,  1},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080I},
 
     /* 640x350@70Hz, VGA Mode 0*,1*,2*,3*,F,10 */
     { "PC 640x350_70",  SM_OPT_VGA_640x350, { 640,  350,   7500,   800, 0,  449,   48, 59,   96, 2,  0},  0,  0,  { 4,  3},  VIDEO_PC,  GROUP_384P },
