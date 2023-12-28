@@ -41,7 +41,7 @@ const mode_data_t video_modes_plm_default[] = {
     { "288p",          HDMI_288p50,      { 720,  288,   5008,   864, 0,  312,   69, 19,   63, 3,  0},  0,  {{ 0,  0}},  VIDEO_SDTV,               GROUP_288P,   (MODE_PT | MODE_L2),                                        0, 0 },
     /* 360p: GBI */
     { "480x360",       HDMI_Unknown,     { 480,  360,   6000,   600, 0,  375,   63, 10,   38, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_PT | MODE_L2),                                        0, 0 },
-    { "240x360",       HDMI_Unknown,     { 256,  360,   6000,   300, 0,  375,   24, 10,   18, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_L2_240x360 | MODE_L3_240x360),                        0, 0 },
+    { "240x360",       HDMI_Unknown,     { 240,  360,   6000,   300, 0,  375,   32, 10,   18, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_L2_240x360 | MODE_L3_240x360),                        0, 0 },
     /* 384p: Sega Model 2 */
     { "384p",          HDMI_Unknown,     { 496,  384,   5500,   640, 0,  423,   50, 29,   62, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_PT | MODE_L2),                                        0, 0 },
     /* 400p line3x */
@@ -164,8 +164,8 @@ const smp_preset_t smp_presets_default[] = {
     { "Gen. 704x288",   SM_GEN_4_3,        { 704,  288,      0,   864, 0,  312,   77, 19,   63, 3,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
     { "Gen. 1536x288",  SM_GEN_4_3,        {1536,  288,      0,  1872, 0,  312,  150, 19,  136, 3,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
     { "Gen. 1920x288",  SM_GEN_4_3,        {1920,  288,      0,  2340, 0,  312,  187, 19,  171, 3,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
-    /* Generic 384p presets */
-    { "Gen. 1024x384",  SM_GEN_4_3,        {1024,  384,      0,  1280, 0,  429,  91,  34,  137, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
+    /* Generic 400p presets */
+    { "Gen. 1024x400",  SM_GEN_4_3,        {1024,  400,      0,  1280, 0,  429,  91,  34,  137, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     { "Gen. 1600x400",  SM_GEN_4_3,        {1600,  400,      0,  2000, 0,  429,  142, 34,  213, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     { "Gen. 1920x400",  SM_GEN_4_3,        {1920,  400,      0,  2400, 0,  429,  171, 34,  255, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     /* Generic 480i presets */

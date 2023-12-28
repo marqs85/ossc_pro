@@ -716,24 +716,23 @@ void cstm_size(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0xfff, 0xff0};
     sync_timings_t *st;
     const char *mode_name;
-    int i, adj;
+    int i, adj=0;
     static int size_step_idx;
     static uint8_t size_step_arr[] = {1, 4, 10};
     int active_mode = smp_is_active();
 
 #ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active) {
-        st = &hdmi_timings[dtmg_edit];
+        st = active_mode ? &vmode_in.timings : &hdmi_timings[dtmg_edit];
         mode_name = hdmi_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
     } else
 #endif
     {
         st = &smp_presets[smp_edit].timings_i;
         mode_name = smp_presets[smp_edit].name;
+        if (active_mode)
+            st->v_total = vmode_in.timings.v_total;
     }
-
-    if (active_mode)
-        st->v_total = vmode_in.timings.v_total;
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
@@ -784,9 +783,6 @@ void cstm_size(menucode_id code, int setup_disp) {
         }
 
         st->v_active += adj;
-
-        if (active_mode && (adj != 0))
-            update_cur_vm = 1;
         break;
     case VAL_MINUS:
     case VAL_PLUS:
@@ -812,15 +808,20 @@ void cstm_size(menucode_id code, int setup_disp) {
         }
 
         st->h_active += adj;
-
-        if (active_mode && (adj != 0))
-            update_cur_vm = 1;
         break;
     case OPT_SELECT:
         size_step_idx = (size_step_idx + 1) % (sizeof(size_step_arr)/sizeof(uint8_t));
         break;
     default:
         break;
+    }
+
+    if (active_mode && (adj != 0)) {
+        update_cur_vm = 1;
+#ifndef DExx_FW
+        if (advrx_dev.powered_on && advrx_dev.sync_active)
+            memcpy(&hdmi_timings[dtmg_edit], &vmode_in.timings, sizeof(sync_timings_t));
+#endif
     }
 
     // clear rows
@@ -842,24 +843,23 @@ void cstm_position(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x3ff, 0x3f0};
     sync_timings_t *st;
     const char *mode_name;
-    int i, adj;
+    int i, adj=0;
     static int pos_step_idx;
     static uint8_t pos_step_arr[] = {1, 4, 10};
     int active_mode = smp_is_active();
 
 #ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active) {
-        st = &hdmi_timings[dtmg_edit];
+        st = active_mode ? &vmode_in.timings : &hdmi_timings[dtmg_edit];
         mode_name = hdmi_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
     } else
 #endif
     {
         st = &smp_presets[smp_edit].timings_i;
         mode_name = smp_presets[smp_edit].name;
+        if (active_mode)
+            st->v_total = vmode_in.timings.v_total;
     }
-
-    if (active_mode)
-        st->v_total = vmode_in.timings.v_total;
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
@@ -897,9 +897,6 @@ void cstm_position(menucode_id code, int setup_disp) {
             adj = st->v_total - st->v_backporch - st->v_synclen - st->v_active;
 
         st->v_backporch += adj;
-
-        if (active_mode && (adj != 0))
-            update_cur_vm = 1;
         break;
     case VAL_MINUS:
     case VAL_PLUS:
@@ -914,15 +911,20 @@ void cstm_position(menucode_id code, int setup_disp) {
             adj = st->h_total - st->h_backporch - st->h_synclen - st->h_active;
 
         st->h_backporch += adj;
-
-        if (active_mode && (adj != 0))
-            update_cur_vm = 1;
         break;
     case OPT_SELECT:
         pos_step_idx = (pos_step_idx + 1) % (sizeof(pos_step_arr)/sizeof(uint8_t));
         break;
     default:
         break;
+    }
+
+    if (active_mode && (adj != 0)) {
+        update_cur_vm = 1;
+#ifndef DExx_FW
+        if (advrx_dev.powered_on && advrx_dev.sync_active)
+            memcpy(&hdmi_timings[dtmg_edit], &vmode_in.timings, sizeof(sync_timings_t));
+#endif
     }
 
     // clear rows

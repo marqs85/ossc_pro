@@ -42,6 +42,7 @@ extern settings_t ts;
 extern mode_data_t video_modes_plm[];
 extern mode_data_t video_modes[];
 extern smp_preset_t smp_presets[];
+extern sync_timings_t hdmi_timings[NUM_VIDEO_GROUPS];
 
 char target_profile_name[USERDATA_NAME_LEN+1], cur_profile_name[USERDATA_NAME_LEN+1];
 
@@ -58,9 +59,10 @@ const ude_item_map ude_initcfg_items[] = {
 };
 
 const ude_item_map ude_profile_items[] = {
-    {{0, 67, sizeof(video_modes_plm_default)}, video_modes_plm},
+    {{0, 72, sizeof(video_modes_plm_default)}, video_modes_plm},
     {{1, 70, sizeof(video_modes_default)}, video_modes},
-    {{2, 71, sizeof(smp_presets_default)}, smp_presets},
+    {{2, 72, sizeof(smp_presets_default)}, smp_presets},
+    UDE_ITEM(86, 72, hdmi_timings),
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -162,6 +164,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(83, 67, tc.l6_mode),
     UDE_ITEM(84, 68, tc.shmask_mode),
     UDE_ITEM(85, 69, tc.timing_1080p120),
+    // 86 reserved for hdmi_timings
 };
 
 int write_userdata(uint8_t entry) {
