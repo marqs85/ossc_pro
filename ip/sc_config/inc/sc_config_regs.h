@@ -61,9 +61,9 @@ typedef union {
     } __attribute__((packed, __may_alias__));
     struct {
         uint16_t hv2_alt_rsv1:9;
-        uint8_t h_skip:4;
-        uint8_t h_sample_sel:4;
-        uint16_t hv2_alt_rsv2:15;
+        uint8_t h_skip:5;
+        uint8_t h_sample_sel:5;
+        uint16_t hv2_alt_rsv2:13;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } hv_config2_reg;

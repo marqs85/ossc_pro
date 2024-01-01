@@ -48,7 +48,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 71
+#define FW_VER_MINOR 72
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -1489,6 +1489,7 @@ void mainloop()
                     sniprintf(vmode_in.name, sizeof(vmode_in.name), "%ux%u%c", advrx_dev.ss.h_active/(h_skip_prev+1), (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active/(h_skip_prev+1);
                     vmode_in.timings.v_active = advrx_dev.ss.v_active;
+                    vmode_in.timings.h_total_adj = ((advrx_dev.ss.h_total % (h_skip_prev+1))*20)/(h_skip_prev+1);
                     vmode_in.timings.h_total = advrx_dev.ss.h_total/(h_skip_prev+1);
                     vmode_in.timings.v_total = advrx_dev.ss.v_total;
                     vmode_in.timings.h_backporch = advrx_dev.ss.h_backporch/(h_skip_prev+1);
@@ -1541,7 +1542,7 @@ void mainloop()
                                                  si_clk_src,
                                                  pclk_i_hz,
                                                  vm_conf.framelock ? vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock : pclk_o_hz/1000,
-                                                 vm_conf.framelock ? (vm_conf.h_skip+1)*vmode_in.timings.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
+                                                 vm_conf.framelock ? advrx_dev.ss.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
                                                  NULL);
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);

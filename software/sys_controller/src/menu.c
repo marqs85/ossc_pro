@@ -206,7 +206,7 @@ static void pixelderep_mode_disp(uint8_t v) {
     if (v)
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%ux", v);
     else
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "Auto (%lux)", advrx_dev.pixelderep_ifr+1);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Auto (%ux)", advrx_dev.pixelderep_ifr+1);
 }
 
 static arg_info_t vm_arg_info = {&vm_sel, 0, vm_plm_display_name};
