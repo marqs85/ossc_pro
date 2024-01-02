@@ -130,8 +130,8 @@ const mode_data_t video_modes_default[] = {
     { "1080p_100",     HDMI_Unknown,     {1920, 1080,  10000,  2080, 0, 1133,   80, 45,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120",     HDMI_Unknown,     {1920, 1080,  12000,  2080, 0, 1144,   80, 56,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     /* 1080p 120Hz alternative modes */
-    { "1080p_120_RB2", HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1144,   40,  6,   32, 8,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_MB",  HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1086,   40,  1,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_120_CEA", HDMI_Unknown,     {1920, 1080,  12000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_PR2", HDMI_Unknown,     { 960, 1080,  12000,  1100, 0, 1125,   74, 36,   22, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_2X, TX_1X },
     /* VESA UXGA mode */
     { "1600x1200_60",  HDMI_Unknown,     {1600, 1200,   6000,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
@@ -147,6 +147,8 @@ const mode_data_t video_modes_default[] = {
     /* 2880x2160 (CVT-RB with PR2) */
     { "2880x2160_50",  HDMI_Unknown,     {1440, 2160,   5000,  1520, 0, 2211,   40, 44,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
     { "2880x2160_60",  HDMI_Unknown,     {1440, 2160,   6000,  1520, 0, 2222,   40, 55,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
+    /* 2880x2160 (Min. blank with PR2) */
+    { "2880x2160_MB",  HDMI_Unknown,     {1440, 2160,   6000,  1508, 0, 2166,   20,  2,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
 };
 
 /* Sampling presets for Adaptive LM and Scaler */
@@ -265,7 +267,7 @@ const smp_preset_t smp_presets_default[] = {
     /* Neo Geo */
     { "NeoGeo 320x224", SM_OPT_NG_320COL,  { 320,  224,      0,   384, 0,  264,   28, 21,   29, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     /* GBI */
-    { "GBI 240x360",    SM_OPT_GBI_240COL, { 240,  360,      0,   300, 0,  375,   24, 10,   18, 3,  0},  1,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_384P },
+    { "GBI 240x360",    SM_OPT_GBI_240COL, { 240,  360,      0,   300, 0,  375,   32, 10,   18, 3,  0},  1,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_384P },
     /* DC/PS2/GC 640col AR-correct modes */
     { "DC 640x480i",    SM_OPT_DC_640COL,  { 640,  240,      0,   858, 0,  525,   95, 15,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
     { "DC 640x480",     SM_OPT_DC_640COL,  { 640,  480,      0,   858, 0,  525,   95, 30,   62, 6,  0},  0,  0,  {56, 45},  VIDEO_EDTV,  GROUP_480P },
@@ -279,7 +281,7 @@ const smp_preset_t smp_presets_default[] = {
 
     { "PC98 640x400",   SM_OPT_PC98_640COL,{ 640,  400,      0,   848, 0,  440,   80, 31,   64, 2,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_384P },
 
-    { "X68k 512x240",   SM_OPT_X68K_512COL,{ 512,  240,      0,   608, 0,  260,   48, 13,   32, 3,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_240P },
+    { "X68k 512x240",   SM_OPT_X68K_512COL,{ 512,  240,      0,   608, 0,  260,   48, 13,   32, 3,  0},  1,  0,  { 4,  3},  VIDEO_PC,    GROUP_240P },
     { "X68k 512x512",   SM_OPT_X68K_512COL,{ 512,  512,      0,   736, 0,  568,   96, 34,   80, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
     { "X68k 768x512",   SM_OPT_X68K_768COL,{ 768,  512,      0,  1104, 0,  568,  144, 34,  120, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
 };

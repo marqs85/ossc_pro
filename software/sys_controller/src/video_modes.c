@@ -302,7 +302,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
-    const stdmode_t timings_1080p120[] = {STDMODE_1080p_120, STDMODE_1080p_120_RB2, STDMODE_1080p_120_MB, STDMODE_1080p_120_CEA_PR2};
+    const stdmode_t timings_1080p120[] = {STDMODE_1080p_120, STDMODE_1080p_120_MB, STDMODE_1080p_120_CEA, STDMODE_1080p_120_CEA_PR2};
+    const stdmode_t timings_2160p60[] = {STDMODE_2880x2160_60, STDMODE_2880x2160_60_MB};
 
     // {50Hz, 60Hz, 100Hz, 120Hz} id array for each output resolution
     const stdmode_t pm_scl_map_dfp[][4] = {{-1, STDMODE_480p, -1, -1},
@@ -317,7 +318,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60, -1, -1},
                                          {STDMODE_1920x1440_50, STDMODE_1920x1440_60, -1, -1},
                                          {STDMODE_2560x1440_50, STDMODE_2560x1440_60, -1, -1},
-                                         {STDMODE_2880x2160_50, STDMODE_2880x2160_60, -1, -1}};
+                                         {STDMODE_2880x2160_50, timings_2160p60[cc->timing_2160p60], -1, -1}};
 
     const stdmode_t pm_scl_map_crt[][4] = {{-1, STDMODE_240p_CRT, STDMODE_240p_CRT, STDMODE_240p_CRT},
                                          {-1, STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT},
@@ -554,13 +555,14 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     int32_t v_linediff;
     int16_t x_offset_i=0, y_offset_i=0;
     uint32_t in_interlace_mult, out_interlace_mult, vtotal_ref;
+    const stdmode_t timings_2160p60[] = {STDMODE_2880x2160_60, STDMODE_2880x2160_60_MB};
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
     const ad_mode_t pm_ad_240p_map[] = {{STDMODE_240p_CRT, 0}, {STDMODE_480p, 1}, {STDMODE_720p_60, 2}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3}, {STDMODE_1080p_60, 4},
-                                        {STDMODE_1600x1200_60, 4}, {STDMODE_1920x1200_60, 4}, {STDMODE_1920x1440_60, 5}, {STDMODE_2560x1440_60, 5}};
+                                        {STDMODE_1600x1200_60, 4}, {STDMODE_1920x1200_60, 4}, {STDMODE_1920x1440_60, 5}, {STDMODE_2560x1440_60, 5}, {timings_2160p60[cc->timing_2160p60], 8}};
     const ad_mode_t pm_ad_288p_map[] = {{STDMODE_288p_CRT, 0}, {STDMODE_576p, 1}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3},
-                                        {STDMODE_1920x1200_50, 3}, {STDMODE_1920x1440_50, 4}, {STDMODE_2560x1440_50, 4}};
+                                        {STDMODE_1920x1200_50, 3}, {STDMODE_1920x1440_50, 4}, {STDMODE_2560x1440_50, 4}, {timings_2160p60[cc->timing_2160p60], 6}};
     const ad_mode_t pm_ad_384p_map[] = {{STDMODE_720p_60, 1}, {STDMODE_1024x768_60, 1}, {STDMODE_1080p_60, 2},
                                         {STDMODE_1600x1200_60, 2}, {STDMODE_1920x1200_60, 2}, {STDMODE_1920x1440_60, 3}, {STDMODE_2560x1440_60, 3}};
     const ad_mode_t pm_ad_480i_map[] = {{STDMODE_480i, 0}, {STDMODE_240p_CRT, 0}, {STDMODE_480p, 1}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3},
@@ -685,6 +687,9 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
             vm_conf->x_rpt = 1;
         break;
     case STDMODE_1280x1024_60:
+    case STDMODE_2880x2160_50:
+    case STDMODE_2880x2160_60:
+    case STDMODE_2880x2160_60_MB:
         if (vm_in->timings.h_active <= 284)
             vm_conf->x_rpt = 4 - cc->ar_256col;
         else if (vm_in->timings.h_active <= 366)
