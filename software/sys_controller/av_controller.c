@@ -1494,7 +1494,7 @@ void mainloop()
                     vmode_in.timings.v_total = advrx_dev.ss.v_total;
                     vmode_in.timings.h_backporch = advrx_dev.ss.h_backporch/(h_skip_prev+1);
                     vmode_in.timings.v_backporch = advrx_dev.ss.v_backporch;
-                    vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen/(h_skip_prev+1);
+                    vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen/(h_skip_prev+1) + !!(advrx_dev.ss.h_synclen % (h_skip_prev+1));
                     vmode_in.timings.v_synclen = advrx_dev.ss.v_synclen;
                     vmode_in.timings.interlaced = advrx_dev.ss.interlace_flag;
                     //TODO: VIC
