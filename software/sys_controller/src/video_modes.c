@@ -1070,8 +1070,10 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
     else if (mindiff_lm & (MODE_L3_256_COL|MODE_L6_256_COL))
         vm_conf->x_rpt = cc->ar_256col ? 2 : 3;
 
-    if (mindiff_lm & (MODE_L3_320_COL|MODE_L2_240x360|MODE_L3_240x360))
+    if (mindiff_lm & (MODE_L3_320_COL|MODE_L2_240x360))
         vm_conf->x_rpt--;
+    else if (mindiff_lm & MODE_L3_240x360)
+        vm_conf->x_rpt -= 2;
 
     if (mindiff_lm == MODE_L2_240x360) {
         vm_out->timings.h_active += 80;

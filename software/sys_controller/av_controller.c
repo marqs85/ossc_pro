@@ -448,7 +448,6 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_in_config3.v_synclen = vm_in->timings.v_synclen;
     hv_in_config2.v_backporch = vm_in->timings.v_backporch;
     hv_in_config2.interlaced = vm_in->timings.interlaced;
-    hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+12;
     hv_in_config2.h_skip = vm_conf->h_skip;
     hv_in_config2.h_sample_sel = vm_conf->h_sample_sel;
 
@@ -533,6 +532,15 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         sl_config.sl_l_overlay = 0;
         sl_config3.sl_c_overlay = 0;
     }
+
+    h_blank = vm_out->timings.h_total-vm_conf->x_size;
+    v_blank = (vm_out->timings.v_total>>vm_out->timings.interlaced)-vm_conf->y_size;
+    h_frontporch = h_blank-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
+    v_frontporch = v_blank-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
+
+    // VIP frame reader swaps buffers at the end of read frame while writer apparently does it just before frame to be written (?)
+    // SOF needs to be offset accordingly to minimize FB latency
+    hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+20+((v_frontporch*100*vm_in->timings.v_total)/(100*vm_out->timings.v_total));
 
     sc->hv_in_config = hv_in_config;
     sc->hv_in_config2 = hv_in_config2;
@@ -644,11 +652,6 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_fb->output_rate = vm_out->timings.v_hz_x100;
     //vip_fb->locked = vm_conf->framelock;  // causes cvo fifo underflows
     vip_fb->locked = 0;
-
-    h_blank = vm_out->timings.h_total-vm_conf->x_size;
-    v_blank = (vm_out->timings.v_total>>vm_out->timings.interlaced)-vm_conf->y_size;
-    h_frontporch = h_blank-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
-    v_frontporch = v_blank-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
 
     if ((vip_cvo->h_active != vm_conf->x_size) ||
         (vip_cvo->v_active != vm_conf->y_size) ||

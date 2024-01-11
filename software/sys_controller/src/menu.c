@@ -1002,7 +1002,7 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
             row_mask[0] |= (1<<(i+2));
         }
 
-        sniprintf((char*)osd->osd_array.data[i+3][0], OSD_CHAR_COLS, "< Prev        Next >");
+        sniprintf((char*)osd->osd_array.data[i+3][0], OSD_CHAR_COLS, "< Prev       Next >");
         row_mask[0] |= (3<<(i+2));
 
         osd->osd_sec_enable[0].mask = row_mask[0];

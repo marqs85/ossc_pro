@@ -43,6 +43,7 @@ extern mode_data_t video_modes_plm[];
 extern mode_data_t video_modes[];
 extern smp_preset_t smp_presets[];
 extern sync_timings_t hdmi_timings[NUM_VIDEO_GROUPS];
+extern uint8_t update_cur_vm;
 
 char target_profile_name[USERDATA_NAME_LEN+1], cur_profile_name[USERDATA_NAME_LEN+1];
 
@@ -290,6 +291,9 @@ int read_userdata(uint8_t entry, int dry_run) {
         bytes_read += item_hdr.data_size;
     }
 
+    if (hdr.type == UDE_PROFILE)
+        update_cur_vm = 1;
+
     strlcpy(cur_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
     printf("%lu bytes read from userdata entry %u\n", bytes_read, entry);
 
@@ -451,6 +455,9 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
         if (j == target_map_items)
             f_lseek(&p_file, bytes_read_tot);
     }
+
+    if (hdr.type == UDE_PROFILE)
+        update_cur_vm = 1;
 
     strlcpy(cur_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
     printf("%u bytes read from userdata entry %u\n", bytes_read_tot, entry);
