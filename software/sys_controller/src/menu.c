@@ -203,12 +203,14 @@ static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mod
     }
 }
 
+#ifndef DExx_FW
 static void pixelderep_mode_disp(uint8_t v) {
     if (v)
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%ux", v);
     else
         sniprintf(menu_row2, US2066_ROW_LEN+1, "Auto (%ux)", advrx_dev.pixelderep_ifr+1);
 }
+#endif
 
 static arg_info_t vm_arg_info = {&vm_sel, 0, vm_plm_display_name};
 static arg_info_t smp_arg_info = {&smp_sel, 0, smp_display_name};
@@ -378,9 +380,9 @@ MENU(menu_output, P99_PROTECT({
     { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM_LIST(tx_mode_desc) } } },
     { "HDMI HDR flag",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.hdr,      OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
+#ifndef DExx_FW
     { "1080p120 preset",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_1080p120,  OPT_WRAP, SETTING_ITEM_LIST(timing_1080p120_desc) } } },
     { "2160p60 preset",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_2160p60,   OPT_WRAP, SETTING_ITEM_LIST(timing_2160p60_desc) } } },
-#ifndef DExx_FW
     { "Extra AV out",                          OPT_AVCONFIG_SELECTION, { .sel = { &ts.extra_av_out_mode,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_mode_desc) } } },
 #endif
 }))
@@ -945,7 +947,12 @@ void cstm_position(menucode_id code, int setup_disp) {
 void cstm_profile_load(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x03, 0x00};
     int i, retval, items_curpage;
-    static int nav = 0, page = 0;
+    static int nav = 0;
+#ifdef DE10N
+    static int page = 1;
+#else
+    static int page = 0;
+#endif
 
     // Parse menu control
     switch (code) {
@@ -956,11 +963,19 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
         nav++;
         break;
     case VAL_MINUS:
-        page = (page == 0) ? 5 : (page - 1) % 6;
+#ifdef DE10N
+        page = (page == 1) ? 5 : (page - 1);
+#else
+        page = (page == 0) ? 5 : (page - 1);
+#endif
         setup_disp = 1;
         break;
     case VAL_PLUS:
+#ifdef DE10N
+        page = (page == 5) ? 1 : (page + 1);
+#else
         page = (page + 1) % 6;
+#endif
         setup_disp = 1;
         break;
     case OPT_SELECT:
