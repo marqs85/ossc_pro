@@ -283,8 +283,8 @@ int read_userdata(uint8_t entry, int dry_run) {
         memcpy(&item_hdr, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read), sizeof(ude_item_hdr));
         bytes_read += sizeof(ude_item_hdr);
         for (j=0; j<target_map_items; j++) {
-            if (!memcmp(&item_hdr, &target_map[i].hdr, sizeof(ude_item_hdr))) {
-                memcpy(target_map[i].data, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read), item_hdr.data_size);
+            if (!memcmp(&item_hdr, &target_map[j].hdr, sizeof(ude_item_hdr))) {
+                memcpy(target_map[j].data, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read), item_hdr.data_size);
                 break;
             }
         }
@@ -442,8 +442,8 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
         }
         bytes_read_tot += sizeof(ude_item_hdr);
         for (j=0; j<target_map_items; j++) {
-            if (!memcmp(&item_hdr, &target_map[i].hdr, sizeof(ude_item_hdr))) {
-                if ((f_read(&p_file, target_map[i].data, item_hdr.data_size, &bytes_read) != F_OK) || (bytes_read != item_hdr.data_size)) {
+            if (!memcmp(&item_hdr, &target_map[j].hdr, sizeof(ude_item_hdr))) {
+                if ((f_read(&p_file, target_map[j].data, item_hdr.data_size, &bytes_read) != F_OK) || (bytes_read != item_hdr.data_size)) {
                     printf("Item data read fail\n");
                     retval = -7;
                     goto close_file;
