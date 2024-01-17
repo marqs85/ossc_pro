@@ -48,7 +48,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 72
+#define FW_VER_MINOR 73
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
