@@ -41,7 +41,7 @@
 #define SCTRL_VGTP_ENABLE       (1<<12)
 #define SCTRL_CSC_ENABLE        (1<<13)
 #define SCTRL_FRAMELOCK         (1<<14)
-#define SCTRL_HDMIRX_SPDIF      (1<<15)
+#define SCTRL_HDMIRX_AUD_SEL    (1<<15)
 #define SCTRL_FAN_PWM_OFFS      16
 #define SCTRL_FAN_PWM_MASK      (0xf<<SCTRL_FAN_PWM_OFFS)
 #define SCTRL_LED_PWM_OFFS      20

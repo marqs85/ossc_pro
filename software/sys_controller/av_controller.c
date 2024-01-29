@@ -48,7 +48,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 70
+#define FW_VER_MINOR 73
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -392,7 +392,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
     if (avconfig->shmask_mode && (avconfig->shmask_mode != shmask_loaded_array)) {
         if (avconfig->shmask_mode >= SHMASKS_SIZE) { // Custom
-            snprintf(target_filename, sizeof(target_filename), "shmask%d.txt", (avconfig->shmask_mode + 1 - SHMASKS_SIZE) );
+            sniprintf(target_filename, sizeof(target_filename), "shmask%d.txt", (avconfig->shmask_mode + 1 - SHMASKS_SIZE) );
             if (!file_open(&file, target_filename)) {
                 i = 0;
                 while (file_get_string(&file, char_buff, sizeof(char_buff))) {
@@ -448,7 +448,6 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_in_config3.v_synclen = vm_in->timings.v_synclen;
     hv_in_config2.v_backporch = vm_in->timings.v_backporch;
     hv_in_config2.interlaced = vm_in->timings.interlaced;
-    hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+12;
     hv_in_config2.h_skip = vm_conf->h_skip;
     hv_in_config2.h_sample_sel = vm_conf->h_sample_sel;
 
@@ -534,6 +533,15 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         sl_config3.sl_c_overlay = 0;
     }
 
+    h_blank = vm_out->timings.h_total-vm_conf->x_size;
+    v_blank = (vm_out->timings.v_total>>vm_out->timings.interlaced)-vm_conf->y_size;
+    h_frontporch = h_blank-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
+    v_frontporch = v_blank-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
+
+    // VIP frame reader swaps buffers at the end of read frame while writer apparently does it just before frame to be written (?)
+    // SOF needs to be offset accordingly to minimize FB latency
+    hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+20+((v_frontporch*100*vm_in->timings.v_total)/(100*vm_out->timings.v_total));
+
     sc->hv_in_config = hv_in_config;
     sc->hv_in_config2 = hv_in_config2;
     sc->hv_in_config3 = hv_in_config3;
@@ -586,7 +594,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
     if (scl_target_pp_coeff != scl_loaded_pp_coeff) {
         if (scl_target_pp_coeff >= PP_COEFF_SIZE) { // Custom
-            snprintf(target_filename, sizeof(target_filename), "scaler%d.txt", (scl_target_pp_coeff + 1 - PP_COEFF_SIZE) );
+            sniprintf(target_filename, sizeof(target_filename), "scaler%d.txt", (scl_target_pp_coeff + 1 - PP_COEFF_SIZE) );
             if (!file_open(&file, target_filename)) {
                 p = 0;
                 while (file_get_string(&file, char_buff, sizeof(char_buff))) {
@@ -644,11 +652,6 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_fb->output_rate = vm_out->timings.v_hz_x100;
     //vip_fb->locked = vm_conf->framelock;  // causes cvo fifo underflows
     vip_fb->locked = 0;
-
-    h_blank = vm_out->timings.h_total-vm_conf->x_size;
-    v_blank = (vm_out->timings.v_total>>vm_out->timings.interlaced)-vm_conf->y_size;
-    h_frontporch = h_blank-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
-    v_frontporch = v_blank-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
 
     if ((vip_cvo->h_active != vm_conf->x_size) ||
         (vip_cvo->v_active != vm_conf->y_size) ||
@@ -757,7 +760,7 @@ int init_emif()
         return -3;
     }
 
-    // Place LPDDR2 into deep powerdown mode
+    // Place LPDDR2 into deep powerdown mode (occasionally fails on some boards for unknown reason)
     sys_ctrl |= (SCTRL_EMIF_POWERDN_REQ);
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     start_ts = alt_timestamp();
@@ -766,7 +769,8 @@ int init_emif()
         if (sys_status & (1<<SSTAT_EMIF_POWERDN_ACK_BIT))
             break;
         else if (alt_timestamp() >= start_ts + 100000*(TIMER_0_FREQ/1000000))
-            return -4;
+            break;
+            //return -4;
     }
 
     return 0;
@@ -991,6 +995,15 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
     if (audsrc <= AUD_AV3_ANALOG)
         pcm186x_source_sel(&pcm_dev, audsrc);
 
+    if (avinput == AV4) {
+        sys_ctrl &= ~SCTRL_HDMIRX_AUD_SEL;
+
+        if (audsrc == AUD_AV4_DIGITAL)
+            sys_ctrl |= SCTRL_HDMIRX_AUD_SEL;
+
+        IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+    }
+
     *aud_tx_fmt = (audsrc == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
 }
 
@@ -1133,11 +1146,12 @@ void mainloop()
     video_sync target_isl_sync=0;
     video_format target_format=0;
     status_t status;
-    avconfig_t *cur_avconfig;
+    avconfig_t *cur_avconfig, *tgt_avconfig;
     si5351_clk_src si_clk_src;
     alt_timestamp_type start_ts;
 
     cur_avconfig = get_current_avconfig();
+    tgt_avconfig = get_target_avconfig();
 
     while (1) {
         start_ts = alt_timestamp();
@@ -1244,7 +1258,7 @@ void mainloop()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_SPDIF);
+            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL);
 
             ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, cur_avconfig->syncmux_stc ? THS_BIAS_STC_MID : THS_BIAS_AC, (3-cur_avconfig->syncmux_stc), (3-cur_avconfig->syncmux_stc));
 
@@ -1272,13 +1286,13 @@ void mainloop()
 
             adv761x_enable_power(&advrx_dev, enable_hdmirx);
 
-            switch_audsrc(cur_avconfig->audio_src_map, &cur_avconfig->hdmitx_cfg.audio_fmt);
+            switch_audsrc(cur_avconfig->audio_src_map, &tgt_avconfig->hdmitx_cfg.audio_fmt);
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
             if (!enable_tp) {
-                strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
-                strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
+                strlcpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
+                strlcpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
                 ui_disp_status(1);
             }
         }
@@ -1323,8 +1337,8 @@ void mainloop()
                 } else {
                     isl_enable_power(&isl_dev, 0);
                     isl_enable_outputs(&isl_dev, 0);
-                    strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
-                    strncpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
+                    strlcpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
+                    strlcpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
                     ui_disp_status(1);
                     printf("ISL51002 sync lost\n");
                 }
@@ -1456,8 +1470,8 @@ void mainloop()
                 if (advrx_dev.sync_active) {
                     printf("adv sync up\n");
                 } else {
-                    strncpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
-                    strncpy(row2, "    free-run", US2066_ROW_LEN+1);
+                    strlcpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
+                    strlcpy(row2, "    free-run", US2066_ROW_LEN+1);
                     ui_disp_status(1);
                     printf("adv sync lost\n");
                 }
@@ -1475,14 +1489,15 @@ void mainloop()
 
                     h_skip_prev = (advrx_dev.cfg.pixelderep_mode == 0) ? (advrx_dev.pixelderep_ifr-advrx_dev.pixelderep) : 0;
 
-                    sniprintf(vmode_in.name, 16, "%ux%u%c", advrx_dev.ss.h_active/(h_skip_prev+1), (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
+                    sniprintf(vmode_in.name, sizeof(vmode_in.name), "%ux%u%c", advrx_dev.ss.h_active/(h_skip_prev+1), (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active/(h_skip_prev+1);
                     vmode_in.timings.v_active = advrx_dev.ss.v_active;
+                    vmode_in.timings.h_total_adj = ((advrx_dev.ss.h_total % (h_skip_prev+1))*20)/(h_skip_prev+1);
                     vmode_in.timings.h_total = advrx_dev.ss.h_total/(h_skip_prev+1);
                     vmode_in.timings.v_total = advrx_dev.ss.v_total;
                     vmode_in.timings.h_backporch = advrx_dev.ss.h_backporch/(h_skip_prev+1);
                     vmode_in.timings.v_backporch = advrx_dev.ss.v_backporch;
-                    vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen/(h_skip_prev+1);
+                    vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen/(h_skip_prev+1) + !!(advrx_dev.ss.h_synclen % (h_skip_prev+1));
                     vmode_in.timings.v_synclen = advrx_dev.ss.v_synclen;
                     vmode_in.timings.interlaced = advrx_dev.ss.interlace_flag;
                     //TODO: VIC
@@ -1530,7 +1545,7 @@ void mainloop()
                                                  si_clk_src,
                                                  pclk_i_hz,
                                                  vm_conf.framelock ? vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock : pclk_o_hz/1000,
-                                                 vm_conf.framelock ? (vm_conf.h_skip+1)*vmode_in.timings.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
+                                                 vm_conf.framelock ? advrx_dev.ss.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
                                                  NULL);
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
@@ -1569,12 +1584,6 @@ void mainloop()
                 cur_avconfig->hdmitx_cfg.i2s_fs = adv761x_get_i2s_fs(&advrx_dev);
                 cur_avconfig->hdmitx_cfg.audio_cc_val = adv761x_get_audio_cc(&advrx_dev);
                 cur_avconfig->hdmitx_cfg.audio_ca_val = adv761x_get_audio_ca(&advrx_dev);
-                if (!!(sys_ctrl & SCTRL_HDMIRX_SPDIF) != cur_avconfig->hdmitx_cfg.audio_fmt) {
-                    sys_ctrl &= ~SCTRL_HDMIRX_SPDIF;
-                    if (cur_avconfig->hdmitx_cfg.audio_fmt == AUDIO_SPDIF)
-                        sys_ctrl |= SCTRL_HDMIRX_SPDIF;
-                    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
-                }
             }
             adv761x_update_config(&advrx_dev, &cur_avconfig->hdmirx_cfg);
         }

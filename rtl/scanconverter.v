@@ -366,10 +366,10 @@ end
 // H/V counters
 always @(posedge PCLK_OUT_i) begin
     if (ext_sync_mode & ext_frame_change_i) begin
-        h_cnt <= PP_SRCSEL_START; // compensate pipeline delays
+        h_cnt <= PP_SRCSEL_START+1; // compensate pipeline delays
         v_cnt <= 0;
         bfi_frame <= bfi_frame ^ 1'b1;
-        resync_strobe <= (v_cnt != 0);
+        resync_strobe <= ~((v_cnt == 0) & (h_cnt == PP_SRCSEL_START));
     end else if (~ext_sync_mode & frame_change_resync) begin
         h_cnt <= 0;
         v_cnt <= V_STARTLINE;

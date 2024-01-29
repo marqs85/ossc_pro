@@ -256,9 +256,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
 
     // write vm_in timings for digital sources
     if (vm_in->timings.h_total) {
-        if ((hdmi_timings[vm_in->group].h_total != vm_in->timings.h_total) || (hdmi_timings[vm_in->group].v_total != vm_in->timings.v_total))
-            memcpy(&hdmi_timings[vm_in->group], &vm_in->timings, sizeof(sync_timings_t));
-        else
+        if ((hdmi_timings[vm_in->group].h_total == vm_in->timings.h_total) && (hdmi_timings[vm_in->group].v_total == vm_in->timings.v_total))
             memcpy(&vm_in->timings, &hdmi_timings[vm_in->group], sizeof(sync_timings_t));
 
         dtmg_cur = vm_in->group;
@@ -277,7 +275,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     vm_in->timings.h_total_adj = smp_preset->timings_i.h_total_adj;
     vm_in->sampler_phase = smp_preset->sampler_phase;
     vm_in->type = smp_preset->type;
-    strncpy(vm_in->name, smp_preset->name, 16);
+    strlcpy(vm_in->name, smp_preset->name, sizeof(vm_in->name));
 
     // adjust sampling preset by reducing active height if needed
     diff_lines = vm_in->timings.v_total-(vm_in->timings.v_synclen+vm_in->timings.v_backporch+vm_in->timings.v_active);
@@ -304,7 +302,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
-    const stdmode_t timings_1080p120[] = {STDMODE_1080p_120, STDMODE_1080p_120_RB2, STDMODE_1080p_120_MB, STDMODE_1080p_120_CEA_PR2};
+    const stdmode_t timings_1080p120[] = {STDMODE_1080p_120, STDMODE_1080p_120_MB, STDMODE_1080p_120_CEA, STDMODE_1080p_120_CEA_PR2};
+    const stdmode_t timings_2160p60[] = {STDMODE_2880x2160_60, STDMODE_2880x2160_60_MB};
 
     // {50Hz, 60Hz, 100Hz, 120Hz} id array for each output resolution
     const stdmode_t pm_scl_map_dfp[][4] = {{-1, STDMODE_480p, -1, -1},
@@ -319,7 +318,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60, -1, -1},
                                          {STDMODE_1920x1440_50, STDMODE_1920x1440_60, -1, -1},
                                          {STDMODE_2560x1440_50, STDMODE_2560x1440_60, -1, -1},
-                                         {STDMODE_2880x2160_50, STDMODE_2880x2160_60, -1, -1}};
+                                         {STDMODE_2880x2160_50, timings_2160p60[cc->timing_2160p60], -1, -1}};
 
     const stdmode_t pm_scl_map_crt[][4] = {{-1, STDMODE_240p_CRT, STDMODE_240p_CRT, STDMODE_240p_CRT},
                                          {-1, STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT},
@@ -556,13 +555,14 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     int32_t v_linediff;
     int16_t x_offset_i=0, y_offset_i=0;
     uint32_t in_interlace_mult, out_interlace_mult, vtotal_ref;
+    const stdmode_t timings_2160p60[] = {STDMODE_2880x2160_60, STDMODE_2880x2160_60_MB};
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
     const ad_mode_t pm_ad_240p_map[] = {{STDMODE_240p_CRT, 0}, {STDMODE_480p, 1}, {STDMODE_720p_60, 2}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3}, {STDMODE_1080p_60, 4},
-                                        {STDMODE_1600x1200_60, 4}, {STDMODE_1920x1200_60, 4}, {STDMODE_1920x1440_60, 5}, {STDMODE_2560x1440_60, 5}};
+                                        {STDMODE_1600x1200_60, 4}, {STDMODE_1920x1200_60, 4}, {STDMODE_1920x1440_60, 5}, {STDMODE_2560x1440_60, 5}, {timings_2160p60[cc->timing_2160p60], 8}};
     const ad_mode_t pm_ad_288p_map[] = {{STDMODE_288p_CRT, 0}, {STDMODE_576p, 1}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3},
-                                        {STDMODE_1920x1200_50, 3}, {STDMODE_1920x1440_50, 4}, {STDMODE_2560x1440_50, 4}};
+                                        {STDMODE_1920x1200_50, 3}, {STDMODE_1920x1440_50, 4}, {STDMODE_2560x1440_50, 4}, {timings_2160p60[cc->timing_2160p60], 6}};
     const ad_mode_t pm_ad_384p_map[] = {{STDMODE_720p_60, 1}, {STDMODE_1024x768_60, 1}, {STDMODE_1080p_60, 2},
                                         {STDMODE_1600x1200_60, 2}, {STDMODE_1920x1200_60, 2}, {STDMODE_1920x1440_60, 3}, {STDMODE_2560x1440_60, 3}};
     const ad_mode_t pm_ad_480i_map[] = {{STDMODE_480i, 0}, {STDMODE_240p_CRT, 0}, {STDMODE_480p, 1}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3},
@@ -636,7 +636,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
     // Copy default sampling preset timings to output mode if no group found
     if (vm_in->group == GROUP_NONE) {
-        strncpy(vm_out->name, smp_presets_default[smp_cur].name, 16);
+        strlcpy(vm_out->name, smp_presets_default[smp_cur].name, sizeof(vm_out->name));
         memcpy(&vm_out->timings, &smp_presets_default[smp_cur].timings_i, sizeof(sync_timings_t));
         vm_out->ar = smp_presets_default[smp_cur].ar;
         vm_out->type = smp_presets_default[smp_cur].type;
@@ -687,6 +687,9 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
             vm_conf->x_rpt = 1;
         break;
     case STDMODE_1280x1024_60:
+    case STDMODE_2880x2160_50:
+    case STDMODE_2880x2160_60:
+    case STDMODE_2880x2160_60_MB:
         if (vm_in->timings.h_active <= 284)
             vm_conf->x_rpt = 4 - cc->ar_256col;
         else if (vm_in->timings.h_active <= 366)
@@ -883,7 +886,7 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
         }
     }
 
-    if (mindiff_lines >= 110)
+    if (mindiff_lines >= 130)
         return -1;
 
     mode_preset = &video_modes_plm[mindiff_id];
@@ -911,7 +914,7 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
     if (!vm_in->vic)
         vm_in->vic = mode_preset->vic;
     if (vm_in->name[0] == 0)
-        strncpy(vm_in->name, mode_preset->name, 16);
+        strlcpy(vm_in->name, mode_preset->name, sizeof(vm_in->name));
 
     memcpy(vm_out, vm_in, sizeof(mode_data_t));
     vm_out->vic = HDMI_Unknown;
@@ -1046,7 +1049,7 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
             vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
             break;
         case MODE_L3_240x360:
-            vm_conf->x_rpt = vm_conf->h_skip = 6;
+            vm_conf->x_rpt = vm_conf->h_skip = 7;
             vmode_hv_mult(vm_out, VM_OUT_XMULT, VM_OUT_YMULT);
             break;
         default:
@@ -1067,8 +1070,16 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
     else if (mindiff_lm & (MODE_L3_256_COL|MODE_L6_256_COL))
         vm_conf->x_rpt = cc->ar_256col ? 2 : 3;
 
-    if (mindiff_lm == MODE_L3_320_COL)
-        vm_conf->x_rpt = 2;
+    if (mindiff_lm & (MODE_L3_320_COL|MODE_L2_240x360))
+        vm_conf->x_rpt--;
+    else if (mindiff_lm & MODE_L3_240x360)
+        vm_conf->x_rpt -= 2;
+
+    if (mindiff_lm == MODE_L2_240x360) {
+        vm_out->timings.h_active += 80;
+        vm_out->timings.h_backporch -= 40;
+    }
+
 
     // Force TX pixel-repeat for high bandwidth modes
     if (((mindiff_lm == MODE_L5_GEN_4_3) && (mode_preset->group == GROUP_288P)) || (mindiff_lm >= MODE_L6_GEN_4_3))

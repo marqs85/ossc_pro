@@ -131,8 +131,8 @@ typedef enum {
     STDMODE_1080p_60,
     STDMODE_1080p_100,
     STDMODE_1080p_120,
-    STDMODE_1080p_120_RB2,
     STDMODE_1080p_120_MB,
+    STDMODE_1080p_120_CEA,
     STDMODE_1080p_120_CEA_PR2,
     STDMODE_1600x1200_60,
     STDMODE_1920x1200_50,
@@ -143,6 +143,7 @@ typedef enum {
     STDMODE_2560x1440_60,
     STDMODE_2880x2160_50,
     STDMODE_2880x2160_60,
+    STDMODE_2880x2160_60_MB,
 } stdmode_t;
 
 typedef enum {
@@ -203,7 +204,7 @@ typedef enum {
 } gen_width_mode_t;
 
 #define NUM_VIDEO_GROUPS (GROUP_1080P+1)
-#define NUM_VIDEO_MODES  (STDMODE_2880x2160_60+1)
+#define NUM_VIDEO_MODES  (STDMODE_2880x2160_60_MB+1)
 
 typedef struct {
     stdmode_t stdmode_id;

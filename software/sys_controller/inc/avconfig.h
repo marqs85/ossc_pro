@@ -134,10 +134,11 @@ typedef struct {
     uint8_t sm_scl_480i_576i;
     uint8_t sm_scl_480p;
     uint8_t sm_scl_576p;
-    uint8_t timing_1080p120;
 #endif
     /* Common mode options */
     uint8_t oper_mode;
+    uint8_t timing_1080p120;
+    uint8_t timing_2160p60;
 
     /* Postprocessing settings */
     uint8_t sl_mode;
@@ -201,6 +202,7 @@ typedef struct {
 } __attribute__((packed)) avconfig_t;
 
 avconfig_t* get_current_avconfig();
+avconfig_t* get_target_avconfig();
 status_t update_avconfig();
 int set_default_profile(int update_cc);
 int reset_profile();

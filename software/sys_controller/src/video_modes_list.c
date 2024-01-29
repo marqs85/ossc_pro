@@ -41,7 +41,7 @@ const mode_data_t video_modes_plm_default[] = {
     { "288p",          HDMI_288p50,      { 720,  288,   5008,   864, 0,  312,   69, 19,   63, 3,  0},  0,  {{ 0,  0}},  VIDEO_SDTV,               GROUP_288P,   (MODE_PT | MODE_L2),                                        0, 0 },
     /* 360p: GBI */
     { "480x360",       HDMI_Unknown,     { 480,  360,   6000,   600, 0,  375,   63, 10,   38, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_PT | MODE_L2),                                        0, 0 },
-    { "240x360",       HDMI_Unknown,     { 256,  360,   6000,   300, 0,  375,   24, 10,   18, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_L2_240x360 | MODE_L3_240x360),                        0, 0 },
+    { "240x360",       HDMI_Unknown,     { 240,  360,   6000,   300, 0,  375,   32, 10,   18, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_L2_240x360 | MODE_L3_240x360),                        0, 0 },
     /* 384p: Sega Model 2 */
     { "384p",          HDMI_Unknown,     { 496,  384,   5500,   640, 0,  423,   50, 29,   62, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_PT | MODE_L2),                                        0, 0 },
     /* 400p line3x */
@@ -130,8 +130,8 @@ const mode_data_t video_modes_default[] = {
     { "1080p_100",     HDMI_Unknown,     {1920, 1080,  10000,  2080, 0, 1133,   80, 45,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120",     HDMI_Unknown,     {1920, 1080,  12000,  2080, 0, 1144,   80, 56,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     /* 1080p 120Hz alternative modes */
-    { "1080p_120_RB2", HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1144,   40,  6,   32, 8,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_MB",  HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1086,   40,  1,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_120_CEA", HDMI_Unknown,     {1920, 1080,  12000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_PR2", HDMI_Unknown,     { 960, 1080,  12000,  1100, 0, 1125,   74, 36,   22, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_2X, TX_1X },
     /* VESA UXGA mode */
     { "1600x1200_60",  HDMI_Unknown,     {1600, 1200,   6000,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
@@ -147,6 +147,8 @@ const mode_data_t video_modes_default[] = {
     /* 2880x2160 (CVT-RB with PR2) */
     { "2880x2160_50",  HDMI_Unknown,     {1440, 2160,   5000,  1520, 0, 2211,   40, 44,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
     { "2880x2160_60",  HDMI_Unknown,     {1440, 2160,   6000,  1520, 0, 2222,   40, 55,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
+    /* 2880x2160 (Min. blank with PR2) */
+    { "2880x2160_MB",  HDMI_Unknown,     {1440, 2160,   6000,  1508, 0, 2166,   20,  2,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
 };
 
 /* Sampling presets for Adaptive LM and Scaler */
@@ -164,8 +166,8 @@ const smp_preset_t smp_presets_default[] = {
     { "Gen. 704x288",   SM_GEN_4_3,        { 704,  288,      0,   864, 0,  312,   77, 19,   63, 3,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
     { "Gen. 1536x288",  SM_GEN_4_3,        {1536,  288,      0,  1872, 0,  312,  150, 19,  136, 3,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
     { "Gen. 1920x288",  SM_GEN_4_3,        {1920,  288,      0,  2340, 0,  312,  187, 19,  171, 3,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
-    /* Generic 384p presets */
-    { "Gen. 1024x384",  SM_GEN_4_3,        {1024,  384,      0,  1280, 0,  429,  91,  34,  137, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
+    /* Generic 400p presets */
+    { "Gen. 1024x400",  SM_GEN_4_3,        {1024,  400,      0,  1280, 0,  429,  91,  34,  137, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     { "Gen. 1600x400",  SM_GEN_4_3,        {1600,  400,      0,  2000, 0,  429,  142, 34,  213, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     { "Gen. 1920x400",  SM_GEN_4_3,        {1920,  400,      0,  2400, 0,  429,  171, 34,  255, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     /* Generic 480i presets */
@@ -208,6 +210,8 @@ const smp_preset_t smp_presets_default[] = {
     /* DTV 1080p */
     { "DTV 1080p_50",   SM_OPT_PC_HDTV,    {1920, 1080,   5500,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080P },
     { "DTV 1080p_60",   SM_OPT_PC_HDTV,    {1920, 1080,      0,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080P },
+    /* EUREKA 1250/50 */
+    { "DTV 1152i_50",   SM_OPT_PC_HDTV,    {1920,  576,   5500,  2304, 0, 1250,  192, 39,   64, 5,  1},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080I},
 
     /* 640x350@70Hz, VGA Mode 0*,1*,2*,3*,F,10 */
     { "PC 640x350_70",  SM_OPT_VGA_640x350, { 640,  350,   7500,   800, 0,  449,   48, 59,   96, 2,  0},  0,  0,  { 4,  3},  VIDEO_PC,  GROUP_384P },
@@ -263,7 +267,7 @@ const smp_preset_t smp_presets_default[] = {
     /* Neo Geo */
     { "NeoGeo 320x224", SM_OPT_NG_320COL,  { 320,  224,      0,   384, 0,  264,   28, 21,   29, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     /* GBI */
-    { "GBI 240x360",    SM_OPT_GBI_240COL, { 240,  360,      0,   300, 0,  375,   24, 10,   18, 3,  0},  1,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_384P },
+    { "GBI 240x360",    SM_OPT_GBI_240COL, { 240,  360,      0,   300, 0,  375,   32, 10,   18, 3,  0},  1,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_384P },
     /* DC/PS2/GC 640col AR-correct modes */
     { "DC 640x480i",    SM_OPT_DC_640COL,  { 640,  240,      0,   858, 0,  525,   95, 15,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
     { "DC 640x480",     SM_OPT_DC_640COL,  { 640,  480,      0,   858, 0,  525,   95, 30,   62, 6,  0},  0,  0,  {56, 45},  VIDEO_EDTV,  GROUP_480P },
@@ -277,7 +281,7 @@ const smp_preset_t smp_presets_default[] = {
 
     { "PC98 640x400",   SM_OPT_PC98_640COL,{ 640,  400,      0,   848, 0,  440,   80, 31,   64, 2,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_384P },
 
-    { "X68k 512x240",   SM_OPT_X68K_512COL,{ 512,  240,      0,   608, 0,  260,   48, 13,   32, 3,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_240P },
+    { "X68k 512x240",   SM_OPT_X68K_512COL,{ 512,  240,      0,   608, 0,  260,   48, 13,   32, 3,  0},  1,  0,  { 4,  3},  VIDEO_PC,    GROUP_240P },
     { "X68k 512x512",   SM_OPT_X68K_512COL,{ 512,  512,      0,   736, 0,  568,   96, 34,   80, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
     { "X68k 768x512",   SM_OPT_X68K_768COL,{ 768,  512,      0,  1104, 0,  568,  144, 34,  120, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
 };

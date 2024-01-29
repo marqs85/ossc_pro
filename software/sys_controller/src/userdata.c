@@ -42,8 +42,10 @@ extern settings_t ts;
 extern mode_data_t video_modes_plm[];
 extern mode_data_t video_modes[];
 extern smp_preset_t smp_presets[];
+extern sync_timings_t hdmi_timings[NUM_VIDEO_GROUPS];
+extern uint8_t update_cur_vm;
 
-char target_profile_name[USERDATA_NAME_LEN+1];
+char target_profile_name[USERDATA_NAME_LEN+1], cur_profile_name[USERDATA_NAME_LEN+1];
 
 const ude_item_map ude_initcfg_items[] = {
     UDE_ITEM(0, 58, rc_keymap),
@@ -58,9 +60,10 @@ const ude_item_map ude_initcfg_items[] = {
 };
 
 const ude_item_map ude_profile_items[] = {
-    {{0, 67, sizeof(video_modes_plm_default)}, video_modes_plm},
-    {{1, 70, sizeof(video_modes_default)}, video_modes},
-    {{2, 70, sizeof(smp_presets_default)}, smp_presets},
+    {{0, 72, sizeof(video_modes_plm_default)}, video_modes_plm},
+    {{1, 72, sizeof(video_modes_default)}, video_modes},
+    {{2, 72, sizeof(smp_presets_default)}, smp_presets},
+    UDE_ITEM(86, 72, hdmi_timings),
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -84,8 +87,8 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(22, 58, tc.pm_480i),
     UDE_ITEM(23, 58, tc.pm_480p),
     UDE_ITEM(24, 58, tc.pm_1080i),
-    UDE_ITEM(25, 58, tc.pm_ad_240p),
-    UDE_ITEM(26, 58, tc.pm_ad_288p),
+    UDE_ITEM(25, 72, tc.pm_ad_240p),
+    UDE_ITEM(26, 72, tc.pm_ad_288p),
     UDE_ITEM(27, 58, tc.pm_ad_384p),
     UDE_ITEM(28, 58, tc.pm_ad_480i),
     UDE_ITEM(29, 64, tc.pm_ad_576i),
@@ -100,7 +103,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
-    UDE_ITEM(41, 68, tc.tp_mode),
+    UDE_ITEM(41, 72, tc.tp_mode),
     UDE_ITEM(42, 58, tc.lm_deint_mode),
     UDE_ITEM(43, 58, tc.nir_even_offset),
     UDE_ITEM(44, 58, tc.ar_256col),
@@ -161,14 +164,18 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(82, 64, tc.pm_ad_1080p),
     UDE_ITEM(83, 67, tc.l6_mode),
     UDE_ITEM(84, 68, tc.shmask_mode),
-    UDE_ITEM(85, 69, tc.timing_1080p120),
+    UDE_ITEM(85, 72, tc.timing_1080p120),
+    // 86 reserved for hdmi_timings
+    UDE_ITEM(87, 72, tc.timing_2160p60),
 };
 
 int write_userdata(uint8_t entry) {
     ude_hdr hdr;
+    FIL name_file;
+    char p_filename[14];
     const ude_item_map *target_map;
     uint32_t flash_addr, bytes_written;
-    int i;
+    int i=0;
 
     if (entry > MAX_USERDATA_ENTRY) {
         printf("invalid entry\n");
@@ -176,7 +183,7 @@ int write_userdata(uint8_t entry) {
     }
 
     memset(&hdr, 0x00, sizeof(ude_hdr));
-    strncpy(hdr.userdata_key, "USRDATA", 8);
+    strlcpy(hdr.userdata_key, "USRDATA", 8);
     hdr.type = (entry > MAX_PROFILE) ? UDE_INITCFG : UDE_PROFILE;
 
     if (hdr.type == UDE_INITCFG) {
@@ -188,10 +195,31 @@ int write_userdata(uint8_t entry) {
         target_map = ude_profile_items;
         hdr.num_items = sizeof(ude_profile_items)/sizeof(ude_item_map);
 
-        if (target_profile_name[0] == 0)
-            sniprintf(target_profile_name, USERDATA_NAME_LEN+1, "<used>");
+        // Check if name override file exists
+        sniprintf(p_filename, sizeof(p_filename), "prof_n_i.txt");
+        if (!file_open(&name_file, p_filename)) {
 
-        strncpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
+            for (i=0; i<=entry; i++) {
+                if (file_get_string(&name_file, target_profile_name, sizeof(target_profile_name)) == NULL)
+                    break;
+            }
+
+            file_close(&name_file);
+        }
+
+        if (i == entry+1) {
+            i = strlen(target_profile_name);
+            if ((i > 1) && (target_profile_name[i-2] == '\r') && (target_profile_name[i-1] == '\n'))
+                target_profile_name[i-2] = 0;
+            else if ((i > 0) && (target_profile_name[i-1] == '\n'))
+                target_profile_name[i-1] = 0;
+
+            strlcpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
+        } else if (cur_profile_name[0] == 0) {
+            sniprintf(hdr.name, USERDATA_NAME_LEN+1, "<used>");
+        } else {
+            strlcpy(hdr.name, cur_profile_name, USERDATA_NAME_LEN+1);
+        }
     }
 
     flash_addr = flashctrl_dev.flash_size - (16-entry)*FLASH_SECTOR_SIZE;
@@ -234,8 +262,6 @@ int read_userdata(uint8_t entry, int dry_run) {
         return -1;
     }
 
-    target_profile_name[0] = 0;
-
     flash_addr = flashctrl_dev.flash_size - (16-entry)*FLASH_SECTOR_SIZE;
     memcpy(&hdr, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr), sizeof(ude_hdr));
     bytes_read = sizeof(ude_hdr);
@@ -246,7 +272,7 @@ int read_userdata(uint8_t entry, int dry_run) {
         return 1;
     }
 
-    strncpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
+    strlcpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
     if (dry_run)
         return 0;
 
@@ -257,31 +283,35 @@ int read_userdata(uint8_t entry, int dry_run) {
         memcpy(&item_hdr, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read), sizeof(ude_item_hdr));
         bytes_read += sizeof(ude_item_hdr);
         for (j=0; j<target_map_items; j++) {
-            if (!memcmp(&item_hdr, &target_map[i].hdr, sizeof(ude_item_hdr))) {
-                memcpy(target_map[i].data, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read), item_hdr.data_size);
+            if (!memcmp(&item_hdr, &target_map[j].hdr, sizeof(ude_item_hdr))) {
+                memcpy(target_map[j].data, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read), item_hdr.data_size);
                 break;
             }
         }
         bytes_read += item_hdr.data_size;
     }
 
+    if (hdr.type == UDE_PROFILE)
+        update_cur_vm = 1;
+
+    strlcpy(cur_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
     printf("%lu bytes read from userdata entry %u\n", bytes_read, entry);
 
     return 0;
 }
 
 int write_userdata_sd(uint8_t entry) {
-    FIL p_file;
+    FIL p_file, name_file;
     ude_hdr hdr;
     const ude_item_map *target_map;
     unsigned int bytes_written, bytes_written_tot;
     char p_filename[14];
-    int i, retval=0;
+    int i=0, retval=0;
 
     if (entry == SD_INIT_CONFIG_SLOT)
-        sniprintf(p_filename, 14, "settings.bin");
+        sniprintf(p_filename, sizeof(p_filename), "settings.bin");
     else
-        sniprintf(p_filename, 14, "prof%.2u.bin", entry);
+        sniprintf(p_filename, sizeof(p_filename), "prof%.2u.bin", entry);
 
     if (entry > MAX_SD_USERDATA_ENTRY) {
         printf("invalid entry\n");
@@ -293,7 +323,7 @@ int write_userdata_sd(uint8_t entry) {
     }
 
     memset(&hdr, 0x00, sizeof(ude_hdr));
-    strncpy(hdr.userdata_key, "USRDATA", 8);
+    strlcpy(hdr.userdata_key, "USRDATA", 8);
     hdr.type = (entry > MAX_SD_PROFILE) ? UDE_INITCFG : UDE_PROFILE;
 
     if (hdr.type == UDE_INITCFG) {
@@ -305,10 +335,31 @@ int write_userdata_sd(uint8_t entry) {
         target_map = ude_profile_items;
         hdr.num_items = sizeof(ude_profile_items)/sizeof(ude_item_map);
 
-        if (target_profile_name[0] == 0)
-            sniprintf(target_profile_name, USERDATA_NAME_LEN+1, "<used>");
+        // Check if name override file exists
+        sniprintf(p_filename, sizeof(p_filename), "prof_n.txt");
+        if (!file_open(&name_file, p_filename)) {
 
-        strncpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
+            for (i=0; i<=entry; i++) {
+                if (file_get_string(&name_file, target_profile_name, sizeof(target_profile_name)) == NULL)
+                    break;
+            }
+
+            file_close(&name_file);
+        }
+
+        if (i == entry+1) {
+            i = strlen(target_profile_name);
+            if ((i > 1) && (target_profile_name[i-2] == '\r') && (target_profile_name[i-1] == '\n'))
+                target_profile_name[i-2] = 0;
+            else if ((i > 0) && (target_profile_name[i-1] == '\n'))
+                target_profile_name[i-1] = 0;
+
+            strlcpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
+        } else if (cur_profile_name[0] == 0) {
+            sniprintf(hdr.name, USERDATA_NAME_LEN+1, "<used>");
+        } else {
+            strlcpy(hdr.name, cur_profile_name, USERDATA_NAME_LEN+1);
+        }
     }
 
     // Write header
@@ -349,7 +400,6 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
     char p_filename[14];
     int i, j, target_map_items, retval=0;
 
-    target_profile_name[0] = 0;
     if (entry == SD_INIT_CONFIG_SLOT)
         sniprintf(p_filename, 14, "settings.bin");
     else
@@ -377,7 +427,7 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
         goto close_file;
     }
 
-    strncpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
+    strlcpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
     if (dry_run)
         goto close_file;
 
@@ -392,8 +442,8 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
         }
         bytes_read_tot += sizeof(ude_item_hdr);
         for (j=0; j<target_map_items; j++) {
-            if (!memcmp(&item_hdr, &target_map[i].hdr, sizeof(ude_item_hdr))) {
-                if ((f_read(&p_file, target_map[i].data, item_hdr.data_size, &bytes_read) != F_OK) || (bytes_read != item_hdr.data_size)) {
+            if (!memcmp(&item_hdr, &target_map[j].hdr, sizeof(ude_item_hdr))) {
+                if ((f_read(&p_file, target_map[j].data, item_hdr.data_size, &bytes_read) != F_OK) || (bytes_read != item_hdr.data_size)) {
                     printf("Item data read fail\n");
                     retval = -7;
                     goto close_file;
@@ -406,6 +456,10 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
             f_lseek(&p_file, bytes_read_tot);
     }
 
+    if (hdr.type == UDE_PROFILE)
+        update_cur_vm = 1;
+
+    strlcpy(cur_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
     printf("%u bytes read from userdata entry %u\n", bytes_read_tot, entry);
 
 close_file:

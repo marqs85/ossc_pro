@@ -45,6 +45,7 @@ const avconfig_t tc_default = {
     .pm_ad_480i = 5,
     .pm_ad_576i = 4,
     .pm_ad_480p = 5,
+    .pm_ad_576p = 4,
     .pm_ad_1080i = 1,
     .sl_altern = 1,
     .lm_mode = 1,
@@ -77,6 +78,10 @@ const HDMI_i2s_fs_t audio_fmt_iec_map[] = {IEC60958_FS_48KHZ, IEC60958_FS_96KHZ,
 
 avconfig_t* get_current_avconfig() {
     return &cc;
+}
+
+avconfig_t* get_target_avconfig() {
+    return &tc;
 }
 
 status_t update_avconfig() {
