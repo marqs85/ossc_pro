@@ -43,12 +43,14 @@ extern isl51002_dev isl_dev;
 #ifndef DExx_FW
 extern adv761x_dev advrx_dev;
 #endif
+extern adv7280a_dev advsdp_dev;
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
 extern mode_data_t video_modes[];
 extern mode_data_t vmode_in;
 extern smp_preset_t smp_presets[], smp_presets_default[];
 extern sync_timings_t hdmi_timings[];
+extern sync_timings_t sdp_timings[];
 extern uint8_t update_cur_vm;
 extern oper_mode_t oper_mode;
 extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
@@ -113,7 +115,7 @@ const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr
 static const char *audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz" };
 static const char *audio_src_desc[] = { "AV1 (analog)", "SPDIF" };
 #else
-const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4" };
+const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4", "EXP_Svideo", "EXP_CVBS", "EXP_RF" };
 static const char *audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz", "24bit/192kHz" };
 static const char *audio_src_desc[] = { "AV1 (analog)", "AV2 (analog)", "AV3 (analog)", "SPDIF", "AV4 (digital)" };
 #endif
@@ -152,6 +154,7 @@ static const char *timing_2160p60_desc[] = { "CVT-RB PR2x", "Min. blank PR2x" };
 static const char *exp_sel_desc[] = { "Auto", "Off", "Extra AV out", "Legacy AV in", "UVC bridge" };
 static const char *extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB" };
 static const char *hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
+static const char *sdp_timings_groups[] = { "-", "SDP 240p", "SDP 288p", "-", "SDP 480i", "SDP 576i", "-", "-", "-", "-", "-" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -185,6 +188,8 @@ static void smp_display_name(uint8_t v) {
 #ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active)
         strlcpy(menu_row2, hdmi_timings_groups[v % NUM_VIDEO_GROUPS], US2066_ROW_LEN+1);
+    else if (advsdp_dev.powered_on && advsdp_dev.sync_active)
+        strlcpy(menu_row2, sdp_timings_groups[v % NUM_VIDEO_GROUPS], US2066_ROW_LEN+1);
     else
 #endif
         strlcpy(menu_row2, smp_presets[v].name, US2066_ROW_LEN+1);
@@ -639,9 +644,9 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
     static const char *sr_step_str[] = {"1", "10", "0.05"};
 
 #ifndef DExx_FW
-    if (advrx_dev.powered_on && advrx_dev.sync_active) {
+    if ((advrx_dev.powered_on && advrx_dev.sync_active) || (advsdp_dev.powered_on && advsdp_dev.sync_active)) {
         sniprintf(menu_row1, US2066_ROW_LEN+1, "Not applicable");
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "for HDMI");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "for HDMI/EXT");
         ui_disp_menu(1);
 
         return;
@@ -759,6 +764,9 @@ void cstm_size(menucode_id code, int setup_disp) {
     if (advrx_dev.powered_on && advrx_dev.sync_active) {
         st = active_mode ? &vmode_in.timings : &hdmi_timings[dtmg_edit];
         mode_name = hdmi_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
+    } else if (advsdp_dev.powered_on && advsdp_dev.sync_active) {
+        st = active_mode ? &vmode_in.timings : &sdp_timings[dtmg_edit];
+        mode_name = sdp_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
     } else
 #endif
     {
@@ -855,6 +863,8 @@ void cstm_size(menucode_id code, int setup_disp) {
 #ifndef DExx_FW
         if (advrx_dev.powered_on && advrx_dev.sync_active)
             memcpy(&hdmi_timings[dtmg_edit], &vmode_in.timings, sizeof(sync_timings_t));
+        else if (advsdp_dev.powered_on && advsdp_dev.sync_active)
+            memcpy(&sdp_timings[dtmg_edit], &vmode_in.timings, sizeof(sync_timings_t));
 #endif
     }
 
@@ -886,6 +896,9 @@ void cstm_position(menucode_id code, int setup_disp) {
     if (advrx_dev.powered_on && advrx_dev.sync_active) {
         st = active_mode ? &vmode_in.timings : &hdmi_timings[dtmg_edit];
         mode_name = hdmi_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
+    } else if (advsdp_dev.powered_on && advsdp_dev.sync_active) {
+        st = active_mode ? &vmode_in.timings : &sdp_timings[dtmg_edit];
+        mode_name = sdp_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
     } else
 #endif
     {
@@ -958,6 +971,8 @@ void cstm_position(menucode_id code, int setup_disp) {
 #ifndef DExx_FW
         if (advrx_dev.powered_on && advrx_dev.sync_active)
             memcpy(&hdmi_timings[dtmg_edit], &vmode_in.timings, sizeof(sync_timings_t));
+        else if (advsdp_dev.powered_on && advsdp_dev.sync_active)
+            memcpy(&sdp_timings[dtmg_edit], &vmode_in.timings, sizeof(sync_timings_t));
 #endif
     }
 
@@ -1473,6 +1488,8 @@ static int smp_is_active() {
 #ifndef DExx_FW
     else if (advrx_dev.powered_on && advrx_dev.sync_active && (dtmg_cur == dtmg_edit))
         return 1;
+    else if (advsdp_dev.powered_on && advsdp_dev.sync_active && (dtmg_cur == dtmg_edit))
+        return 1;
 #endif
     else
         return 0;
@@ -1482,6 +1499,8 @@ static int smp_reset() {
 #ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active)
         memset(&hdmi_timings[dtmg_edit], 0, sizeof(sync_timings_t));
+    else if (advsdp_dev.powered_on && advsdp_dev.sync_active)
+        memset(&sdp_timings[dtmg_edit], 0, sizeof(sync_timings_t)); // INVA
     else
 #endif
         memcpy(&smp_presets[smp_edit], &smp_presets_default[smp_edit], sizeof(smp_preset_t));
