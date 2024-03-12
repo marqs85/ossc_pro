@@ -72,6 +72,7 @@ const avconfig_t tc_default = {
 #else
     .audio_src_map = {AUD_AV1_ANALOG, 0, 0, 0},
 #endif
+    .extra_av_out_mode = 1,
 };
 
 const HDMI_i2s_fs_t audio_fmt_iec_map[] = {IEC60958_FS_48KHZ, IEC60958_FS_96KHZ, IEC60958_FS_192KHZ};
@@ -93,12 +94,14 @@ status_t update_avconfig() {
     if (memcmp(&tc.sl_mode, &cc.sl_mode, offsetof(avconfig_t, tp_mode) - offsetof(avconfig_t, sl_mode)))
         status |= SC_CONFIG_CHANGE;
 
-    if (tc.tp_mode != cc.tp_mode)
+    if ((tc.tp_mode != cc.tp_mode) || (update_cur_vm == 1))
         status |= TP_MODE_CHANGE;
 
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)
         switch_audmux(tc.audmux_sel);
+    if ((tc.exp_sel != cc.exp_sel) || (tc.extra_av_out_mode != cc.extra_av_out_mode))
+        switch_expansion(tc.exp_sel, tc.extra_av_out_mode);
 #endif
 #ifdef INC_THS7353
     if (tc.syncmux_stc != cc.syncmux_stc)

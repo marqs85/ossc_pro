@@ -99,7 +99,6 @@ typedef struct {
     uint8_t fan_pwm;
     uint8_t led_pwm;
 #endif
-    uint8_t extra_av_out_mode;
 } settings_t;
 
 void ui_disp_menu(uint8_t osd_mode);
@@ -112,6 +111,8 @@ void set_syncmux_biasmode(uint8_t syncmux_stc);
 void switch_audmux(uint8_t audmux_sel);
 
 void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
+
+void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode);
 
 void set_dram_refresh(uint8_t enable);
 
