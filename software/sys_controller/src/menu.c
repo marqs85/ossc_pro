@@ -59,9 +59,9 @@ extern uint8_t profile_sel_menu, sd_profile_sel_menu;
 char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1], func_ret_status[US2066_ROW_LEN+1];
 extern char target_profile_name[USERDATA_NAME_LEN+1];
 
-uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_active, tc_v_synclen, tc_v_bporch, tc_v_active, tc_sampler_phase, tc_h_mask, tc_v_mask;;
+uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_active, tc_v_synclen, tc_v_bporch, tc_v_active, tc_sampler_phase, tc_h_mask, tc_v_mask, tc_v_total, tc_v_hz, tc_v_hz_frac;
 uint8_t menu_active;
-uint8_t vm_cur, vm_sel, vm_edit, smp_cur, smp_sel, smp_edit, dtmg_cur, dtmg_edit;
+uint8_t vm_cur, vm_sel, vm_edit, vm_out_cur, vm_out_sel, vm_out_edit, smp_cur, smp_sel, smp_edit, dtmg_cur, dtmg_edit;
 
 menunavi navi[MAX_MENU_DEPTH];
 uint8_t navlvl;
@@ -129,11 +129,12 @@ static const char *adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char *oper_mode_desc[] = { "Line multiplier", "Scaler" };
 static const char *lm_mode_desc[] = { "Pure", "Adaptive" };
 static const char *scl_out_mode_desc[] = { "720x480 (60Hz)", "720x480 WS (60Hz)", "720x576 (50Hz)", "720x576 WS (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080i (50-60Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)", "2880x2160 (50-60Hz)" };
-static const char *scl_crt_out_mode_desc[] = { "240p (60-120Hz)", "240p WS (60-120Hz)", "288p (50-100Hz)", "288p WS (50-100Hz)", "480i (60Hz)", "480i WS (60Hz)", "576i (50Hz)", "576i WS (50Hz)", "480p (60-120Hz)", "540p (50-60Hz)" };
+static const char *scl_crt_out_mode_desc[] = { "240p (60-120Hz)", "240p WS (60-120Hz)", "288p (50-100Hz)", "288p WS (50-100Hz)", "480i (60Hz)", "480i WS (60Hz)", "576i (50Hz)", "576i WS (50Hz)", "480p (60-120Hz)", "540p (50-60Hz)", "1024x768 (60-120Hz)", "1280x960 (60-120Hz)" };
 static const char *scl_out_type_desc[] = { "DFP", "CRT" };
 static const char *scl_framelock_desc[] = { "On", "On (2x source Hz)", "Off (source Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
 static const char *scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
 static const char *scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "Custom scaler1.txt", "Custom scaler2.txt" };
+static const char *scl_gen_sr_desc[] = { "Auto", "Lowest", "Highest" };
 #ifndef VIP_DIL_B
 #ifdef DEBUG
 static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Visualize motion" };
@@ -145,9 +146,10 @@ static const char *sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 5
 static const char *sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char *sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
 static const char *sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "X68k 512col", "X68k 768col" };
-static const char *sm_scl_576p_desc[] = { "Generic", "DTV 576p" };
+static const char *sm_scl_576p_desc[] = { "Generic", "DTV 576p", "GC 640col" };
 static const char *timing_1080p120_desc[] = { "CVT-RB", "Min. blank", "CEA-861", "CEA-861 PR2x" };
 static const char *timing_2160p60_desc[] = { "CVT-RB PR2x", "Min. blank PR2x" };
+static const char *exp_sel_desc[] = { "Auto", "Off", "Extra AV out", "Legacy AV in", "UVC bridge" };
 static const char *extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB" };
 static const char *hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
 
@@ -213,6 +215,7 @@ static void pixelderep_mode_disp(uint8_t v) {
 #endif
 
 static arg_info_t vm_arg_info = {&vm_sel, 0, vm_plm_display_name};
+static arg_info_t vm_out_arg_info = {&vm_out_sel, 0, vm_display_name};
 static arg_info_t smp_arg_info = {&smp_sel, 0, smp_display_name};
 static const arg_info_t profile_arg_info = {&profile_sel_menu, MAX_PROFILE, profile_disp};
 static const arg_info_t sd_profile_arg_info = {&sd_profile_sel_menu, MAX_SD_PROFILE, sd_profile_disp};
@@ -230,6 +233,21 @@ MENU(menu_advtiming_plm, P99_PROTECT({
     { "H. border",                            OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_mask,    0, H_MASK_MAX, vm_tweak } } },
     { "V. border",                            OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_mask,    0, V_MASK_MAX, vm_tweak } } },
     { LNG("Sampling phase","ｻﾝﾌﾟﾘﾝｸﾞﾌｪｰｽﾞ"),    OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_sampler_phase,          0, SAMPLER_PHASE_MAX, vm_tweak } } },
+}))
+
+MENU(menu_advtiming_out, P99_PROTECT({
+    { "H. total",                             OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_samplerate, H_TOTAL_MIN, H_TOTAL_MAX, vm_out_tweak } } },
+    { LNG("H. synclen","H. ﾄﾞｳｷﾅｶﾞｻ"),         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_synclen,  H_SYNCLEN_MIN, H_SYNCLEN_MAX, vm_out_tweak } } },
+    { LNG("H. backporch","H. ﾊﾞｯｸﾎﾟｰﾁ"),       OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_bporch,    H_BPORCH_MIN, H_BPORCH_MAX, vm_out_tweak } } },
+    { LNG("H. active","H. ｱｸﾃｨﾌﾞ"),            OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_active,    H_ACTIVE_MIN, H_ACTIVE_MAX, vm_out_tweak } } },
+    { "V. total",                             OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_total,     V_TOTAL_MIN, V_TOTAL_MAX, vm_out_tweak } } },
+    { LNG("V. synclen","V. ﾄﾞｳｷﾅｶﾞｻ"),         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_synclen,  V_SYNCLEN_MIN, V_SYNCLEN_MAX, vm_out_tweak } } },
+    { LNG("V. backporch","V. ﾊﾞｯｸﾎﾟｰﾁ"),       OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_bporch,    V_BPORCH_MIN, V_BPORCH_MAX, vm_out_tweak } } },
+    { LNG("V. active","V. ｱｸﾃｨﾌﾞ"),            OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_active,    V_ACTIVE_MIN, V_ACTIVE_MAX, vm_out_tweak } } },
+    { "TP rfr rate",                          OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_hz,        40, 144, vm_out_tweak } } },
+    { "TP rfr rate frac",                     OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_hz_frac,   0, 99, vm_out_tweak } } },
+    { "Display AR H",                         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_mask,    1, 255, vm_out_tweak } } },
+    { "Display AR V",                         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_mask,    1, 255, vm_out_tweak } } },
 }))
 
 MENU(menu_advtiming, P99_PROTECT({
@@ -365,6 +383,7 @@ MENU(menu_scaler, P99_PROTECT({
     { "Visualize motion",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_dil_visualize_motion,     OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 #endif
 #endif
+    { "Gen. samplerate",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_gen_sr,       OPT_WRAP, SETTING_ITEM_LIST(scl_gen_sr_desc) } } },
     { LNG("240p/288p mode","240p/288pﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_240p_288p, OPT_WRAP, SETTING_ITEM_LIST(sm_scl_240p_288p_desc) } } },
     { LNG("350-400p mode","350-400pﾓｰﾄﾞ"),      OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_384p,      OPT_WRAP, SETTING_ITEM_LIST(sm_scl_384p_desc) } } },
     { LNG("480i/576i mode","480i/576iﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_480i_576i, OPT_WRAP, SETTING_ITEM_LIST(sm_scl_480i_576i_desc) } } },
@@ -383,8 +402,8 @@ MENU(menu_output, P99_PROTECT({
 #ifndef DExx_FW
     { "1080p120 preset",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_1080p120,  OPT_WRAP, SETTING_ITEM_LIST(timing_1080p120_desc) } } },
     { "2160p60 preset",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_2160p60,   OPT_WRAP, SETTING_ITEM_LIST(timing_2160p60_desc) } } },
-    { "Extra AV out",                          OPT_AVCONFIG_SELECTION, { .sel = { &ts.extra_av_out_mode,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_mode_desc) } } },
 #endif
+    { "Adv. disp timing",                      OPT_SUBMENU,            { .sub = { &menu_advtiming_out, &vm_out_arg_info, vm_out_select } } },
 }))
 
 MENU(menu_scanlines, P99_PROTECT({
@@ -424,6 +443,13 @@ MENU(menu_audio, P99_PROTECT({
 #endif
 }))
 
+#ifndef DExx_FW
+MENU(menu_exp, P99_PROTECT({
+    { "Expansion select",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.exp_sel,  OPT_NOWRAP, SETTING_ITEM_LIST(exp_sel_desc) } } },
+    { "Extra AV out mode",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.extra_av_out_mode,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_mode_desc) } } },
+}))
+#endif
+
 
 MENU(menu_settings, P99_PROTECT({
     { LNG("Initial input","ｼｮｷﾆｭｳﾘｮｸ"),          OPT_AVCONFIG_SELECTION, { .sel = { &ts.default_avinput,       OPT_WRAP, SETTING_ITEM_LIST(avinput_str) } } },
@@ -452,7 +478,6 @@ MENU(menu_settings, P99_PROTECT({
 #endif
 }))
 
-
 MENU(menu_main, P99_PROTECT({
     { "Input select",                          OPT_AVCONFIG_SELECTION, { .sel = { &target_avinput,   OPT_WRAP,   SETTING_ONLY_LIST(avinput_str) } } },
     { "AV1-3 video in opt.",                    OPT_SUBMENU,            { .sub = { &menu_isl_video_opt, NULL, NULL } } },
@@ -468,6 +493,9 @@ MENU(menu_main, P99_PROTECT({
     { LNG("Audio opt.","ｵｰﾃﾞｨｵｵﾌﾟｼｮﾝ"),         OPT_SUBMENU,             { .sub = { &menu_audio, NULL, NULL } } },
     { LNG("Scanline opt.","ｽｷｬﾝﾗｲﾝｵﾌﾟｼｮﾝ"),     OPT_SUBMENU,            { .sub = { &menu_scanlines, NULL, NULL } } },
     { LNG("Post-proc.","ｱﾄｼｮﾘ"),                OPT_SUBMENU,            { .sub = { &menu_postproc, NULL, NULL } } },
+#ifndef DExx_FW
+    { "Expansion opt.",                         OPT_SUBMENU,            { .sub = { &menu_exp, NULL, NULL } } },
+#endif
     { "Settings",                               OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
 
@@ -487,6 +515,7 @@ void init_menu() {
 
     // Set max ids for adv timing
     vm_arg_info.max = num_video_modes_plm-1;
+    vm_out_arg_info.max = num_video_modes-1;
     smp_arg_info.max = num_smp_presets-1;
 
     // Setup OSD
@@ -771,8 +800,8 @@ void cstm_size(menucode_id code, int setup_disp) {
         else if ((int)st->v_active+adj > V_ACTIVE_MAX)
             adj = V_ACTIVE_MAX - st->v_active;
 
-        if ((int)st->v_backporch+adj+st->v_synclen+st->v_active > st->v_total)
-            adj = 0;
+        if ((int)st->v_backporch+(adj/2)+st->v_synclen+st->v_active > st->v_total)
+            adj = 2*(st->v_total-(int)st->v_backporch-st->v_synclen-st->v_active);
 
         if ((adj == -1) || (adj == 1)) {
             if (((int)st->v_backporch - adj >= V_BPORCH_MIN) && ((int)st->v_backporch - adj <= V_BPORCH_MAX))
@@ -1005,6 +1034,7 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%s (%s)", menu_profile_load.name, ((page == 0) ? "int" : "SD"));
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "%s (%s)", menu_profile_load.name, ((page == 0) ? "int" : "SD"));
         for (i=0; i<OSD_CHAR_COLS; i++)
             osd->osd_array.data[1][0][i] = '-';
 
@@ -1025,6 +1055,15 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
     }
 
     osd->osd_row_color.mask = (1<<(nav+2));
+
+    if (page == 0)
+        retval = read_userdata(nav, 1);
+    else
+        retval = read_userdata_sd((page-1)*20+nav, 1);
+
+    sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
+
+    ui_disp_menu(0);
 }
 
 void cstm_listview(menucode_id code, int setup_disp) {
@@ -1325,7 +1364,26 @@ static void vm_select() {
     tc_v_synclen = (uint16_t)video_modes_plm[vm_edit].timings.v_synclen;
     tc_v_bporch = video_modes_plm[vm_edit].timings.v_backporch;
     tc_v_active = video_modes_plm[vm_edit].timings.v_active;
+    tc_h_mask = (uint16_t)video_modes_plm[vm_edit].mask.h;
+    tc_v_mask = (uint16_t)video_modes_plm[vm_edit].mask.v;
     tc_sampler_phase = video_modes_plm[vm_edit].sampler_phase;
+}
+
+static void vm_out_select() {
+    vm_out_edit = vm_out_sel;
+    tc_h_samplerate = video_modes[vm_out_edit].timings.h_total;
+    tc_h_synclen = (uint16_t)video_modes[vm_out_edit].timings.h_synclen;
+    tc_h_bporch = video_modes[vm_out_edit].timings.h_backporch;
+    tc_h_active = video_modes[vm_out_edit].timings.h_active;
+    tc_v_synclen = (uint16_t)video_modes[vm_out_edit].timings.v_synclen;
+    tc_v_bporch = video_modes[vm_out_edit].timings.v_backporch;
+    tc_v_active = video_modes[vm_out_edit].timings.v_active;
+    tc_v_total = video_modes[vm_out_edit].timings.v_total;
+    tc_v_hz = video_modes[vm_out_edit].timings.v_hz_x100 / 100;
+    tc_v_hz_frac = video_modes[vm_out_edit].timings.v_hz_x100 % 100;
+    // Reuse variables with different names
+    tc_h_mask = (uint16_t)video_modes[vm_out_edit].ar.h;
+    tc_v_mask = (uint16_t)video_modes[vm_out_edit].ar.v;
 }
 
 static void vm_tweak(uint16_t *v) {
@@ -1362,6 +1420,41 @@ static void vm_tweak(uint16_t *v) {
         sampler_phase_disp(menu_row2, US2066_ROW_LEN+1, *v, active_mode);
     else if ((v == &tc_h_samplerate) || (v == &tc_h_samplerate_adj))
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%.2u", video_modes_plm[vm_edit].timings.h_total, video_modes_plm[vm_edit].timings.h_total_adj*5);
+    else
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", *v);
+}
+
+static void vm_out_tweak(uint16_t *v) {
+    int active_mode = (vm_out_cur == vm_out_edit);
+
+    if (active_mode) {
+        if ((video_modes[vm_out_cur].timings.h_total != tc_h_samplerate) ||
+            (video_modes[vm_out_cur].timings.h_synclen != (uint8_t)tc_h_synclen) ||
+            (video_modes[vm_out_cur].timings.h_backporch != tc_h_bporch) ||
+            (video_modes[vm_out_cur].timings.h_active != tc_h_active) ||
+            (video_modes[vm_out_cur].timings.v_synclen != (uint8_t)tc_v_synclen) ||
+            (video_modes[vm_out_cur].timings.v_backporch != tc_v_bporch) ||
+            (video_modes[vm_out_cur].timings.v_active != tc_v_active) ||
+            (video_modes[vm_out_cur].timings.v_total != tc_v_total) ||
+            (video_modes[vm_out_cur].timings.v_hz_x100 != (tc_v_hz*100 + tc_v_hz_frac)) ||
+            (video_modes[vm_out_cur].ar.h != tc_h_mask) ||
+            (video_modes[vm_out_cur].ar.v != tc_v_mask))
+            update_cur_vm = 1;
+    }
+    video_modes[vm_out_edit].timings.h_total = tc_h_samplerate;
+    video_modes[vm_out_edit].timings.h_synclen = (uint8_t)tc_h_synclen;
+    video_modes[vm_out_edit].timings.h_backporch = tc_h_bporch;
+    video_modes[vm_out_edit].timings.h_active = tc_h_active;
+    video_modes[vm_out_edit].timings.v_synclen = (uint8_t)tc_v_synclen;
+    video_modes[vm_out_edit].timings.v_backporch = tc_v_bporch;
+    video_modes[vm_out_edit].timings.v_active = tc_v_active;
+    video_modes[vm_out_edit].timings.v_total = tc_v_total;
+    video_modes[vm_out_edit].timings.v_hz_x100 = (tc_v_hz*100 + tc_v_hz_frac);
+    video_modes[vm_out_edit].ar.h = tc_h_mask;
+    video_modes[vm_out_edit].ar.v = tc_v_mask;
+
+    if ((v == &tc_v_hz) || (v == &tc_v_hz_frac))
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%.2u", (video_modes[vm_out_edit].timings.v_hz_x100/100), (video_modes[vm_out_edit].timings.v_hz_x100%100));
     else
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", *v);
 }

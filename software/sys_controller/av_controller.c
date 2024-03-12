@@ -111,7 +111,6 @@ const settings_t ts_default = {
     .osd_status_timeout = 1,
     .fan_pwm = 0,
     .led_pwm = 5,
-    .extra_av_out_mode = 0,
 };
 
 isl51002_dev isl_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
@@ -159,7 +158,6 @@ pcm186x_dev pcm_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
 
 pcm514x_dev pcm_out_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                            .i2c_addr = PCM5142_BASE};
-uint8_t pcm_out_dev_avail;
 
 us2066_dev chardisp_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                            .i2c_addr = US2066_BASE};
@@ -184,6 +182,8 @@ uint8_t sys_powered_on;
 
 uint8_t sd_det, sd_det_prev;
 uint8_t sl_def_iv_x, sl_def_iv_y;
+
+uint8_t exp_det, pcm_out_dev_avail;
 
 int enable_isl, enable_hdmirx, enable_tp;
 oper_mode_t oper_mode;
@@ -910,6 +910,14 @@ int init_hw()
     ret = pcm514x_init(&pcm_out_dev);
     pcm_out_dev_avail = (ret == 0);
 
+    // Auto-detect expansion
+    if (pcm_out_dev_avail)
+        exp_det = 1;
+    else
+        exp_det = 0;
+
+    switch_expansion(0, 1);
+
     // Init ADV7610
     adv761x_init(&advrx_dev);
 
@@ -1005,6 +1013,15 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
     }
 
     *aud_tx_fmt = (audsrc == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
+}
+
+void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode) {
+    sys_ctrl &= ~SCTRL_EXTRA_AV_O_MASK;
+
+    if (((exp_sel == 0) && (exp_det == 1)) || (exp_sel == 2))
+        sys_ctrl |= extra_av_out_mode<<SCTRL_EXTRA_AV_O_OFFS;
+
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 }
 
 void set_dram_refresh(uint8_t enable) {
@@ -1123,9 +1140,9 @@ void update_settings(int init_setup) {
             display_menu((rc_code_t)-1, (btn_code_t)-1);
         }
     }
-    if (init_setup || (ts.fan_pwm != cs.fan_pwm) || (ts.led_pwm != cs.led_pwm) || (ts.extra_av_out_mode != cs.extra_av_out_mode)) {
-        sys_ctrl &= ~(SCTRL_FAN_PWM_MASK|SCTRL_LED_PWM_MASK|SCTRL_EXTRA_AV_O_MASK);
-        sys_ctrl |= (ts.fan_pwm << SCTRL_FAN_PWM_OFFS) | (ts.led_pwm << SCTRL_LED_PWM_OFFS) | (ts.extra_av_out_mode << SCTRL_EXTRA_AV_O_OFFS);
+    if (init_setup || (ts.fan_pwm != cs.fan_pwm) || (ts.led_pwm != cs.led_pwm)) {
+        sys_ctrl &= ~(SCTRL_FAN_PWM_MASK|SCTRL_LED_PWM_MASK);
+        sys_ctrl |= (ts.fan_pwm << SCTRL_FAN_PWM_OFFS) | (ts.led_pwm << SCTRL_LED_PWM_OFFS);
         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     }
     if (init_setup)

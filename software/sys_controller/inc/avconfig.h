@@ -129,6 +129,7 @@ typedef struct {
     uint8_t scl_framelock;
     uint8_t scl_aspect;
     uint8_t scl_alg;
+    uint8_t scl_gen_sr;
     uint8_t sm_scl_240p_288p;
     uint8_t sm_scl_384p;
     uint8_t sm_scl_480i_576i;
@@ -183,6 +184,8 @@ typedef struct {
     uint8_t audio_fmt;
     uint8_t audmux_sel;
     audinput_t audio_src_map[4];
+    uint8_t exp_sel;
+    uint8_t extra_av_out_mode;
 #ifdef INC_THS7353
     uint8_t syncmux_stc;
 #endif

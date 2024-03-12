@@ -34,7 +34,7 @@
 
 #include "video_modes_list.c"
 
-extern uint8_t vm_cur, vm_sel, smp_cur, smp_sel, dtmg_cur;
+extern uint8_t vm_cur, vm_sel, vm_out_cur, vm_out_sel, smp_cur, smp_sel, dtmg_cur;
 
 const int num_video_modes_plm = sizeof(video_modes_plm_default)/sizeof(mode_data_t);
 const int num_video_modes = sizeof(video_modes_default)/sizeof(mode_data_t);
@@ -177,6 +177,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     smp_preset_t *smp_preset;
     const smp_preset_t *smp_preset_default;
     aspect_ratio_t gen_ar_target = {4, 3};
+    uint16_t v_hz_x100;
 
     // Force fixed preset for digital sources
     if (vm_in->timings.h_total) {
@@ -254,11 +255,14 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     else
         vm_in->ar = smp_preset->ar;
 
-    // write vm_in timings for digital sources
+    // write vm_in timings for digital sources (just preserve v_hz)
     if (vm_in->timings.h_total) {
+        v_hz_x100 = vm_in->timings.v_hz_x100;
+
         if ((hdmi_timings[vm_in->group].h_total == vm_in->timings.h_total) && (hdmi_timings[vm_in->group].v_total == vm_in->timings.v_total))
             memcpy(&vm_in->timings, &hdmi_timings[vm_in->group], sizeof(sync_timings_t));
 
+        vm_in->timings.v_hz_x100 = v_hz_x100;
         dtmg_cur = vm_in->group;
         smp_sel = vm_in->group;
 
@@ -329,7 +333,9 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_576i_CRT, -1, -1, -1},
                                          {STDMODE_576i_WS_CRT, -1, -1, -1},
                                          {-1, STDMODE_480p_60_CRT, STDMODE_480p_100_CRT, STDMODE_480p_120_CRT},
-                                         {STDMODE_540p_50_CRT, STDMODE_540p_60_CRT, -1, -1}};
+                                         {STDMODE_540p_50_CRT, STDMODE_540p_60_CRT, -1, -1},
+                                         {-1, STDMODE_1024x768_60, STDMODE_1024x768_60, STDMODE_1024x768_60},
+                                         {-1, STDMODE_1280x960_60, STDMODE_1280x960_60, STDMODE_1280x960_60}};
 
     const stdmode_t *pm_scl_map = cc->scl_out_type ? pm_scl_map_crt[cc->scl_crt_out_mode] : pm_scl_map_dfp[cc->scl_out_mode];
 
@@ -356,7 +362,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                      SM_OPT_N64_640COL,
                                      SM_OPT_DC_640COL};
     const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
-    const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_OPT_DTV576P};
+    const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_OPT_DTV576P, SM_OPT_DC_640COL};
 
     unsigned aspect_map[][2] = {{4, 3},
                                 {4, 3},
@@ -408,10 +414,15 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     }
 
     mode_preset = (mode_data_t*)&video_modes[pm_scl_map[mode_hz_index]];
+    vm_out_cur = vm_out_sel = pm_scl_map[mode_hz_index];
 
     // Force largest generic width for CRT output modes
     if (mode_preset->flags & MODE_CRT)
         gen_width_mode = GEN_WIDTH_LARGEST;
+
+    // Enable preferred generic for non-integer scale modes
+    if ((cc->scl_gen_sr != 0) && (cc->scl_alg != 1) && (cc->scl_alg != 2))
+        gen_width_mode = (cc->scl_gen_sr == 1) ? GEN_WIDTH_SMALLEST : GEN_WIDTH_LARGEST;
 
     // Calculate target active width for generic modes
     if (cc->scl_aspect < 4)
@@ -643,6 +654,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
         vm_out->group = GROUP_NONE;
     } else {
         memcpy(vm_out, &video_modes[ad_mode_list[vm_in->group].stdmode_id], sizeof(mode_data_t));
+        vm_out_cur = vm_out_sel = ad_mode_list[vm_in->group].stdmode_id;
     }
 
     vm_out->timings.v_hz_x100 = vm_in->timings.v_hz_x100;
@@ -1142,6 +1154,8 @@ int get_standard_mode(stdmode_t stdmode_id, mode_data_t *vm_in, mode_data_t *vm_
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
     memset(vm_in, 0, sizeof(mode_data_t));
     memcpy(vm_out, &video_modes[stdmode_id], sizeof(mode_data_t));
+
+    vm_out_cur = vm_out_sel = stdmode_id;
 
     return 0;
 }

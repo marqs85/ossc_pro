@@ -118,8 +118,9 @@ const mode_data_t video_modes_default[] = {
     /* CEA 720p 100/120Hz */
     { "720p_100",      HDMI_Unknown,     {1280,  720,  10000,  1980, 0,  750,  220, 20,   40, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_720P,   0,         TX_1X, TX_1X },
     { "720p_120",      HDMI_Unknown,     {1280,  720,  12000,  1650, 0,  750,  220, 20,   40, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_720P,   0,         TX_1X, TX_1X },
-    /* VESA XGA and SXGA modes */
+    /* VESA XGA, 1280x960 and SXGA modes */
     { "1024x768_60",   HDMI_Unknown,     {1024,  768,   6000,  1344, 0,  806,  160, 29,  136, 6,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
+    { "1280x960_60",   HDMI_Unknown,     {1280,  960,   6000,  1800, 0, 1000,  312, 36,  112, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     { "1280x1024_60",  HDMI_Unknown,     {1280, 1024,   6002,  1688, 0, 1066,  248, 38,  112, 3,  0},  0,  {{ 5,  4}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     /* CEA 1080i/p modes */
     { "1080i_50",      HDMI_1080i50,     {1920,  540,   5000,  2640, 0, 1125,  148, 15,   44, 5,  1},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  0,         TX_1X, TX_1X },
