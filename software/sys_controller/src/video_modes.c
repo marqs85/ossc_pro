@@ -480,12 +480,12 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     if ((cc->scl_alg == 1) || (cc->scl_alg == 2)) { // Integer
         // Integer scale incrementally in horizontal or vertical direction depending which results to more correct aspect ratio
         while (1) {
-            error_cur = ((100*int_scl_x*vm_in->timings.h_active*vm_out->timings.v_active)/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
+            error_cur = ((100*int_scl_x*vm_in->timings.h_active*(vm_out->timings.v_active<<vm_out->timings.interlaced))/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
                         ((100*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced)*vm_out->timings.h_active)/(aspect_map[cc->scl_aspect][1]*vm_out->ar.h));
-            error_x_inc = ((100*(int_scl_x+1)*vm_in->timings.h_active*vm_out->timings.v_active)/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
+            error_x_inc = ((100*(int_scl_x+1)*vm_in->timings.h_active*(vm_out->timings.v_active<<vm_out->timings.interlaced))/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
                           ((100*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced)*vm_out->timings.h_active)/(aspect_map[cc->scl_aspect][1]*vm_out->ar.h));
             error_y_inc = ((100*(int_scl_y+1)*(vm_in->timings.v_active<<vm_in->timings.interlaced)*vm_out->timings.h_active)/(aspect_map[cc->scl_aspect][1]*vm_out->ar.h)) -
-                          ((100*int_scl_x*vm_in->timings.h_active*vm_out->timings.v_active)/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v));
+                          ((100*int_scl_x*vm_in->timings.h_active*(vm_out->timings.v_active<<vm_out->timings.interlaced))/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v));
 
             // Up to 1/8 horizontally or vertically allowed to be cropped when overscanning enabled
             allow_x_inc = (cc->scl_alg == 2) ? (7*(int_scl_x+1)*vm_in->timings.h_active <= 8*vm_out->timings.h_active) : ((int_scl_x+1)*vm_in->timings.h_active <= vm_out->timings.h_active);
