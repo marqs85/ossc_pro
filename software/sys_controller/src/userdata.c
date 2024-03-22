@@ -99,7 +99,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(34, 67, tc.sm_ad_240p_288p),
     UDE_ITEM(35, 58, tc.sm_ad_384p),
     UDE_ITEM(36, 58, tc.sm_ad_480i_576i),
-    UDE_ITEM(37, 58, tc.sm_ad_480p),
+    UDE_ITEM(37, 74, tc.sm_ad_480p),
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
@@ -138,7 +138,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(69, 67, tc.sm_scl_240p_288p),
     UDE_ITEM(70, 58, tc.sm_scl_384p),
     UDE_ITEM(71, 58, tc.sm_scl_480i_576i),
-    UDE_ITEM(72, 60, tc.sm_scl_480p),
+    UDE_ITEM(72, 74, tc.sm_scl_480p),
     UDE_ITEM(73, 74, tc.sm_scl_576p),
 #endif
 #ifdef INC_THS7353

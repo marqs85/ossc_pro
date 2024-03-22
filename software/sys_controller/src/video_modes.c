@@ -361,7 +361,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                      SM_OPT_N64_640COL,
                                      SM_OPT_DC_640COL};
-    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
+    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_PSP_480COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_OPT_DTV576P, SM_OPT_DC_640COL};
 
     unsigned aspect_map[][2] = {{4, 3},
@@ -609,7 +609,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                      SM_OPT_N64_640COL,
                                      SM_OPT_DC_640COL};
-    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
+    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_PSP_480COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV576P, SM_OPT_DTV576P_WS};
 
     ad_mode_t ad_mode_list[] = { {-1, 0},                                   // GROUP_NONE
@@ -675,6 +675,10 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
     vm_conf->x_rpt = 0;
     vm_conf->y_rpt = ad_mode_list[vm_in->group].y_rpt;
+
+    // Double existing vertical multiply for PSP
+    if (target_sm_list[vm_in->group] == SM_OPT_PSP_480COL)
+        vm_conf->y_rpt = 2*(vm_conf->y_rpt+1)-1;
 
     // Calculate x_rpt for optimal modes based on output mode, sampling preset and y_rpt
     switch (ad_mode_list[vm_in->group].stdmode_id) {
@@ -744,6 +748,8 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
             vm_conf->x_rpt++;
         else if (target_sm_list[vm_in->group] == SM_OPT_GBI_240COL)
             vm_conf->x_rpt = 5;
+        else if (target_sm_list[vm_in->group] == SM_OPT_PSP_480COL)
+            vm_conf->x_rpt = 3;
         break;
     case STDMODE_1920x1440_50:
     case STDMODE_1920x1440_60:
@@ -766,6 +772,8 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
             vm_conf->x_rpt++;
         else if (target_sm_list[vm_in->group] == SM_OPT_GBI_240COL)
             vm_conf->x_rpt = 7;
+        else if (target_sm_list[vm_in->group] == SM_OPT_PSP_480COL)
+            vm_conf->x_rpt = 4;
         break;
     default:
         break;
