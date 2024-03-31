@@ -33,11 +33,11 @@
 #define SCTRL_EMIF_SWRESET_N    (1<<4)
 #define SCTRL_EMIF_POWERDN_REQ  (1<<5)
 #define SCTRL_EMIF_MPFE_RESET_N (1<<6)
-#define SCTRL_CAPTURE_SEL       (1<<7)
-#define SCTRL_ISL_HS_POL        (1<<8)
-#define SCTRL_ISL_VS_POL        (1<<9)
-#define SCTRL_ISL_VS_TYPE       (1<<10)
-#define SCTRL_AUDMUX_SEL        (1<<11)
+#define SCTRL_CAPTURE_SEL_OFFS  7
+#define SCTRL_CAPTURE_SEL_MASK  (0x3<<SCTRL_CAPTURE_SEL_OFFS)
+#define SCTRL_ISL_HS_POL        (1<<9)
+#define SCTRL_ISL_VS_POL        (1<<10)
+#define SCTRL_ISL_VS_TYPE       (1<<11)
 #define SCTRL_VGTP_ENABLE       (1<<12)
 #define SCTRL_CSC_ENABLE        (1<<13)
 #define SCTRL_FRAMELOCK         (1<<14)
@@ -50,6 +50,9 @@
 #define SCTRL_VIP_DIL_RESET_N   (1<<25)
 #define SCTRL_EXTRA_AV_O_OFFS   26
 #define SCTRL_EXTRA_AV_O_MASK   (0x3<<SCTRL_EXTRA_AV_O_OFFS)
+#define SCTRL_EXP_SEL_OFFS      28
+#define SCTRL_EXP_SEL_MASK      (0x3<<SCTRL_EXP_SEL_OFFS)
+#define SCTRL_AUDMUX_SEL        (1<<30)
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -58,6 +61,10 @@
 #define SSTAT_EMIF_POWERDN_ACK_BIT      3
 #define SSTAT_EMIF_PLL_LOCKED           4
 #define SSTAT_SD_DETECT_BIT             5
+
+#define SCTRL_CAPTURE_SEL_ISL       0
+#define SCTRL_CAPTURE_SEL_HDMIRX    1
+#define SCTRL_CAPTURE_SEL_SDP       2
 
 typedef enum {
     AV_TESTPAT      = 0,
@@ -73,7 +80,10 @@ typedef enum {
     AV3_RGBS,
     AV3_RGsB,
     AV3_YPbPr,
-    AV4
+    AV4,
+    AV_EXP_SVIDEO,
+    AV_EXP_CVBS,
+    AV_EXP_RF,
 } avinput_t;
 
 #ifdef DExx_FW

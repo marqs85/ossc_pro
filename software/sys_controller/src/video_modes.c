@@ -35,6 +35,10 @@
 #include "video_modes_list.c"
 
 extern uint8_t vm_cur, vm_sel, vm_out_cur, vm_out_sel, smp_cur, smp_sel, dtmg_cur;
+#ifndef DExx_FW
+extern adv761x_dev advrx_dev;
+extern adv7280a_dev advsdp_dev;
+#endif
 
 const int num_video_modes_plm = sizeof(video_modes_plm_default)/sizeof(mode_data_t);
 const int num_video_modes = sizeof(video_modes_default)/sizeof(mode_data_t);
@@ -44,12 +48,18 @@ mode_data_t video_modes_plm[sizeof(video_modes_plm_default)/sizeof(mode_data_t)]
 mode_data_t video_modes[sizeof(video_modes_default)/sizeof(mode_data_t)];
 smp_preset_t smp_presets[sizeof(smp_presets_default)/sizeof(smp_preset_t)];
 sync_timings_t hdmi_timings[NUM_VIDEO_GROUPS]; // one for each video_group to hold HDMI video timings
+sync_timings_t sdp_timings[NUM_VIDEO_GROUPS]; // one for each video_group to hold SDP video timings
 
 void set_default_vm_table() {
     memcpy(video_modes_plm, video_modes_plm_default, sizeof(video_modes_plm_default));
     memcpy(video_modes, video_modes_default, sizeof(video_modes_default));
     memcpy(smp_presets, smp_presets_default, sizeof(smp_presets_default));
     memset(hdmi_timings, 0, sizeof(hdmi_timings));
+    memset(sdp_timings, 0, sizeof(sdp_timings));
+    memcpy(&sdp_timings[GROUP_240P], &smp_presets_default[0].timings_i, sizeof(sync_timings_t));
+    memcpy(&sdp_timings[GROUP_288P], &smp_presets_default[5].timings_i, sizeof(sync_timings_t));
+    memcpy(&sdp_timings[GROUP_480I], &smp_presets_default[25].timings_i, sizeof(sync_timings_t));
+    memcpy(&sdp_timings[GROUP_576I], &smp_presets_default[27].timings_i, sizeof(sync_timings_t));
 }
 
 void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
@@ -177,7 +187,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     smp_preset_t *smp_preset;
     const smp_preset_t *smp_preset_default;
     aspect_ratio_t gen_ar_target = {4, 3};
-    uint16_t v_hz_x100;
+    uint16_t v_total, v_hz_x100;
 
     // Force fixed preset for digital sources
     if (vm_in->timings.h_total) {
@@ -257,11 +267,15 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
 
     // write vm_in timings for digital sources (just preserve v_hz)
     if (vm_in->timings.h_total) {
+        v_total = vm_in->timings.v_total;
         v_hz_x100 = vm_in->timings.v_hz_x100;
 
-        if ((hdmi_timings[vm_in->group].h_total == vm_in->timings.h_total) && (hdmi_timings[vm_in->group].v_total == vm_in->timings.v_total))
+        if (advrx_dev.powered_on && (hdmi_timings[vm_in->group].h_total == vm_in->timings.h_total) && (hdmi_timings[vm_in->group].v_total == vm_in->timings.v_total))
             memcpy(&vm_in->timings, &hdmi_timings[vm_in->group], sizeof(sync_timings_t));
+        else if (advsdp_dev.powered_on)
+            memcpy(&vm_in->timings, &sdp_timings[vm_in->group], sizeof(sync_timings_t));
 
+        vm_in->timings.v_total = v_total;
         vm_in->timings.v_hz_x100 = v_hz_x100;
         dtmg_cur = vm_in->group;
         smp_sel = vm_in->group;

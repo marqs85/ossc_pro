@@ -36,6 +36,7 @@
 #ifdef INC_PCM186X
 #include "pcm186x.h"
 #endif
+#include "adv7280a.h"
 
 #define SIGNED_NUMVAL_ZERO  128
 

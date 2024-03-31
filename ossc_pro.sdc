@@ -1,4 +1,5 @@
 set extra_av_out 1
+set legacy_av_in 1
 
 ### Clock definitions ###
 
@@ -12,9 +13,16 @@ create_clock -period 165MHz -name pclk_hdmirx [get_ports HDMIRX_PCLK_i]
 create_clock -period 5MHz -name bck_pcm [get_ports PCM_I2S_BCK_i]
 create_clock -period 5MHz -name bck_hdmirx [get_ports HDMIRX_I2S_BCK_i]
 
+if {$legacy_av_in} {
+    create_clock -period 27MHz -name pclk_sdp [get_ports EXT_IO_A_io[0]]
+}
+
 create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 88 -duty_cycle 50.00 -name pll_0_vco {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
 create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 11 -duty_cycle 50.00 -name clk108 {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
 create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 8 -duty_cycle 50.00 -name clk148p5 {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk}
+
+create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 22 -duty_cycle 50.00 -name pll_sdp_vco {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
+create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 11 -duty_cycle 50.00 -name pclk_sdp_postpll {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
 
 create_generated_clock -name sd_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q]
 
@@ -33,6 +41,7 @@ set clkmux_output [get_pins clkmux_capture|outclk]
 # specify postmux clocks for RGB capture clock
 create_generated_clock -name pclk_isl_postmux -master_clock pclk_isl -source [get_pins clkmux_capture|inclk[0]] -multiply_by 1 $clkmux_output
 create_generated_clock -name pclk_hdmirx_postmux -master_clock pclk_hdmirx -source [get_pins clkmux_capture|inclk[1]] -multiply_by 1 $clkmux_output -add
+create_generated_clock -name pclk_sdp_postmux -master_clock pclk_sdp_postpll -source [get_pins clkmux_capture|inclk[2]] -multiply_by 1 $clkmux_output -add
 
 # specify output clocks that drive PCLK output pin
 set pclk_out_port [get_ports HDMITX_PCLK_o]
@@ -48,6 +57,7 @@ if {$extra_av_out} {
 set pclk_capture_div_pin [get_pins pclk_capture_div2|q]
 create_generated_clock -name pclk_isl_postmux_div2 -master_clock pclk_isl_postmux -source $clkmux_output -divide_by 2 $pclk_capture_div_pin
 create_generated_clock -name pclk_hdmirx_postmux_div2 -master_clock pclk_hdmirx_postmux -source $clkmux_output -divide_by 2 $pclk_capture_div_pin -add
+create_generated_clock -name pclk_sdp_postmux_div2 -master_clock pclk_sdp_postmux -source $clkmux_output -divide_by 2 $pclk_capture_div_pin -add
 set pclk_si_div_pin [get_pins pclk_out_div2|q]
 create_generated_clock -name pclk_si_div2 -master_clock pclk_si -source [get_ports SI_PCLK_i] -divide_by 2 $pclk_si_div_pin
 
@@ -64,6 +74,8 @@ set_clock_groups -asynchronous -group \
                             {pclk_isl_postmux_div2} \
                             {pclk_hdmirx pclk_hdmirx_postmux} \
                             {pclk_hdmirx_postmux_div2} \
+                            {pclk_sdp pclk_sdp_postpll pclk_sdp_postmux} \
+                            {pclk_sdp_postmux_div2} \
                             {pclk_si pclk_si_out pclk_si_out_vga} \
                             {pclk_si_div2} \
                             {si_clk_extra} \
@@ -134,12 +146,23 @@ if {$extra_av_out} {
     set_false_path -to [get_ports {EXT_IO_A_io* EXT_IO_B_io*}]
 }
 
+if {$legacy_av_in} {
+    # ADV7280A
+    set sdp_dmin -3.8
+    set sdp_dmax 6.9
+    set sdp_inputs [get_ports {EXT_IO_B_io[0] EXT_IO_B_io[3] EXT_IO_B_io[4] EXT_IO_B_io[5] EXT_IO_B_io[6] EXT_IO_B_io[7] EXT_IO_B_io[8] EXT_IO_B_io[9] EXT_IO_B_io[10] EXT_IO_B_io[11]}]
+    set_input_delay -clock pclk_sdp -clock_fall -min $sdp_dmin $sdp_inputs -add_delay
+    set_input_delay -clock pclk_sdp -clock_fall -max $sdp_dmax $sdp_inputs -add_delay
+} else {
+    set_false_path -from [get_ports {EXT_IO_A_io* EXT_IO_B_io*}]
+}
+
 # PCM1862
 set_input_delay 0 -clock bck_pcm -clock_fall [get_ports {PCM_I2S_WS_i PCM_I2S_DATA_i}]
 
 # Misc
 set_false_path -from [get_ports {BTN_i* IR_RX_i SCL_io SDA_io SI_INT_N_i SPDIF_EXT_i SD_DETECT_i}]
-set_false_path -to [get_ports {LED_o* AUDMUX_o SCL_io SDA_io FPGA_PCLK1x_o FAN_PWM_o}]
+set_false_path -to [get_ports {LED_o* AUDMUX_o SCL_io SDA_io FPGA_PCLK1x_o FAN_PWM_o LS_DIR_o*}]
 set_false_path -from {emif_hwreset_n_sync2_reg emif_swreset_n_sync2_reg}
 set_false_path -to {emif_hwreset_n_sync1_reg emif_swreset_n_sync1_reg}
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[0]
