@@ -35,6 +35,10 @@
 #include "video_modes_list.c"
 
 extern uint8_t vm_cur, vm_sel, vm_out_cur, vm_out_sel, smp_cur, smp_sel, dtmg_cur;
+#ifndef DExx_FW
+extern adv761x_dev advrx_dev;
+extern adv7280a_dev advsdp_dev;
+#endif
 
 const int num_video_modes_plm = sizeof(video_modes_plm_default)/sizeof(mode_data_t);
 const int num_video_modes = sizeof(video_modes_default)/sizeof(mode_data_t);
@@ -44,12 +48,18 @@ mode_data_t video_modes_plm[sizeof(video_modes_plm_default)/sizeof(mode_data_t)]
 mode_data_t video_modes[sizeof(video_modes_default)/sizeof(mode_data_t)];
 smp_preset_t smp_presets[sizeof(smp_presets_default)/sizeof(smp_preset_t)];
 sync_timings_t hdmi_timings[NUM_VIDEO_GROUPS]; // one for each video_group to hold HDMI video timings
+sync_timings_t sdp_timings[NUM_VIDEO_GROUPS]; // one for each video_group to hold SDP video timings
 
 void set_default_vm_table() {
     memcpy(video_modes_plm, video_modes_plm_default, sizeof(video_modes_plm_default));
     memcpy(video_modes, video_modes_default, sizeof(video_modes_default));
     memcpy(smp_presets, smp_presets_default, sizeof(smp_presets_default));
     memset(hdmi_timings, 0, sizeof(hdmi_timings));
+    memset(sdp_timings, 0, sizeof(sdp_timings));
+    memcpy(&sdp_timings[GROUP_240P], &smp_presets_default[0].timings_i, sizeof(sync_timings_t));
+    memcpy(&sdp_timings[GROUP_288P], &smp_presets_default[5].timings_i, sizeof(sync_timings_t));
+    memcpy(&sdp_timings[GROUP_480I], &smp_presets_default[25].timings_i, sizeof(sync_timings_t));
+    memcpy(&sdp_timings[GROUP_576I], &smp_presets_default[27].timings_i, sizeof(sync_timings_t));
 }
 
 void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
@@ -177,7 +187,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     smp_preset_t *smp_preset;
     const smp_preset_t *smp_preset_default;
     aspect_ratio_t gen_ar_target = {4, 3};
-    uint16_t v_hz_x100;
+    uint16_t v_total, v_hz_x100;
 
     // Force fixed preset for digital sources
     if (vm_in->timings.h_total) {
@@ -257,11 +267,15 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
 
     // write vm_in timings for digital sources (just preserve v_hz)
     if (vm_in->timings.h_total) {
+        v_total = vm_in->timings.v_total;
         v_hz_x100 = vm_in->timings.v_hz_x100;
 
-        if ((hdmi_timings[vm_in->group].h_total == vm_in->timings.h_total) && (hdmi_timings[vm_in->group].v_total == vm_in->timings.v_total))
+        if (advrx_dev.powered_on && (hdmi_timings[vm_in->group].h_total == vm_in->timings.h_total) && (hdmi_timings[vm_in->group].v_total == vm_in->timings.v_total))
             memcpy(&vm_in->timings, &hdmi_timings[vm_in->group], sizeof(sync_timings_t));
+        else if (advsdp_dev.powered_on)
+            memcpy(&vm_in->timings, &sdp_timings[vm_in->group], sizeof(sync_timings_t));
 
+        vm_in->timings.v_total = v_total;
         vm_in->timings.v_hz_x100 = v_hz_x100;
         dtmg_cur = vm_in->group;
         smp_sel = vm_in->group;
@@ -361,7 +375,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                      SM_OPT_N64_640COL,
                                      SM_OPT_DC_640COL};
-    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
+    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_PSP_480COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_OPT_DTV576P, SM_OPT_DC_640COL};
 
     unsigned aspect_map[][2] = {{4, 3},
@@ -480,12 +494,12 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     if ((cc->scl_alg == 1) || (cc->scl_alg == 2)) { // Integer
         // Integer scale incrementally in horizontal or vertical direction depending which results to more correct aspect ratio
         while (1) {
-            error_cur = ((100*int_scl_x*vm_in->timings.h_active*vm_out->timings.v_active)/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
+            error_cur = ((100*int_scl_x*vm_in->timings.h_active*(vm_out->timings.v_active<<vm_out->timings.interlaced))/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
                         ((100*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced)*vm_out->timings.h_active)/(aspect_map[cc->scl_aspect][1]*vm_out->ar.h));
-            error_x_inc = ((100*(int_scl_x+1)*vm_in->timings.h_active*vm_out->timings.v_active)/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
+            error_x_inc = ((100*(int_scl_x+1)*vm_in->timings.h_active*(vm_out->timings.v_active<<vm_out->timings.interlaced))/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v)) -
                           ((100*int_scl_y*(vm_in->timings.v_active<<vm_in->timings.interlaced)*vm_out->timings.h_active)/(aspect_map[cc->scl_aspect][1]*vm_out->ar.h));
             error_y_inc = ((100*(int_scl_y+1)*(vm_in->timings.v_active<<vm_in->timings.interlaced)*vm_out->timings.h_active)/(aspect_map[cc->scl_aspect][1]*vm_out->ar.h)) -
-                          ((100*int_scl_x*vm_in->timings.h_active*vm_out->timings.v_active)/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v));
+                          ((100*int_scl_x*vm_in->timings.h_active*(vm_out->timings.v_active<<vm_out->timings.interlaced))/(aspect_map[cc->scl_aspect][0]*vm_out->ar.v));
 
             // Up to 1/8 horizontally or vertically allowed to be cropped when overscanning enabled
             allow_x_inc = (cc->scl_alg == 2) ? (7*(int_scl_x+1)*vm_in->timings.h_active <= 8*vm_out->timings.h_active) : ((int_scl_x+1)*vm_in->timings.h_active <= vm_out->timings.h_active);
@@ -609,7 +623,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                      SM_OPT_N64_640COL,
                                      SM_OPT_DC_640COL};
-    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
+    const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_PSP_480COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV576P, SM_OPT_DTV576P_WS};
 
     ad_mode_t ad_mode_list[] = { {-1, 0},                                   // GROUP_NONE
@@ -675,6 +689,10 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
     vm_conf->x_rpt = 0;
     vm_conf->y_rpt = ad_mode_list[vm_in->group].y_rpt;
+
+    // Double existing vertical multiply for PSP
+    if (target_sm_list[vm_in->group] == SM_OPT_PSP_480COL)
+        vm_conf->y_rpt = 2*(vm_conf->y_rpt+1)-1;
 
     // Calculate x_rpt for optimal modes based on output mode, sampling preset and y_rpt
     switch (ad_mode_list[vm_in->group].stdmode_id) {
@@ -744,6 +762,8 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
             vm_conf->x_rpt++;
         else if (target_sm_list[vm_in->group] == SM_OPT_GBI_240COL)
             vm_conf->x_rpt = 5;
+        else if (target_sm_list[vm_in->group] == SM_OPT_PSP_480COL)
+            vm_conf->x_rpt = 3;
         break;
     case STDMODE_1920x1440_50:
     case STDMODE_1920x1440_60:
@@ -766,6 +786,8 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
             vm_conf->x_rpt++;
         else if (target_sm_list[vm_in->group] == SM_OPT_GBI_240COL)
             vm_conf->x_rpt = 7;
+        else if (target_sm_list[vm_in->group] == SM_OPT_PSP_480COL)
+            vm_conf->x_rpt = 4;
         break;
     default:
         break;

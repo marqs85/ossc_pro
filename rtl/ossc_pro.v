@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2019  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2019-2024  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -21,6 +21,7 @@
 //`define PCB_1P3
 //`define PCB_1P5
 `define EXTRA_AV_OUT
+`define LEGACY_AV_IN
 
 `define VIP
 `define PIXPAR2
@@ -116,10 +117,15 @@ module ossc_pro (
     output [1:0] LS_DIR_o
 );
 
-localparam EXT_OUT_OFF = 0;
-localparam EXT_OUT_RGBHV = 1;
-localparam EXT_OUT_RGBCS_RGBS = 2;
-localparam EXT_OUT_RGsB = 3;
+localparam EXP_SEL_OFF = 0;
+localparam EXP_SEL_EXTRA_OUT = 1;
+localparam EXP_SEL_LEGAGY_IN = 2;
+localparam EXP_SEL_UVC_BDG = 3;
+
+localparam EXTRA_OUT_RGBHV = 0;
+localparam EXTRA_OUT_RGBCS_RGBS = 1;
+localparam EXTRA_OUT_RGsB = 2;
+localparam EXTRA_OUT_YPbPr = 3;
 
 wire jtagm_reset_req;
 
@@ -131,11 +137,10 @@ wire emif_hwreset_n = sys_ctrl[3];
 wire emif_swreset_n = sys_ctrl[4];
 wire emif_powerdn_req = sys_ctrl[5];
 wire emif_mpfe_reset_n = sys_ctrl[6];
-wire capture_sel = sys_ctrl[7];
-wire isl_hsync_pol = sys_ctrl[8];
-wire isl_vsync_pol = sys_ctrl[9];
-wire isl_vsync_type = sys_ctrl[10];
-wire audmux_sel = sys_ctrl[11];
+wire [1:0] capture_sel = sys_ctrl[8:7];
+wire isl_hsync_pol = sys_ctrl[9];
+wire isl_vsync_pol = sys_ctrl[10];
+wire isl_vsync_type = sys_ctrl[11];
 wire testpattern_enable = sys_ctrl[12];
 wire csc_enable = sys_ctrl[13];
 wire framelock = sys_ctrl[14];
@@ -144,7 +149,9 @@ wire [3:0] fan_duty = sys_ctrl[19:16];
 wire [3:0] led_duty = sys_ctrl[23:20];
 wire dram_refresh_enable = sys_ctrl[24];
 wire vip_dil_reset_n = sys_ctrl[25];
-wire [1:0] ext_out_mode = sys_ctrl[27:26];
+wire [1:0] extra_out_mode = sys_ctrl[27:26];
+wire [1:0] exp_sel = sys_ctrl[29:28];
+wire audmux_sel = sys_ctrl[30];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -350,10 +357,68 @@ adv7611_frontend u_hdmirx_frontend (
     .sof_scaler(HDMIRX_sof_scaler)
 );
 
-// capture clock mux
+// ADV7280A SDP
+`ifdef LEGACY_AV_IN
+wire SDP_PCLK_i = EXT_IO_A_io[0];
+wire SDP_PCLK;
+wire [7:0] SDP_P_DATA_i = {EXT_IO_B_io[5], EXT_IO_B_io[4], EXT_IO_B_io[7], EXT_IO_B_io[6], EXT_IO_B_io[9], EXT_IO_B_io[8], EXT_IO_B_io[11], EXT_IO_B_io[10]};
+wire SDP_HS_i = EXT_IO_B_io[3];
+wire SDP_VS_i = EXT_IO_B_io[0];
+wire SDP_IRQ_i = EXT_IO_B_io[1];
+
+reg SDP_HS, SDP_VS;
+reg [7:0] SDP_P_DATA;
+
+always @(posedge SDP_PCLK_i) begin
+    SDP_P_DATA <= SDP_P_DATA_i;
+    SDP_HS <= SDP_HS_i;
+    SDP_VS <= SDP_VS_i;
+end
+
+wire [7:0] SDP_R_post, SDP_G_post, SDP_B_post;
+wire SDP_HSYNC_post, SDP_VSYNC_post, SDP_DE_post, SDP_FID_post, SDP_datavalid_post;
+wire SDP_fe_interlace, SDP_fe_frame_change, SDP_sof_scaler;
+wire [19:0] SDP_fe_pcnt_frame;
+wire [10:0] SDP_fe_vtotal, SDP_fe_xpos, SDP_fe_ypos;
+adv7280a_frontend u_sdp_frontend ( 
+    .PCLK_i(SDP_PCLK_i),
+    .CLK_MEAS_i(CLK27_i),
+    .reset_n(sys_reset_n),
+    .P_DATA_i(SDP_P_DATA),
+    .HS_i(SDP_HS),
+    .VS_i(SDP_VS),
+    .hv_in_config(hv_in_config),
+    .hv_in_config2(hv_in_config2),
+    .hv_in_config3(hv_in_config3),
+    .R_o(SDP_R_post),
+    .G_o(SDP_G_post),
+    .B_o(SDP_B_post),
+    .HSYNC_o(SDP_HSYNC_post),
+    .VSYNC_o(SDP_VSYNC_post),
+    .DE_o(SDP_DE_post),
+    .FID_o(SDP_FID_post),
+    .interlace_flag(SDP_fe_interlace),
+    .datavalid_o(SDP_datavalid_post),
+    .xpos_o(SDP_fe_xpos),
+    .ypos_o(SDP_fe_ypos),
+    .vtotal(SDP_fe_vtotal),
+    .frame_change(SDP_fe_frame_change),
+    .sof_scaler(SDP_sof_scaler),
+    .pcnt_frame(SDP_fe_pcnt_frame)
+);
+`endif
+
+pll_sdp u_pll_sdp (
+    .refclk(SDP_PCLK_i),
+    .rst(!capture_sel[1]),
+    .outclk_0(SDP_PCLK),
+    .locked()
+);
+
+// capture clock mux (inputs [3:2] must be PLL outputs)
 cyclonev_clkselect clkmux_capture ( 
-    .clkselect({1'b0, capture_sel}),
-    .inclk({2'b00, HDMIRX_PCLK_i, ISL_PCLK_i}),
+    .clkselect(capture_sel),
+    .inclk({1'b0, SDP_PCLK, HDMIRX_PCLK_i, ISL_PCLK_i}),
     .outclk(pclk_capture)
 );
 
@@ -362,20 +427,21 @@ reg [7:0] R_capt, G_capt, B_capt;
 reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt, datavalid_capt;
 reg interlace_flag_capt, frame_change_capt, sof_scaler_capt;
 reg [10:0] xpos_capt, ypos_capt;
+wire [31:0] fe_status = capture_sel[1] ? {SDP_fe_pcnt_frame, SDP_fe_interlace, SDP_fe_vtotal} : {ISL_fe_pcnt_frame, ISL_fe_interlace, ISL_fe_vtotal};
 always @(posedge pclk_capture) begin
-    R_capt <= capture_sel ? HDMIRX_R_post : ISL_R_post;
-    G_capt <= capture_sel ? HDMIRX_G_post : ISL_G_post;
-    B_capt <= capture_sel ? HDMIRX_B_post : ISL_B_post;
-    HSYNC_capt <= capture_sel ? HDMIRX_HSYNC_post : ISL_HSYNC_post;
-    VSYNC_capt <= capture_sel ? HDMIRX_VSYNC_post : ISL_VSYNC_post;
-    DE_capt <= capture_sel ? HDMIRX_DE_post : ISL_DE_post;
-    datavalid_capt <= capture_sel ? HDMIRX_datavalid_post : ISL_datavalid_post;
-    FID_capt <= capture_sel ? HDMIRX_FID_post : ISL_FID_post;
-    interlace_flag_capt <= capture_sel ? HDMIRX_fe_interlace : ISL_fe_interlace;
-    frame_change_capt <= capture_sel ? HDMIRX_fe_frame_change : ISL_fe_frame_change;
-    sof_scaler_capt <= capture_sel ? HDMIRX_sof_scaler : ISL_sof_scaler;
-    xpos_capt <= capture_sel ? HDMIRX_fe_xpos : ISL_fe_xpos;
-    ypos_capt <= capture_sel ? HDMIRX_fe_ypos : ISL_fe_ypos;
+    R_capt <= capture_sel[1] ? SDP_R_post : (capture_sel[0] ? HDMIRX_R_post : ISL_R_post);
+    G_capt <= capture_sel[1] ? SDP_G_post : (capture_sel[0] ? HDMIRX_G_post : ISL_G_post);
+    B_capt <= capture_sel[1] ? SDP_B_post : (capture_sel[0] ? HDMIRX_B_post : ISL_B_post);
+    HSYNC_capt <= capture_sel[1] ? SDP_HSYNC_post : (capture_sel[0] ? HDMIRX_HSYNC_post : ISL_HSYNC_post);
+    VSYNC_capt <= capture_sel[1] ? SDP_VSYNC_post : (capture_sel[0] ? HDMIRX_VSYNC_post : ISL_VSYNC_post);
+    DE_capt <= capture_sel[1] ? SDP_DE_post : (capture_sel[0] ? HDMIRX_DE_post : ISL_DE_post);
+    datavalid_capt <= capture_sel[1] ? SDP_datavalid_post : (capture_sel[0] ? HDMIRX_datavalid_post : ISL_datavalid_post);
+    FID_capt <= capture_sel[1] ? SDP_FID_post : (capture_sel[0] ? HDMIRX_FID_post : ISL_FID_post);
+    interlace_flag_capt <= capture_sel[1] ? SDP_fe_interlace : (capture_sel[0] ? HDMIRX_fe_interlace : ISL_fe_interlace);
+    frame_change_capt <= capture_sel[1] ? SDP_fe_frame_change : (capture_sel[0] ? HDMIRX_fe_frame_change : ISL_fe_frame_change);
+    sof_scaler_capt <= capture_sel[1] ? SDP_sof_scaler : (capture_sel[0] ? HDMIRX_sof_scaler : ISL_sof_scaler);
+    xpos_capt <= capture_sel[1] ? SDP_fe_xpos : (capture_sel[0] ? HDMIRX_fe_xpos : ISL_fe_xpos);
+    ypos_capt <= capture_sel[1] ? SDP_fe_ypos : (capture_sel[0] ? HDMIRX_fe_ypos : ISL_fe_ypos);
 end
 
 // output clock assignment
@@ -541,21 +607,21 @@ assign HDMITX_SPDIF_o = hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i;
 assign AUDMUX_o = ~audmux_sel;
 
 // 0=input 1=output
-assign LS_DIR_o = 2'b11;
+assign LS_DIR_o = (exp_sel == EXP_SEL_LEGAGY_IN) ? 2'b10 : 2'b11;
 
 `ifdef EXTRA_AV_OUT
 // VGA DAC
 reg [7:0] VGA_R, VGA_G, VGA_B, VGA_R_pre, VGA_G_pre, VGA_B_pre;
 reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N, VGA_HS_pre, VGA_VS_pre, VGA_SYNC_N_pre, VGA_BLANK_N_pre;
 always @(posedge pclk_out) begin
-    if (ext_out_mode != EXT_OUT_OFF) begin
+    if (exp_sel == EXP_SEL_EXTRA_OUT) begin
         VGA_R_pre <= R_out;
         VGA_G_pre <= G_out;
         VGA_B_pre <= B_out;
-        VGA_HS_pre <= (ext_out_mode == EXT_OUT_RGBHV) ? HSYNC_out : ~(HSYNC_out ^ VSYNC_out);
-        VGA_VS_pre <= (ext_out_mode == EXT_OUT_RGBHV) ? VSYNC_out : 1'b1;
+        VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? HSYNC_out : ~(HSYNC_out ^ VSYNC_out);
+        VGA_VS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VSYNC_out : 1'b1;
         VGA_BLANK_N_pre <= DE_out;
-        VGA_SYNC_N_pre <= (ext_out_mode == EXT_OUT_RGsB) ? ~(HSYNC_out ^ VSYNC_out) : 1'b0;
+        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? ~(HSYNC_out ^ VSYNC_out) : 1'b0;
 
         VGA_R <= VGA_R_pre;
         VGA_G <= VGA_G_pre;
@@ -566,16 +632,16 @@ always @(posedge pclk_out) begin
         VGA_SYNC_N <= VGA_SYNC_N_pre;
     end
 end
-assign EXT_IO_A_io[4] = sys_poweron & (ext_out_mode != EXT_OUT_OFF); // VGA_PSAVE_N
-assign EXT_IO_A_io[5] = sys_poweron & (ext_out_mode != EXT_OUT_OFF); // AUDIO_MUTE_N
-assign EXT_IO_B_io[27] = ~pclk_out;
-assign {EXT_IO_B_io[6], EXT_IO_B_io[7], EXT_IO_B_io[4], EXT_IO_B_io[5], EXT_IO_B_io[2], EXT_IO_B_io[3], EXT_IO_B_io[0], EXT_IO_B_io[1]} = VGA_R;
-assign {EXT_IO_B_io[14], EXT_IO_B_io[15], EXT_IO_B_io[12], EXT_IO_B_io[13], EXT_IO_B_io[10], EXT_IO_B_io[11], EXT_IO_B_io[8], EXT_IO_B_io[9]} = VGA_G;
-assign {EXT_IO_B_io[24], EXT_IO_B_io[25], EXT_IO_B_io[22], EXT_IO_B_io[23], EXT_IO_B_io[20], EXT_IO_B_io[21], EXT_IO_B_io[18], EXT_IO_B_io[19]} = VGA_B;
-assign EXT_IO_B_io[29] = VGA_HS;
-assign EXT_IO_B_io[30] = VGA_VS;
-assign EXT_IO_B_io[17] = VGA_BLANK_N;
-assign EXT_IO_B_io[16] = VGA_SYNC_N;
+assign EXT_IO_A_io[4] = sys_poweron; // VGA_PSAVE_N
+assign EXT_IO_A_io[5] = sys_poweron; // AUDIO_MUTE_N
+assign EXT_IO_B_io[27] = (exp_sel == EXP_SEL_EXTRA_OUT) ? ~pclk_out : 'z;
+assign {EXT_IO_B_io[6], EXT_IO_B_io[7], EXT_IO_B_io[4], EXT_IO_B_io[5], EXT_IO_B_io[2], EXT_IO_B_io[3], EXT_IO_B_io[0], EXT_IO_B_io[1]} = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_R : 'z;
+assign {EXT_IO_B_io[14], EXT_IO_B_io[15], EXT_IO_B_io[12], EXT_IO_B_io[13], EXT_IO_B_io[10], EXT_IO_B_io[11], EXT_IO_B_io[8], EXT_IO_B_io[9]} = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_G : 'z;
+assign {EXT_IO_B_io[24], EXT_IO_B_io[25], EXT_IO_B_io[22], EXT_IO_B_io[23], EXT_IO_B_io[20], EXT_IO_B_io[21], EXT_IO_B_io[18], EXT_IO_B_io[19]} = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_B : 'z;
+assign EXT_IO_B_io[29] = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_HS : 'z;
+assign EXT_IO_B_io[30] = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_VS : 'z;
+assign EXT_IO_B_io[17] = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_BLANK_N : 'z;
+assign EXT_IO_B_io[16] = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_SYNC_N : 'z;
 `else
 assign EXT_IO_A_io = {6{&btn_sync2_reg}};
 assign EXT_IO_B_io = {32{&btn_sync2_reg}};
@@ -664,7 +730,7 @@ sys sys_inst (
     .pio_0_sys_ctrl_out_export              (sys_ctrl),
     .pio_1_controls_in_export               (controls),
     .pio_2_sys_status_in_export             (sys_status),
-    .sc_config_0_sc_if_fe_status_i          ({ISL_fe_pcnt_frame, ISL_fe_interlace, ISL_fe_vtotal}),
+    .sc_config_0_sc_if_fe_status_i          (fe_status),
     .sc_config_0_sc_if_lt_status_i          (32'h00000000),
     .sc_config_0_sc_if_hv_in_config_o       (hv_in_config),
     .sc_config_0_sc_if_hv_in_config2_o      (hv_in_config2),

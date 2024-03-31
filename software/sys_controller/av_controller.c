@@ -41,6 +41,8 @@
 #include "si5351.h"
 #include "adv7513.h"
 #include "adv761x.h"
+#include "adv7280a.h"
+#include "si2177.h"
 #include "sc_config_regs.h"
 #include "video_modes.h"
 #include "flash.h"
@@ -48,7 +50,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 74
+#define FW_VER_MINOR 75
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -73,6 +75,10 @@
 #define ADV7610_EDID_BASE 0x6c
 #define ADV7610_HDMI_BASE 0x68
 #define ADV7610_CP_BASE 0x44
+
+#define ADV7280A_BASE (0x40>>1)
+
+#define SI2177_BASE (0xC2>>1)
 
 #define BLKSIZE 512
 #define BLKCNT 2
@@ -153,6 +159,12 @@ sii1136_dev siitx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                          .i2c_addr = SII1136_BASE};
 #endif
 
+adv7280a_dev advsdp_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                         .i2c_addr = ADV7280A_BASE};
+
+si2177_dev sirf_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
+                         .i2c_addr = SI2177_BASE};
+
 pcm186x_dev pcm_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                        .i2c_addr = PCM1863_BASE};
 
@@ -183,9 +195,9 @@ uint8_t sys_powered_on;
 uint8_t sd_det, sd_det_prev;
 uint8_t sl_def_iv_x, sl_def_iv_y;
 
-uint8_t exp_det, pcm_out_dev_avail;
+uint8_t exp_det, pcm_out_dev_avail, advsdp_dev_avail, sirf_dev_avail;
 
-int enable_isl, enable_hdmirx, enable_tp;
+int enable_isl, enable_hdmirx, enable_sdp, enable_tp;
 oper_mode_t oper_mode;
 
 avinput_t avinput, target_avinput;
@@ -910,9 +922,17 @@ int init_hw()
     ret = pcm514x_init(&pcm_out_dev);
     pcm_out_dev_avail = (ret == 0);
 
+    // Init ADV7280A and Si2177 (expansion card)
+    ret = adv7280a_init(&advsdp_dev);
+    advsdp_dev_avail = (ret == 0);
+    ret = si2177_init(&sirf_dev);
+    sirf_dev_avail = (ret == 0);
+
     // Auto-detect expansion
     if (pcm_out_dev_avail)
         exp_det = 1;
+    else if (advsdp_dev_avail)
+        exp_det = 2;
     else
         exp_det = 0;
 
@@ -951,8 +971,8 @@ int init_hw()
 }
 
 void switch_input(rc_code_t rcode, btn_code_t bcode) {
-    avinput_t prev_input = (avinput == AV_TESTPAT) ? AV4 : (avinput-1);
-    avinput_t next_input = (avinput == AV4) ? AV_TESTPAT : (avinput+1);
+    avinput_t prev_input = (avinput == AV_TESTPAT) ? AV_EXP_RF : (avinput-1);
+    avinput_t next_input = (avinput == AV_EXP_RF) ? AV_TESTPAT : (avinput+1);
 
     switch (rcode) {
         case RC_BTN1: target_avinput = AV1_RGBS; break;
@@ -963,6 +983,7 @@ void switch_input(rc_code_t rcode, btn_code_t bcode) {
         case RC_BTN6: target_avinput = AV3_RGBS; break;
         case RC_BTN9: target_avinput = (avinput == AV3_RGsB) ? AV3_YPbPr : AV3_RGsB; break;
         case RC_BTN5: target_avinput = AV4; break;
+        case RC_BTN8: target_avinput = (avinput == AV_EXP_SVIDEO) ? AV_EXP_CVBS : ((avinput == AV_EXP_CVBS) ? AV_EXP_RF : AV_EXP_SVIDEO); break;
         case RC_BTN0: target_avinput = AV_TESTPAT; break;
         case RC_UP: target_avinput = prev_input; break;
         case RC_DOWN: target_avinput = next_input; break;
@@ -997,8 +1018,10 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
         audsrc = audsrc_map[1];
     else if (avinput <= AV3_YPbPr)
         audsrc = audsrc_map[2];
-    else
+    else if (avinput == AV4)
         audsrc = audsrc_map[3];
+    else
+        audsrc = AUD_AV2_ANALOG; // AV_EXP
 
     if (audsrc <= AUD_AV3_ANALOG)
         pcm186x_source_sel(&pcm_dev, audsrc);
@@ -1016,10 +1039,19 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
 }
 
 void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode) {
-    sys_ctrl &= ~SCTRL_EXTRA_AV_O_MASK;
+    sys_ctrl &= ~(SCTRL_EXP_SEL_MASK|SCTRL_EXTRA_AV_O_MASK);
 
-    if (((exp_sel == 0) && (exp_det == 1)) || (exp_sel == 2))
-        sys_ctrl |= extra_av_out_mode<<SCTRL_EXTRA_AV_O_OFFS;
+    // Set expansion flags
+    if (((exp_sel == 0) && (exp_det == 1)) || (exp_sel == 2)) {
+        if (extra_av_out_mode)
+            sys_ctrl |= (1<<SCTRL_EXP_SEL_OFFS)|(extra_av_out_mode<<SCTRL_EXTRA_AV_O_OFFS);
+    } else if ((exp_sel == 0) && (exp_det > 1)) {
+        sys_ctrl |= exp_det<<SCTRL_EXP_SEL_OFFS;
+    } else if (exp_sel > 2) {
+        sys_ctrl |= (exp_sel-1)<<SCTRL_EXP_SEL_OFFS;
+    }
+
+    sys_ctrl |= (extra_av_out_mode-1)<<SCTRL_EXTRA_AV_O_OFFS;
 
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 }
@@ -1046,7 +1078,7 @@ void print_vm_stats() {
     int row = 0;
     memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
-    if (enable_tp || (enable_isl && isl_dev.sync_active) || (enable_hdmirx && advrx_dev.sync_active)) {
+    if (enable_tp || (enable_isl && isl_dev.sync_active) || (enable_hdmirx && advrx_dev.sync_active) || (enable_sdp && advsdp_dev.sync_active)) {
         if (!enable_tp) {
             sniprintf((char*)osd->osd_array.data[row][0], OSD_CHAR_COLS, "Input preset:");
             sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%s", vmode_in.name);
@@ -1157,6 +1189,7 @@ void mainloop()
     char op_status[4];
     uint32_t pclk_i_hz, pclk_o_hz, dotclk_hz, h_hz, pll_h_total, pll_h_total_prev=0;
     uint8_t h_skip_prev, sampler_phase_prev;
+    adv7280a_input sdp_input_map[] = {ADV7280A_INPUT_YC_AIN34, ADV7280A_INPUT_CVBS_AIN1, ADV7280A_INPUT_CVBS_AIN2};
     ths_channel_t target_ths_ch;
     ths_input_t target_ths_input;
     isl_input_t target_isl_input=0;
@@ -1184,6 +1217,7 @@ void mainloop()
             // defaults
             enable_isl = 1;
             enable_hdmirx = 0;
+            enable_sdp = 0;
             enable_tp = 0;
             target_ths_ch = THS_CH_NONE;
             target_ths_input = THS_INPUT_A;
@@ -1264,6 +1298,16 @@ void mainloop()
                 enable_hdmirx = 1;
                 target_format = FORMAT_YPbPr;
                 break;
+            case AV_EXP_SVIDEO:
+            case AV_EXP_CVBS:
+            case AV_EXP_RF:
+                enable_isl = 0;
+                if (advsdp_dev_avail) {
+                    enable_sdp = 1;
+                    adv7280a_select_input(&advsdp_dev, sdp_input_map[target_avinput-AV_EXP_SVIDEO]);
+                }
+                target_format = FORMAT_RGBS;
+                break;
             default:
                 enable_isl = 0;
                 break;
@@ -1275,7 +1319,7 @@ void mainloop()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL);
+            sys_ctrl &= ~(SCTRL_CAPTURE_SEL_MASK|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL);
 
             ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, cur_avconfig->syncmux_stc ? THS_BIAS_STC_MID : THS_BIAS_AC, (3-cur_avconfig->syncmux_stc), (3-cur_avconfig->syncmux_stc));
 
@@ -1296,12 +1340,16 @@ void mainloop()
                     sys_ctrl |= SCTRL_CSC_ENABLE;
             } else if (enable_hdmirx) {
                 advrx_dev.sync_active = 0;
-                sys_ctrl |= SCTRL_CAPTURE_SEL;
+                sys_ctrl |= (SCTRL_CAPTURE_SEL_HDMIRX<<SCTRL_CAPTURE_SEL_OFFS);
+            } else if (enable_sdp) {
+                sys_ctrl |= (SCTRL_CAPTURE_SEL_SDP<<SCTRL_CAPTURE_SEL_OFFS);
+                si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 2863636, 2700000, NULL);
             } else if (enable_tp) {
                 sys_ctrl |= SCTRL_VGTP_ENABLE;
             }
 
             adv761x_enable_power(&advrx_dev, enable_hdmirx);
+            adv7280a_enable_power(&advsdp_dev, enable_sdp);
 
             switch_audsrc(cur_avconfig->audio_src_map, &tgt_avconfig->hdmitx_cfg.audio_fmt);
 
@@ -1432,8 +1480,8 @@ void mainloop()
 
                         isl_set_afe_bw(&isl_dev, dotclk_hz);
 
-                        if ((pll_h_total != pll_h_total_prev) || (vm_conf.h_skip != h_skip_prev))
-                            set_sampler_phase(vmode_in.sampler_phase, !((pll_h_total == pll_h_total_prev) && !sampler_phase_prev && !vmode_in.sampler_phase), 0);
+                        // Set sampling phase but skip ISL update when it stays in auto phase mode and there are no changes in sampling
+                        set_sampler_phase(vmode_in.sampler_phase, !(!vmode_in.sampler_phase && !sampler_phase_prev && (pll_h_total == pll_h_total_prev) && (vm_conf.h_skip == h_skip_prev)), 0);
 
                         pll_h_total_prev = pll_h_total;
 
@@ -1603,6 +1651,94 @@ void mainloop()
                 cur_avconfig->hdmitx_cfg.audio_ca_val = adv761x_get_audio_ca(&advrx_dev);
             }
             adv761x_update_config(&advrx_dev, &cur_avconfig->hdmirx_cfg);
+        } else if (enable_sdp) {
+            if (adv7280a_check_activity(&advsdp_dev)) {
+                if (advsdp_dev.sync_active) {
+                    printf("SDP sync up\n");
+                } else {
+                    strlcpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
+                    strlcpy(row2, "    NO SYNC", US2066_ROW_LEN+1);
+                    ui_disp_status(1);
+                    printf("SDP sync lost\n");
+                }
+            }
+
+            if (advsdp_dev.sync_active) {
+                if (adv7280a_get_sync_stats(&advsdp_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status.pcnt_frame) || (status & MODE_CHANGE)) {
+                    memset(&vmode_in, 0, sizeof(mode_data_t));
+
+                    int ntscmode = ((advsdp_dev.ss.v_total>>advsdp_dev.ss.interlace_flag) < 285);
+
+                    vmode_in.timings.v_hz_x100 = (100*27000000UL)/advsdp_dev.ss.pcnt_frame;
+                    h_hz = (100*27000000UL)/((100*advsdp_dev.ss.pcnt_frame*(1+advsdp_dev.ss.interlace_flag))/advsdp_dev.ss.v_total);
+
+                    vmode_in.timings.h_total = ntscmode ? 858 : 864;
+                    vmode_in.timings.v_total = advsdp_dev.ss.v_total;
+                    vmode_in.timings.interlaced = advsdp_dev.ss.interlace_flag;
+                    sniprintf(vmode_in.name, sizeof(vmode_in.name), "SDP %u-%c", advsdp_dev.ss.v_total, advsdp_dev.ss.interlace_flag ? 'i' : 'p');
+
+                    oper_mode = get_operating_mode(cur_avconfig, &vmode_in, &vmode_out, &vm_conf);
+                    vm_conf.h_skip = 1;
+
+                    // Disable integer mult for output clock if input pixel clock is pre-multiplied
+                    if (vm_conf.h_skip != 0)
+                        vm_conf.si_pclk_mult = 0;
+
+                    if (oper_mode == OPERMODE_PURE_LM)
+                        sniprintf(op_status, 4, "x%u", vm_conf.y_rpt+1);
+                    else if (oper_mode == OPERMODE_ADAPT_LM)
+                        sniprintf(op_status, 4, "%c%ua", (vm_conf.y_rpt < 0) ? '/' : 'x', (vm_conf.y_rpt < 0) ? (-1*vm_conf.y_rpt+1) : vm_conf.y_rpt+1);
+                    else if (oper_mode == OPERMODE_SCALER)
+                        sniprintf(op_status, 4, "SCL");
+
+                    sniprintf(row2, US2066_ROW_LEN+1, "%lu.%.2lukHz %u.%.2uHz", (h_hz+5)/1000, ((h_hz+5)%1000)/10,
+                                                                                        (vmode_in.timings.v_hz_x100/100),
+                                                                                        (vmode_in.timings.v_hz_x100%100));
+
+                    if (oper_mode == OPERMODE_INVALID) {
+                        sniprintf(row1, US2066_ROW_LEN+1, "%-9s Bad mode", avinput_str[avinput]);
+                        ui_disp_status(1);
+                    } else {
+                        printf("\nInput: %s -> Output: %s (opermode %d)\n", vmode_in.name, vmode_out.name, oper_mode);
+
+                        sniprintf(row1, US2066_ROW_LEN+1, "%-9s %4u-%c %s", avinput_str[avinput], advsdp_dev.ss.v_total, advsdp_dev.ss.interlace_flag ? 'i' : 'p', op_status);
+                        ui_disp_status(1);
+
+                        si_clk_src = vm_conf.framelock ? SI_CLKIN : SI_XTAL;
+                        pclk_i_hz = h_hz * vmode_in.timings.h_total * (vm_conf.h_skip+1);
+                        pclk_o_hz = calculate_pclk((si_clk_src == SI_CLKIN) ? pclk_i_hz : si_dev.xtal_freq, &vmode_out, &vm_conf);
+                        printf("H: %u.%.2ukHz V: %u.%.2uHz\n", h_hz/1000, (((h_hz%1000)+5)/10), (vmode_in.timings.v_hz_x100/100), (vmode_in.timings.v_hz_x100%100));
+                        printf("PCLK_IN: %luHz PCLK_OUT: %luHz\n", pclk_i_hz, pclk_o_hz);
+
+                        // Setup Si5351
+                        if (vm_conf.si_pclk_mult == 0)
+                            si5351_set_frac_mult(&si_dev,
+                                                 SI_PLLA,
+                                                 SI_PCLK_PIN,
+                                                 si_clk_src,
+                                                 pclk_i_hz,
+                                                 vm_conf.framelock ? vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock : pclk_o_hz/1000,
+                                                 vm_conf.framelock ? vmode_in.timings.h_total*(vm_conf.h_skip+1)*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
+                                                 NULL);
+                        else
+                            si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
+
+                        if (vm_conf.framelock)
+                            sys_ctrl |= SCTRL_FRAMELOCK;
+                        else
+                            sys_ctrl &= ~SCTRL_FRAMELOCK;
+
+                        IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+
+                        update_osd_size(&vmode_out);
+                        update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+                    }
+                } else if (status & SC_CONFIG_CHANGE) {
+                    update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+                }
+            } else {
+                advrx_dev.pclk_hz = 0;
+            }
         }
 
 #ifdef INC_ADV7513

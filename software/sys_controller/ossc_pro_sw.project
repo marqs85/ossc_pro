@@ -115,6 +115,16 @@
       <File Name="ic_drivers/adv7513/adv7513.h"/>
       <File Name="ic_drivers/adv7513/adv7513.c"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="adv7280a">
+      <File Name="ic_drivers/adv7280a/adv7280a_regs.h"/>
+      <File Name="ic_drivers/adv7280a/adv7280a.h"/>
+      <File Name="ic_drivers/adv7280a/adv7280a.c"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="si2177">
+      <File Name="ic_drivers/si2177/si2177_regs.h"/>
+      <File Name="ic_drivers/si2177/si2177.h"/>
+      <File Name="ic_drivers/si2177/si2177.c"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <Reconciliation>
     <Regexes/>

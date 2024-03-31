@@ -43,6 +43,7 @@ extern mode_data_t video_modes_plm[];
 extern mode_data_t video_modes[];
 extern smp_preset_t smp_presets[];
 extern sync_timings_t hdmi_timings[NUM_VIDEO_GROUPS];
+extern sync_timings_t sdp_timings[NUM_VIDEO_GROUPS];
 extern uint8_t update_cur_vm;
 
 char target_profile_name[USERDATA_NAME_LEN+1], cur_profile_name[USERDATA_NAME_LEN+1];
@@ -64,6 +65,7 @@ const ude_item_map ude_profile_items[] = {
     {{1, 74, sizeof(video_modes_default)}, video_modes},
     {{2, 74, sizeof(smp_presets_default)}, smp_presets},
     UDE_ITEM(86, 72, hdmi_timings),
+    UDE_ITEM(91, 75, sdp_timings),
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -99,7 +101,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(34, 67, tc.sm_ad_240p_288p),
     UDE_ITEM(35, 58, tc.sm_ad_384p),
     UDE_ITEM(36, 58, tc.sm_ad_480i_576i),
-    UDE_ITEM(37, 58, tc.sm_ad_480p),
+    UDE_ITEM(37, 74, tc.sm_ad_480p),
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
@@ -138,7 +140,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(69, 67, tc.sm_scl_240p_288p),
     UDE_ITEM(70, 58, tc.sm_scl_384p),
     UDE_ITEM(71, 58, tc.sm_scl_480i_576i),
-    UDE_ITEM(72, 60, tc.sm_scl_480p),
+    UDE_ITEM(72, 74, tc.sm_scl_480p),
     UDE_ITEM(73, 74, tc.sm_scl_576p),
 #endif
 #ifdef INC_THS7353
@@ -169,9 +171,10 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(87, 72, tc.timing_2160p60),
 #ifdef VIP
     UDE_ITEM(88, 74, tc.scl_gen_sr),
+#endif
     UDE_ITEM(89, 74, tc.exp_sel),
     UDE_ITEM(90, 74, tc.extra_av_out_mode),
-#endif
+    // 91 reserved for sdp_timings
 };
 
 int write_userdata(uint8_t entry) {

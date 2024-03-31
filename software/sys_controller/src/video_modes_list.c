@@ -292,6 +292,8 @@ const smp_preset_t smp_presets_default[] = {
     { "NeoGeo 320x224", SM_OPT_NG_320COL,  { 320,  224,      0,   384, 0,  264,   28, 21,   29, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     /* GBI */
     { "GBI 240x360",    SM_OPT_GBI_240COL, { 240,  360,      0,   300, 0,  375,   32, 10,   18, 3,  0},  1,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_384P },
+    /* PSP */
+    { "PSP 480x272",    SM_OPT_PSP_480COL, { 480,  272,      0,   858, 0,  525,  177,134,   62, 6,  0},  0,  0,  {16,  9},  VIDEO_EDTV,  GROUP_480P },
     /* DC/PS2/GC 640col AR-correct modes */
     { "DC 640x480i",    SM_OPT_DC_640COL,  { 640,  240,      0,   858, 0,  525,   95, 15,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
     { "DC 640x480",     SM_OPT_DC_640COL,  { 640,  480,      0,   858, 0,  525,   95, 30,   62, 6,  0},  0,  0,  {56, 45},  VIDEO_EDTV,  GROUP_480P },
