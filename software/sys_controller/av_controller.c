@@ -1432,8 +1432,8 @@ void mainloop()
 
                         isl_set_afe_bw(&isl_dev, dotclk_hz);
 
-                        if ((pll_h_total != pll_h_total_prev) || (vm_conf.h_skip != h_skip_prev))
-                            set_sampler_phase(vmode_in.sampler_phase, !((pll_h_total == pll_h_total_prev) && !sampler_phase_prev && !vmode_in.sampler_phase), 0);
+                        // Set sampling phase but skip ISL update when it stays in auto phase mode and there are no changes in sampling
+                        set_sampler_phase(vmode_in.sampler_phase, !(!vmode_in.sampler_phase && !sampler_phase_prev && (pll_h_total == pll_h_total_prev) && (vm_conf.h_skip == h_skip_prev)), 0);
 
                         pll_h_total_prev = pll_h_total;
 
