@@ -90,9 +90,9 @@ typedef union {
 
 typedef union {
     struct {
-        int16_t x_offset:10;
+        int16_t x_offset:11;
         int16_t y_offset:9;
-        uint16_t xy2_rsv:13;
+        uint16_t xy2_rsv:12;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } xy_config2_reg;
@@ -100,8 +100,8 @@ typedef union {
 typedef union {
     struct {
         uint8_t x_start_lb:8;
-        int8_t y_start_lb:6;
-        uint32_t xy3_rsv:18;
+        int8_t y_start_lb:8;
+        uint32_t xy3_rsv:16;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } xy_config3_reg;
