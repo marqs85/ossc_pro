@@ -316,3 +316,20 @@ const smp_preset_t smp_presets_default[] = {
     { "X68k 512x512",   SM_OPT_X68K_512COL,{ 512,  512,      0,   736, 0,  568,   96, 34,   80, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
     { "X68k 768x512",   SM_OPT_X68K_768COL,{ 768,  512,      0,  1104, 0,  568,  144, 34,  120, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
 };
+
+#ifdef VM_STATIC_INCLUDE
+static
+#endif
+const sync_timings_t sdp_timings_default[NUM_VIDEO_GROUPS] = {
+    {0},                                                         // GROUP_NONE
+    { 720,  240,      0,   858, 0,  262,   67, 13,   62, 3,  0}, // GROUP_240P
+    { 704,  288,      0,   864, 0,  312,   79, 17,   63, 3,  0}, // GROUP_288P
+    {0},                                                         // GROUP_384P
+    { 720,  240,   6500,   858, 0,  525,   67, 13,   62, 3,  1}, // GROUP_480I
+    { 720,  288,   5500,   864, 0,  625,   79, 17,   63, 3,  1}, // GROUP_576I
+    {0},                                                         // GROUP_480P
+    {0},                                                         // GROUP_576P
+    {0},                                                         // GROUP_720P
+    {0},                                                         // GROUP_1080I
+    {0},                                                         // GROUP_1080P
+};

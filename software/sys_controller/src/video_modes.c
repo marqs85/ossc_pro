@@ -55,11 +55,7 @@ void set_default_vm_table() {
     memcpy(video_modes, video_modes_default, sizeof(video_modes_default));
     memcpy(smp_presets, smp_presets_default, sizeof(smp_presets_default));
     memset(hdmi_timings, 0, sizeof(hdmi_timings));
-    memset(sdp_timings, 0, sizeof(sdp_timings));
-    memcpy(&sdp_timings[GROUP_240P], &smp_presets_default[0].timings_i, sizeof(sync_timings_t));
-    memcpy(&sdp_timings[GROUP_288P], &smp_presets_default[5].timings_i, sizeof(sync_timings_t));
-    memcpy(&sdp_timings[GROUP_480I], &smp_presets_default[25].timings_i, sizeof(sync_timings_t));
-    memcpy(&sdp_timings[GROUP_576I], &smp_presets_default[27].timings_i, sizeof(sync_timings_t));
+    memcpy(sdp_timings, sdp_timings_default, sizeof(sdp_timings_default));
 }
 
 void vmode_hv_mult(mode_data_t *vmode, uint8_t h_mult, uint8_t v_mult) {
@@ -225,7 +221,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
             (!smp_preset->timings_i.v_hz_x100 || (vm_in->timings.v_hz_x100 <= smp_preset->timings_i.v_hz_x100)) &&
             ((target_sm_list[smp_preset->group] == smp_preset->sm) || ((target_sm_list[smp_preset->group] <= SM_GEN_16_9) && (smp_preset->sm <= SM_GEN_16_9))))
         {
-            diff_lines = abs(vm_in->timings.v_total - smp_preset->timings_i.v_total);
+            diff_lines = abs(vm_in->timings.v_total - smp_preset_default->timings_i.v_total);
 
             if (diff_lines < mindiff_lines) {
                 mindiff_id = i;

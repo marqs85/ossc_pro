@@ -127,11 +127,11 @@ wire [11:0] V_STARTLINE_PREV = (V_STARTLINE == 0) ? (V_TOTAL-1) : (V_STARTLINE-1
 
 wire [11:0] X_SIZE = xy_out_config[11:0];
 wire [11:0] Y_SIZE = xy_out_config[23:12];
-wire signed [9:0] X_OFFSET = xy_out_config2[9:0];
-wire signed [8:0] Y_OFFSET = xy_out_config2[18:10];
+wire signed [10:0] X_OFFSET = xy_out_config2[10:0];
+wire signed [8:0] Y_OFFSET = xy_out_config2[19:11];
 
 wire [7:0] X_START_LB = xy_out_config3[7:0];
-wire signed [5:0] Y_START_LB = xy_out_config3[13:8];
+wire signed [7:0] Y_START_LB = xy_out_config3[15:8];
 
 wire signed [3:0] X_RPT = xy_out_config[27:24];
 wire signed [3:0] Y_RPT = xy_out_config[31:28];
@@ -173,7 +173,7 @@ reg h_avidstart, v_avidstart;
 reg src_fid, dst_fid;
 
 reg [10:0] xpos_lb;
-wire [10:0] xpos_lb_start = (X_OFFSET < 10'sd0) ? 11'd0 : {1'b0, X_OFFSET};
+wire [10:0] xpos_lb_start = (X_OFFSET < 11'sd0) ? 11'd0 : X_OFFSET;
 reg [10:0] ypos_lb, ypos_lb_next;
 reg [3:0] x_ctr;
 reg [3:0] y_ctr;

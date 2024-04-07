@@ -18,6 +18,7 @@
 //
 
 #include <string.h>
+#include <sys/param.h>
 #include "menu.h"
 #include "av_controller.h"
 #include "avconfig.h"
@@ -50,7 +51,7 @@ extern mode_data_t video_modes[];
 extern mode_data_t vmode_in;
 extern smp_preset_t smp_presets[], smp_presets_default[];
 extern sync_timings_t hdmi_timings[];
-extern sync_timings_t sdp_timings[];
+extern sync_timings_t sdp_timings[], sdp_timings_default[];
 extern uint8_t update_cur_vm;
 extern oper_mode_t oper_mode;
 extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
@@ -640,13 +641,14 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
     char clock_disp[US2066_ROW_LEN+1], phase_disp[US2066_ROW_LEN+1];
     int i;
     int active_mode = smp_is_active();
+    uint16_t h_total_min;
     static int sr_step;
     static const char *sr_step_str[] = {"1", "10", "0.05"};
 
 #ifndef DExx_FW
     if ((advrx_dev.powered_on && advrx_dev.sync_active) || (advsdp_dev.powered_on && advsdp_dev.sync_active)) {
         sniprintf(menu_row1, US2066_ROW_LEN+1, "Not applicable");
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "for HDMI/EXT");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "for HDMI/EXP");
         ui_disp_menu(1);
 
         return;
@@ -701,8 +703,9 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
         } else {
             smp->timings_i.h_total -= (sr_step ? 10 : 1);
         }
-        if (smp->timings_i.h_total < H_TOTAL_MIN) {
-            smp->timings_i.h_total = H_TOTAL_MIN;
+        h_total_min = MAX(smp->timings_i.h_backporch + smp->timings_i.h_synclen + smp->timings_i.h_active, H_TOTAL_MIN);
+        if (smp->timings_i.h_total < h_total_min) {
+            smp->timings_i.h_total = h_total_min;
             smp->timings_i.h_total_adj = 0;
         }
         if (active_mode)
@@ -1500,7 +1503,7 @@ static int smp_reset() {
     if (advrx_dev.powered_on && advrx_dev.sync_active)
         memset(&hdmi_timings[dtmg_edit], 0, sizeof(sync_timings_t));
     else if (advsdp_dev.powered_on && advsdp_dev.sync_active)
-        memset(&sdp_timings[dtmg_edit], 0, sizeof(sync_timings_t)); // INVA
+        memcpy(&sdp_timings[dtmg_edit], &sdp_timings_default[dtmg_edit], sizeof(sync_timings_t));
     else
 #endif
         memcpy(&smp_presets[smp_edit], &smp_presets_default[smp_edit], sizeof(smp_preset_t));

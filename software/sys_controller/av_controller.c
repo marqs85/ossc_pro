@@ -1696,12 +1696,12 @@ void mainloop()
                                                                                         (vmode_in.timings.v_hz_x100%100));
 
                     if (oper_mode == OPERMODE_INVALID) {
-                        sniprintf(row1, US2066_ROW_LEN+1, "%-9s Bad mode", avinput_str[avinput]);
+                        sniprintf(row1, US2066_ROW_LEN+1, "%-10s Bad mode", avinput_str[avinput]);
                         ui_disp_status(1);
                     } else {
                         printf("\nInput: %s -> Output: %s (opermode %d)\n", vmode_in.name, vmode_out.name, oper_mode);
 
-                        sniprintf(row1, US2066_ROW_LEN+1, "%-9s %4u-%c %s", avinput_str[avinput], advsdp_dev.ss.v_total, advsdp_dev.ss.interlace_flag ? 'i' : 'p', op_status);
+                        sniprintf(row1, US2066_ROW_LEN+1, "%-10s %3u-%c %s", avinput_str[avinput], advsdp_dev.ss.v_total, advsdp_dev.ss.interlace_flag ? 'i' : 'p', op_status);
                         ui_disp_status(1);
 
                         si_clk_src = vm_conf.framelock ? SI_CLKIN : SI_XTAL;
