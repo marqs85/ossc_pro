@@ -36,7 +36,9 @@
 #ifdef INC_PCM186X
 #include "pcm186x.h"
 #endif
+#ifndef DExx_FW
 #include "adv7280a.h"
+#endif
 
 #define SIGNED_NUMVAL_ZERO  128
 
@@ -81,10 +83,11 @@ typedef enum {
     SCL_FL_ON           = 0,
     SCL_FL_ON_2X        = 1,
     SCL_FL_OFF_CLOSEST  = 2,
-    SCL_FL_OFF_50HZ     = 3,
-    SCL_FL_OFF_60HZ     = 4,
-    SCL_FL_OFF_100HZ    = 5,
-    SCL_FL_OFF_120HZ    = 6,
+    SCL_FL_OFF_PRESET   = 3,
+    SCL_FL_OFF_50HZ     = 4,
+    SCL_FL_OFF_60HZ     = 5,
+    SCL_FL_OFF_100HZ    = 6,
+    SCL_FL_OFF_120HZ    = 7,
 } scl_fl_mode_t;
 
 typedef struct {
@@ -202,6 +205,9 @@ typedef struct {
 #endif
 #ifdef INC_PCM186X
     pcm186x_config pcm_cfg __attribute__ ((aligned (4)));
+#endif
+#ifndef DExx_FW
+    adv7280a_config sdp_cfg __attribute__ ((aligned (4)));
 #endif
 } __attribute__((packed)) avconfig_t;
 

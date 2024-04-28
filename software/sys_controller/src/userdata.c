@@ -125,7 +125,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(58, 58, tc.audio_fmt),
 #ifdef VIP
     UDE_ITEM(59, 68, tc.scl_out_mode),
-    UDE_ITEM(60, 58, tc.scl_framelock),
+    UDE_ITEM(60, 75, tc.scl_framelock),
     UDE_ITEM(61, 62, tc.scl_aspect),
     UDE_ITEM(62, 69, tc.scl_alg),
     UDE_ITEM(63, 58, tc.scl_edge_thold),
@@ -151,7 +151,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(76, 58, tc.hdmitx_cfg),
 #endif
 #ifdef INC_SII1136
-    UDE_ITEM(77, 69, tc.hdmitx_cfg),
+    UDE_ITEM(77, 75, tc.hdmitx_cfg),
 #endif
 #ifdef INC_ADV761X
     UDE_ITEM(78, 69, tc.hdmirx_cfg),
@@ -163,7 +163,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(80, 74, tc.scl_crt_out_mode),
     UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
-    UDE_ITEM(82, 64, tc.pm_ad_1080p),
+    UDE_ITEM(82, 75, tc.pm_ad_1080p),
     UDE_ITEM(83, 67, tc.l6_mode),
     UDE_ITEM(84, 68, tc.shmask_mode),
     UDE_ITEM(85, 72, tc.timing_1080p120),
@@ -173,8 +173,11 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(88, 74, tc.scl_gen_sr),
 #endif
     UDE_ITEM(89, 74, tc.exp_sel),
-    UDE_ITEM(90, 74, tc.extra_av_out_mode),
+    UDE_ITEM(90, 75, tc.extra_av_out_mode),
     // 91 reserved for sdp_timings
+#ifndef DExx_FW
+    UDE_ITEM(92, 75, tc.sdp_cfg),
+#endif
 };
 
 int write_userdata(uint8_t entry) {
