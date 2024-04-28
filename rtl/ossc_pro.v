@@ -610,18 +610,39 @@ assign AUDMUX_o = ~audmux_sel;
 assign LS_DIR_o = (exp_sel == EXP_SEL_LEGAGY_IN) ? 2'b10 : 2'b11;
 
 `ifdef EXTRA_AV_OUT
+// CSC for YPbPr
+wire [7:0] VGA_CSC_R_out, VGA_CSC_G_out, VGA_CSC_B_out;
+wire VGA_CSC_HSYNC_out, VGA_CSC_VSYNC_out, VGA_CSC_DE_out;
+output_csc csc_vga_inst (
+    .PCLK_i(pclk_out),
+    .reset_n(1'b1),
+    .enable((exp_sel == EXP_SEL_EXTRA_OUT) & (extra_out_mode == EXTRA_OUT_YPbPr)),
+    .R_i(R_out),
+    .G_i(G_out),
+    .B_i(B_out),
+    .HSYNC_i(HSYNC_out),
+    .VSYNC_i(VSYNC_out),
+    .DE_i(DE_out),
+    .R_o(VGA_CSC_R_out),
+    .G_o(VGA_CSC_G_out),
+    .B_o(VGA_CSC_B_out),
+    .HSYNC_o(VGA_CSC_HSYNC_out),
+    .VSYNC_o(VGA_CSC_VSYNC_out),
+    .DE_o(VGA_CSC_DE_out),
+);
+
 // VGA DAC
 reg [7:0] VGA_R, VGA_G, VGA_B, VGA_R_pre, VGA_G_pre, VGA_B_pre;
 reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N, VGA_HS_pre, VGA_VS_pre, VGA_SYNC_N_pre, VGA_BLANK_N_pre;
 always @(posedge pclk_out) begin
     if (exp_sel == EXP_SEL_EXTRA_OUT) begin
-        VGA_R_pre <= R_out;
-        VGA_G_pre <= G_out;
-        VGA_B_pre <= B_out;
-        VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? HSYNC_out : ~(HSYNC_out ^ VSYNC_out);
-        VGA_VS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VSYNC_out : 1'b1;
-        VGA_BLANK_N_pre <= DE_out;
-        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? ~(HSYNC_out ^ VSYNC_out) : 1'b0;
+        VGA_R_pre <= VGA_CSC_R_out;
+        VGA_G_pre <= VGA_CSC_G_out;
+        VGA_B_pre <= VGA_CSC_B_out;
+        VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_HSYNC_out : ~(VGA_CSC_HSYNC_out ^ VGA_CSC_VSYNC_out);
+        VGA_VS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_VSYNC_out : 1'b1;
+        VGA_BLANK_N_pre <= (extra_out_mode == EXTRA_OUT_YPbPr) ? 1'b1 : VGA_CSC_DE_out;
+        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? ~(VGA_CSC_HSYNC_out ^ VGA_CSC_VSYNC_out) : 1'b0;
 
         VGA_R <= VGA_R_pre;
         VGA_G <= VGA_G_pre;
