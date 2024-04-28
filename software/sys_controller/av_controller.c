@@ -861,6 +861,22 @@ int check_sdcard() {
     return ret;
 }
 
+int update_edid() {
+    FIL edid_file;
+    unsigned bytes_read;
+
+    if (!sd_det)
+        return -1;
+
+    if (!file_open(&edid_file, "edid.bin") && (f_size(&edid_file) == sizeof(pro_edid_bin))) {
+        f_read(&edid_file, pro_edid_bin, sizeof(pro_edid_bin), &bytes_read);
+        printf("Custom edid set\n");
+        file_close(&edid_file);
+    }
+
+    return 0;
+}
+
 int init_hw()
 {
     int ret;
@@ -905,8 +921,12 @@ int init_hw()
     // Init Si5351C
     si5351_init(&si_dev);
 
-    //init ocsdc driver
+    // Init ocsdc driver
     mmc_dev = ocsdc_mmc_init(SDC_CONTROLLER_QSYS_0_BASE, SDC_FREQ, SDC_HOST_CAPS);
+
+    // Load custom EDID if available and reset MMC/SD status as entering standby
+    check_sdcard();
+    update_edid();
     mmc_dev->has_init = 0;
     sd_det = sd_det_prev = 0;
 
@@ -1044,14 +1064,12 @@ void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode) {
     // Set expansion flags
     if (((exp_sel == 0) && (exp_det == 1)) || (exp_sel == 2)) {
         if (extra_av_out_mode)
-            sys_ctrl |= (1<<SCTRL_EXP_SEL_OFFS)|(extra_av_out_mode<<SCTRL_EXTRA_AV_O_OFFS);
+            sys_ctrl |= (1<<SCTRL_EXP_SEL_OFFS)|((extra_av_out_mode-1)<<SCTRL_EXTRA_AV_O_OFFS);
     } else if ((exp_sel == 0) && (exp_det > 1)) {
         sys_ctrl |= exp_det<<SCTRL_EXP_SEL_OFFS;
     } else if (exp_sel > 2) {
         sys_ctrl |= (exp_sel-1)<<SCTRL_EXP_SEL_OFFS;
     }
-
-    sys_ctrl |= (extra_av_out_mode-1)<<SCTRL_EXTRA_AV_O_OFFS;
 
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 }
@@ -1167,10 +1185,7 @@ void update_settings(int init_setup) {
     if (init_setup || (ts.osd_enable != cs.osd_enable) || (ts.osd_status_timeout != cs.osd_status_timeout)) {
         osd->osd_config.enable = !!ts.osd_enable;
         osd->osd_config.status_timeout = ts.osd_status_timeout;
-        if (is_menu_active()) {
-            render_osd_menu();
-            display_menu((rc_code_t)-1, (btn_code_t)-1);
-        }
+        refresh_osd();
     }
     if (init_setup || (ts.fan_pwm != cs.fan_pwm) || (ts.led_pwm != cs.led_pwm)) {
         sys_ctrl &= ~(SCTRL_FAN_PWM_MASK|SCTRL_LED_PWM_MASK);
@@ -1748,6 +1763,8 @@ void mainloop()
 #ifdef INC_SII1136
         sii1136_update_config(&siitx_dev, &cur_avconfig->hdmitx_cfg);
 #endif
+
+        adv7280a_update_config(&advsdp_dev, &cur_avconfig->sdp_cfg);
 
         pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);
 

@@ -141,6 +141,7 @@ void quick_adjust_phase(uint8_t dir);
 void display_menu(rc_code_t rcode, btn_code_t bcode);
 void set_func_ret_msg(char *msg);
 void update_osd_size(mode_data_t *vm_out);
+void refresh_osd();
 static void vm_select();
 static void vm_out_select();
 static void vm_tweak(uint16_t *v);

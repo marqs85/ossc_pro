@@ -464,6 +464,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     } else {
         if (cc->scl_framelock == SCL_FL_OFF_CLOSEST)
             vm_out->timings.v_hz_x100 = vm_in->timings.v_hz_x100;
+        else if (cc->scl_framelock == SCL_FL_OFF_PRESET)
+            ;
         else if (mode_hz_index == 0)
             vm_out->timings.v_hz_x100 = 5000;
         else if (mode_hz_index == 1)
@@ -594,7 +596,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     const ad_mode_t pm_ad_576p_map[] = {{STDMODE_576p, 0}, {STDMODE_576i, -1}, {STDMODE_288p_CRT, -1}, {STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}, {STDMODE_1920x1200_50, 1}};
     const ad_mode_t pm_ad_720p_map[] = {{STDMODE_720p_50, 0}, {STDMODE_2560x1440_50, 1}};
     const ad_mode_t pm_ad_1080i_map[] = {{STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}};
-    const ad_mode_t pm_ad_1080p_map[] = {{STDMODE_1080p_50, 0}, {STDMODE_1080i_50, -1}};
+    const ad_mode_t pm_ad_1080p_map[] = {{STDMODE_1080p_50, 0}, {STDMODE_1080i_50, -1}, {STDMODE_540p_50_CRT, -1}};
 
 
     const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
@@ -908,7 +910,6 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
                 mindiff_lines = diff_lines;
                 mindiff_v_hz_x100 = diff_v_hz_x100;
                 mindiff_lm = target_lm;
-                nonsampled_v_mult = *group_ptr[mode_preset->group]+1;
             } else if ((mindiff_lines <= 2) && (diff_lines > mindiff_lines)) {
                 // Break out if suitable mode already found
                 break;
@@ -935,6 +936,8 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
         vm_in->timings.v_backporch = mode_preset->timings.v_backporch;
     if (!vm_in->timings.h_total)
         vm_in->timings.h_total = mode_preset->timings.h_total;
+    else
+        nonsampled_v_mult = *group_ptr[mode_preset->group]+1;
     vm_in->timings.h_total_adj = mode_preset->timings.h_total_adj;
     vm_in->sampler_phase = mode_preset->sampler_phase;
     vm_in->mask.h = mode_preset->mask.h;
