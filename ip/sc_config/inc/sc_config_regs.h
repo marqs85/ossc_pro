@@ -27,7 +27,7 @@ typedef union {
     struct {
         uint16_t vtotal:11;
         uint8_t interlace_flag:1;
-        uint32_t pcnt_frame:20;
+        uint32_t pcnt_field:20;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } fe_status_reg;

@@ -256,7 +256,7 @@ end
 wire [7:0] ISL_R_post, ISL_G_post, ISL_B_post;
 wire ISL_HSYNC_post, ISL_VSYNC_post, ISL_DE_post, ISL_FID_post, ISL_datavalid_post;
 wire ISL_fe_interlace, ISL_fe_frame_change, ISL_sof_scaler;
-wire [19:0] ISL_fe_pcnt_frame;
+wire [19:0] ISL_fe_pcnt_field;
 wire [10:0] ISL_fe_vtotal, ISL_fe_xpos, ISL_fe_ypos;
 isl51002_frontend u_isl_frontend ( 
     .PCLK_i(ISL_PCLK_i),
@@ -294,7 +294,7 @@ isl51002_frontend u_isl_frontend (
     .vtotal(ISL_fe_vtotal),
     .frame_change(ISL_fe_frame_change),
     .sof_scaler(ISL_sof_scaler),
-    .pcnt_frame(ISL_fe_pcnt_frame)
+    .pcnt_field(ISL_fe_pcnt_field)
 );
 
 // ADV7611 HDMI RX
@@ -378,7 +378,7 @@ end
 wire [7:0] SDP_R_post, SDP_G_post, SDP_B_post;
 wire SDP_HSYNC_post, SDP_VSYNC_post, SDP_DE_post, SDP_FID_post, SDP_datavalid_post;
 wire SDP_fe_interlace, SDP_fe_frame_change, SDP_sof_scaler;
-wire [19:0] SDP_fe_pcnt_frame;
+wire [19:0] SDP_fe_pcnt_field;
 wire [10:0] SDP_fe_vtotal, SDP_fe_xpos, SDP_fe_ypos;
 adv7280a_frontend u_sdp_frontend ( 
     .PCLK_i(SDP_PCLK_i),
@@ -404,7 +404,7 @@ adv7280a_frontend u_sdp_frontend (
     .vtotal(SDP_fe_vtotal),
     .frame_change(SDP_fe_frame_change),
     .sof_scaler(SDP_sof_scaler),
-    .pcnt_frame(SDP_fe_pcnt_frame)
+    .pcnt_field(SDP_fe_pcnt_field)
 );
 `endif
 
@@ -427,7 +427,7 @@ reg [7:0] R_capt, G_capt, B_capt;
 reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt, datavalid_capt;
 reg interlace_flag_capt, frame_change_capt, sof_scaler_capt;
 reg [10:0] xpos_capt, ypos_capt;
-wire [31:0] fe_status = capture_sel[1] ? {SDP_fe_pcnt_frame, SDP_fe_interlace, SDP_fe_vtotal} : {ISL_fe_pcnt_frame, ISL_fe_interlace, ISL_fe_vtotal};
+wire [31:0] fe_status = capture_sel[1] ? {SDP_fe_pcnt_field, SDP_fe_interlace, SDP_fe_vtotal} : {ISL_fe_pcnt_field, ISL_fe_interlace, ISL_fe_vtotal};
 always @(posedge pclk_capture) begin
     R_capt <= capture_sel[1] ? SDP_R_post : (capture_sel[0] ? HDMIRX_R_post : ISL_R_post);
     G_capt <= capture_sel[1] ? SDP_G_post : (capture_sel[0] ? HDMIRX_G_post : ISL_G_post);

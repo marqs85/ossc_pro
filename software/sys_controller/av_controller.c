@@ -50,7 +50,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 75
+#define FW_VER_MINOR 76
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -1151,9 +1151,10 @@ uint16_t get_sampler_phase() {
     }
 }
 
-void set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc) {
+int set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc) {
     uint32_t sample_rng_x1000;
     uint8_t isl_phase;
+    int retval = 0;
 
     vmode_in.sampler_phase = sampler_phase;
 
@@ -1170,10 +1171,12 @@ void set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update
         printf("Sample sel: %u/%u\n", (vm_conf.h_sample_sel+1), (vm_conf.h_skip+1));
 
     if (update_isl)
-        isl_set_sampler_phase(&isl_dev, isl_phase);
+        retval = isl_set_sampler_phase(&isl_dev, isl_phase);
 
     if (update_sc)
         update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
+
+    return retval;
 }
 
 void set_default_settings() {
@@ -1200,7 +1203,7 @@ void update_settings(int init_setup) {
 
 void mainloop()
 {
-    int i, man_input_change;
+    int i, man_input_change, isl_padj_in_prog=0;
     char op_status[4];
     uint32_t pclk_i_hz, pclk_o_hz, dotclk_hz, h_hz, pll_h_total, pll_h_total_prev=0;
     uint8_t h_skip_prev, sampler_phase_prev;
@@ -1425,7 +1428,7 @@ void mainloop()
             }
 
             if (isl_dev.sync_active) {
-                if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status.pcnt_frame) || (status & MODE_CHANGE)) {
+                if (isl_get_sync_stats(&isl_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status.pcnt_field) || (status & MODE_CHANGE)) {
                     h_skip_prev = vm_conf.h_skip;
                     sampler_phase_prev = vmode_in.sampler_phase;
 
@@ -1441,8 +1444,8 @@ void mainloop()
                     else
                         vmode_in.timings.v_hz_x100 = 0;
 #else
-                    vmode_in.timings.v_hz_x100 = (100*27000000UL)/isl_dev.ss.pcnt_frame;
-                    h_hz = (100*27000000UL)/((100*isl_dev.ss.pcnt_frame*(1+isl_dev.ss.interlace_flag))/isl_dev.ss.v_total);
+                    vmode_in.timings.v_hz_x100 = (100*27000000UL)/isl_dev.ss.pcnt_field;
+                    h_hz = (100*27000000UL)/((100*isl_dev.ss.pcnt_field*(1+isl_dev.ss.interlace_flag))/isl_dev.ss.v_total);
 #endif
 
                     vmode_in.timings.h_synclen = isl_dev.sm.h_synclen_x16 / 16;
@@ -1496,7 +1499,7 @@ void mainloop()
                         isl_set_afe_bw(&isl_dev, dotclk_hz);
 
                         // Set sampling phase but skip ISL update when it stays in auto phase mode and there are no changes in sampling
-                        set_sampler_phase(vmode_in.sampler_phase, !(!vmode_in.sampler_phase && !sampler_phase_prev && (pll_h_total == pll_h_total_prev) && (vm_conf.h_skip == h_skip_prev)), 0);
+                        isl_padj_in_prog = set_sampler_phase(vmode_in.sampler_phase, !(!isl_padj_in_prog && !vmode_in.sampler_phase && !sampler_phase_prev && (pll_h_total == pll_h_total_prev) && (vm_conf.h_skip == h_skip_prev)), 0);
 
                         pll_h_total_prev = pll_h_total;
 
@@ -1537,6 +1540,8 @@ void mainloop()
                         sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
 #endif
                     }
+                } else if (isl_padj_in_prog) {
+                    isl_padj_in_prog = set_sampler_phase(vmode_in.sampler_phase, 1, 0);
                 } else if (status & SC_CONFIG_CHANGE) {
                     update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
                 }
@@ -1679,13 +1684,13 @@ void mainloop()
             }
 
             if (advsdp_dev.sync_active) {
-                if (adv7280a_get_sync_stats(&advsdp_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status.pcnt_frame) || (status & MODE_CHANGE)) {
+                if (adv7280a_get_sync_stats(&advsdp_dev, sc->fe_status.vtotal, sc->fe_status.interlace_flag, sc->fe_status.pcnt_field) || (status & MODE_CHANGE)) {
                     memset(&vmode_in, 0, sizeof(mode_data_t));
 
                     int ntscmode = ((advsdp_dev.ss.v_total>>advsdp_dev.ss.interlace_flag) < 285);
 
-                    vmode_in.timings.v_hz_x100 = (100*27000000UL)/advsdp_dev.ss.pcnt_frame;
-                    h_hz = (100*27000000UL)/((100*advsdp_dev.ss.pcnt_frame*(1+advsdp_dev.ss.interlace_flag))/advsdp_dev.ss.v_total);
+                    vmode_in.timings.v_hz_x100 = (100*27000000UL)/advsdp_dev.ss.pcnt_field;
+                    h_hz = (100*27000000UL)/((100*advsdp_dev.ss.pcnt_field*(1+advsdp_dev.ss.interlace_flag))/advsdp_dev.ss.v_total);
 
                     vmode_in.timings.h_total = ntscmode ? 858 : 864;
                     vmode_in.timings.v_total = advsdp_dev.ss.v_total;
