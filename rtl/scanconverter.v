@@ -136,8 +136,8 @@ wire signed [7:0] Y_START_LB = xy_out_config3[15:8];
 wire signed [3:0] X_RPT = xy_out_config[27:24];
 wire signed [3:0] Y_RPT = xy_out_config[31:28];
 
-wire Y_SKIP = (Y_RPT == 4'(-1));
-wire [1:0] Y_STEP = Y_SKIP+1'b1;
+wire [1:0] Y_SKIP = ((Y_RPT >= 0) | (Y_RPT == 4'h8)) ? 0 : -Y_RPT;
+wire [2:0] Y_STEP = Y_SKIP+1'b1;
 
 wire [3:0] SL_L_STR[5:0] = '{sl_config[23:20], sl_config[19:16], sl_config[15:12], sl_config[11:8], sl_config[7:4], sl_config[3:0]};
 wire [3:0] SL_C_STR[9:0] = '{sl_config3[7:4], sl_config3[3:0], sl_config2[31:28], sl_config2[27:24], sl_config2[23:20], sl_config2[19:16], sl_config2[15:12], sl_config2[11:8], sl_config2[7:4], sl_config2[3:0]};
@@ -178,7 +178,7 @@ reg [10:0] ypos_lb, ypos_lb_next;
 reg [3:0] x_ctr;
 reg [3:0] y_ctr;
 reg line_id;
-reg ypos_pp_init;
+reg ypos_pp_init, ypos_lb_repeatfirst;
 
 reg sl_method;
 reg [3:0] sl_str;
@@ -430,21 +430,25 @@ always @(posedge PCLK_OUT_i) begin
             ypos_pp[1] <= 11'(-1);
             ypos_pp_init <= 1'b1;
             // Bob deinterlace adjusts linebuf start position and y_ctr for even source fields if
-            // output is progressive mode. Noninterlace restore as raw output mode is an exception
-            // which ignores LM deinterlace mode setting.
+            // output is progressive mode (first line is also repeated to avoid masking of missing data).
+            // Noninterlace restore as raw output mode is an exception which ignores LM deinterlace mode setting.
             if (~ext_sync_mode & ~MISC_LM_DEINT_MODE & (Y_RPT > 0) & ~V_INTERLACED & (src_fid == FID_EVEN)) begin
-                ypos_lb_next <= 11'(Y_START_LB) - 1'b1;
+                ypos_lb_next <= 11'(Y_START_LB);
+                ypos_lb_repeatfirst <= 1'b1;
                 y_ctr <= ((Y_RPT+1'b1) >> 1);
                 y_ctr_sl_pp[1] <= SL_BOB_ALTERN ? ((Y_RPT+1'b1) >> 1) : '0;
             end else begin
-                if (Y_SKIP & (dst_fid == FID_EVEN)) begin
-                    // Linedrop mode and output interlaced
-                    ypos_lb_next <= 11'(Y_START_LB) + 1'b1;
+                if ((Y_SKIP > 0) & (dst_fid == FID_EVEN)) begin
+                    // Linedrop mode with output interlaced
+                    ypos_lb_next <= 11'(Y_START_LB) + Y_SKIP;
+                    ypos_lb_repeatfirst <= 1'b0;
                 end else if ((((Y_RPT == 0) & ~V_INTERLACED) | ((Y_RPT > 0) & MISC_LM_DEINT_MODE)) & (src_fid == FID_EVEN)) begin
                     // Adjust even field Y-offset for noninterlace restore
-                    ypos_lb_next <= 11'(Y_START_LB) - MISC_NIR_EVEN_OFFSET;
+                    ypos_lb_next <= 11'(Y_START_LB);
+                    ypos_lb_repeatfirst <= MISC_NIR_EVEN_OFFSET;
                 end else begin
                     ypos_lb_next <= 11'(Y_START_LB);
+                    ypos_lb_repeatfirst <= 1'b0;
                 end
                 y_ctr <= 0;
                 y_ctr_sl_pp[1] <= 0;
@@ -455,11 +459,15 @@ always @(posedge PCLK_OUT_i) begin
             if (ypos_pp[1] != V_ACTIVE) begin
                 ypos_pp[1] <= ypos_pp[1] + 1'b1;
 
-                if (ypos_pp_init | (y_ctr == Y_RPT) | Y_SKIP) begin
-                    if ((ypos_lb_next >= NUM_LINE_BUFFERS-Y_STEP) & (ypos_lb_next < NUM_LINE_BUFFERS))
-                        ypos_lb_next <= ypos_lb_next + Y_STEP - NUM_LINE_BUFFERS;
-                    else
-                        ypos_lb_next <= ypos_lb_next + Y_STEP;
+                if (ypos_pp_init | (y_ctr == Y_RPT) | (Y_SKIP > 0)) begin
+                    if (ypos_lb_repeatfirst & (ypos_lb_next < (NUM_LINE_BUFFERS/2))) begin
+                        ypos_lb_repeatfirst <= 1'b0;
+                    end else begin
+                        if ((ypos_lb_next >= NUM_LINE_BUFFERS-Y_STEP) & (ypos_lb_next < NUM_LINE_BUFFERS))
+                            ypos_lb_next <= ypos_lb_next + Y_STEP - NUM_LINE_BUFFERS;
+                        else
+                            ypos_lb_next <= ypos_lb_next + Y_STEP;
+                    end
                     ypos_lb <= ypos_lb_next;
                     line_id <= ~line_id;
                     ypos_pp_init <= 1'b0;

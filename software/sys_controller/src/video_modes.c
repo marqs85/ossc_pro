@@ -326,7 +326,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_576p_WS, -1, -1, -1},
                                          {STDMODE_720p_50, STDMODE_720p_60, STDMODE_720p_100, STDMODE_720p_120},
                                          {-1, STDMODE_1280x1024_60, -1, -1},
-                                         {STDMODE_1080i_50, STDMODE_1080i_60, -1, -1},
+                                         {STDMODE_1080i_50, STDMODE_1080i_60, STDMODE_1080i_50, STDMODE_1080i_60},
                                          {STDMODE_1080p_50, STDMODE_1080p_60, STDMODE_1080p_100, timings_1080p120[cc->timing_1080p120]},
                                          {-1, STDMODE_1600x1200_60, -1, -1},
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60, -1, -1},
@@ -594,7 +594,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     const ad_mode_t pm_ad_480p_map[] = {{STDMODE_480p, 0}, {STDMODE_480i, -1}, {STDMODE_240p_CRT, -1}, {STDMODE_1280x1024_60, 1}, {STDMODE_1080i_60, 0}, {STDMODE_1080p_60, 1},
                                         {STDMODE_1920x1440_60, 2}, {STDMODE_2560x1440_60, 2}};
     const ad_mode_t pm_ad_576p_map[] = {{STDMODE_576p, 0}, {STDMODE_576i, -1}, {STDMODE_288p_CRT, -1}, {STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}, {STDMODE_1920x1200_50, 1}};
-    const ad_mode_t pm_ad_720p_map[] = {{STDMODE_720p_50, 0}, {STDMODE_2560x1440_50, 1}};
+    const ad_mode_t pm_ad_720p_map[] = {{STDMODE_720p_50, 0}, {STDMODE_288p_WS_CRT, -2}, {STDMODE_576i_WS_CRT, -2}, {STDMODE_2560x1440_50, 1}};
     const ad_mode_t pm_ad_1080i_map[] = {{STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}};
     const ad_mode_t pm_ad_1080p_map[] = {{STDMODE_1080p_50, 0}, {STDMODE_1080i_50, -1}, {STDMODE_540p_50_CRT, -1}};
 
@@ -654,8 +654,12 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
         return -1;
 
     // Switch to 60Hz output preset if needed
-    if ((vm_in->group >= GROUP_720P) && (vm_in->timings.v_hz_x100 > 5500))
-        ad_mode_list[vm_in->group].stdmode_id++;
+    if ((vm_in->group >= GROUP_720P) && (vm_in->timings.v_hz_x100 > 5500)) {
+        if (ad_mode_list[vm_in->group].stdmode_id <= STDMODE_576i_WS_CRT)
+            ad_mode_list[vm_in->group].stdmode_id -= 2;
+        else
+            ad_mode_list[vm_in->group].stdmode_id++;
+    }
 
     // Copy default sampling preset timings to output mode if no group found
     if (vm_in->group == GROUP_NONE) {
@@ -695,7 +699,13 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     // Calculate x_rpt for optimal modes based on output mode, sampling preset and y_rpt
     switch (ad_mode_list[vm_in->group].stdmode_id) {
     case STDMODE_240p_CRT:
+    case STDMODE_240p_WS_CRT:
     case STDMODE_288p_CRT:
+    case STDMODE_288p_WS_CRT:
+    case STDMODE_480i_CRT:
+    case STDMODE_480i_WS_CRT:
+    case STDMODE_576i_CRT:
+    case STDMODE_576i_WS_CRT:
         vm_conf->x_rpt = (vm_out->timings.h_active / vm_in->timings.h_active) - 1;
         break;
     case STDMODE_480p:
@@ -796,10 +806,10 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     vm_conf->x_size = vm_in->timings.h_active*(vm_conf->x_rpt+1);
     if (vm_conf->x_size >= 4096)
         vm_conf->x_size = 4095;
-    if (vm_conf->y_rpt == -1) {
-        vm_conf->y_start_lb = ((vm_in->timings.v_active - (vm_out->timings.v_active*2))/2) + y_offset_i*2;
-        vm_conf->y_offset = -vm_conf->y_start_lb/2;
-        vm_conf->y_size = vm_in->timings.v_active/2;
+    if (vm_conf->y_rpt < 0) {
+        vm_conf->y_start_lb = ((vm_in->timings.v_active - (vm_out->timings.v_active*(-vm_conf->y_rpt+1)))/2) + y_offset_i*2;
+        vm_conf->y_offset = -vm_conf->y_start_lb/(-vm_conf->y_rpt+1);
+        vm_conf->y_size = vm_in->timings.v_active/(-vm_conf->y_rpt+1);
     } else {
         vm_conf->y_start_lb = ((vm_in->timings.v_active - (vm_out->timings.v_active/(vm_conf->y_rpt+1)))/2) + y_offset_i;
         vm_conf->y_offset = -(vm_conf->y_rpt+1)*vm_conf->y_start_lb;
@@ -813,7 +823,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     v_linediff = (vm_out->timings.v_synclen + vm_out->timings.v_backporch + ((vm_conf->y_offset < 0) ? 0 : vm_conf->y_offset)) - v_linediff;
 
     // if linebuf is read faster than written, output framestart must be delayed accordingly to avoid read pointer catching write pointer
-    vtotal_ref = (vm_conf->y_rpt == -1) ? ((vm_in->timings.v_total*out_interlace_mult)/2) : (vm_in->timings.v_total*out_interlace_mult*(vm_conf->y_rpt+1));
+    vtotal_ref = (vm_conf->y_rpt < 0) ? ((vm_in->timings.v_total*out_interlace_mult)/2) : (vm_in->timings.v_total*out_interlace_mult*(vm_conf->y_rpt+1));
     if (vm_out->timings.v_total * in_interlace_mult > vtotal_ref)
         v_linediff -= (((vm_in->timings.v_active * vm_out->timings.v_total * in_interlace_mult) / (vm_in->timings.v_total * out_interlace_mult)) - vm_conf->y_size);
 
