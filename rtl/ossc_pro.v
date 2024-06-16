@@ -602,7 +602,7 @@ end
 assign HDMITX_I2S_BCK_o = hdmirx_aud_sel ? HDMIRX_I2S_BCK_i : PCM_I2S_BCK_i;
 assign HDMITX_I2S_WS_o = hdmirx_aud_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
 assign HDMITX_I2S_DATA_o = hdmirx_aud_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
-assign HDMITX_SPDIF_o = hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i;
+assign HDMITX_SPDIF_o = sys_poweron ? (hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i) : 1'b0;
 
 assign AUDMUX_o = ~audmux_sel;
 
