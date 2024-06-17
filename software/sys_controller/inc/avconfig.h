@@ -36,6 +36,9 @@
 #ifdef INC_PCM186X
 #include "pcm186x.h"
 #endif
+#ifndef DExx_FW
+#include "adv7280a.h"
+#endif
 
 #define SIGNED_NUMVAL_ZERO  128
 
@@ -80,10 +83,11 @@ typedef enum {
     SCL_FL_ON           = 0,
     SCL_FL_ON_2X        = 1,
     SCL_FL_OFF_CLOSEST  = 2,
-    SCL_FL_OFF_50HZ     = 3,
-    SCL_FL_OFF_60HZ     = 4,
-    SCL_FL_OFF_100HZ    = 5,
-    SCL_FL_OFF_120HZ    = 6,
+    SCL_FL_OFF_PRESET   = 3,
+    SCL_FL_OFF_50HZ     = 4,
+    SCL_FL_OFF_60HZ     = 5,
+    SCL_FL_OFF_100HZ    = 6,
+    SCL_FL_OFF_120HZ    = 7,
 } scl_fl_mode_t;
 
 typedef struct {
@@ -129,15 +133,17 @@ typedef struct {
     uint8_t scl_framelock;
     uint8_t scl_aspect;
     uint8_t scl_alg;
+    uint8_t scl_gen_sr;
     uint8_t sm_scl_240p_288p;
     uint8_t sm_scl_384p;
     uint8_t sm_scl_480i_576i;
     uint8_t sm_scl_480p;
     uint8_t sm_scl_576p;
-    uint8_t timing_1080p120;
 #endif
     /* Common mode options */
     uint8_t oper_mode;
+    uint8_t timing_1080p120;
+    uint8_t timing_2160p60;
 
     /* Postprocessing settings */
     uint8_t sl_mode;
@@ -182,6 +188,8 @@ typedef struct {
     uint8_t audio_fmt;
     uint8_t audmux_sel;
     audinput_t audio_src_map[4];
+    uint8_t exp_sel;
+    uint8_t extra_av_out_mode;
 #ifdef INC_THS7353
     uint8_t syncmux_stc;
 #endif
@@ -198,9 +206,13 @@ typedef struct {
 #ifdef INC_PCM186X
     pcm186x_config pcm_cfg __attribute__ ((aligned (4)));
 #endif
+#ifndef DExx_FW
+    adv7280a_config sdp_cfg __attribute__ ((aligned (4)));
+#endif
 } __attribute__((packed)) avconfig_t;
 
 avconfig_t* get_current_avconfig();
+avconfig_t* get_target_avconfig();
 status_t update_avconfig();
 int set_default_profile(int update_cc);
 int reset_profile();

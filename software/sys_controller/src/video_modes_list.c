@@ -41,7 +41,7 @@ const mode_data_t video_modes_plm_default[] = {
     { "288p",          HDMI_288p50,      { 720,  288,   5008,   864, 0,  312,   69, 19,   63, 3,  0},  0,  {{ 0,  0}},  VIDEO_SDTV,               GROUP_288P,   (MODE_PT | MODE_L2),                                        0, 0 },
     /* 360p: GBI */
     { "480x360",       HDMI_Unknown,     { 480,  360,   6000,   600, 0,  375,   63, 10,   38, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_PT | MODE_L2),                                        0, 0 },
-    { "240x360",       HDMI_Unknown,     { 256,  360,   6000,   300, 0,  375,   24, 10,   18, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_L2_240x360 | MODE_L3_240x360),                        0, 0 },
+    { "240x360",       HDMI_Unknown,     { 240,  360,   6000,   300, 0,  375,   32, 10,   18, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_L2_240x360 | MODE_L3_240x360),                        0, 0 },
     /* 384p: Sega Model 2 */
     { "384p",          HDMI_Unknown,     { 496,  384,   5500,   640, 0,  423,   50, 29,   62, 3,  0},  0,  {{ 0,  0}},  VIDEO_EDTV,               GROUP_384P,   (MODE_PT | MODE_L2),                                        0, 0 },
     /* 400p line3x */
@@ -118,8 +118,9 @@ const mode_data_t video_modes_default[] = {
     /* CEA 720p 100/120Hz */
     { "720p_100",      HDMI_Unknown,     {1280,  720,  10000,  1980, 0,  750,  220, 20,   40, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_720P,   0,         TX_1X, TX_1X },
     { "720p_120",      HDMI_Unknown,     {1280,  720,  12000,  1650, 0,  750,  220, 20,   40, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_720P,   0,         TX_1X, TX_1X },
-    /* VESA XGA and SXGA modes */
+    /* VESA XGA, 1280x960 and SXGA modes */
     { "1024x768_60",   HDMI_Unknown,     {1024,  768,   6000,  1344, 0,  806,  160, 29,  136, 6,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
+    { "1280x960_60",   HDMI_Unknown,     {1280,  960,   6000,  1800, 0, 1000,  312, 36,  112, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     { "1280x1024_60",  HDMI_Unknown,     {1280, 1024,   6002,  1688, 0, 1066,  248, 38,  112, 3,  0},  0,  {{ 5,  4}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     /* CEA 1080i/p modes */
     { "1080i_50",      HDMI_1080i50,     {1920,  540,   5000,  2640, 0, 1125,  148, 15,   44, 5,  1},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  0,         TX_1X, TX_1X },
@@ -130,8 +131,8 @@ const mode_data_t video_modes_default[] = {
     { "1080p_100",     HDMI_Unknown,     {1920, 1080,  10000,  2080, 0, 1133,   80, 45,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120",     HDMI_Unknown,     {1920, 1080,  12000,  2080, 0, 1144,   80, 56,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     /* 1080p 120Hz alternative modes */
-    { "1080p_120_RB2", HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1144,   40,  6,   32, 8,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_MB",  HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1086,   40,  1,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_120_CEA", HDMI_Unknown,     {1920, 1080,  12000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_PR2", HDMI_Unknown,     { 960, 1080,  12000,  1100, 0, 1125,   74, 36,   22, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_2X, TX_1X },
     /* VESA UXGA mode */
     { "1600x1200_60",  HDMI_Unknown,     {1600, 1200,   6000,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
@@ -147,6 +148,8 @@ const mode_data_t video_modes_default[] = {
     /* 2880x2160 (CVT-RB with PR2) */
     { "2880x2160_50",  HDMI_Unknown,     {1440, 2160,   5000,  1520, 0, 2211,   40, 44,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
     { "2880x2160_60",  HDMI_Unknown,     {1440, 2160,   6000,  1520, 0, 2222,   40, 55,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
+    /* 2880x2160 (Min. blank with PR2) */
+    { "2880x2160_MB",  HDMI_Unknown,     {1440, 2160,   6000,  1508, 0, 2166,   20,  2,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
 };
 
 /* Sampling presets for Adaptive LM and Scaler */
@@ -164,8 +167,8 @@ const smp_preset_t smp_presets_default[] = {
     { "Gen. 704x288",   SM_GEN_4_3,        { 704,  288,      0,   864, 0,  312,   77, 19,   63, 3,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
     { "Gen. 1536x288",  SM_GEN_4_3,        {1536,  288,      0,  1872, 0,  312,  150, 19,  136, 3,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
     { "Gen. 1920x288",  SM_GEN_4_3,        {1920,  288,      0,  2340, 0,  312,  187, 19,  171, 3,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
-    /* Generic 384p presets */
-    { "Gen. 1024x384",  SM_GEN_4_3,        {1024,  384,      0,  1280, 0,  429,  91,  34,  137, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
+    /* Generic 400p presets */
+    { "Gen. 1024x400",  SM_GEN_4_3,        {1024,  400,      0,  1280, 0,  429,  91,  34,  137, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     { "Gen. 1600x400",  SM_GEN_4_3,        {1600,  400,      0,  2000, 0,  429,  142, 34,  213, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     { "Gen. 1920x400",  SM_GEN_4_3,        {1920,  400,      0,  2400, 0,  429,  171, 34,  255, 2,  0},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_384P },
     /* Generic 480i presets */
@@ -208,6 +211,8 @@ const smp_preset_t smp_presets_default[] = {
     /* DTV 1080p */
     { "DTV 1080p_50",   SM_OPT_PC_HDTV,    {1920, 1080,   5500,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080P },
     { "DTV 1080p_60",   SM_OPT_PC_HDTV,    {1920, 1080,      0,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080P },
+    /* EUREKA 1250/50 */
+    { "DTV 1152i_50",   SM_OPT_PC_HDTV,    {1920,  576,   5500,  2304, 0, 1250,  192, 39,   64, 5,  1},  0,  0,  {16,  9},  VIDEO_HDTV,  GROUP_1080I},
 
     /* 640x350@70Hz, VGA Mode 0*,1*,2*,3*,F,10 */
     { "PC 640x350_70",  SM_OPT_VGA_640x350, { 640,  350,   7500,   800, 0,  449,   48, 59,   96, 2,  0},  0,  0,  { 4,  3},  VIDEO_PC,  GROUP_384P },
@@ -236,11 +241,18 @@ const smp_preset_t smp_presets_default[] = {
     { "SNES 256x240",   SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  262,   39, 14,   25, 3,  0},  3,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
     { "SNES 512x240",   SM_OPT_SNES_512COL,{ 512,  240,      0,   682, 0,  262,   78, 14,   50, 3,  0},  1,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
     { "SNES 512x448i",  SM_OPT_SNES_512COL,{ 512,  224,      0,   682, 0,  525,   78, 14,   50, 3,  1},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
+    { "SNES 256x240 P", SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  312,   38, 40,   25, 3,  0},  3,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "SNES 512x240 P", SM_OPT_SNES_512COL,{ 512,  240,      0,   682, 0,  312,   74, 40,   50, 3,  0},  1,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "SNES 512x448i P",SM_OPT_SNES_512COL,{ 512,  224,      0,   682, 0,  625,   74, 40,   50, 3,  1},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
     /* MD */
     { "MD 256x224",     SM_OPT_MD_256COL,  { 256,  224,      0,   342, 0,  262,   39, 24,   25, 3,  0},  4,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     { "MD 320x224",     SM_OPT_MD_320COL,  { 320,  224,      0,   427,10,  262,   52, 24,   31, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     { "MD 256x448i",    SM_OPT_MD_256COL,  { 256,  224,      0,   342, 0,  525,   39, 24,   25, 3,  1},  4,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
     { "MD 320x448i",    SM_OPT_MD_320COL,  { 320,  224,      0,   427,10,  525,   52, 24,   31, 3,  1},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
+    { "MD 256x240 PAL", SM_OPT_MD_256COL,  { 256,  240,      0,   342, 0,  313,   40, 43,   25, 3,  0},  4,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+    { "MD 320x240 PAL", SM_OPT_MD_320COL,  { 320,  240,      0,   427,10,  313,   53, 43,   31, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+    { "MD 256x480i PAL",SM_OPT_MD_256COL,  { 256,  240,      0,   342, 0,  625,   40, 43,   25, 3,  1},  4,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
+    { "MD 320x480i PAL",SM_OPT_MD_320COL,  { 320,  240,      0,   427,10,  625,   53, 43,   31, 3,  1},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
     /* PSX */
     { "PSX 256x240",    SM_OPT_PSX_256COL, { 256,  240,      0,   341, 6,  263,   37, 14,   25, 3,  0},  9,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
     { "PSX 320x240",    SM_OPT_PSX_320COL, { 320,  240,      0,   426,12,  263,   47, 14,   31, 3,  0},  7,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
@@ -249,24 +261,47 @@ const smp_preset_t smp_presets_default[] = {
     { "PSX 640x240",    SM_OPT_PSX_640COL, { 640,  240,      0,   853, 5,  263,   94, 14,   62, 3,  0},  3,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
     { "PSX 512x480i",   SM_OPT_PSX_512COL, { 512,  240,      0,   682,12,  525,   74, 14,   50, 3,  1},  4,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
     { "PSX 640x480i",   SM_OPT_PSX_640COL, { 640,  240,      0,   853, 5,  525,   94, 14,   62, 3,  1},  3,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
+    { "PSX 256x288",    SM_OPT_PSX_256COL, { 256,  288,      0,   340,12,  314,   41, 19,   25, 3,  0},  9,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "PSX 320x288",    SM_OPT_PSX_320COL, { 320,  288,      0,   425,15,  314,   49, 19,   31, 3,  0},  7,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "PSX 384x288",    SM_OPT_PSX_384COL, { 384,  288,      0,   486,11,  314,   43, 19,   38, 3,  0},  6,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "PSX 512x288",    SM_OPT_PSX_512COL, { 512,  288,      0,   681, 4,  314,   74, 19,   50, 3,  0},  4,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "PSX 640x288",    SM_OPT_PSX_640COL, { 640,  288,      0,   851,10,  314,   91, 19,   62, 3,  0},  3,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "PSX 512x576i",   SM_OPT_PSX_512COL, { 512,  288,      0,   681, 4,  625,   74, 19,   50, 3,  1},  4,  0,  {56, 45},  VIDEO_SDTV,  GROUP_576I },
+    { "PSX 640x576i",   SM_OPT_PSX_640COL, { 640,  288,      0,   851,10,  625,   91, 19,   62, 3,  1},  3,  0,  {56, 45},  VIDEO_SDTV,  GROUP_576I },
     /* Saturn */
-    { "SAT 320x240",    SM_OPT_SAT_320COL, { 320,  240,      0,   426,10,  263,   48, 15,   31, 3,  0},  1,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
-    { "SAT 640x240",    SM_OPT_SAT_640COL, { 640,  240,      0,   853, 0,  263,   96, 15,   62, 3,  0},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
+    { "SAT 320x240",    SM_OPT_SAT_320COL, { 320,  240,      0,   427, 0,  263,   48, 15,   31, 3,  0},  1,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
+    { "SAT 640x240",    SM_OPT_SAT_640COL, { 640,  240,      0,   854, 0,  263,   96, 15,   62, 3,  0},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
     { "SAT 352x240",    SM_OPT_SAT_352COL, { 352,  240,      0,   455, 0,  263,   45, 15,   34, 3,  0},  1,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
     { "SAT 704x240",    SM_OPT_SAT_704COL, { 704,  240,      0,   910, 0,  263,   90, 15,   68, 3,  0},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
-    { "SAT 640x480i",   SM_OPT_SAT_640COL, { 640,  240,      0,   853, 0,  525,   96, 15,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
+    { "SAT 640x480i",   SM_OPT_SAT_640COL, { 640,  240,      0,   854, 0,  525,   96, 15,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
     { "SAT 704x480i",   SM_OPT_SAT_704COL, { 704,  240,      0,   910, 0,  525,   90, 15,   68, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
+    { "SAT 320x288",    SM_OPT_SAT_320COL, { 320,  288,      0,   427, 0,  313,   46, 19,   31, 3,  0},  1,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "SAT 640x288",    SM_OPT_SAT_640COL, { 640,  288,      0,   854, 0,  313,   93, 19,   62, 3,  0},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "SAT 352x288",    SM_OPT_SAT_352COL, { 352,  288,      0,   455, 0,  313,   43, 19,   34, 3,  0},  1,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "SAT 704x288",    SM_OPT_SAT_704COL, { 704,  288,      0,   910, 0,  313,   86, 19,   68, 3,  0},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "SAT 640x576i",   SM_OPT_SAT_640COL, { 640,  288,      0,   854, 0,  625,   93, 19,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_576I },
+    { "SAT 704x576i",   SM_OPT_SAT_704COL, { 704,  288,      0,   910, 0,  625,   86, 19,   68, 3,  1},  0,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
     /* N64 */
     { "N64 320x240",    SM_OPT_N64_320COL, { 320,  240,      0,   386,15,  263,   36, 14,   22, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     { "N64 640x240",    SM_OPT_N64_640COL, { 640,  240,      0,   773,10,  263,   72, 14,   44, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     { "N64 640x480i",   SM_OPT_N64_640COL, { 640,  240,      0,   773,10,  525,   72, 14,   44, 3,  1},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
+    { "N64 320x288",    SM_OPT_N64_320COL, { 320,  288,      0,   397, 5,  313,   44, 19,   22, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+    { "N64 640x288",    SM_OPT_N64_640COL, { 640,  288,      0,   794,10,  313,   88, 19,   44, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+    { "N64 640x576i",   SM_OPT_N64_640COL, { 640,  288,      0,   794,10,  625,   88, 19,   44, 3,  1},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
     /* Neo Geo */
     { "NeoGeo 320x224", SM_OPT_NG_320COL,  { 320,  224,      0,   384, 0,  264,   28, 21,   29, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     /* GBI */
-    { "GBI 240x360",    SM_OPT_GBI_240COL, { 240,  360,      0,   300, 0,  375,   24, 10,   18, 3,  0},  1,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_384P },
+    { "GBI 240x360",    SM_OPT_GBI_240COL, { 240,  360,      0,   300, 0,  375,   32, 10,   18, 3,  0},  1,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_384P },
+    /* PSP */
+    { "PSP 480x272",    SM_OPT_PSP_480COL, { 480,  272,      0,   858, 0,  525,  177,134,   62, 6,  0},  0,  0,  {16,  9},  VIDEO_EDTV,  GROUP_480P },
     /* DC/PS2/GC 640col AR-correct modes */
     { "DC 640x480i",    SM_OPT_DC_640COL,  { 640,  240,      0,   858, 0,  525,   95, 15,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
     { "DC 640x480",     SM_OPT_DC_640COL,  { 640,  480,      0,   858, 0,  525,   95, 30,   62, 6,  0},  0,  0,  {56, 45},  VIDEO_EDTV,  GROUP_480P },
+    { "DC 640x576i",    SM_OPT_DC_640COL,  { 640,  288,      0,   864, 0,  625,  107, 18,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_576I },
+    { "GC 640x576",     SM_OPT_DC_640COL,  { 640,  576,      0,   864, 0,  625,   95, 30,   62, 6,  0},  0,  0,  {56, 45},  VIDEO_EDTV,  GROUP_576P },
+    /* PS2 512col modes */
+    { "PS2 512x480i",   SM_OPT_PS2_512COL, { 512,  240,      0,   686, 8,  525,   74, 14,   50, 3,  1},  4,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
+    { "PS2 512x576i",   SM_OPT_PS2_512COL, { 512,  288,      0,   691, 4,  625,   84, 18,   50, 3,  1},  4,  0,  {56, 45},  VIDEO_SDTV,  GROUP_576I },
     /* PS2 GSM modes */
     { "PS2 512x448",    SM_OPT_PS2_512COL, { 512,  448,      0,   858, 0,  525,  160, 46,   62, 6,  0},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_480P },
     { "PS2 640x960i",   SM_OPT_PC_HDTV,    { 640,  480,      0,   800, 0, 1050,   48, 33,   96, 2,  1},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_1080I},
@@ -277,7 +312,24 @@ const smp_preset_t smp_presets_default[] = {
 
     { "PC98 640x400",   SM_OPT_PC98_640COL,{ 640,  400,      0,   848, 0,  440,   80, 31,   64, 2,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_384P },
 
-    { "X68k 512x240",   SM_OPT_X68K_512COL,{ 512,  240,      0,   608, 0,  260,   48, 13,   32, 3,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_240P },
+    { "X68k 512x240",   SM_OPT_X68K_512COL,{ 512,  240,      0,   608, 0,  260,   48, 13,   32, 3,  0},  1,  0,  { 4,  3},  VIDEO_PC,    GROUP_240P },
     { "X68k 512x512",   SM_OPT_X68K_512COL,{ 512,  512,      0,   736, 0,  568,   96, 34,   80, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
     { "X68k 768x512",   SM_OPT_X68K_768COL,{ 768,  512,      0,  1104, 0,  568,  144, 34,  120, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
+};
+
+#ifdef VM_STATIC_INCLUDE
+static
+#endif
+const sync_timings_t sdp_timings_default[NUM_VIDEO_GROUPS] = {
+    {0},                                                         // GROUP_NONE
+    { 720,  240,      0,   858, 0,  262,   74, 19,   62, 3,  0}, // GROUP_240P
+    { 704,  288,      0,   864, 0,  312,   79, 17,   63, 3,  0}, // GROUP_288P
+    {0},                                                         // GROUP_384P
+    { 720,  240,   6500,   858, 0,  525,   74, 19,   62, 3,  1}, // GROUP_480I
+    { 720,  288,   5500,   864, 0,  625,   79, 17,   63, 3,  1}, // GROUP_576I
+    {0},                                                         // GROUP_480P
+    {0},                                                         // GROUP_576P
+    {0},                                                         // GROUP_720P
+    {0},                                                         // GROUP_1080I
+    {0},                                                         // GROUP_1080P
 };

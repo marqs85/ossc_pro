@@ -44,7 +44,7 @@ int fw_update() {
     uint32_t crcval;
     unsigned char *dram_tmp = (unsigned char*)DRAM_TMP_ADDR;
 
-    strncpy(menu_row2, "Please wait...", OSD_CHAR_COLS);
+    strlcpy(menu_row2, "Please wait...", US2066_ROW_LEN+1);
     ui_disp_menu(1);
 
     if (!sd_det) {
@@ -88,7 +88,7 @@ int fw_update() {
         }
 
         sniprintf(menu_row1, US2066_ROW_LEN+1, "v%u.%u%s%s (%lu parts)", hdr.fw_version_major, hdr.fw_version_minor, hdr.fw_suffix[0] ? "-" : "", hdr.fw_suffix, hdr.num_images);
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "Update? Y:> N:<");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Update? N:< Y:>");
         ui_disp_menu(1);
 
         if (prompt_yesno(RC_RIGHT, JOY_RIGHT, RC_LEFT, JOY_LEFT) != 1) {
@@ -97,7 +97,7 @@ int fw_update() {
             goto close_file;
         }
 
-        strncpy(menu_row2, "Please wait...", OSD_CHAR_COLS);
+        strlcpy(menu_row2, "Please wait...", US2066_ROW_LEN+1);
         ui_disp_menu(1);
 
         printf("Copying images to DRAM...\n");
@@ -123,7 +123,7 @@ int fw_update() {
         file_close(&fw_file);
 
         printf("Starting update procedure...\n");
-        strncpy(menu_row1, "Updating", OSD_CHAR_COLS);
+        strlcpy(menu_row1, "Updating", US2066_ROW_LEN+1);
         ui_disp_menu(1);
 
         // No return from here

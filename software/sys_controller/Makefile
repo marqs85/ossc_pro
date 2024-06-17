@@ -38,13 +38,13 @@ ALT_LDFLAGS :=
 
 #------------------------------------------------------------------------------
 #                         The adjust-path macro
-# 
+#
 # If COMSPEC/ComSpec is defined, Make is launched from Windows through
 # Cygwin.  The adjust-path macro converts absolute windows paths into
 # unix style paths (Example: c:/dir -> /c/dir). This will ensture
 # paths are readable by GNU Make.
 #
-# If COMSPEC/ComSpec is not defined, Make is launched from linux, and no 
+# If COMSPEC/ComSpec is not defined, Make is launched from linux, and no
 # adjustment is necessary
 #
 #------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ endif # COMSPEC
 
 ifdef COMSPEC # if Windows OS
 
-ifeq ($(MAKE_VERSION),3.81) 
+ifeq ($(MAKE_VERSION),3.81)
 #
 # adjust-path/adjust-path-mixed for Mingw Gnu Make on Windows
 #
@@ -69,10 +69,10 @@ ifeq ($(MAKE_VERSION),3.81)
 
 #
 # adjust-path
-#  - converts back slash characters into forward slashes 
+#  - converts back slash characters into forward slashes
 #  - if input arg ($1) is an empty string then return the empty string
 #  - if input arg ($1) does not contain the string ":/", then return input arg
-#  - using sed, convert mixed path [c:/...] into mingw path [/c/...] 
+#  - using sed, convert mixed path [c:/...] into mingw path [/c/...]
 define adjust-path
 $(strip \
 $(if $1,\
@@ -83,13 +83,13 @@ endef
 
 #
 # adjust-path-mixed
-#  - converts back slash characters into forward slashes 
+#  - converts back slash characters into forward slashes
 #  - if input arg ($1) is an empty string then return the empty string
-#  - if input arg ($1) does not begin with a forward slash '/' char, then 
+#  - if input arg ($1) does not begin with a forward slash '/' char, then
 #    return input arg
-#  - using sed, convert mingw path [/c/...] or cygwin path [/c/cygdrive/...] 
-#    into a mixed path [c:/...] 
-define adjust-path-mixed 
+#  - using sed, convert mingw path [/c/...] or cygwin path [/c/cygdrive/...]
+#    into a mixed path [c:/...]
+define adjust-path-mixed
 $(strip \
 $(if $1,\
 $(if $(findstring $(subst \,/,$1),$(patsubst /%,%,$(subst \,/,$1))),\
@@ -97,7 +97,7 @@ $(subst \,/,$1),\
 $(shell echo $(subst \,/,$1) | sed -e 's,^/cygdrive/\([a-zA-Z]\)/,\1:/,' -e 's,^/\([a-zA-Z]\)/,\1:/,'))))
 endef
 
-else # MAKE_VERSION != 3.81 (MAKE_VERSION == 3.80 or MAKE_VERSION == 3.79) 
+else # MAKE_VERSION != 3.81 (MAKE_VERSION == 3.80 or MAKE_VERSION == 3.79)
 #
 #  adjust-path for Cygwin Gnu Make
 # $(call adjust-path,c:/aaa/bbb) = /cygdrive/c/aaa/bbb
@@ -123,22 +123,22 @@ endif # COMSPEC
 ACTIVE_BUILD_CONFIG := default
 BUILD_CONFIGS := default
 
-# The following TYPE comment allows tools to identify the 'type' of target this 
-# makefile is associated with. 
+# The following TYPE comment allows tools to identify the 'type' of target this
+# makefile is associated with.
 # TYPE: APP_MAKEFILE
 
-# This following VERSION comment indicates the version of the tool used to 
-# generate this makefile. A makefile variable is provided for VERSION as well. 
+# This following VERSION comment indicates the version of the tool used to
+# generate this makefile. A makefile variable is provided for VERSION as well.
 # ACDS_VERSION: 14.1
 ACDS_VERSION := 14.1
 
-# This following BUILD_NUMBER comment indicates the build number of the tool 
-# used to generate this makefile. 
+# This following BUILD_NUMBER comment indicates the build number of the tool
+# used to generate this makefile.
 # BUILD_NUMBER: 190
 
-# Define path to the application ELF. 
-# It may be used by the makefile fragments so is defined before including them. 
-# 
+# Define path to the application ELF.
+# It may be used by the makefile fragments so is defined before including them.
+#
 ELF := sys_controller.elf
 
 # Paths to C, C++, and assembly source files.
@@ -161,6 +161,8 @@ C_SRCS += ic_drivers/adv761x/adv761x.c
 C_SRCS += ic_drivers/pcm186x/pcm186x.c
 C_SRCS += ic_drivers/pcm514x/pcm514x.c
 C_SRCS += ic_drivers/sii1136/sii1136.c
+C_SRCS += ic_drivers/adv7280a/adv7280a.c
+C_SRCS += ic_drivers/si2177/si2177.c
 C_SRCS += fatfs/source/diskio.c
 C_SRCS += fatfs/source/ff.c
 C_SRCS += fatfs/source/ffsystem.c
@@ -217,6 +219,8 @@ APP_INCLUDE_DIRS += ic_drivers/adv761x
 APP_INCLUDE_DIRS += ic_drivers/pcm186x
 APP_INCLUDE_DIRS += ic_drivers/pcm514x
 APP_INCLUDE_DIRS += ic_drivers/sii1136
+APP_INCLUDE_DIRS += ic_drivers/adv7280a
+APP_INCLUDE_DIRS += ic_drivers/si2177
 APP_INCLUDE_DIRS += fatfs/source
 APP_LIBRARY_DIRS :=
 APP_LIBRARY_NAMES :=
@@ -277,25 +281,25 @@ ABS_BSP_ROOT_DIR := $(call adjust-path-mixed,$(shell cd "$(BSP_ROOT_DIR)"; pwd))
 BSP_INCLUDE_FILE := $(BSP_ROOT_DIR)/public.mk
 ALT_LIBRARY_ROOT_DIR := $(BSP_ROOT_DIR)
 include $(BSP_INCLUDE_FILE)
-# C2H will need this to touch the BSP public.mk and avoid the sopc file 
+# C2H will need this to touch the BSP public.mk and avoid the sopc file
 # out-of-date error during a BSP make
 ABS_BSP_INCLUDE_FILE := $(ABS_BSP_ROOT_DIR)/public.mk
 
 
 ifneq ($(WARNING.SMALL_STACK_SIZE),)
 # This WARNING is here to protect you from unknowingly using a very small stack
-# If the warning is set, increase your stack size or enable the BSP small stack 
+# If the warning is set, increase your stack size or enable the BSP small stack
 # setting to eliminate the warning
 $(warning WARNING: $(WARNING.SMALL_STACK_SIZE))
 endif
 
-# If the BSP public.mk indicates that ALT_SIM_OPTIMIZE is set, rename the ELF 
-# by prefixing it with RUN_ON_HDL_SIMULATOR_ONLY_.  
+# If the BSP public.mk indicates that ALT_SIM_OPTIMIZE is set, rename the ELF
+# by prefixing it with RUN_ON_HDL_SIMULATOR_ONLY_.
 ifneq ($(filter -DALT_SIM_OPTIMIZE,$(ALT_CPPFLAGS)),)
 ELF := RUN_ON_HDL_SIMULATOR_ONLY_$(ELF)
 endif
 
-# If the BSP public.mk indicates that ALT_PROVIDE_GMON is set, add option to 
+# If the BSP public.mk indicates that ALT_PROVIDE_GMON is set, add option to
 # download_elf target
 ifneq ($(filter -DALT_PROVIDE_GMON,$(ALT_CPPFLAGS)),)
 GMON_OUT_FILENAME := gmon.out
@@ -428,22 +432,22 @@ ifeq ($(CREATE_LINKER_MAP), 1)
 APP_LDFLAGS += -Wl,-Map=$(LINKER_MAP_NAME)
 endif
 
-# QUARTUS_PROJECT_DIR and SOPC_NAME need to be defined if you want the 
-# mem_init_install target of the mem_init.mk (located in the associated BSP) 
-# to know how to copy memory initialization files (e.g. .dat, .hex) into 
+# QUARTUS_PROJECT_DIR and SOPC_NAME need to be defined if you want the
+# mem_init_install target of the mem_init.mk (located in the associated BSP)
+# to know how to copy memory initialization files (e.g. .dat, .hex) into
 # directories required for Quartus compilation or RTL simulation.
 
-# Defining QUARTUS_PROJECT_DIR causes mem_init_install to copy memory 
-# initialization files into your Quartus project directory. This is required 
-# to provide the initial memory contents of FPGA memories that can be 
-# initialized by the programming file (.sof) or Hardcopy ROMs. It is also used 
+# Defining QUARTUS_PROJECT_DIR causes mem_init_install to copy memory
+# initialization files into your Quartus project directory. This is required
+# to provide the initial memory contents of FPGA memories that can be
+# initialized by the programming file (.sof) or Hardcopy ROMs. It is also used
 # for VHDL simulation of on-chip memories.
 
-# Defining SOPC_NAME causes the mem_init_install target to copy memory 
-# initialization files into your RTL simulation directory.  This is required 
-# to provide the initial memory contents of all memories that can be 
-# initialized by RTL simulation. This variable should be set to the same name 
-# as your SOPC Builder system name. For example, if you have a system called 
+# Defining SOPC_NAME causes the mem_init_install target to copy memory
+# initialization files into your RTL simulation directory.  This is required
+# to provide the initial memory contents of all memories that can be
+# initialized by RTL simulation. This variable should be set to the same name
+# as your SOPC Builder system name. For example, if you have a system called
 # "foo.sopc", this variable should be set to "foo".
 
 # If SOPC_NAME is not set and QUARTUS_PROJECT_DIR is set, then derive SOPC_NAME.
@@ -453,23 +457,23 @@ SOPC_NAME := $(basename $(notdir $(wildcard $(QUARTUS_PROJECT_DIR)/*.sopcinfo)))
 endif
 endif
 
-# Defining JDI_FILE is required to specify the JTAG Debug Information File 
-# path. This file is generated by Quartus, and is needed along with the 
-# .sopcinfo file to resolve processor instance ID's from names in a multi-CPU 
-# systems. For multi-CPU systems, the processor instance ID is used to select 
+# Defining JDI_FILE is required to specify the JTAG Debug Information File
+# path. This file is generated by Quartus, and is needed along with the
+# .sopcinfo file to resolve processor instance ID's from names in a multi-CPU
+# systems. For multi-CPU systems, the processor instance ID is used to select
 # from multiple CPU's during ELF download.
 
-# Both JDI_FILE and SOPCINFO_FILE are provided by the BSP if they found during 
-# BSP creation. If JDI_FILE is not set and QUARTUS_PROJECT_DIR is set, then 
-# derive JDI_FILE. We do not attempt to derive SOPCINFO_FILE since there may be 
-# multiple .sopcinfo files in a Quartus project. 
+# Both JDI_FILE and SOPCINFO_FILE are provided by the BSP if they found during
+# BSP creation. If JDI_FILE is not set and QUARTUS_PROJECT_DIR is set, then
+# derive JDI_FILE. We do not attempt to derive SOPCINFO_FILE since there may be
+# multiple .sopcinfo files in a Quartus project.
 ifeq ($(JDI_FILE),)
 ifneq ($(QUARTUS_PROJECT_DIR),)
 JDI_FILE := $(firstword $(wildcard $(QUARTUS_PROJECT_DIR)/output_files/*.jdi) $(wildcard $(QUARTUS_PROJECT_DIR)/*.jdi))
 endif
 endif
 
-# Path to root runtime directory used for hdl simulation 
+# Path to root runtime directory used for hdl simulation
 RUNTIME_ROOT_DIR := $(CONFIG_OBJ_DIR)/runtime
 
 
@@ -517,7 +521,7 @@ SDIR_OBJ_LIST := $(sort $(SDIR_OBJ_LIST_C) $(SDIR_OBJ_LIST_CPP) \
 
 # Relative-pathed objects that being with "../" are handled differently.
 #
-# Regular objects are created as 
+# Regular objects are created as
 #   $(CONFIG_OBJ_DIR)/<path>/<filename>.o
 # where the path structure is maintained under the obj directory.  This
 # applies for both absolute and relative paths; in the absolute path
@@ -525,16 +529,16 @@ SDIR_OBJ_LIST := $(sort $(SDIR_OBJ_LIST_C) $(SDIR_OBJ_LIST_CPP) \
 # directory.  This is done to allow two source files with the same name
 # to be included as part of the project.
 #
-# Note: On Cygwin, the path recreated under the obj directory will be 
+# Note: On Cygwin, the path recreated under the obj directory will be
 # the cygpath -u output path.
 #
-# Relative-path objects that begin with "../" cause problems under this 
+# Relative-path objects that begin with "../" cause problems under this
 # scheme, as $(CONFIG_OBJ_DIR)/../<rest of path>/ can potentially put the object
 # files anywhere in the system, creating clutter and polluting the source tree.
-# As such, their paths are flattened - the object file created will be 
-# $(CONFIG_OBJ_DIR)/<filename>.o.  Due to this, two files specified with 
-# "../" in the beginning cannot have the same name in the project.  VPATH 
-# will be set for these sources to allow make to relocate the source file 
+# As such, their paths are flattened - the object file created will be
+# $(CONFIG_OBJ_DIR)/<filename>.o.  Due to this, two files specified with
+# "../" in the beginning cannot have the same name in the project.  VPATH
+# will be set for these sources to allow make to relocate the source file
 # via %.o rules.
 #
 # The following lines separate the object list into the flatten and regular
@@ -622,7 +626,7 @@ ifneq ($(wildcard $(SOPCINFO_FILE)),)
 ELF_PATCH_FLAG += --sopcinfo $(SOPCINFO_FILE)
 endif
 
-# Use the DOWNLOAD_CABLE variable to specify which JTAG cable to use. 
+# Use the DOWNLOAD_CABLE variable to specify which JTAG cable to use.
 # This is not needed if you only have one cable.
 ifneq ($(DOWNLOAD_CABLE),)
 DOWNLOAD_CABLE_FLAG := --cable '$(DOWNLOAD_CABLE)'
@@ -787,7 +791,7 @@ $(AS) -MP -MMD -c $(APP_CPPFLAGS) $(APP_CFLAGS) $(APP_ASFLAGS) -o $@ $<
 $(AS_POST_PROCESS)
 endef
 
-ifeq ($(MAKE_VERSION),3.81) 
+ifeq ($(MAKE_VERSION),3.81)
 .SECONDEXPANSION:
 
 $(APP_OBJS_C): $(CONFIG_OBJ_DIR)/%.o: $$(call adjust-path-mixed,%.c)
@@ -885,7 +889,7 @@ help :
 	@$(ECHO) "    all (default)     - Application and all libraries (including BSP)"
 	@$(ECHO) "    bsp               - Just the BSP"
 	@$(ECHO) "    libs              - All libraries (including BSP)"
-	@$(ECHO) "    flash             - All flash files"	
+	@$(ECHO) "    flash             - All flash files"
 	@$(ECHO) "    mem_init_generate - All memory initialization files"
 ifeq ($(QSYS),1)
 	@$(ECHO) "    mem_init_install  - This target is deprecated for QSys Systems"
@@ -946,7 +950,7 @@ $(APP_LDDEPS): libs
 endif
 
 # Rules to force your project to rebuild or relink
-# .force_relink file will cause any application that depends on this project to relink 
+# .force_relink file will cause any application that depends on this project to relink
 # .force_rebuild file will cause this project to rebuild object files
 # .force_rebuild_all file will cause this project and any project that depends on this project to rebuild object files
 
@@ -1013,9 +1017,9 @@ download-elf : $(ELF)
 	else \
 		$(ECHO) Info: Downloading $(ELF); \
 		$(DOWNLOAD) --go --cpu_name=$(CPU_NAME) $(DOWNLOAD_CABLE_FLAG) $(SOPC_SYSID_FLAG) $(DOWNLOAD_JDI_FLAG) $(WRITE_GMON_OPTION) $(ELF); \
-	fi	
+	fi
 
-# Delete the target of a rule if it has changed and its commands exit 
+# Delete the target of a rule if it has changed and its commands exit
 # with a nonzero exit status.
 .DELETE_ON_ERROR:
 
@@ -1134,7 +1138,7 @@ mem_init/flash.hex: sys_controller.elf
 	$(RV_OBJCOPY) --change-addresses -0x02A00000 -O ihex --gap-fill 0 $< mem_init/flash.hex
 	mkdir -p mem_init/chunks
 	rm -f mem_init/chunks/*
-	split -d -b 512 -a 4 mem_init/flash.bin mem_init/chunks/flash.
+	split -d -b 64 -a 4 mem_init/flash.bin mem_init/chunks/flash.
 
 .PHONY: mem_init_generate_new
 mem_init_generate_new: mem_init/flash.hex
