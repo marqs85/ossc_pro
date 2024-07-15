@@ -392,6 +392,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     xy_config2_reg xy_out_config2 = {.data=0x00000000};
     xy_config3_reg xy_out_config3 = {.data=0x00000000};
     misc_config_reg misc_config = {.data=0x00000000};
+    misc_config2_reg misc_config2 = {.data=0x00000000};
     sl_config_reg sl_config = {.data=0x00000000};
     sl_config2_reg sl_config2 = {.data=0x00000000};
     sl_config3_reg sl_config3 = {.data=0x00000000};
@@ -496,6 +497,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     misc_config.shmask_enable = (avconfig->shmask_mode != 0);
     misc_config.shmask_iv_x = shmask_data_arr_ptr->iv_x;
     misc_config.shmask_iv_y = shmask_data_arr_ptr->iv_y;
+    misc_config2.lumacode_mode = avconfig->lumacode_mode;
 
     // set default/custom scanline interval
     sl_def_iv_y = (vm_conf->y_rpt > 0) ? vm_conf->y_rpt : 1;
@@ -564,6 +566,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     sc->xy_out_config2 = xy_out_config2;
     sc->xy_out_config3 = xy_out_config3;
     sc->misc_config = misc_config;
+    sc->misc_config2 = misc_config2;
     sc->sl_config = sl_config;
     sc->sl_config2 = sl_config2;
     sc->sl_config3 = sl_config3;

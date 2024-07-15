@@ -63,7 +63,7 @@ const ude_item_map ude_initcfg_items[] = {
 const ude_item_map ude_profile_items[] = {
     {{0, 72, sizeof(video_modes_plm_default)}, video_modes_plm},
     {{1, 74, sizeof(video_modes_default)}, video_modes},
-    {{2, 74, sizeof(smp_presets_default)}, smp_presets},
+    {{2, 76, sizeof(smp_presets_default)}, smp_presets},
     UDE_ITEM(86, 72, hdmi_timings),
     UDE_ITEM(91, 75, sdp_timings),
     // avconfig_t
@@ -98,7 +98,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(31, 64, tc.pm_ad_576p),
     UDE_ITEM(32, 76, tc.pm_ad_720p),
     UDE_ITEM(33, 58, tc.pm_ad_1080i),
-    UDE_ITEM(34, 67, tc.sm_ad_240p_288p),
+    UDE_ITEM(34, 76, tc.sm_ad_240p_288p),
     UDE_ITEM(35, 58, tc.sm_ad_384p),
     UDE_ITEM(36, 58, tc.sm_ad_480i_576i),
     UDE_ITEM(37, 74, tc.sm_ad_480p),
@@ -137,7 +137,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(67, 58, tc.scl_dil_cadence_detect_enable),
     UDE_ITEM(68, 58, tc.scl_dil_visualize_motion),
 #endif
-    UDE_ITEM(69, 67, tc.sm_scl_240p_288p),
+    UDE_ITEM(69, 76, tc.sm_scl_240p_288p),
     UDE_ITEM(70, 58, tc.sm_scl_384p),
     UDE_ITEM(71, 58, tc.sm_scl_480i_576i),
     UDE_ITEM(72, 74, tc.sm_scl_480p),
@@ -178,6 +178,7 @@ const ude_item_map ude_profile_items[] = {
 #ifndef DExx_FW
     UDE_ITEM(92, 75, tc.sdp_cfg),
 #endif
+    UDE_ITEM(93, 76, tc.lumacode_mode),
 };
 
 int write_userdata(uint8_t entry) {

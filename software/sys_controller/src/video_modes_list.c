@@ -238,12 +238,12 @@ const smp_preset_t smp_presets_default[] = {
     { "PC 1920x1440_60",SM_OPT_PC_HDTV,    {1920, 1440,      0,  2080, 0, 1481,   80, 34,   32, 4,  0},  0,  0,  { 4,  3},    VIDEO_PC,  GROUP_NONE },
 
     /* NES/SNES */
-    { "SNES 256x240",   SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  262,   39, 14,   25, 3,  0},  3,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
-    { "SNES 512x240",   SM_OPT_SNES_512COL,{ 512,  240,      0,   682, 0,  262,   78, 14,   50, 3,  0},  1,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
-    { "SNES 512x448i",  SM_OPT_SNES_512COL,{ 512,  224,      0,   682, 0,  525,   78, 14,   50, 3,  1},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
-    { "SNES 256x240 P", SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  312,   38, 40,   25, 3,  0},  3,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
-    { "SNES 512x240 P", SM_OPT_SNES_512COL,{ 512,  240,      0,   682, 0,  312,   74, 40,   50, 3,  0},  1,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
-    { "SNES 512x448i P",SM_OPT_SNES_512COL,{ 512,  224,      0,   682, 0,  625,   74, 40,   50, 3,  1},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
+    { "SNES 256x240",   SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  262,   39, 14,   25, 3,  0},  5,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
+    { "SNES 512x240",   SM_OPT_SNES_512COL,{ 512,  240,      0,   682, 0,  262,   78, 14,   50, 3,  0},  2,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
+    { "SNES 512x448i",  SM_OPT_SNES_512COL,{ 512,  224,      0,   682, 0,  525,   78, 14,   50, 3,  1},  2,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_480I },
+    { "SNES 256x240 P", SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  312,   38, 40,   25, 3,  0},  5,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "SNES 512x240 P", SM_OPT_SNES_512COL,{ 512,  240,      0,   682, 0,  312,   74, 40,   50, 3,  0},  2,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
+    { "SNES 512x448i P",SM_OPT_SNES_512COL,{ 512,  224,      0,   682, 0,  625,   74, 40,   50, 3,  1},  2,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
     /* MD */
     { "MD 256x224",     SM_OPT_MD_256COL,  { 256,  224,      0,   342, 0,  262,   39, 24,   25, 3,  0},  4,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     { "MD 320x224",     SM_OPT_MD_320COL,  { 320,  224,      0,   427,10,  262,   52, 24,   31, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
@@ -315,6 +315,11 @@ const smp_preset_t smp_presets_default[] = {
     { "X68k 512x240",   SM_OPT_X68K_512COL,{ 512,  240,      0,   608, 0,  260,   48, 13,   32, 3,  0},  1,  0,  { 4,  3},  VIDEO_PC,    GROUP_240P },
     { "X68k 512x512",   SM_OPT_X68K_512COL,{ 512,  512,      0,   736, 0,  568,   96, 34,   80, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
     { "X68k 768x512",   SM_OPT_X68K_768COL,{ 768,  512,      0,  1104, 0,  568,  144, 34,  120, 6,  0},  0,  0,  { 4,  3},  VIDEO_PC,    GROUP_480P },
+
+    { "MSX1 256x240",   SM_OPT_MSX_256COL, { 256,  240,      0,   342, 0,  262,   37, 16,   26, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
+    { "MSX1 256x240 P", SM_OPT_MSX_256COL, { 256,  240,      0,   342, 0,  313,   37, 40,   26, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+
+    { "ZX81/82 352x288", SM_OPT_ZX8X_352COL, { 352,  288,     0,   448, 0,  312,   43, 13,   34, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
 };
 
 #ifdef VM_STATIC_INCLUDE

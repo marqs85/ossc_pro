@@ -191,7 +191,7 @@ wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
 wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
 wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2, xy_out_config3;
-wire [31:0] misc_config, sl_config, sl_config2, sl_config3;
+wire [31:0] misc_config, misc_config2, sl_config, sl_config2, sl_config3;
 
 reg [23:0] resync_led_ctr;
 reg resync_strobe_sync1_reg, resync_strobe_sync2_reg, resync_strobe_prev;
@@ -280,6 +280,7 @@ isl51002_frontend u_isl_frontend (
     .hv_in_config2(hv_in_config2),
     .hv_in_config3(hv_in_config3),
     .misc_config(misc_config),
+    .misc_config2(misc_config2),
     .R_o(ISL_R_post),
     .G_o(ISL_G_post),
     .B_o(ISL_B_post),
@@ -763,6 +764,7 @@ sys sys_inst (
     .sc_config_0_sc_if_xy_out_config2_o     (xy_out_config2),
     .sc_config_0_sc_if_xy_out_config3_o     (xy_out_config3),
     .sc_config_0_sc_if_misc_config_o        (misc_config),
+    .sc_config_0_sc_if_misc_config2_o       (misc_config2),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
     .sc_config_0_sc_if_sl_config3_o         (sl_config3),

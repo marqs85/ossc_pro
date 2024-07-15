@@ -43,6 +43,7 @@ module sc_config_top(
     output [31:0] xy_out_config2_o,
     output [31:0] xy_out_config3_o,
     output [31:0] misc_config_o,
+    output [31:0] misc_config2_o,
     output [31:0] sl_config_o,
     output [31:0] sl_config2_o,
     output [31:0] sl_config3_o,
@@ -65,9 +66,10 @@ localparam XY_OUT_CONFIG_REGNUM =   9'h8;
 localparam XY_OUT_CONFIG2_REGNUM =  9'h9;
 localparam XY_OUT_CONFIG3_REGNUM =  9'ha;
 localparam MISC_CONFIG_REGNUM =     9'hb;
-localparam SL_CONFIG_REGNUM =       9'hc;
-localparam SL_CONFIG2_REGNUM =      9'hd;
-localparam SL_CONFIG3_REGNUM =      9'he;
+localparam MISC_CONFIG2_REGNUM =    9'hc;
+localparam SL_CONFIG_REGNUM =       9'hd;
+localparam SL_CONFIG2_REGNUM =      9'he;
+localparam SL_CONFIG3_REGNUM =      9'hf;
 
 localparam SHMASK_DATA_OFFSET =     9'h100;
 
@@ -131,6 +133,7 @@ assign xy_out_config_o = config_reg[XY_OUT_CONFIG_REGNUM];
 assign xy_out_config2_o = config_reg[XY_OUT_CONFIG2_REGNUM];
 assign xy_out_config3_o = config_reg[XY_OUT_CONFIG3_REGNUM];
 assign misc_config_o = config_reg[MISC_CONFIG_REGNUM];
+assign misc_config2_o = config_reg[MISC_CONFIG2_REGNUM];
 assign sl_config_o = config_reg[SL_CONFIG_REGNUM];
 assign sl_config2_o = config_reg[SL_CONFIG2_REGNUM];
 assign sl_config3_o = config_reg[SL_CONFIG3_REGNUM];

@@ -99,7 +99,7 @@ static const char *pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x576i (Line d
 static const char *pm_ad_720p_desc[] = { "1280x720 (Passthru)", "240p_CRT (Line drop)", "480i_CRT (Line drop)", "2560x1440 (Line2x)" };
 static const char *pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint@L2x)" };
 static const char *pm_ad_1080p_desc[] = { "1920x1080 (Passthru)", "1920x1080i (Line drop)", "540p_CRT (Line drop)" };
-static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol" };
+static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol", "MSX 256col", "Spectrum 352col" };
 static const char *sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
 static const char *sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
@@ -129,6 +129,7 @@ static const char *rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
 static const char *auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char *mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
 static const char *shmask_mode_desc[] = { "Off", "A-Grille", "TV", "PVM", "PVM-2530", "XC-3315C", "C-1084", "JVC", "VGA", "Custom shmask1.txt", "Custom shmask2.txt" };
+static const char *lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "NES" };
 static const char *adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char *oper_mode_desc[] = { "Line multiplier", "Scaler" };
 static const char *lm_mode_desc[] = { "Pure", "Adaptive" };
@@ -146,7 +147,7 @@ static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Vi
 static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive" };
 #endif
 #endif
-static const char *sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol" };
+static const char *sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol", "MSX 256col", "Spectrum 352col" };
 static const char *sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char *sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
 static const char *sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
@@ -319,6 +320,7 @@ MENU(menu_isl_video_opt, P99_PROTECT({
     { "Auto level ctl (ALC)",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.isl_cfg.alc_enable,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "ALC V filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_v_filter,  OPT_NOWRAP, 0, ALC_V_FILTER_MAX, alc_v_filter_disp } } },
     { "ALC H filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_h_filter,  OPT_NOWRAP, 0, ALC_H_FILTER_MAX, alc_h_filter_disp } } },
+    { "Lumacode",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_mode,         OPT_WRAP,   SETTING_ITEM(lumacode_mode_desc) } } },
 }))
 
 MENU(menu_isl_sync_opt, P99_PROTECT({

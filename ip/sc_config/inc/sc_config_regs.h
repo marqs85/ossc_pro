@@ -127,6 +127,14 @@ typedef union {
 
 typedef union {
     struct {
+        uint8_t lumacode_mode:3;
+        uint32_t misc2_rsv:29;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} misc_config2_reg;
+
+typedef union {
+    struct {
         uint32_t sl_l_str_arr:24;
         uint8_t sl_l_overlay:6;
         uint8_t sl_method:1;
@@ -172,6 +180,7 @@ typedef struct {
     xy_config2_reg xy_out_config2;
     xy_config3_reg xy_out_config3;
     misc_config_reg misc_config;
+    misc_config2_reg misc_config2;
     sl_config_reg sl_config;
     sl_config2_reg sl_config2;
     sl_config3_reg sl_config3;
