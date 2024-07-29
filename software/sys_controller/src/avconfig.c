@@ -52,6 +52,7 @@ const avconfig_t tc_default = {
     .tp_mode = STDMODE_480p,
     .mask_br = 8,
     .bfi_str = 15,
+    .shmask_str = 15,
 #ifdef VIP
     .scl_out_mode = 7,
     .scl_edge_thold = 7,

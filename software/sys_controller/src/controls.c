@@ -324,7 +324,7 @@ void parse_control()
                     enter_cstm(&menu_pure_lm_items[plm_group_proc_map[vmode_in.group]], 1);
             }
             if (r_code == RC_OSD)
-                enter_cstm(&menu_settings_items[1], 1);
+                enter_cstm(&menu_settings_items[2], 1);
             if (r_code == RC_PROF_HOTKEY)
                 enter_cstm(&menu_profile_load, 1);
         } else {

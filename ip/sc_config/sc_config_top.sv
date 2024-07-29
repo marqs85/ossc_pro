@@ -47,6 +47,7 @@ module sc_config_top(
     output [31:0] sl_config_o,
     output [31:0] sl_config2_o,
     output [31:0] sl_config3_o,
+    output [31:0] sl_config4_o,
     // Shadow mask read interface
     input vclk,
     input [3:0] shmask_xpos,
@@ -55,25 +56,26 @@ module sc_config_top(
 );
 
 localparam FE_STATUS_REGNUM =       9'h0;
-localparam LT_STATUS_REGNUM =       9'h1;
-localparam HV_IN_CONFIG_REGNUM =    9'h2;
-localparam HV_IN_CONFIG2_REGNUM =   9'h3;
-localparam HV_IN_CONFIG3_REGNUM =   9'h4;
-localparam HV_OUT_CONFIG_REGNUM =   9'h5;
-localparam HV_OUT_CONFIG2_REGNUM =  9'h6;
-localparam HV_OUT_CONFIG3_REGNUM =  9'h7;
-localparam XY_OUT_CONFIG_REGNUM =   9'h8;
-localparam XY_OUT_CONFIG2_REGNUM =  9'h9;
-localparam XY_OUT_CONFIG3_REGNUM =  9'ha;
-localparam MISC_CONFIG_REGNUM =     9'hb;
-localparam MISC_CONFIG2_REGNUM =    9'hc;
-localparam SL_CONFIG_REGNUM =       9'hd;
-localparam SL_CONFIG2_REGNUM =      9'he;
-localparam SL_CONFIG3_REGNUM =      9'hf;
+//localparam LT_STATUS_REGNUM =       9'h1;
+localparam HV_IN_CONFIG_REGNUM =    9'h1;
+localparam HV_IN_CONFIG2_REGNUM =   9'h2;
+localparam HV_IN_CONFIG3_REGNUM =   9'h3;
+localparam HV_OUT_CONFIG_REGNUM =   9'h4;
+localparam HV_OUT_CONFIG2_REGNUM =  9'h5;
+localparam HV_OUT_CONFIG3_REGNUM =  9'h6;
+localparam XY_OUT_CONFIG_REGNUM =   9'h7;
+localparam XY_OUT_CONFIG2_REGNUM =  9'h8;
+localparam XY_OUT_CONFIG3_REGNUM =  9'h9;
+localparam MISC_CONFIG_REGNUM =     9'ha;
+localparam MISC_CONFIG2_REGNUM =    9'hb;
+localparam SL_CONFIG_REGNUM =       9'hc;
+localparam SL_CONFIG2_REGNUM =      9'hd;
+localparam SL_CONFIG3_REGNUM =      9'he;
+localparam SL_CONFIG4_REGNUM =      9'hf;
 
 localparam SHMASK_DATA_OFFSET =     9'h100;
 
-reg [31:0] config_reg[HV_IN_CONFIG_REGNUM:SL_CONFIG3_REGNUM] /* synthesis ramstyle = "logic" */;
+reg [31:0] config_reg[HV_IN_CONFIG_REGNUM:SL_CONFIG4_REGNUM] /* synthesis ramstyle = "logic" */;
 
 assign avalon_s_waitrequest_n = 1'b1;
 
@@ -89,7 +91,7 @@ shmask_array shmask_array_inst (
 
 genvar i;
 generate
-    for (i=HV_IN_CONFIG_REGNUM; i <= SL_CONFIG3_REGNUM; i++) begin : gen_reg
+    for (i=HV_IN_CONFIG_REGNUM; i <= SL_CONFIG4_REGNUM; i++) begin : gen_reg
         always @(posedge clk_i or posedge rst_i) begin
             if (rst_i) begin
                 config_reg[i] <= 0;
@@ -115,7 +117,7 @@ always @(*) begin
     if (avalon_s_chipselect && avalon_s_read) begin
         case (avalon_s_address)
             FE_STATUS_REGNUM: avalon_s_readdata = fe_status_i;
-            LT_STATUS_REGNUM: avalon_s_readdata = lt_status_i;
+            //LT_STATUS_REGNUM: avalon_s_readdata = lt_status_i;
             default: avalon_s_readdata = 32'h00000000;
         endcase
     end else begin
@@ -137,5 +139,6 @@ assign misc_config2_o = config_reg[MISC_CONFIG2_REGNUM];
 assign sl_config_o = config_reg[SL_CONFIG_REGNUM];
 assign sl_config2_o = config_reg[SL_CONFIG2_REGNUM];
 assign sl_config3_o = config_reg[SL_CONFIG3_REGNUM];
+assign sl_config4_o = config_reg[SL_CONFIG4_REGNUM];
 
 endmodule

@@ -56,8 +56,9 @@ const ude_item_map ude_initcfg_items[] = {
 #ifndef DExx_FW
     UDE_ITEM(4, 58, ts.fan_pwm),
     UDE_ITEM(5, 58, ts.led_pwm),
-#endif
     //UDE_ITEM(6, 69, ts.extra_av_out_mode),
+    UDE_ITEM(7, 76, ts.power_up_state),
+#endif
 };
 
 const ude_item_map ude_profile_items[] = {
@@ -75,10 +76,10 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(8, 58, tc.sl_altiv),
     UDE_ITEM(9, 58, tc.sl_str),
     UDE_ITEM(10, 58, tc.sl_id),
-    UDE_ITEM(11, 58, tc.sl_cust_l_str),
+    UDE_ITEM(11, 76, tc.sl_cust_l_str),
     UDE_ITEM(12, 58, tc.sl_cust_c_str),
     UDE_ITEM(13, 58, tc.sl_cust_iv_x),
-    UDE_ITEM(14, 58, tc.sl_cust_iv_y),
+    UDE_ITEM(14, 76, tc.sl_cust_iv_y),
     UDE_ITEM(15, 58, tc.l2_mode),
     UDE_ITEM(16, 58, tc.l3_mode),
     UDE_ITEM(17, 58, tc.l4_mode),
@@ -179,6 +180,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(92, 75, tc.sdp_cfg),
 #endif
     UDE_ITEM(93, 76, tc.lumacode_mode),
+    UDE_ITEM(94, 76, tc.shmask_str),
 };
 
 int write_userdata(uint8_t entry) {

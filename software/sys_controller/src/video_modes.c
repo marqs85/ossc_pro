@@ -823,7 +823,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     v_linediff = (vm_out->timings.v_synclen + vm_out->timings.v_backporch + ((vm_conf->y_offset < 0) ? 0 : vm_conf->y_offset)) - v_linediff;
 
     // if linebuf is read faster than written, output framestart must be delayed accordingly to avoid read pointer catching write pointer
-    vtotal_ref = (vm_conf->y_rpt < 0) ? ((vm_in->timings.v_total*out_interlace_mult)/2) : (vm_in->timings.v_total*out_interlace_mult*(vm_conf->y_rpt+1));
+    vtotal_ref = (vm_conf->y_rpt < 0) ? ((vm_in->timings.v_total*out_interlace_mult)/(-vm_conf->y_rpt+1)) : (vm_in->timings.v_total*out_interlace_mult*(vm_conf->y_rpt+1));
     if (vm_out->timings.v_total * in_interlace_mult > vtotal_ref)
         v_linediff -= (((vm_in->timings.v_active * vm_out->timings.v_total * in_interlace_mult) / (vm_in->timings.v_total * out_interlace_mult)) - vm_conf->y_size);
 

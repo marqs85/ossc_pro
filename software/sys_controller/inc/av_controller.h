@@ -106,6 +106,7 @@ typedef struct {
     uint8_t osd_enable;
     uint8_t osd_status_timeout;
 #ifndef DExx_FW
+    uint8_t power_up_state;
     uint8_t fan_pwm;
     uint8_t led_pwm;
 #endif

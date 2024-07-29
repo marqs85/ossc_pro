@@ -190,7 +190,7 @@ struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq, unsigned int host_caps)
 
 uint32_t sys_ctrl;
 uint32_t sys_status;
-uint8_t sys_powered_on;
+int sys_powered_on = -1;
 
 uint8_t sd_det, sd_det_prev;
 uint8_t sl_def_iv_x, sl_def_iv_y;
@@ -221,6 +221,7 @@ const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_
 shmask_data_arr shmask_data_arr_custom;
 shmask_data_arr *shmask_data_arr_ptr = &shmask_data_arr_custom;
 int shmask_loaded_array = 0;
+int shmask_loaded_str = -1;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
 
 #ifdef VIP
@@ -396,6 +397,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     sl_config_reg sl_config = {.data=0x00000000};
     sl_config2_reg sl_config2 = {.data=0x00000000};
     sl_config3_reg sl_config3 = {.data=0x00000000};
+    sl_config4_reg sl_config4 = {.data=0x00000000};
 
 #ifdef VIP
     vip_enable = !enable_tp && (avconfig->oper_mode == 1);
@@ -403,7 +405,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_enable = 0;
 #endif
 
-    if (avconfig->shmask_mode && (avconfig->shmask_mode != shmask_loaded_array)) {
+    if (avconfig->shmask_mode && ((avconfig->shmask_mode != shmask_loaded_array) || (avconfig->shmask_str != shmask_loaded_str))) {
         if (avconfig->shmask_mode >= SHMASKS_SIZE) { // Custom
             sniprintf(target_filename, sizeof(target_filename), "shmask%d.txt", (avconfig->shmask_mode + 1 - SHMASKS_SIZE) );
             if (!file_open(&file, target_filename)) {
@@ -446,10 +448,13 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
         for (p=0; p<=shmask_data_arr_ptr->iv_y; p++) {
             for (t=0; t<=shmask_data_arr_ptr->iv_x; t++)
-                sc->shmask_data_array.data[p][t] = shmask_data_arr_ptr->v[p][t];
+                sc->shmask_data_array.data[p][t] = (avconfig->shmask_str == 15) ? shmask_data_arr_ptr->v[p][t] : (shmask_data_arr_ptr->v[p][t]&0x700) |
+                                                                                                                 ((((avconfig->shmask_str+1)*((shmask_data_arr_ptr->v[p][t]&0x0f0) >> 4))/16)<<4) |
+                                                                                                                 (15-(((avconfig->shmask_str+1)*(15-(shmask_data_arr_ptr->v[p][t]&0x00f))) / 16));
         }
 
         shmask_loaded_array = avconfig->shmask_mode;
+        shmask_loaded_str = avconfig->shmask_str;
     }
 
     // Set input params
@@ -502,49 +507,55 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     // set default/custom scanline interval
     sl_def_iv_y = (vm_conf->y_rpt > 0) ? vm_conf->y_rpt : 1;
     sl_def_iv_x = (vm_conf->x_rpt > 0) ? vm_conf->x_rpt : sl_def_iv_y;
-    sl_config3.sl_iv_x = ((avconfig->sl_type == 3) && (avconfig->sl_cust_iv_x)) ? avconfig->sl_cust_iv_x : sl_def_iv_x;
-    sl_config3.sl_iv_y = ((avconfig->sl_type == 3) && (avconfig->sl_cust_iv_y)) ? avconfig->sl_cust_iv_y : sl_def_iv_y;
+    sl_config4.sl_iv_x = ((avconfig->sl_type == 3) && (avconfig->sl_cust_iv_x)) ? avconfig->sl_cust_iv_x : sl_def_iv_x;
+    sl_config2.sl_iv_y = ((avconfig->sl_type == 3) && (avconfig->sl_cust_iv_y)) ? avconfig->sl_cust_iv_y : sl_def_iv_y;
 
     // construct custom/default scanline overlay
-    for (i=0; i<6; i++) {
+    for (i=0; i<10; i++) {
         if (avconfig->sl_type == 3) {
-            sl_config.sl_l_str_arr |= ((avconfig->sl_cust_l_str[i]-1)&0xf)<<(4*i);
-            sl_config.sl_l_overlay |= (avconfig->sl_cust_l_str[i]!=0)<<i;
+            if (i<8)
+                sl_config.sl_l_str_arr_l |= ((avconfig->sl_cust_l_str[i]-1)&0xf)<<(4*i);
+            else
+                sl_config2.sl_l_str_arr_h |= ((avconfig->sl_cust_l_str[i]-1)&0xf)<<(4*(i-8));
+            sl_config2.sl_l_overlay |= (avconfig->sl_cust_l_str[i]!=0)<<i;
         } else {
-            sl_config.sl_l_str_arr |= avconfig->sl_str<<(4*i);
+            if (i<8)
+                sl_config.sl_l_str_arr_l |= avconfig->sl_str<<(4*i);
+            else
+                sl_config2.sl_l_str_arr_h |= avconfig->sl_str<<(4*(i-8));
 
-            if ((i==5) && ((avconfig->sl_type == 0) || (avconfig->sl_type == 2))) {
-                sl_config.sl_l_overlay = (1<<((sl_config3.sl_iv_y+1)/2))-1;
+            if ((i==9) && ((avconfig->sl_type == 0) || (avconfig->sl_type == 2))) {
+                sl_config2.sl_l_overlay = (1<<((sl_config2.sl_iv_y+1)/2))-1;
                 if (avconfig->sl_id)
-                    sl_config.sl_l_overlay <<= (sl_config3.sl_iv_y+2)/2;
+                    sl_config2.sl_l_overlay <<= (sl_config2.sl_iv_y+2)/2;
             }
         }
     }
     for (i=0; i<10; i++) {
         if (avconfig->sl_type == 3) {
             if (i<8)
-                sl_config2.sl_c_str_arr_l |= ((avconfig->sl_cust_c_str[i]-1)&0xf)<<(4*i);
+                sl_config3.sl_c_str_arr_l |= ((avconfig->sl_cust_c_str[i]-1)&0xf)<<(4*i);
             else
-                sl_config3.sl_c_str_arr_h |= ((avconfig->sl_cust_c_str[i]-1)&0xf)<<(4*(i-8));
-            sl_config3.sl_c_overlay |= (avconfig->sl_cust_c_str[i]!=0)<<i;
+                sl_config4.sl_c_str_arr_h |= ((avconfig->sl_cust_c_str[i]-1)&0xf)<<(4*(i-8));
+            sl_config4.sl_c_overlay |= (avconfig->sl_cust_c_str[i]!=0)<<i;
         } else {
             if (i<8)
-                sl_config2.sl_c_str_arr_l |= avconfig->sl_str<<(4*i);
+                sl_config3.sl_c_str_arr_l |= avconfig->sl_str<<(4*i);
             else
-                sl_config3.sl_c_str_arr_h |= avconfig->sl_str<<(4*(i-8));
+                sl_config4.sl_c_str_arr_h |= avconfig->sl_str<<(4*(i-8));
 
             if ((i==9) && ((avconfig->sl_type == 1) || (avconfig->sl_type == 2)))
-                sl_config3.sl_c_overlay = (1<<((sl_config3.sl_iv_x+1)/2))-1;
+                sl_config4.sl_c_overlay = (1<<((sl_config4.sl_iv_x+1)/2))-1;
         }
     }
-    sl_config.sl_method = avconfig->sl_method;
-    sl_config.sl_altern = avconfig->sl_altern;
-    sl_config3.sl_hybr_str = avconfig->sl_hybr_str;
+    sl_config2.sl_method = avconfig->sl_method;
+    sl_config2.sl_altern = avconfig->sl_altern;
+    sl_config2.sl_hybr_str = avconfig->sl_hybr_str;
 
     // disable scanlines if configured so
     if (((avconfig->sl_mode == 1) && (!vm_conf->y_rpt)) || (avconfig->sl_mode == 0)) {
-        sl_config.sl_l_overlay = 0;
-        sl_config3.sl_c_overlay = 0;
+        sl_config2.sl_l_overlay = 0;
+        sl_config4.sl_c_overlay = 0;
     }
 
     h_blank = vm_out->timings.h_total-vm_conf->x_size;
@@ -570,6 +581,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     sc->sl_config = sl_config;
     sc->sl_config2 = sl_config2;
     sc->sl_config3 = sl_config3;
+    sc->sl_config4 = sl_config4;
 
 #ifdef VIP
     vip_cvi->ctrl = vip_enable;
@@ -1821,8 +1833,13 @@ int main()
 
         printf("### OSSC PRO INIT OK ###\n\n");
 
-        sys_powered_on = 0;
-        wait_powerup();
+        // Skip standby upon DC power-up if configured accordingly
+        if ((sys_powered_on == -1) && cs.power_up_state) {
+            sys_powered_on = 1;
+        } else {
+            sys_powered_on = 0;
+            wait_powerup();
+        }
 
         // Restart system clock
         alt_timestamp_start();

@@ -154,7 +154,7 @@ typedef struct {
     uint8_t sl_altiv;
     uint8_t sl_str;
     uint8_t sl_id;
-    uint8_t sl_cust_l_str[6];
+    uint8_t sl_cust_l_str[10];
     uint8_t sl_cust_c_str[10];
     uint8_t sl_cust_iv_x;
     uint8_t sl_cust_iv_y;
@@ -165,6 +165,7 @@ typedef struct {
     uint8_t bfi_enable;
     uint8_t bfi_str;
     uint8_t shmask_mode;
+    uint8_t shmask_str;
     uint8_t reverse_lpf;
     uint8_t lumacode_mode;
     uint8_t ypbpr_cs;
