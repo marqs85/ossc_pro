@@ -45,6 +45,8 @@ extern smp_preset_t smp_presets[];
 extern sync_timings_t hdmi_timings[NUM_VIDEO_GROUPS];
 extern sync_timings_t sdp_timings[NUM_VIDEO_GROUPS];
 extern uint8_t update_cur_vm;
+extern c_pp_coeffs_t c_pp_coeffs;
+extern c_shmask_t c_shmask;
 
 char target_profile_name[USERDATA_NAME_LEN+1], cur_profile_name[USERDATA_NAME_LEN+1];
 
@@ -67,6 +69,8 @@ const ude_item_map ude_profile_items[] = {
     {{2, 76, sizeof(smp_presets_default)}, smp_presets},
     UDE_ITEM(86, 72, hdmi_timings),
     UDE_ITEM(91, 75, sdp_timings),
+    UDE_ITEM(95, 76, c_pp_coeffs),
+    UDE_ITEM(96, 76, c_shmask),
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -128,7 +132,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(59, 68, tc.scl_out_mode),
     UDE_ITEM(60, 75, tc.scl_framelock),
     UDE_ITEM(61, 62, tc.scl_aspect),
-    UDE_ITEM(62, 69, tc.scl_alg),
+    UDE_ITEM(62, 76, tc.scl_alg),
     UDE_ITEM(63, 58, tc.scl_edge_thold),
     UDE_ITEM(64, 58, tc.scl_dil_motion_shift),
 #ifndef VIP_DIL_B
@@ -166,7 +170,7 @@ const ude_item_map ude_profile_items[] = {
 #endif
     UDE_ITEM(82, 75, tc.pm_ad_1080p),
     UDE_ITEM(83, 67, tc.l6_mode),
-    UDE_ITEM(84, 68, tc.shmask_mode),
+    UDE_ITEM(84, 76, tc.shmask_mode),
     UDE_ITEM(85, 72, tc.timing_1080p120),
     // 86 reserved for hdmi_timings
     UDE_ITEM(87, 72, tc.timing_2160p60),
@@ -181,6 +185,7 @@ const ude_item_map ude_profile_items[] = {
 #endif
     UDE_ITEM(93, 76, tc.lumacode_mode),
     UDE_ITEM(94, 76, tc.shmask_str),
+    // 95-96 reserved
 };
 
 int write_userdata(uint8_t entry) {
@@ -222,11 +227,8 @@ int write_userdata(uint8_t entry) {
         }
 
         if (i == entry+1) {
-            i = strlen(target_profile_name);
-            if ((i > 1) && (target_profile_name[i-2] == '\r') && (target_profile_name[i-1] == '\n'))
-                target_profile_name[i-2] = 0;
-            else if ((i > 0) && (target_profile_name[i-1] == '\n'))
-                target_profile_name[i-1] = 0;
+            // strip CR / CRLF
+            target_profile_name[strcspn(target_profile_name, "\r\n")] = 0;
 
             strlcpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
         } else if (cur_profile_name[0] == 0) {
@@ -362,11 +364,8 @@ int write_userdata_sd(uint8_t entry) {
         }
 
         if (i == entry+1) {
-            i = strlen(target_profile_name);
-            if ((i > 1) && (target_profile_name[i-2] == '\r') && (target_profile_name[i-1] == '\n'))
-                target_profile_name[i-2] = 0;
-            else if ((i > 0) && (target_profile_name[i-1] == '\n'))
-                target_profile_name[i-1] = 0;
+            // strip CR / CRLF
+            target_profile_name[strcspn(target_profile_name, "\r\n")] = 0;
 
             strlcpy(hdr.name, target_profile_name, USERDATA_NAME_LEN+1);
         } else if (cur_profile_name[0] == 0) {

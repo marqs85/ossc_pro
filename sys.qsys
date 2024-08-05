@@ -901,7 +901,7 @@
   <parameter name="FAMILY" value="Cyclone V" />
   <parameter name="H_BANKS" value="1" />
   <parameter name="H_COEFF_FILE"><![CDATA[<enter file name (including full path)>]]></parameter>
-  <parameter name="H_FRACTION_BITS" value="7" />
+  <parameter name="H_FRACTION_BITS" value="8" />
   <parameter name="H_FUNCTION" value="LANCZOS_3" />
   <parameter name="H_INTEGER_BITS" value="1" />
   <parameter name="H_PHASES" value="64" />
@@ -926,7 +926,7 @@
   <parameter name="USER_PACKET_SUPPORT" value="PASSTHROUGH" />
   <parameter name="V_BANKS" value="1" />
   <parameter name="V_COEFF_FILE"><![CDATA[<enter file name (including full path)>]]></parameter>
-  <parameter name="V_FRACTION_BITS" value="7" />
+  <parameter name="V_FRACTION_BITS" value="8" />
   <parameter name="V_FUNCTION" value="LANCZOS_3" />
   <parameter name="V_INTEGER_BITS" value="1" />
   <parameter name="V_PHASES" value="64" />

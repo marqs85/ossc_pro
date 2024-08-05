@@ -26,6 +26,7 @@
 #include "firmware.h"
 #include "userdata.h"
 #include "us2066.h"
+#include "file.h"
 
 #define MAX_MENU_DEPTH 3
 
@@ -59,6 +60,9 @@ extern uint8_t sl_def_iv_x, sl_def_iv_y;
 extern avinput_t target_avinput;
 extern uint8_t profile_sel_menu, sd_profile_sel_menu;
 
+extern c_pp_coeffs_t c_pp_coeffs;
+extern c_shmask_t c_shmask;
+
 char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1], func_ret_status[US2066_ROW_LEN+1];
 extern char target_profile_name[USERDATA_NAME_LEN+1];
 
@@ -75,6 +79,8 @@ void (*cstm_f)(menucode_id, int);
 // Listview variables
 uint8_t lw_mp;
 menuitem_t *lw_item;
+
+static int osd_list_iter;
 
 static const char *off_on_desc[] = { LNG("Off","ｵﾌ"), LNG("On","ｵﾝ") };
 static const char *ypbpr_cs_desc[] = { "Auto", "Rec. 601", "Rec. 709" };
@@ -129,7 +135,7 @@ static const char *osd_status_desc[] = { "2s", "5s", "10s", "Off" };
 static const char *rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
 static const char *auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char *mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
-static const char *shmask_mode_desc[] = { "Off", "A-Grille", "TV", "PVM", "PVM-2530", "XC-3315C", "C-1084", "JVC", "VGA", "Custom shmask1.txt", "Custom shmask2.txt" };
+static const char *shmask_mode_desc[] = { "Off", "A-Grille", "TV", "PVM", "PVM-2530", "XC-3315C", "C-1084", "JVC", "VGA", c_shmask.name };
 static const char *lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "NES" };
 static const char *adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char *oper_mode_desc[] = { "Line multiplier", "Scaler" };
@@ -139,7 +145,7 @@ static const char *scl_crt_out_mode_desc[] = { "240p (60-120Hz)", "240p WS (60-1
 static const char *scl_out_type_desc[] = { "DFP", "CRT" };
 static const char *scl_framelock_desc[] = { "On", "On (2x source Hz)", "Off (source Hz)", "Off (preset Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
 static const char *scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
-static const char *scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "Custom scaler1.txt", "Custom scaler2.txt" };
+static const char *scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "GS medium", "GS soft", c_pp_coeffs.name };
 static const char *scl_gen_sr_desc[] = { "Auto", "Lowest", "Highest" };
 #ifndef VIP_DIL_B
 #ifdef DEBUG
@@ -401,6 +407,7 @@ MENU(menu_scaler, P99_PROTECT({
     { "Framelock",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_framelock,   OPT_WRAP, SETTING_ITEM_LIST(scl_framelock_desc) } } },
     { "Aspect ratio",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_aspect,      OPT_WRAP, SETTING_ITEM_LIST(scl_aspect_desc) } } },
     { "Scaling algorithm",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_alg,         OPT_WRAP, SETTING_ITEM_LIST(scl_alg_desc) } } },
+    { "Custom SCL alg",                         OPT_CUSTOMMENU,         { .cstm = { &cstm_scl_alg_load } } },
     { "Edge threshold",                         OPT_AVCONFIG_NUMVALUE, { .num = { &tc.scl_edge_thold,  OPT_NOWRAP, 0, 255, value_disp } } },
 #ifndef VIP_DIL_B
     { "Deinterlace mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_dil_alg,     OPT_WRAP, SETTING_ITEM_LIST(scl_dil_alg_desc) } } },
@@ -452,6 +459,7 @@ MENU(menu_postproc, P99_PROTECT({
     { "Border color",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.mask_color,  OPT_NOWRAP,   SETTING_ITEM_LIST(mask_color_desc) } } },
     { LNG("Border brightness","ﾏｽｸｱｶﾙｻ"),         OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.mask_br,     OPT_NOWRAP, 0, HV_MASK_MAX_BR, value_disp } } },
     { "Shadow mask",                             OPT_AVCONFIG_SELECTION, { .sel = { &tc.shmask_mode, OPT_WRAP,   SETTING_ITEM_LIST(shmask_mode_desc) } } },
+    { "Custom shadow mask",                      OPT_CUSTOMMENU,         { .cstm = { &cstm_shmask_load } } },
     { "Sh. mask strength",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.shmask_str,  OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
     { "BFI for 2x Hz",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.bfi_enable,  OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "BFI strength",                            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.bfi_str,     OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
@@ -1128,6 +1136,191 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
         retval = read_userdata_sd((page-1)*20+nav, 1);
 
     sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
+
+    ui_disp_menu(0);
+}
+
+void osd_array_fname_fill(FILINFO *fno) {
+    sniprintf((char*)osd->osd_array.data[osd_list_iter+2][0], OSD_CHAR_COLS, "%s", fno->fname);
+    osd_list_iter++;
+}
+
+void cstm_scl_alg_load(menucode_id code, int setup_disp) {
+    uint32_t row_mask[2] = {0x03, 0x00};
+    int i, retval, items_curpage;
+    static int scl_alg_nav = 0;
+    static int scl_alg_page = 0;
+    static int scl_alg_files;
+
+    FILINFO fno;
+
+    if (setup_disp) {
+        scl_alg_files = find_files_exec("scl_alg", "*.cfg", &fno, 0, 99, NULL);
+        printf("%d scl_alg .cfg files found\n", scl_alg_files);
+    }
+
+    if (scl_alg_files == 0) {
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "No scl_alg/*.cfg");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "files found");
+        ui_disp_menu(1);
+
+        return;
+    }
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+        scl_alg_nav--;
+        break;
+    case NEXT_PAGE:
+        scl_alg_nav++;
+        break;
+    case VAL_MINUS:
+        scl_alg_page = (scl_alg_page == 0) ? ((scl_alg_files-1)/20) : (scl_alg_page - 1);
+        setup_disp = 1;
+        break;
+    case VAL_PLUS:
+        scl_alg_page = (scl_alg_page + 1) % (((scl_alg_files-1)/20)+1);
+        setup_disp = 1;
+        break;
+    case OPT_SELECT:
+        find_files_exec("scl_alg", "*.cfg", &fno, 0, scl_alg_page*20+scl_alg_nav, NULL);
+
+        retval = load_scl_coeffs("/scl_alg", fno.fname);
+        sniprintf((char*)osd->osd_array.data[scl_alg_nav+2][1], OSD_CHAR_COLS, (retval==0) ? "OK" : "Failed");
+
+        row_mask[1] = (1<<(scl_alg_nav+2));
+        osd->osd_sec_enable[1].mask = row_mask[1];
+        break;
+    default:
+        break;
+    }
+
+    if (scl_alg_page > (scl_alg_files/20))
+        scl_alg_page = 0;
+    items_curpage = scl_alg_files-scl_alg_page*20;
+    if (items_curpage > 20)
+        items_curpage = 20;
+
+    if (scl_alg_nav < 0)
+        scl_alg_nav = items_curpage-1;
+    else if (scl_alg_nav >= items_curpage)
+        scl_alg_nav = 0;
+
+    if (setup_disp) {
+        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "SCL alg page %d/%d", scl_alg_page+1, ((scl_alg_files-1)/20)+1);
+        strncpy((char*)osd->osd_array.data[0][0], menu_row1, OSD_CHAR_COLS);
+        for (i=0; i<OSD_CHAR_COLS; i++)
+            osd->osd_array.data[1][0][i] = '-';
+
+        osd_list_iter = 0;
+        find_files_exec("scl_alg", "*.cfg", &fno, scl_alg_page*20, scl_alg_page*20+items_curpage-1, osd_array_fname_fill);
+
+        for (i=0; i<items_curpage; i++)
+            row_mask[0] |= (1<<(i+2));
+
+        sniprintf((char*)osd->osd_array.data[items_curpage+3][0], OSD_CHAR_COLS, "< Prev       Next >");
+        row_mask[0] |= (3<<(items_curpage+2));
+
+        osd->osd_sec_enable[0].mask = row_mask[0];
+        osd->osd_sec_enable[1].mask = row_mask[1];
+    }
+
+    osd->osd_row_color.mask = (1<<(scl_alg_nav+2));
+
+    //sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
+
+    ui_disp_menu(0);
+}
+
+void cstm_shmask_load(menucode_id code, int setup_disp) {
+    uint32_t row_mask[2] = {0x03, 0x00};
+    int i, retval, items_curpage;
+    static int shmask_nav = 0;
+    static int shmask_page = 0;
+    static int shmask_files;
+
+    FILINFO fno;
+
+    if (setup_disp) {
+        shmask_files = find_files_exec("shmask", "*.txt", &fno, 0, 99, NULL);
+        printf("%d shmask .txt files found\n", shmask_files);
+    }
+
+    if (shmask_files == 0) {
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "No shmask/*.txt");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "files found");
+        ui_disp_menu(1);
+
+        return;
+    }
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+        shmask_nav--;
+        break;
+    case NEXT_PAGE:
+        shmask_nav++;
+        break;
+    case VAL_MINUS:
+        shmask_page = (shmask_page == 0) ? ((shmask_files-1)/20) : (shmask_page - 1);
+        setup_disp = 1;
+        break;
+    case VAL_PLUS:
+        shmask_page = (shmask_page + 1) % (((shmask_files-1)/20)+1);
+        setup_disp = 1;
+        break;
+    case OPT_SELECT:
+        find_files_exec("shmask", "*.txt", &fno, 0, shmask_page*20+shmask_nav, NULL);
+
+        retval = load_shmask("/shmask", fno.fname);
+        sniprintf((char*)osd->osd_array.data[shmask_nav+2][1], OSD_CHAR_COLS, (retval==0) ? "OK" : "Failed");
+
+        row_mask[1] = (1<<(shmask_nav+2));
+        osd->osd_sec_enable[1].mask = row_mask[1];
+        break;
+    default:
+        break;
+    }
+
+    if (shmask_page > (shmask_files/20))
+        shmask_page = 0;
+    items_curpage = shmask_files-shmask_page*20;
+    if (items_curpage > 20)
+        items_curpage = 20;
+
+    if (shmask_nav < 0)
+        shmask_nav = items_curpage-1;
+    else if (shmask_nav >= items_curpage)
+        shmask_nav = 0;
+
+    if (setup_disp) {
+        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "Shmask page %d/%d", shmask_page+1, ((shmask_files-1)/20)+1);
+        strncpy((char*)osd->osd_array.data[0][0], menu_row1, OSD_CHAR_COLS);
+        for (i=0; i<OSD_CHAR_COLS; i++)
+            osd->osd_array.data[1][0][i] = '-';
+
+        osd_list_iter = 0;
+        find_files_exec("shmask", "*.txt", &fno, shmask_page*20, shmask_page*20+items_curpage-1, osd_array_fname_fill);
+
+        for (i=0; i<items_curpage; i++)
+            row_mask[0] |= (1<<(i+2));
+
+        sniprintf((char*)osd->osd_array.data[items_curpage+3][0], OSD_CHAR_COLS, "< Prev       Next >");
+        row_mask[0] |= (3<<(items_curpage+2));
+
+        osd->osd_sec_enable[0].mask = row_mask[0];
+        osd->osd_sec_enable[1].mask = row_mask[1];
+    }
+
+    osd->osd_row_color.mask = (1<<(shmask_nav+2));
+
+    //sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
 
     ui_disp_menu(0);
 }

@@ -147,6 +147,8 @@ int set_default_profile(int update_cc)
     if (update_cc)
         memcpy(&cc, &tc, sizeof(avconfig_t));
 
+    set_default_c_pp_coeffs();
+    set_default_c_shmask();
     set_default_vm_table();
 
     return 0;

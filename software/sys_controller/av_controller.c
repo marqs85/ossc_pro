@@ -217,9 +217,8 @@ char char_buff[256];
 
 #include "src/shmask_arrays.c"
 
-const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_tv, &shmask_pvm, &shmask_pvm_2530, &shmask_xc_3315c, &shmask_c_1084, &shmask_jvc, &shmask_vga};
-shmask_data_arr shmask_data_arr_custom;
-shmask_data_arr *shmask_data_arr_ptr = &shmask_data_arr_custom;
+c_shmask_t c_shmask;
+const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_tv, &shmask_pvm, &shmask_pvm_2530, &shmask_xc_3315c, &shmask_c_1084, &shmask_jvc, &shmask_vga, &c_shmask.arr};
 int shmask_loaded_array = 0;
 int shmask_loaded_str = -1;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
@@ -227,12 +226,16 @@ int shmask_loaded_str = -1;
 #ifdef VIP
 #include "src/scl_pp_coeffs.c"
 
+c_pp_coeffs_t c_pp_coeffs;
 const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
                                             {{&pp_coeff_lanczos3, NULL}, {&pp_coeff_lanczos3, NULL}},
                                             {{&pp_coeff_lanczos3_13, NULL}, {&pp_coeff_lanczos3_13, NULL}},
                                             {{&pp_coeff_lanczos3, &pp_coeff_lanczos3_13}, {&pp_coeff_lanczos3, &pp_coeff_lanczos3_13}},
                                             {{&pp_coeff_lanczos4, NULL}, {&pp_coeff_lanczos4, NULL}},
-                                            {{&pp_coeff_gs_sharp, NULL}, {&pp_coeff_gs_sharp, NULL}}};
+                                            {{&pp_coeff_gs_sharp, NULL}, {&pp_coeff_gs_sharp, NULL}},
+                                            {{&pp_coeff_gs_medium, NULL}, {&pp_coeff_gs_medium, NULL}},
+                                            {{&pp_coeff_gs_soft, NULL}, {&pp_coeff_gs_soft, NULL}},
+                                            {{&c_pp_coeffs.coeffs[0], &c_pp_coeffs.coeffs[2]}, {&c_pp_coeffs.coeffs[1], &c_pp_coeffs.coeffs[3]}}};
 int scl_loaded_pp_coeff = -1;
 #define PP_COEFF_SIZE  (sizeof(scl_pp_coeff_list) / sizeof((scl_pp_coeff_list)[0]))
 #define PP_TAPS 4
@@ -378,10 +381,9 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
 
 void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf, avconfig_t *avconfig)
 {
-    int vip_enable, scl_target_pp_coeff, scl_ea, i, p, t, n;
-    int v0,v1,v2,v3;
-    char target_filename[16];
+    int vip_enable, scl_target_pp_coeff, scl_ea, i, p, t;
     uint32_t h_blank, v_blank, h_frontporch, v_frontporch;
+    shmask_data_arr *shmask_data_arr_ptr;
 
     hv_config_reg hv_in_config = {.data=0x00000000};
     hv_config2_reg hv_in_config2 = {.data=0x00000000};
@@ -406,45 +408,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 #endif
 
     if (avconfig->shmask_mode && ((avconfig->shmask_mode != shmask_loaded_array) || (avconfig->shmask_str != shmask_loaded_str))) {
-        if (avconfig->shmask_mode >= SHMASKS_SIZE) { // Custom
-            sniprintf(target_filename, sizeof(target_filename), "shmask%d.txt", (avconfig->shmask_mode + 1 - SHMASKS_SIZE) );
-            if (!file_open(&file, target_filename)) {
-                i = 0;
-                while (file_get_string(&file, char_buff, sizeof(char_buff))) {
-                    if (char_buff[0] == '#')
-                        continue;
-                    if (!i && (sscanf(char_buff, "%d,%d", &v0, &v1) == 2)) {
-                        shmask_data_arr_custom.iv_x = v0-1;
-                        shmask_data_arr_custom.iv_y = v1-1;
-                        i = 1;
-                    } else if (i && (v1 > 0)) {
-                        p = shmask_data_arr_custom.iv_y+1-v1;
-                        if (sscanf(char_buff, "%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx", &shmask_data_arr_custom.v[p][0],
-                                                                                                                 &shmask_data_arr_custom.v[p][1],
-                                                                                                                 &shmask_data_arr_custom.v[p][2],
-                                                                                                                 &shmask_data_arr_custom.v[p][3],
-                                                                                                                 &shmask_data_arr_custom.v[p][4],
-                                                                                                                 &shmask_data_arr_custom.v[p][5],
-                                                                                                                 &shmask_data_arr_custom.v[p][6],
-                                                                                                                 &shmask_data_arr_custom.v[p][7],
-                                                                                                                 &shmask_data_arr_custom.v[p][8],
-                                                                                                                 &shmask_data_arr_custom.v[p][9],
-                                                                                                                 &shmask_data_arr_custom.v[p][10],
-                                                                                                                 &shmask_data_arr_custom.v[p][11],
-                                                                                                                 &shmask_data_arr_custom.v[p][12],
-                                                                                                                 &shmask_data_arr_custom.v[p][13],
-                                                                                                                 &shmask_data_arr_custom.v[p][14],
-                                                                                                                 &shmask_data_arr_custom.v[p][15]) == v0)
-                            v1--;
-                    }
-                }
-                file_close(&file);
-            }
-
-            shmask_data_arr_ptr = &shmask_data_arr_custom;
-        } else {
-            shmask_data_arr_ptr = (shmask_data_arr*)shmask_data_arr_list[avconfig->shmask_mode];
-        }
+        shmask_data_arr_ptr = (shmask_data_arr*)shmask_data_arr_list[avconfig->shmask_mode];
 
         for (p=0; p<=shmask_data_arr_ptr->iv_y; p++) {
             for (t=0; t<=shmask_data_arr_ptr->iv_x; t++)
@@ -455,6 +419,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
         shmask_loaded_array = avconfig->shmask_mode;
         shmask_loaded_str = avconfig->shmask_str;
+    } else {
+        shmask_data_arr_ptr = shmask_loaded_array ? (shmask_data_arr*)shmask_data_arr_list[shmask_loaded_array] : (shmask_data_arr*)shmask_data_arr_list[1];
     }
 
     // Set input params
@@ -594,7 +560,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         scl_target_pp_coeff = 0; // Nearest for integer scale
     else
         scl_target_pp_coeff = avconfig->scl_alg-SCL_ALG_COEFF_START;
-    scl_ea = (scl_target_pp_coeff >= PP_COEFF_SIZE) ? 0 : !!scl_pp_coeff_list[scl_target_pp_coeff][0][1];
+    scl_ea = (scl_target_pp_coeff == PP_COEFF_SIZE-1) ? c_pp_coeffs.ea : !!scl_pp_coeff_list[scl_target_pp_coeff][0][1];
 
     vip_scl_pp->ctrl = vip_enable ? (scl_ea<<1)|1 : 0;
     vip_fb->ctrl = vip_enable;
@@ -620,50 +586,27 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_il->config = !vm_out->timings.interlaced;
 
     if (scl_target_pp_coeff != scl_loaded_pp_coeff) {
-        if (scl_target_pp_coeff >= PP_COEFF_SIZE) { // Custom
-            sniprintf(target_filename, sizeof(target_filename), "scaler%d.txt", (scl_target_pp_coeff + 1 - PP_COEFF_SIZE) );
-            if (!file_open(&file, target_filename)) {
-                p = 0;
-                while (file_get_string(&file, char_buff, sizeof(char_buff))) {
-                    n = sscanf(char_buff, "%d,%d,%d,%d", &v0, &v1, &v2, &v3);
-                    if (n == PP_TAPS) {
-                        vip_scl_pp->coeff_data[0] = v0;
-                        vip_scl_pp->coeff_data[1] = v1;
-                        vip_scl_pp->coeff_data[2] = v2;
-                        vip_scl_pp->coeff_data[3] = v3;
+        for (p=0; p<PP_PHASES; p++) {
+            for (t=0; t<PP_TAPS; t++)
+                vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][0][0]->v[p][t]<<(10-scl_pp_coeff_list[scl_target_pp_coeff][0][0]->bits);
 
-                        vip_scl_pp->h_phase = p;
-                        vip_scl_pp->v_phase = p;
+            vip_scl_pp->h_phase = p;
 
-                        if (++p == PP_PHASES)
-                            break;
-                    }
-                }
-                file_close(&file);
-            }
-        } else {
-            for (p=0; p<PP_PHASES; p++) {
+            for (t=0; t<PP_TAPS; t++)
+                vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][1][0]->v[p][t]<<(10-scl_pp_coeff_list[scl_target_pp_coeff][1][0]->bits);
+
+            vip_scl_pp->v_phase = p;
+
+            if (scl_ea) {
                 for (t=0; t<PP_TAPS; t++)
-                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][0][0]->v[p][t];
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][0][1]->v[p][t]<<(10-scl_pp_coeff_list[scl_target_pp_coeff][0][1]->bits);
 
-                vip_scl_pp->h_phase = p;
+                vip_scl_pp->h_phase = p+(1<<15);
 
                 for (t=0; t<PP_TAPS; t++)
-                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][1][0]->v[p][t];
+                    vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][1][1]->v[p][t]<<(10-scl_pp_coeff_list[scl_target_pp_coeff][1][1]->bits);
 
-                vip_scl_pp->v_phase = p;
-
-                if (scl_ea) {
-                    for (t=0; t<PP_TAPS; t++)
-                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][0][1]->v[p][t];
-
-                    vip_scl_pp->h_phase = p+(1<<15);
-
-                    for (t=0; t<PP_TAPS; t++)
-                        vip_scl_pp->coeff_data[t] = scl_pp_coeff_list[scl_target_pp_coeff][1][1]->v[p][t];
-
-                    vip_scl_pp->v_phase = p+(1<<15);
-                }
+                vip_scl_pp->v_phase = p+(1<<15);
             }
         }
 
@@ -1197,6 +1140,137 @@ int set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_
 void set_default_settings() {
     memcpy(&ts, &ts_default, sizeof(settings_t));
     set_default_keymap();
+}
+
+void set_default_c_pp_coeffs() {
+    memset(&c_pp_coeffs, 0, sizeof(c_pp_coeffs));
+    strncpy(c_pp_coeffs.name, "Custom: <none>", 19);
+}
+
+void set_default_c_shmask() {
+    memset(&c_shmask, 0, sizeof(c_shmask));
+    strncpy(c_shmask.name, "Custom: <none>", 20);
+}
+
+int load_scl_coeffs(char *dirname, char *filename) {
+    FIL f_coeff;
+    int i, p, n, pp_bits, lines=0;
+
+    f_chdir(dirname);
+
+    if (!file_open(&file, filename)) {
+        while ((lines < 4) && file_get_string(&file, char_buff, sizeof(char_buff))) {
+            // strip CR / CRLF
+            char_buff[strcspn(char_buff, "\r\n")] = 0;
+
+            // Break on empty line
+            if (char_buff[0] == 0)
+                break;
+
+            // Check if matching preset name is found
+            for (i=0; i<PP_COEFF_SIZE-1; i++) {
+                if (strncmp(char_buff, scl_pp_coeff_list[i][0][0]->name, 14) == 0) {
+                    memcpy(&c_pp_coeffs.coeffs[lines], scl_pp_coeff_list[i][0][0], sizeof(pp_coeff));
+                    break;
+                }
+            }
+
+            // If no matching preset found, use string as file name pointer
+            if (i == PP_COEFF_SIZE-1) {
+                if (!file_open(&f_coeff, char_buff)) {
+                    p = 0;
+                    pp_bits = 9;
+                    while (file_get_string(&f_coeff, char_buff, sizeof(char_buff))) {
+                        // strip CR / CRLF
+                        char_buff[strcspn(char_buff, "\r\n")] = 0;
+                        if ((p==0) && (strncmp(char_buff, "10bit", 5) == 0)) {
+                            pp_bits = 10;
+                            continue;
+                        }
+                        n = sscanf(char_buff, "%hd,%hd,%hd,%hd", &c_pp_coeffs.coeffs[lines].v[p][0], &c_pp_coeffs.coeffs[lines].v[p][1], &c_pp_coeffs.coeffs[lines].v[p][2], &c_pp_coeffs.coeffs[lines].v[p][3]);
+                        if (n == PP_TAPS) {
+                            if (++p == PP_PHASES)
+                                break;
+                        }
+                    }
+                    c_pp_coeffs.coeffs[lines].bits = pp_bits;
+
+                    file_close(&f_coeff);
+                } else {
+                    break;
+                }
+            }
+            lines++;
+        }
+
+        file_close(&file);
+    }
+
+    f_chdir("/");
+
+    if ((lines == 2) || (lines == 4)) {
+        c_pp_coeffs.ea = (lines == 4);
+        sniprintf(c_pp_coeffs.name, sizeof(c_pp_coeffs.name), "C: %s", filename);
+        scl_loaded_pp_coeff = -1;
+        update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+int load_shmask(char *dirname, char *filename) {
+    FIL f_shmask;
+    int arr_size_loaded=0;
+    int v0=0,v1=0;
+    int p;
+
+    f_chdir(dirname);
+
+    if (!file_open(&file, filename)) {
+        while (file_get_string(&file, char_buff, sizeof(char_buff))) {
+            // strip CR / CRLF
+            char_buff[strcspn(char_buff, "\r\n")] = 0;
+
+            // Skip empty / comment lines
+            if ((char_buff[0] == 0) || (char_buff[0] == '#'))
+                continue;
+
+            if (!arr_size_loaded && (sscanf(char_buff, "%d,%d", &v0, &v1) == 2)) {
+                c_shmask.arr.iv_x = v0-1;
+                c_shmask.arr.iv_y = v1-1;
+                arr_size_loaded = 1;
+            } else if (arr_size_loaded && (v1 > 0)) {
+                p = c_shmask.arr.iv_y+1-v1;
+                if (sscanf(char_buff, "%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx", &c_shmask.arr.v[p][0],
+                                                                                                         &c_shmask.arr.v[p][1],
+                                                                                                         &c_shmask.arr.v[p][2],
+                                                                                                         &c_shmask.arr.v[p][3],
+                                                                                                         &c_shmask.arr.v[p][4],
+                                                                                                         &c_shmask.arr.v[p][5],
+                                                                                                         &c_shmask.arr.v[p][6],
+                                                                                                         &c_shmask.arr.v[p][7],
+                                                                                                         &c_shmask.arr.v[p][8],
+                                                                                                         &c_shmask.arr.v[p][9],
+                                                                                                         &c_shmask.arr.v[p][10],
+                                                                                                         &c_shmask.arr.v[p][11],
+                                                                                                         &c_shmask.arr.v[p][12],
+                                                                                                         &c_shmask.arr.v[p][13],
+                                                                                                         &c_shmask.arr.v[p][14],
+                                                                                                         &c_shmask.arr.v[p][15]) == v0)
+                    v1--;
+            }
+        }
+
+        file_close(&file);
+    }
+
+    f_chdir("/");
+
+    sniprintf(c_shmask.name, sizeof(c_shmask.name), "C: %s", filename);
+    shmask_loaded_array = -1;
+    update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
+    return 0;
 }
 
 void update_settings(int init_setup) {
