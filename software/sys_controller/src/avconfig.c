@@ -52,6 +52,7 @@ const avconfig_t tc_default = {
     .tp_mode = STDMODE_480p,
     .mask_br = 8,
     .bfi_str = 15,
+    .shmask_str = 15,
 #ifdef VIP
     .scl_out_mode = 7,
     .scl_edge_thold = 7,
@@ -146,6 +147,8 @@ int set_default_profile(int update_cc)
     if (update_cc)
         memcpy(&cc, &tc, sizeof(avconfig_t));
 
+    set_default_c_pp_coeffs();
+    set_default_c_shmask();
     set_default_vm_table();
 
     return 0;

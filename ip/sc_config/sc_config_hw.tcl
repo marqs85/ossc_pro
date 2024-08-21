@@ -144,7 +144,7 @@ set_interface_property sc_if CMSIS_SVD_VARIABLES ""
 set_interface_property sc_if SVD_ADDRESS_GROUP ""
 
 add_interface_port sc_if fe_status_i fe_status_i Input 32
-add_interface_port sc_if lt_status_i lt_status_i Input 32
+#add_interface_port sc_if lt_status_i lt_status_i Input 32
 add_interface_port sc_if hv_in_config_o hv_in_config_o Output 32
 add_interface_port sc_if hv_in_config2_o hv_in_config2_o Output 32
 add_interface_port sc_if hv_in_config3_o hv_in_config3_o Output 32
@@ -155,9 +155,11 @@ add_interface_port sc_if xy_out_config_o xy_out_config_o Output 32
 add_interface_port sc_if xy_out_config2_o xy_out_config2_o Output 32
 add_interface_port sc_if xy_out_config3_o xy_out_config3_o Output 32
 add_interface_port sc_if misc_config_o misc_config_o Output 32
+add_interface_port sc_if misc_config2_o misc_config2_o Output 32
 add_interface_port sc_if sl_config_o sl_config_o Output 32
 add_interface_port sc_if sl_config2_o sl_config2_o Output 32
 add_interface_port sc_if sl_config3_o sl_config3_o Output 32
+add_interface_port sc_if sl_config4_o sl_config4_o Output 32
 
 #
 # connection point osd_if

@@ -134,6 +134,8 @@ void cstm_clock_phase(menucode_id code, int setup_disp);
 void cstm_size(menucode_id code, int setup_disp);
 void cstm_position(menucode_id code, int setup_disp);
 void cstm_profile_load(menucode_id code, int setup_disp);
+void cstm_scl_alg_load(menucode_id code, int setup_disp);
+void cstm_shmask_load(menucode_id code, int setup_disp);
 void cstm_listview(menucode_id code, int setup_disp);
 void enter_cstm(menuitem_t *item, int detached_mode);
 void quick_adjust(menuitem_t *item, int adj, int is_relative);

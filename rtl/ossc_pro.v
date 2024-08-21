@@ -191,7 +191,7 @@ wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
 wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
 wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2, xy_out_config3;
-wire [31:0] misc_config, sl_config, sl_config2, sl_config3;
+wire [31:0] misc_config, misc_config2, sl_config, sl_config2, sl_config3, sl_config4;
 
 reg [23:0] resync_led_ctr;
 reg resync_strobe_sync1_reg, resync_strobe_sync2_reg, resync_strobe_prev;
@@ -256,7 +256,7 @@ end
 wire [7:0] ISL_R_post, ISL_G_post, ISL_B_post;
 wire ISL_HSYNC_post, ISL_VSYNC_post, ISL_DE_post, ISL_FID_post, ISL_datavalid_post;
 wire ISL_fe_interlace, ISL_fe_frame_change, ISL_sof_scaler;
-wire [19:0] ISL_fe_pcnt_frame;
+wire [19:0] ISL_fe_pcnt_field;
 wire [10:0] ISL_fe_vtotal, ISL_fe_xpos, ISL_fe_ypos;
 isl51002_frontend u_isl_frontend ( 
     .PCLK_i(ISL_PCLK_i),
@@ -280,6 +280,7 @@ isl51002_frontend u_isl_frontend (
     .hv_in_config2(hv_in_config2),
     .hv_in_config3(hv_in_config3),
     .misc_config(misc_config),
+    .misc_config2(misc_config2),
     .R_o(ISL_R_post),
     .G_o(ISL_G_post),
     .B_o(ISL_B_post),
@@ -294,7 +295,7 @@ isl51002_frontend u_isl_frontend (
     .vtotal(ISL_fe_vtotal),
     .frame_change(ISL_fe_frame_change),
     .sof_scaler(ISL_sof_scaler),
-    .pcnt_frame(ISL_fe_pcnt_frame)
+    .pcnt_field(ISL_fe_pcnt_field)
 );
 
 // ADV7611 HDMI RX
@@ -378,7 +379,7 @@ end
 wire [7:0] SDP_R_post, SDP_G_post, SDP_B_post;
 wire SDP_HSYNC_post, SDP_VSYNC_post, SDP_DE_post, SDP_FID_post, SDP_datavalid_post;
 wire SDP_fe_interlace, SDP_fe_frame_change, SDP_sof_scaler;
-wire [19:0] SDP_fe_pcnt_frame;
+wire [19:0] SDP_fe_pcnt_field;
 wire [10:0] SDP_fe_vtotal, SDP_fe_xpos, SDP_fe_ypos;
 adv7280a_frontend u_sdp_frontend ( 
     .PCLK_i(SDP_PCLK_i),
@@ -404,7 +405,7 @@ adv7280a_frontend u_sdp_frontend (
     .vtotal(SDP_fe_vtotal),
     .frame_change(SDP_fe_frame_change),
     .sof_scaler(SDP_sof_scaler),
-    .pcnt_frame(SDP_fe_pcnt_frame)
+    .pcnt_field(SDP_fe_pcnt_field)
 );
 `endif
 
@@ -427,7 +428,7 @@ reg [7:0] R_capt, G_capt, B_capt;
 reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt, datavalid_capt;
 reg interlace_flag_capt, frame_change_capt, sof_scaler_capt;
 reg [10:0] xpos_capt, ypos_capt;
-wire [31:0] fe_status = capture_sel[1] ? {SDP_fe_pcnt_frame, SDP_fe_interlace, SDP_fe_vtotal} : {ISL_fe_pcnt_frame, ISL_fe_interlace, ISL_fe_vtotal};
+wire [31:0] fe_status = capture_sel[1] ? {SDP_fe_pcnt_field, SDP_fe_interlace, SDP_fe_vtotal} : {ISL_fe_pcnt_field, ISL_fe_interlace, ISL_fe_vtotal};
 always @(posedge pclk_capture) begin
     R_capt <= capture_sel[1] ? SDP_R_post : (capture_sel[0] ? HDMIRX_R_post : ISL_R_post);
     G_capt <= capture_sel[1] ? SDP_G_post : (capture_sel[0] ? HDMIRX_G_post : ISL_G_post);
@@ -602,7 +603,7 @@ end
 assign HDMITX_I2S_BCK_o = hdmirx_aud_sel ? HDMIRX_I2S_BCK_i : PCM_I2S_BCK_i;
 assign HDMITX_I2S_WS_o = hdmirx_aud_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
 assign HDMITX_I2S_DATA_o = hdmirx_aud_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
-assign HDMITX_SPDIF_o = hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i;
+assign HDMITX_SPDIF_o = sys_poweron ? (hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i) : 1'b0;
 
 assign AUDMUX_o = ~audmux_sel;
 
@@ -752,7 +753,6 @@ sys sys_inst (
     .pio_1_controls_in_export               (controls),
     .pio_2_sys_status_in_export             (sys_status),
     .sc_config_0_sc_if_fe_status_i          (fe_status),
-    .sc_config_0_sc_if_lt_status_i          (32'h00000000),
     .sc_config_0_sc_if_hv_in_config_o       (hv_in_config),
     .sc_config_0_sc_if_hv_in_config2_o      (hv_in_config2),
     .sc_config_0_sc_if_hv_in_config3_o      (hv_in_config3),
@@ -763,9 +763,11 @@ sys sys_inst (
     .sc_config_0_sc_if_xy_out_config2_o     (xy_out_config2),
     .sc_config_0_sc_if_xy_out_config3_o     (xy_out_config3),
     .sc_config_0_sc_if_misc_config_o        (misc_config),
+    .sc_config_0_sc_if_misc_config2_o       (misc_config2),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
     .sc_config_0_sc_if_sl_config3_o         (sl_config3),
+    .sc_config_0_sc_if_sl_config4_o         (sl_config4),
     .sc_config_0_shmask_if_vclk             (PCLK_sc),
     .sc_config_0_shmask_if_shmask_xpos      (x_ctr_shmask),
     .sc_config_0_shmask_if_shmask_ypos      (y_ctr_shmask),
@@ -861,6 +863,13 @@ sys sys_inst (
 `endif
 );
 
+// These do not work in current Quartus version (23.1) and a patch file (scripts/qsys.patch) must be used after Qsys generation instead
+defparam
+    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_1_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_0_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_2_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.mm_interconnect_1.mem_if_lpddr2_emif_0_avl_0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1;
+
 scanconverter #(
     .EMIF_ENABLE(1),
     .NUM_LINE_BUFFERS(2048)
@@ -891,6 +900,7 @@ scanconverter #(
     .sl_config(sl_config),
     .sl_config2(sl_config2),
     .sl_config3(sl_config3),
+    .sl_config4(sl_config4),
     .testpattern_enable(testpattern_enable),
     .lb_enable(lb_enable),
     .ext_sync_mode(vip_select),

@@ -27,7 +27,7 @@ typedef union {
     struct {
         uint16_t vtotal:11;
         uint8_t interlace_flag:1;
-        uint32_t pcnt_frame:20;
+        uint32_t pcnt_field:20;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } fe_status_reg;
@@ -127,32 +127,48 @@ typedef union {
 
 typedef union {
     struct {
-        uint32_t sl_l_str_arr:24;
-        uint8_t sl_l_overlay:6;
-        uint8_t sl_method:1;
-        uint8_t sl_altern:1;
+        uint8_t lumacode_mode:3;
+        uint32_t misc2_rsv:29;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} misc_config2_reg;
+
+typedef union {
+    struct {
+        uint32_t sl_l_str_arr_l;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } sl_config_reg;
 
 typedef union {
     struct {
-        uint32_t sl_c_str_arr_l;
+        uint32_t sl_l_str_arr_h:8;
+        uint32_t sl_l_overlay:10;
+        uint8_t sl_iv_y:4;
+        uint8_t sl_method:1;
+        uint8_t sl_altern:1;
+        uint8_t sl_hybr_str:5;
+        uint32_t sl2_rsv:3;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } sl_config2_reg;
 
 typedef union {
     struct {
-        uint32_t sl_c_str_arr_h:8;
-        uint32_t sl_c_overlay:10;
-        uint8_t sl_iv_y:3;
-        uint8_t sl_iv_x:4;
-        uint8_t sl_hybr_str:5;
-        uint32_t sl_rsv:2;
+        uint32_t sl_c_str_arr_l;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } sl_config3_reg;
+
+typedef union {
+    struct {
+        uint32_t sl_c_str_arr_h:8;
+        uint32_t sl_c_overlay:10;
+        uint8_t sl_iv_x:4;
+        uint32_t sl4_rsv:10;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} sl_config4_reg;
 
 // shmask regs
 typedef struct {
@@ -161,7 +177,7 @@ typedef struct {
 
 typedef struct {
     fe_status_reg fe_status;
-    lt_status_reg lt_status;
+    //lt_status_reg lt_status;
     hv_config_reg hv_in_config;
     hv_config2_reg hv_in_config2;
     hv_config3_reg hv_in_config3;
@@ -172,9 +188,11 @@ typedef struct {
     xy_config2_reg xy_out_config2;
     xy_config3_reg xy_out_config3;
     misc_config_reg misc_config;
+    misc_config2_reg misc_config2;
     sl_config_reg sl_config;
     sl_config2_reg sl_config2;
     sl_config3_reg sl_config3;
+    sl_config4_reg sl_config4;
     shmask_array shmask_data_array __attribute__ ((aligned (1024)));
 } sc_regs;
 
