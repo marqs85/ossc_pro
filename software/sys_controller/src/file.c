@@ -54,3 +54,31 @@ FRESULT scan_files (
 
     return res;
 }
+
+/* Find files (folders excluded) matching a pattern and execute function to a subset (efirst-elast) of matches. Stops on last match or elast, whichever comes first */
+int find_files_exec(char* path, char* pat, FILINFO *fno, int efirst, int elast, void (*func)(FILINFO *fno))
+{
+    FRESULT fr;     /* Return value */
+    DIR dj;         /* Directory object */
+    int i = 0;
+
+    fr = f_findfirst(&dj, fno, path, pat); /* Start to search for photo files */
+
+    while (fr == FR_OK && fno->fname[0]) {         /* Repeat while an item is found */
+        if (!(fno->fattrib & AM_DIR)) {
+            if ((i >= efirst) && (func != NULL))
+                func(fno);
+            if (++i > elast)
+                break;
+        }
+        fr = f_findnext(&dj, fno);                /* Search for next item */
+    }
+
+    f_closedir(&dj);
+
+    //return fr;
+    if (i <= efirst)
+        return 0;
+    else
+        return i-efirst;
+}

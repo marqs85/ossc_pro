@@ -295,7 +295,7 @@ void parse_control()
                 if (r_code == RC_SCL_SCL_ALG)
                     enter_cstm(&menu_scaler_items[5], 1);
                 if (r_code == RC_SCL_DIL_ALG)
-                    enter_cstm(&menu_scaler_items[7], 1);
+                    enter_cstm(&menu_scaler_items[8], 1);
                 if (r_code == RC_SCL_AR)
                     enter_cstm(&menu_scaler_items[4], 1);
                 /*if (r_code == RC_SCL_ROT)
@@ -324,7 +324,7 @@ void parse_control()
                     enter_cstm(&menu_pure_lm_items[plm_group_proc_map[vmode_in.group]], 1);
             }
             if (r_code == RC_OSD)
-                enter_cstm(&menu_settings_items[1], 1);
+                enter_cstm(&menu_settings_items[2], 1);
             if (r_code == RC_PROF_HOTKEY)
                 enter_cstm(&menu_profile_load, 1);
         } else {

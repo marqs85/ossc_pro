@@ -191,6 +191,8 @@ typedef enum {
     SM_OPT_X68K_512COL,
     SM_OPT_X68K_768COL,
     SM_OPT_C64_4XXCOL,
+    SM_OPT_MSX_256COL,
+    SM_OPT_ZX8X_352COL,
 } smp_mode_t;
 
 typedef enum {

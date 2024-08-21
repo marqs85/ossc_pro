@@ -901,7 +901,7 @@
   <parameter name="FAMILY" value="Cyclone V" />
   <parameter name="H_BANKS" value="1" />
   <parameter name="H_COEFF_FILE"><![CDATA[<enter file name (including full path)>]]></parameter>
-  <parameter name="H_FRACTION_BITS" value="7" />
+  <parameter name="H_FRACTION_BITS" value="8" />
   <parameter name="H_FUNCTION" value="LANCZOS_3" />
   <parameter name="H_INTEGER_BITS" value="1" />
   <parameter name="H_PHASES" value="64" />
@@ -926,7 +926,7 @@
   <parameter name="USER_PACKET_SUPPORT" value="PASSTHROUGH" />
   <parameter name="V_BANKS" value="1" />
   <parameter name="V_COEFF_FILE"><![CDATA[<enter file name (including full path)>]]></parameter>
-  <parameter name="V_FRACTION_BITS" value="7" />
+  <parameter name="V_FRACTION_BITS" value="8" />
   <parameter name="V_FUNCTION" value="LANCZOS_3" />
   <parameter name="V_INTEGER_BITS" value="1" />
   <parameter name="V_PHASES" value="64" />
@@ -986,7 +986,7 @@
   <parameter name="AW" value="28" />
   <parameter name="DW" value="256" />
  </module>
- <module name="clk_27" kind="clock_source" version="21.1" enabled="1">
+ <module name="clk_27" kind="clock_source" version="23.1" enabled="1">
   <parameter name="clockFrequency" value="27000000" />
   <parameter name="clockFrequencyKnown" value="true" />
   <parameter name="inputClockFrequency" value="0" />
@@ -1003,7 +1003,7 @@
  <module
    name="intel_generic_serial_flash_interface_top_0"
    kind="intel_generic_serial_flash_interface_top"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
@@ -1034,7 +1034,7 @@
  <module
    name="jtag_uart_0"
    kind="altera_avalon_jtag_uart"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="allowMultipleConnections" value="false" />
   <parameter name="avalonSpec" value="2.0" />
@@ -1053,7 +1053,7 @@
  <module
    name="master_0"
    kind="altera_jtag_avalon_master"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="AUTO_DEVICE" value="5CEFA7F23I7" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
@@ -1067,7 +1067,7 @@
  <module
    name="mem_if_lpddr2_emif_0"
    kind="altera_mem_if_lpddr2_emif"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="ABSTRACT_REAL_COMPARE_TEST" value="false" />
   <parameter name="ABS_RAM_MEM_INIT_FILENAME" value="meminit" />
@@ -1381,7 +1381,7 @@
  <module
    name="mm_clock_crossing_bridge_0"
    kind="altera_avalon_mm_clock_crossing_bridge"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
@@ -1398,7 +1398,7 @@
  <module
    name="mm_clock_crossing_bridge_1"
    kind="altera_avalon_mm_clock_crossing_bridge"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
@@ -1415,7 +1415,7 @@
  <module
    name="mm_clock_crossing_bridge_2"
    kind="altera_avalon_mm_clock_crossing_bridge"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
@@ -1432,7 +1432,7 @@
  <module
    name="onchip_memory2_0"
    kind="altera_avalon_onchip_memory2"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="allowInSystemMemoryContentEditor" value="false" />
   <parameter name="autoInitializationFileName">$${FILENAME}_onchip_memory2_0</parameter>
@@ -1462,7 +1462,7 @@
   <parameter name="writable" value="true" />
  </module>
  <module name="osd_generator_0" kind="osd_generator" version="1.0" enabled="1" />
- <module name="pio_0" kind="altera_avalon_pio" version="21.1" enabled="1">
+ <module name="pio_0" kind="altera_avalon_pio" version="23.1" enabled="1">
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
   <parameter name="captureEdge" value="false" />
@@ -1476,7 +1476,7 @@
   <parameter name="simDrivenValue" value="0" />
   <parameter name="width" value="32" />
  </module>
- <module name="pio_1" kind="altera_avalon_pio" version="21.1" enabled="1">
+ <module name="pio_1" kind="altera_avalon_pio" version="23.1" enabled="1">
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
   <parameter name="captureEdge" value="false" />
@@ -1490,7 +1490,7 @@
   <parameter name="simDrivenValue" value="0" />
   <parameter name="width" value="32" />
  </module>
- <module name="pio_2" kind="altera_avalon_pio" version="21.1" enabled="1">
+ <module name="pio_2" kind="altera_avalon_pio" version="23.1" enabled="1">
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
   <parameter name="captureEdge" value="false" />
@@ -1504,7 +1504,7 @@
   <parameter name="simDrivenValue" value="0" />
   <parameter name="width" value="32" />
  </module>
- <module name="pll_0" kind="altera_pll" version="21.1" enabled="1">
+ <module name="pll_0" kind="altera_pll" version="23.1" enabled="1">
   <parameter name="debug_print_output" value="false" />
   <parameter name="debug_use_rbc_taf_method" value="false" />
   <parameter name="device" value="5CEFA7F23I7" />
@@ -1722,7 +1722,7 @@
  <module
    name="remote_update_0"
    kind="altera_remote_update"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7" />
   <parameter name="CBX_AUTO_BLACKBOX" value="ALL" />
@@ -1737,7 +1737,7 @@
  <module
    name="reset_bridge_0"
    kind="altera_reset_bridge"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="ACTIVE_LOW_RESET" value="1" />
   <parameter name="AUTO_CLK_CLOCK_RATE" value="-1" />
@@ -1748,7 +1748,7 @@
  <module
    name="reset_bridge_1"
    kind="altera_reset_bridge"
-   version="21.1"
+   version="23.1"
    enabled="1">
   <parameter name="ACTIVE_LOW_RESET" value="1" />
   <parameter name="AUTO_CLK_CLOCK_RATE" value="-1" />
@@ -1762,7 +1762,7 @@
    kind="sdc_controller"
    version="1.0"
    enabled="1" />
- <module name="timer_0" kind="altera_avalon_timer" version="21.1" enabled="1">
+ <module name="timer_0" kind="altera_avalon_timer" version="23.1" enabled="1">
   <parameter name="alwaysRun" value="false" />
   <parameter name="counterSize" value="64" />
   <parameter name="fixedPeriod" value="false" />
@@ -1776,7 +1776,7 @@
  </module>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="sdc_controller_0.avalon_m"
    end="mm_clock_crossing_bridge_1.s0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1785,7 +1785,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="sdc_controller_0.avalon_m"
    end="onchip_memory2_0.s2">
   <parameter name="arbitrationPriority" value="1" />
@@ -1794,7 +1794,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_instr"
    end="mm_clock_crossing_bridge_0.s0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1803,7 +1803,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_instr"
    end="mm_clock_crossing_bridge_1.s0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1812,7 +1812,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_instr"
    end="onchip_memory2_0.s1">
   <parameter name="arbitrationPriority" value="1" />
@@ -1821,7 +1821,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="jtag_uart_0.avalon_jtag_slave">
   <parameter name="arbitrationPriority" value="1" />
@@ -1830,7 +1830,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="sc_config_0.avalon_s">
   <parameter name="arbitrationPriority" value="1" />
@@ -1839,7 +1839,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="osd_generator_0.avalon_s">
   <parameter name="arbitrationPriority" value="1" />
@@ -1848,7 +1848,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="sdc_controller_0.avalon_s">
   <parameter name="arbitrationPriority" value="1" />
@@ -1857,7 +1857,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="hw_crc32_0.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
@@ -1866,7 +1866,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="i2c_opencores_0.avalon_slave_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1875,7 +1875,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="remote_update_0.avl_csr">
   <parameter name="arbitrationPriority" value="1" />
@@ -1884,7 +1884,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="mm_clock_crossing_bridge_0.s0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1893,7 +1893,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="mm_clock_crossing_bridge_2.s0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1902,7 +1902,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="mm_clock_crossing_bridge_1.s0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1911,7 +1911,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="timer_0.s1">
   <parameter name="arbitrationPriority" value="1" />
@@ -1920,7 +1920,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="pio_0.s1">
   <parameter name="arbitrationPriority" value="1" />
@@ -1929,7 +1929,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="pio_1.s1">
   <parameter name="arbitrationPriority" value="1" />
@@ -1938,7 +1938,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="pio_2.s1">
   <parameter name="arbitrationPriority" value="1" />
@@ -1947,7 +1947,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.avalon_master_lsu"
    end="onchip_memory2_0.s1">
   <parameter name="arbitrationPriority" value="1" />
@@ -1956,7 +1956,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="avalon_bridge_mod_0.avalon_master_rd"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1965,7 +1965,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="avalon_bridge_mod_0.avalon_master_wr"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1974,7 +1974,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_dil_0.edi_read_master"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1983,7 +1983,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="mm_clock_crossing_bridge_1.m0"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -1992,7 +1992,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="mm_clock_crossing_bridge_0.m0"
    end="intel_generic_serial_flash_interface_top_0.avl_csr">
   <parameter name="arbitrationPriority" value="1" />
@@ -2001,7 +2001,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="mm_clock_crossing_bridge_0.m0"
    end="intel_generic_serial_flash_interface_top_0.avl_mem">
   <parameter name="arbitrationPriority" value="1" />
@@ -2010,7 +2010,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="mm_clock_crossing_bridge_2.m0"
    end="alt_vip_cl_cvi_0.control">
   <parameter name="arbitrationPriority" value="1" />
@@ -2019,7 +2019,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="mm_clock_crossing_bridge_2.m0"
    end="alt_vip_cl_dil_0.control">
   <parameter name="arbitrationPriority" value="1" />
@@ -2028,7 +2028,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="mm_clock_crossing_bridge_2.m0"
    end="alt_vip_cl_vfb_0.control">
   <parameter name="arbitrationPriority" value="1" />
@@ -2037,7 +2037,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="mm_clock_crossing_bridge_2.m0"
    end="alt_vip_cl_scl_0.control">
   <parameter name="arbitrationPriority" value="1" />
@@ -2046,7 +2046,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="mm_clock_crossing_bridge_2.m0"
    end="alt_vip_cl_cvo_0.control">
   <parameter name="arbitrationPriority" value="1" />
@@ -2055,7 +2055,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="mm_clock_crossing_bridge_2.m0"
    end="alt_vip_cl_interlacer_0.control">
   <parameter name="arbitrationPriority" value="1" />
@@ -2064,7 +2064,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_dil_0.ma_read_master"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2073,7 +2073,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="master_0.master"
    end="pulpino_0.avalon_slave_debug">
   <parameter name="arbitrationPriority" value="1" />
@@ -2082,7 +2082,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="master_0.master"
    end="mm_clock_crossing_bridge_0.s0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2091,7 +2091,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="master_0.master"
    end="onchip_memory2_0.s2">
   <parameter name="arbitrationPriority" value="1" />
@@ -2100,7 +2100,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_vfb_0.mem_master_rd"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2109,7 +2109,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_vfb_0.mem_master_wr"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2118,7 +2118,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_dil_0.motion_read_master"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2127,7 +2127,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_dil_0.motion_write_master"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2136,7 +2136,7 @@
  </connection>
  <connection
    kind="avalon"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_dil_0.write_master"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2145,453 +2145,453 @@
  </connection>
  <connection
    kind="avalon_streaming"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_dil_0.dout"
    end="alt_vip_cl_vfb_0.din" />
  <connection
    kind="avalon_streaming"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_vfb_0.dout"
    end="alt_vip_cl_scl_0.din" />
  <connection
    kind="avalon_streaming"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_scl_0.dout"
    end="alt_vip_cl_interlacer_0.din" />
  <connection
    kind="avalon_streaming"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_interlacer_0.dout"
    end="alt_vip_cl_cvo_0.din" />
  <connection
    kind="avalon_streaming"
-   version="21.1"
+   version="23.1"
    start="alt_vip_cl_cvi_0.dout_0"
    end="alt_vip_cl_dil_0.din" />
- <connection kind="clock" version="21.1" start="clk_27.clk" end="jtag_uart_0.clk" />
- <connection kind="clock" version="21.1" start="clk_27.clk" end="pio_0.clk" />
- <connection kind="clock" version="21.1" start="clk_27.clk" end="pio_1.clk" />
- <connection kind="clock" version="21.1" start="clk_27.clk" end="timer_0.clk" />
- <connection kind="clock" version="21.1" start="clk_27.clk" end="master_0.clk" />
- <connection kind="clock" version="21.1" start="clk_27.clk" end="pio_2.clk" />
+ <connection kind="clock" version="23.1" start="clk_27.clk" end="jtag_uart_0.clk" />
+ <connection kind="clock" version="23.1" start="clk_27.clk" end="pio_0.clk" />
+ <connection kind="clock" version="23.1" start="clk_27.clk" end="pio_1.clk" />
+ <connection kind="clock" version="23.1" start="clk_27.clk" end="timer_0.clk" />
+ <connection kind="clock" version="23.1" start="clk_27.clk" end="master_0.clk" />
+ <connection kind="clock" version="23.1" start="clk_27.clk" end="pio_2.clk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="onchip_memory2_0.clk1" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="pulpino_0.clk_sink" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="hw_crc32_0.clk_sink" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="i2c_opencores_0.clock" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="remote_update_0.clock" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="sc_config_0.clock_sink" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="osd_generator_0.clock_sink" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="sdc_controller_0.clock_sink" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="mem_if_lpddr2_emif_0.pll_ref_clk" />
- <connection kind="clock" version="21.1" start="clk_27.clk" end="pll_0.refclk" />
+ <connection kind="clock" version="23.1" start="clk_27.clk" end="pll_0.refclk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="mm_clock_crossing_bridge_0.s0_clk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="mm_clock_crossing_bridge_1.s0_clk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk"
    end="mm_clock_crossing_bridge_2.s0_clk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="alt_vip_cl_dil_0.av_mm_clock" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="intel_generic_serial_flash_interface_top_0.clk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="avalon_bridge_mod_0.clk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mm_clock_crossing_bridge_0.m0_clk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mm_clock_crossing_bridge_1.m0_clk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="alt_vip_cl_vfb_0.mem_clock" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mem_if_lpddr2_emif_0.mp_cmd_clk_0" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mem_if_lpddr2_emif_0.mp_rfifo_clk_0" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mem_if_lpddr2_emif_0.mp_rfifo_clk_1" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mem_if_lpddr2_emif_0.mp_rfifo_clk_2" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mem_if_lpddr2_emif_0.mp_rfifo_clk_3" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mem_if_lpddr2_emif_0.mp_wfifo_clk_0" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mem_if_lpddr2_emif_0.mp_wfifo_clk_1" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mem_if_lpddr2_emif_0.mp_wfifo_clk_2" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="mem_if_lpddr2_emif_0.mp_wfifo_clk_3" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk0"
    end="sdc_controller_0.sd_clk_i" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk1"
    end="alt_vip_cl_dil_0.av_st_clock" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk1"
    end="mm_clock_crossing_bridge_2.m0_clk" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk1"
    end="alt_vip_cl_cvi_0.main_clock" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk1"
    end="alt_vip_cl_scl_0.main_clock" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk1"
    end="alt_vip_cl_vfb_0.main_clock" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk1"
    end="alt_vip_cl_cvo_0.main_clock" />
  <connection
    kind="clock"
-   version="21.1"
+   version="23.1"
    start="pll_0.outclk1"
    end="alt_vip_cl_interlacer_0.main_clock" />
  <connection
    kind="interrupt"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.interrupt_receiver"
    end="sdc_controller_0.int_cmd">
   <parameter name="irqNumber" value="2" />
  </connection>
  <connection
    kind="interrupt"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.interrupt_receiver"
    end="sdc_controller_0.int_data">
   <parameter name="irqNumber" value="3" />
  </connection>
  <connection
    kind="interrupt"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.interrupt_receiver"
    end="i2c_opencores_0.interrupt_sender">
   <parameter name="irqNumber" value="4" />
  </connection>
  <connection
    kind="interrupt"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.interrupt_receiver"
    end="timer_0.irq">
   <parameter name="irqNumber" value="0" />
  </connection>
  <connection
    kind="interrupt"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.interrupt_receiver"
    end="jtag_uart_0.irq">
   <parameter name="irqNumber" value="1" />
  </connection>
  <connection
    kind="interrupt"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.interrupt_receiver"
    end="alt_vip_cl_cvi_0.status_update_irq">
   <parameter name="irqNumber" value="5" />
  </connection>
  <connection
    kind="interrupt"
-   version="21.1"
+   version="23.1"
    start="pulpino_0.interrupt_receiver"
    end="alt_vip_cl_cvo_0.status_update_irq">
   <parameter name="irqNumber" value="6" />
  </connection>
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="master_0.clk_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="i2c_opencores_0.clock_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="mm_clock_crossing_bridge_0.m0_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="mm_clock_crossing_bridge_1.m0_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="mm_clock_crossing_bridge_2.m0_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="jtag_uart_0.reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="pio_0.reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="pio_1.reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="timer_0.reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="pio_2.reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="intel_generic_serial_flash_interface_top_0.reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="remote_update_0.reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="onchip_memory2_0.reset1" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="pulpino_0.reset_sink" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="hw_crc32_0.reset_sink" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="sc_config_0.reset_sink" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="osd_generator_0.reset_sink" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="sdc_controller_0.reset_sink" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="mm_clock_crossing_bridge_0.s0_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="mm_clock_crossing_bridge_1.s0_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="clk_27.clk_reset"
    end="mm_clock_crossing_bridge_2.s0_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_1.out_reset"
    end="alt_vip_cl_dil_0.av_mm_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_1.out_reset"
    end="alt_vip_cl_dil_0.av_st_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="alt_vip_cl_cvi_0.main_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="alt_vip_cl_vfb_0.main_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="alt_vip_cl_scl_0.main_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="alt_vip_cl_cvo_0.main_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="alt_vip_cl_interlacer_0.main_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="alt_vip_cl_vfb_0.mem_reset" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_cmd_reset_n_0" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_0" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_1" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_2" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_rfifo_reset_n_3" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_0" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_1" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_2" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="mem_if_lpddr2_emif_0.mp_wfifo_reset_n_3" />
  <connection
    kind="reset"
-   version="21.1"
+   version="23.1"
    start="reset_bridge_0.out_reset"
    end="avalon_bridge_mod_0.reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />

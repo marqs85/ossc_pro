@@ -44,6 +44,7 @@ module scanconverter (
     input [31:0] sl_config,
     input [31:0] sl_config2,
     input [31:0] sl_config3,
+    input [31:0] sl_config4,
     input testpattern_enable,
     input lb_enable,
     input ext_sync_mode,
@@ -139,15 +140,15 @@ wire signed [3:0] Y_RPT = xy_out_config[31:28];
 wire [1:0] Y_SKIP = ((Y_RPT >= 0) | (Y_RPT == 4'h8)) ? 0 : -Y_RPT;
 wire [2:0] Y_STEP = Y_SKIP+1'b1;
 
-wire [3:0] SL_L_STR[5:0] = '{sl_config[23:20], sl_config[19:16], sl_config[15:12], sl_config[11:8], sl_config[7:4], sl_config[3:0]};
-wire [3:0] SL_C_STR[9:0] = '{sl_config3[7:4], sl_config3[3:0], sl_config2[31:28], sl_config2[27:24], sl_config2[23:20], sl_config2[19:16], sl_config2[15:12], sl_config2[11:8], sl_config2[7:4], sl_config2[3:0]};
-wire [5:0] SL_L_OVERLAY = sl_config[29:24];
-wire SL_METHOD_PRE = sl_config[30];
-wire SL_BOB_ALTERN = sl_config[31];
-wire [9:0] SL_C_OVERLAY = sl_config3[17:8];
-wire [2:0] SL_IV_Y = sl_config3[20:18];
-wire [3:0] SL_IV_X = sl_config3[24:21];
-wire [4:0] SL_HYBRSTR = sl_config3[29:25];
+wire [3:0] SL_L_STR[9:0] = '{sl_config2[7:4], sl_config2[3:0], sl_config[31:28], sl_config[27:24], sl_config[23:20], sl_config[19:16], sl_config[15:12], sl_config[11:8], sl_config[7:4], sl_config[3:0]};
+wire [3:0] SL_C_STR[9:0] = '{sl_config4[7:4], sl_config4[3:0], sl_config3[31:28], sl_config3[27:24], sl_config3[23:20], sl_config3[19:16], sl_config3[15:12], sl_config3[11:8], sl_config3[7:4], sl_config3[3:0]};
+wire [9:0] SL_L_OVERLAY = sl_config2[17:8];
+wire [9:0] SL_C_OVERLAY = sl_config4[17:8];
+wire [3:0] SL_IV_Y = sl_config2[21:18];
+wire [3:0] SL_IV_X = sl_config4[21:18];
+wire SL_METHOD_PRE = sl_config2[22];
+wire SL_BOB_ALTERN = sl_config2[23];
+wire [4:0] SL_HYBRSTR = sl_config2[28:24];
 
 wire [3:0] MISC_MASK_BR = misc_config[3:0];
 wire [2:0] MISC_MASK_COLOR = misc_config[6:4];
@@ -208,7 +209,7 @@ reg [11:0] ypos_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg mask_enable_pp[PP_MASK_END:PP_TP_START] /* synthesis ramstyle = "logic" */;
 reg draw_sl_pp[(PP_SLGEN_START+1):(PP_SLGEN_END-1)] /* synthesis ramstyle = "logic" */;
 reg [3:0] x_ctr_sl_pp[PP_PL_START:PP_SLGEN_START] /* synthesis ramstyle = "logic" */;
-reg [2:0] y_ctr_sl_pp[PP_PL_START:PP_SLGEN_START] /* synthesis ramstyle = "logic" */;
+reg [3:0] y_ctr_sl_pp[PP_PL_START:PP_SLGEN_START] /* synthesis ramstyle = "logic" */;
 
 assign PCLK_o = PCLK_OUT_i;
 

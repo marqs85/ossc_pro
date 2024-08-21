@@ -191,7 +191,7 @@ wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
 wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
 wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2, xy_out_config3;
-wire [31:0] misc_config, sl_config, sl_config2, sl_config3;
+wire [31:0] misc_config, misc_config2, sl_config, sl_config2, sl_config3, sl_config4;
 
 reg [23:0] resync_led_ctr;
 reg resync_strobe_sync1_reg, resync_strobe_sync2_reg, resync_strobe_prev;
@@ -280,6 +280,7 @@ isl51002_frontend u_isl_frontend (
     .hv_in_config2(hv_in_config2),
     .hv_in_config3(hv_in_config3),
     .misc_config(misc_config),
+    .misc_config2(misc_config2),
     .R_o(ISL_R_post),
     .G_o(ISL_G_post),
     .B_o(ISL_B_post),
@@ -752,7 +753,6 @@ sys sys_inst (
     .pio_1_controls_in_export               (controls),
     .pio_2_sys_status_in_export             (sys_status),
     .sc_config_0_sc_if_fe_status_i          (fe_status),
-    .sc_config_0_sc_if_lt_status_i          (32'h00000000),
     .sc_config_0_sc_if_hv_in_config_o       (hv_in_config),
     .sc_config_0_sc_if_hv_in_config2_o      (hv_in_config2),
     .sc_config_0_sc_if_hv_in_config3_o      (hv_in_config3),
@@ -763,9 +763,11 @@ sys sys_inst (
     .sc_config_0_sc_if_xy_out_config2_o     (xy_out_config2),
     .sc_config_0_sc_if_xy_out_config3_o     (xy_out_config3),
     .sc_config_0_sc_if_misc_config_o        (misc_config),
+    .sc_config_0_sc_if_misc_config2_o       (misc_config2),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
     .sc_config_0_sc_if_sl_config3_o         (sl_config3),
+    .sc_config_0_sc_if_sl_config4_o         (sl_config4),
     .sc_config_0_shmask_if_vclk             (PCLK_sc),
     .sc_config_0_shmask_if_shmask_xpos      (x_ctr_shmask),
     .sc_config_0_shmask_if_shmask_ypos      (y_ctr_shmask),
@@ -861,6 +863,13 @@ sys sys_inst (
 `endif
 );
 
+// These do not work in current Quartus version (23.1) and a patch file (scripts/qsys.patch) must be used after Qsys generation instead
+defparam
+    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_1_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_0_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_2_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.mm_interconnect_1.mem_if_lpddr2_emif_0_avl_0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1;
+
 scanconverter #(
     .EMIF_ENABLE(1),
     .NUM_LINE_BUFFERS(2048)
@@ -891,6 +900,7 @@ scanconverter #(
     .sl_config(sl_config),
     .sl_config2(sl_config2),
     .sl_config3(sl_config3),
+    .sl_config4(sl_config4),
     .testpattern_enable(testpattern_enable),
     .lb_enable(lb_enable),
     .ext_sync_mode(vip_select),

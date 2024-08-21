@@ -106,10 +106,34 @@ typedef struct {
     uint8_t osd_enable;
     uint8_t osd_status_timeout;
 #ifndef DExx_FW
+    uint8_t power_up_state;
     uint8_t fan_pwm;
     uint8_t led_pwm;
 #endif
 } settings_t;
+
+typedef struct {
+    char name[13];
+    uint8_t bits;
+    int16_t v[64][4];
+} pp_coeff;
+
+typedef struct {
+    char name[19];
+    uint8_t ea;
+    pp_coeff coeffs[4];
+} c_pp_coeffs_t;
+
+typedef struct {
+    uint8_t iv_x;
+    uint8_t iv_y;
+    uint16_t v[16][16];
+} shmask_data_arr;
+
+typedef struct {
+    char name[20];
+    shmask_data_arr arr;
+} c_shmask_t;
 
 void ui_disp_menu(uint8_t osd_mode);
 void ui_disp_status(uint8_t refresh_osd_timer);
@@ -136,5 +160,11 @@ uint16_t get_sampler_phase();
 int set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc);
 void set_default_settings();
 void update_settings(int init_setup);
+
+void set_default_c_pp_coeffs();
+int load_scl_coeffs(char *dirname, char *filename);
+
+void set_default_c_shmask();
+int load_shmask(char *dirname, char *filename);
 
 #endif

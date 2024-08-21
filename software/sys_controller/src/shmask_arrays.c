@@ -1,11 +1,5 @@
 // RGB Shadow mask presets from ShadowMasks_MiSTer
 
-typedef struct {
-    uint8_t iv_x;
-    uint8_t iv_y;
-    uint16_t v[16][16];
-} shmask_data_arr;
-
 const shmask_data_arr shmask_agrille = {.iv_x=3, .iv_y=0, .v={
                                         {0x44c, 0x24c, 0x14c, 0x04c}}};
 
