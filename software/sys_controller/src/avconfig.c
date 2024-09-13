@@ -134,6 +134,9 @@ int set_default_profile(int update_cc)
 #ifdef INC_SII1136
     sii1136_get_default_cfg(&tc.hdmitx_cfg);
 #endif
+#ifdef INC_ADV761X
+    adv761x_get_default_cfg(&tc.hdmirx_cfg);
+#endif
 #ifdef INC_PCM186X
     pcm186x_get_default_cfg(&tc.pcm_cfg);
 #endif

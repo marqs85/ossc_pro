@@ -144,6 +144,7 @@ typedef struct {
     uint8_t oper_mode;
     uint8_t timing_1080p120;
     uint8_t timing_2160p60;
+    uint8_t hdmi_pixeldecim_mode;
 
     /* Postprocessing settings */
     uint8_t sl_mode;

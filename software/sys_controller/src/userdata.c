@@ -159,7 +159,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(77, 75, tc.hdmitx_cfg),
 #endif
 #ifdef INC_ADV761X
-    UDE_ITEM(78, 69, tc.hdmirx_cfg),
+    UDE_ITEM(78, 77, tc.hdmirx_cfg),
 #endif
 #ifdef INC_PCM186X
     UDE_ITEM(79, 58, tc.pcm_cfg),
@@ -186,6 +186,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(93, 76, tc.lumacode_mode),
     UDE_ITEM(94, 76, tc.shmask_str),
     // 95-96 reserved
+    UDE_ITEM(97, 77, tc.hdmi_pixeldecim_mode),
 };
 
 int write_userdata(uint8_t entry) {

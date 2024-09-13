@@ -226,7 +226,7 @@ static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mod
 }
 
 #ifndef DExx_FW
-static void pixelderep_mode_disp(uint8_t v) {
+static void hdmi_pixeldecim_mode_disp(uint8_t v) {
     if (v)
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%ux", v);
     else
@@ -349,7 +349,8 @@ MENU(menu_isl_sync_opt, P99_PROTECT({
 #ifdef INC_ADV761X
 MENU(menu_adv_video_opt, P99_PROTECT({
     { "Default RGB range",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmirx_cfg.default_rgb_range,    OPT_WRAP,   SETTING_ITEM(adv761x_rgb_range_desc) } } },
-    { "Pixel de-repetition",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.hdmirx_cfg.pixelderep_mode,      OPT_NOWRAP, 0, 10, pixelderep_mode_disp } } },
+    { "Pixel decimation",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.hdmi_pixeldecim_mode,      OPT_NOWRAP, 0, 32, hdmi_pixeldecim_mode_disp } } },
+    { "DV1 menu mode",                          OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmirx_cfg.enable_dv1_menu,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
 }))
 #endif
 

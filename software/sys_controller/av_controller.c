@@ -1661,7 +1661,7 @@ void mainloop()
                     if (advrx_dev.ss.interlace_flag)
                         vmode_in.timings.v_hz_x100 *= 2;
 
-                    h_skip_prev = (advrx_dev.cfg.pixelderep_mode == 0) ? (advrx_dev.pixelderep_ifr-advrx_dev.pixelderep) : 0;
+                    h_skip_prev = (cur_avconfig->hdmi_pixeldecim_mode == 0) ? (advrx_dev.pixelderep_ifr-advrx_dev.pixelderep) : (cur_avconfig->hdmi_pixeldecim_mode-1);
 
                     sniprintf(vmode_in.name, sizeof(vmode_in.name), "%ux%u%c", advrx_dev.ss.h_active/(h_skip_prev+1), (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active/(h_skip_prev+1);
