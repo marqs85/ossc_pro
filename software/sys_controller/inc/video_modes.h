@@ -103,6 +103,7 @@ typedef enum {
 
 typedef enum {
     STDMODE_240p_CRT,
+    STDMODE_240p_WS1920_CRT,
     STDMODE_240p_WS_CRT,
     STDMODE_288p_CRT,
     STDMODE_288p_WS_CRT,

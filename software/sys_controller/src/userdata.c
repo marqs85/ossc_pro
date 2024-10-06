@@ -65,7 +65,7 @@ const ude_item_map ude_initcfg_items[] = {
 
 const ude_item_map ude_profile_items[] = {
     {{0, 72, sizeof(video_modes_plm_default)}, video_modes_plm},
-    {{1, 74, sizeof(video_modes_default)}, video_modes},
+    {{1, 77, sizeof(video_modes_default)}, video_modes},
     {{2, 76, sizeof(smp_presets_default)}, smp_presets},
     UDE_ITEM(86, 72, hdmi_timings),
     UDE_ITEM(91, 75, sdp_timings),
@@ -110,7 +110,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
-    UDE_ITEM(41, 74, tc.tp_mode),
+    UDE_ITEM(41, 77, tc.tp_mode),
     UDE_ITEM(42, 58, tc.lm_deint_mode),
     UDE_ITEM(43, 58, tc.nir_even_offset),
     UDE_ITEM(44, 58, tc.ar_256col),
@@ -168,7 +168,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(80, 74, tc.scl_crt_out_mode),
     UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
-    UDE_ITEM(82, 75, tc.pm_ad_1080p),
+    UDE_ITEM(82, 77, tc.pm_ad_1080p),
     UDE_ITEM(83, 67, tc.l6_mode),
     UDE_ITEM(84, 76, tc.shmask_mode),
     UDE_ITEM(85, 72, tc.timing_1080p120),

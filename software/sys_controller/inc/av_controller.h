@@ -154,7 +154,7 @@ int sys_is_powered_on();
 
 void sys_toggle_power();
 
-void print_vm_stats();
+void print_vm_stats(int menu_mode);
 
 uint16_t get_sampler_phase();
 int set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc);

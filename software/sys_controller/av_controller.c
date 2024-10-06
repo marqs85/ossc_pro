@@ -50,7 +50,7 @@
 #include "userdata.h"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 76
+#define FW_VER_MINOR 77
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -1049,7 +1049,7 @@ void sys_toggle_power() {
     sys_powered_on ^= 1;
 }
 
-void print_vm_stats() {
+void print_vm_stats(int menu_mode) {
     alt_timestamp_type ts = alt_timestamp();
     int row = 0;
     memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
@@ -1091,7 +1091,8 @@ void print_vm_stats() {
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Uptime:");
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%luh %lumin", (uint32_t)((ts/TIMER_0_FREQ)/3600), ((uint32_t)((ts/TIMER_0_FREQ)/60) % 60));
 
-    osd->osd_config.status_refresh = 1;
+    if (!menu_mode)
+        osd->osd_config.status_refresh = 1;
     osd->osd_row_color.mask = 0;
     osd->osd_sec_enable[0].mask = (1<<(row+1))-1;
     osd->osd_sec_enable[1].mask = (1<<(row+1))-1;

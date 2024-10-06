@@ -596,7 +596,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     const ad_mode_t pm_ad_576p_map[] = {{STDMODE_576p, 0}, {STDMODE_576i, -1}, {STDMODE_288p_CRT, -1}, {STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}, {STDMODE_1920x1200_50, 1}};
     const ad_mode_t pm_ad_720p_map[] = {{STDMODE_720p_50, 0}, {STDMODE_288p_WS_CRT, -2}, {STDMODE_576i_WS_CRT, -2}, {STDMODE_2560x1440_50, 1}};
     const ad_mode_t pm_ad_1080i_map[] = {{STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}};
-    const ad_mode_t pm_ad_1080p_map[] = {{STDMODE_1080p_50, 0}, {STDMODE_1080i_50, -1}, {STDMODE_540p_50_CRT, -1}};
+    const ad_mode_t pm_ad_1080p_map[] = {{STDMODE_1080p_50, 0}, {STDMODE_1080i_50, -1}, {STDMODE_540p_50_CRT, -1}, {STDMODE_288p_WS_CRT, -3}};
 
 
     const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
@@ -654,11 +654,20 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
         return -1;
 
     // Switch to 60Hz output preset if needed
-    if ((vm_in->group >= GROUP_720P) && (vm_in->timings.v_hz_x100 > 5500)) {
-        if (ad_mode_list[vm_in->group].stdmode_id <= STDMODE_576i_WS_CRT)
-            ad_mode_list[vm_in->group].stdmode_id -= 2;
-        else
-            ad_mode_list[vm_in->group].stdmode_id++;
+    if (vm_in->timings.v_hz_x100 > 5500) {
+        if (vm_in->group == GROUP_1080P) {
+            if (ad_mode_list[vm_in->group].stdmode_id <= STDMODE_288p_WS_CRT) {
+                ad_mode_list[vm_in->group].stdmode_id -= 3;
+                ad_mode_list[vm_in->group].y_rpt -= 1;
+            } else {
+                ad_mode_list[vm_in->group].stdmode_id++;
+            }
+        } else if (vm_in->group >= GROUP_720P) {
+            if (ad_mode_list[vm_in->group].stdmode_id <= STDMODE_576i_WS_CRT)
+                ad_mode_list[vm_in->group].stdmode_id -= 2;
+            else
+                ad_mode_list[vm_in->group].stdmode_id++;
+        }
     }
 
     // Copy default sampling preset timings to output mode if no group found

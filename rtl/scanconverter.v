@@ -137,7 +137,7 @@ wire signed [7:0] Y_START_LB = xy_out_config3[15:8];
 wire signed [3:0] X_RPT = xy_out_config[27:24];
 wire signed [3:0] Y_RPT = xy_out_config[31:28];
 
-wire [1:0] Y_SKIP = ((Y_RPT >= 0) | (Y_RPT == 4'h8)) ? 0 : -Y_RPT;
+wire [2:0] Y_SKIP = ((Y_RPT >= 0) | (Y_RPT == 4'h8)) ? 0 : -Y_RPT;
 wire [2:0] Y_STEP = Y_SKIP+1'b1;
 
 wire [3:0] SL_L_STR[9:0] = '{sl_config2[7:4], sl_config2[3:0], sl_config[31:28], sl_config[27:24], sl_config[23:20], sl_config[19:16], sl_config[15:12], sl_config[11:8], sl_config[7:4], sl_config[3:0]};

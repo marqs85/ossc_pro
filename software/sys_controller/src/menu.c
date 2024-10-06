@@ -104,7 +104,7 @@ static const char *pm_ad_480p_desc[] = { "720x480 (Passthru)", "720x480i (Line d
 static const char *pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x576i (Line drop)", "288p_CRT (Line drop)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1200 (Line2x)" };
 static const char *pm_ad_720p_desc[] = { "1280x720 (Passthru)", "240p_CRT (Line drop)", "480i_CRT (Line drop)", "2560x1440 (Line2x)" };
 static const char *pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint@L2x)" };
-static const char *pm_ad_1080p_desc[] = { "1920x1080 (Passthru)", "1920x1080i (Line drop)", "540p_CRT (Line drop)" };
+static const char *pm_ad_1080p_desc[] = { "1920x1080 (Passthru)", "1920x1080i (Line drop)", "540p_CRT (Line drop)", "240p_CRT (Line drop)" };
 static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol", "MSX 256col", "Spectrum 352col" };
 static const char *sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
@@ -558,6 +558,7 @@ MENU(menu_main, P99_PROTECT({
 #ifndef DExx_FW
     { "Expansion opt.",                         OPT_SUBMENU,            { .sub = { &menu_exp, NULL, NULL } } },
 #endif
+    { "Signal info",                            OPT_CUSTOMMENU,         { .cstm = { &cstm_vm_stats } } },
     { "Settings",                               OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
 
@@ -1324,6 +1325,10 @@ void cstm_shmask_load(menucode_id code, int setup_disp) {
     //sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
 
     ui_disp_menu(0);
+}
+
+void cstm_vm_stats(menucode_id code, int setup_disp) {
+    print_vm_stats(1);
 }
 
 void cstm_listview(menucode_id code, int setup_disp) {

@@ -1148,4 +1148,9 @@ regenerate_hex: clean mem_init_generate_new
 
 .PHONY: rv-reprogram
 rv-reprogram: mem_init_generate_new
+	jtagconfig
 	system-console -cli --script ../../scripts/rv-reprogram.tcl
+
+rv-bt:
+	jtagconfig
+	system-console -cli --script ../../scripts/rv-bt.tcl

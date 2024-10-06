@@ -87,6 +87,7 @@ static
 const mode_data_t video_modes_default[] = {
     /* 240p CRT modes */
     { "2560x240",      HDMI_Unknown,     {2560,  240,   6000,  3120, 0,  262,  340, 15,  144, 3,  0},  0,  {{ 4,  3}},  VIDEO_SDTV,               GROUP_240P,   MODE_CRT,  TX_1X, TX_1X },
+    { "1920x240 ws",   HDMI_Unknown,     {1920,  240,   6000,  2340, 0,  262,  256, 15,  108, 3,  0},  0,  {{16,  9}},  VIDEO_SDTV,               GROUP_240P,   MODE_CRT,  TX_1X, TX_1X },
     { "2560x240 ws",   HDMI_Unknown,     {2560,  240,   6000,  3120, 0,  262,  340, 15,  144, 3,  0},  0,  {{16,  9}},  VIDEO_SDTV,               GROUP_240P,   MODE_CRT,  TX_1X, TX_1X },
     /* 288p CRT modes */
     { "2048x288",      HDMI_Unknown,     {2048,  288,   5000,  2496, 0,  312,  272, 19,  116, 3,  0},  0,  {{ 4,  3}},  VIDEO_SDTV,               GROUP_288P,   MODE_CRT,  TX_1X, TX_1X },
