@@ -34,13 +34,16 @@
 #define H_BPORCH_MIN 0
 #define H_BPORCH_MAX 511
 #define H_ACTIVE_MIN 200
-#define H_ACTIVE_MAX 2048
+#define H_ACTIVE_MAX 2560
+#define H_ACTIVE_SMP_MAX 2048
+#define V_TOTAL_MIN 240
+#define V_TOTAL_MAX 2400
 #define V_SYNCLEN_MIN 1
 #define V_SYNCLEN_MAX 15
 #define V_BPORCH_MIN 0
 #define V_BPORCH_MAX 511
 #define V_ACTIVE_MIN 160
-#define V_ACTIVE_MAX 1440
+#define V_ACTIVE_MAX 2160
 
 typedef enum {
     VIDEO_SDTV      = (1<<0),
@@ -60,6 +63,7 @@ typedef enum {
     GROUP_576P      = 7,
     GROUP_720P      = 8,
     GROUP_1080I     = 9,
+    GROUP_1080P     = 10,
 } video_group;
 
 typedef enum {
@@ -90,11 +94,18 @@ typedef enum {
     MODE_L5_384_COL     = (1<<23),
     MODE_L5_320_COL     = (1<<24),
     MODE_L5_256_COL     = (1<<25),
+    MODE_L6_GEN_4_3     = (1<<26),
+    MODE_L6_512_COL     = (1<<27),
+    MODE_L6_384_COL     = (1<<28),
+    MODE_L6_320_COL     = (1<<29),
+    MODE_L6_256_COL     = (1<<30),
 } mode_flags;
 
 typedef enum {
     STDMODE_240p_CRT,
+    STDMODE_240p_WS_CRT,
     STDMODE_288p_CRT,
+    STDMODE_288p_WS_CRT,
     STDMODE_480i_CRT,
     STDMODE_480i_WS_CRT,
     STDMODE_576i_CRT,
@@ -115,6 +126,7 @@ typedef enum {
     STDMODE_720p_100,
     STDMODE_720p_120,
     STDMODE_1024x768_60,
+    STDMODE_1280x960_60,
     STDMODE_1280x1024_60,
     STDMODE_1080i_50,
     STDMODE_1080i_60,
@@ -122,13 +134,19 @@ typedef enum {
     STDMODE_1080p_60,
     STDMODE_1080p_100,
     STDMODE_1080p_120,
+    STDMODE_1080p_120_MB,
+    STDMODE_1080p_120_CEA,
+    STDMODE_1080p_120_CEA_PR2,
     STDMODE_1600x1200_60,
     STDMODE_1920x1200_50,
     STDMODE_1920x1200_60,
     STDMODE_1920x1440_50,
     STDMODE_1920x1440_60,
     STDMODE_2560x1440_50,
-    STDMODE_2560x1440_60
+    STDMODE_2560x1440_60,
+    STDMODE_2880x2160_50,
+    STDMODE_2880x2160_60,
+    STDMODE_2880x2160_60_MB,
 } stdmode_t;
 
 typedef enum {
@@ -165,9 +183,16 @@ typedef enum {
     SM_OPT_N64_640COL,
     SM_OPT_NG_320COL,
     SM_OPT_GBI_240COL,
+    SM_OPT_PSP_480COL,
     SM_OPT_PC98_640COL,
     SM_OPT_DC_640COL,
     SM_OPT_PS2_512COL,
+    SM_OPT_X68K_256COL,
+    SM_OPT_X68K_512COL,
+    SM_OPT_X68K_768COL,
+    SM_OPT_C64_4XXCOL,
+    SM_OPT_MSX_256COL,
+    SM_OPT_ZX8X_352COL,
 } smp_mode_t;
 
 typedef enum {
@@ -184,8 +209,8 @@ typedef enum {
     GEN_WIDTH_CLOSEST_PREFER_OVER,
 } gen_width_mode_t;
 
-#define NUM_VIDEO_GROUPS (GROUP_1080I+1)
-#define NUM_VIDEO_MODES  (STDMODE_2560x1440_60+1)
+#define NUM_VIDEO_GROUPS (GROUP_1080P+1)
+#define NUM_VIDEO_MODES  (STDMODE_2880x2160_60_MB+1)
 
 typedef struct {
     stdmode_t stdmode_id;
@@ -201,7 +226,7 @@ typedef struct {
     uint16_t v_total;
     uint16_t h_backporch;
     uint16_t v_backporch;
-    uint16_t h_synclen;
+    uint8_t h_synclen;
     uint8_t v_synclen;
     uint8_t interlaced;
 } sync_timings_t;
@@ -212,11 +237,19 @@ typedef struct {
 } aspect_ratio_t;
 
 typedef struct {
+    uint8_t h;
+    uint8_t v;
+} mask_t;
+
+typedef struct {
     char name[16];
     HDMI_vic_t vic;
     sync_timings_t timings;
     uint8_t sampler_phase;
-    aspect_ratio_t ar;
+    union {
+        aspect_ratio_t ar;
+        mask_t mask;
+    };
     video_type type;
     video_group group;
     mode_flags flags;

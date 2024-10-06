@@ -44,14 +44,15 @@ const avconfig_t tc_default = {
     .pm_ad_288p = 3,
     .pm_ad_480i = 5,
     .pm_ad_576i = 4,
-    .pm_ad_480p = 4,
-    .pm_ad_576p = 0,
+    .pm_ad_480p = 5,
+    .pm_ad_576p = 4,
     .pm_ad_1080i = 1,
     .sl_altern = 1,
     .lm_mode = 1,
     .tp_mode = STDMODE_480p,
     .mask_br = 8,
     .bfi_str = 15,
+    .shmask_str = 15,
 #ifdef VIP
     .scl_out_mode = 7,
     .scl_edge_thold = 7,
@@ -72,12 +73,17 @@ const avconfig_t tc_default = {
 #else
     .audio_src_map = {AUD_AV1_ANALOG, 0, 0, 0},
 #endif
+    .extra_av_out_mode = 1,
 };
 
 const HDMI_i2s_fs_t audio_fmt_iec_map[] = {IEC60958_FS_48KHZ, IEC60958_FS_96KHZ, IEC60958_FS_192KHZ};
 
 avconfig_t* get_current_avconfig() {
     return &cc;
+}
+
+avconfig_t* get_target_avconfig() {
+    return &tc;
 }
 
 status_t update_avconfig() {
@@ -89,12 +95,14 @@ status_t update_avconfig() {
     if (memcmp(&tc.sl_mode, &cc.sl_mode, offsetof(avconfig_t, tp_mode) - offsetof(avconfig_t, sl_mode)))
         status |= SC_CONFIG_CHANGE;
 
-    if (tc.tp_mode != cc.tp_mode)
+    if ((tc.tp_mode != cc.tp_mode) || (update_cur_vm == 1))
         status |= TP_MODE_CHANGE;
 
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)
         switch_audmux(tc.audmux_sel);
+    if ((tc.exp_sel != cc.exp_sel) || (tc.extra_av_out_mode != cc.extra_av_out_mode))
+        switch_expansion(tc.exp_sel, tc.extra_av_out_mode);
 #endif
 #ifdef INC_THS7353
     if (tc.syncmux_stc != cc.syncmux_stc)
@@ -132,11 +140,15 @@ int set_default_profile(int update_cc)
 
 #ifdef DExx_FW
     tc.hdmitx_cfg.i2s_fs = IEC60958_FS_96KHZ;
+#else
+    adv7280a_get_default_cfg(&tc.sdp_cfg);
 #endif
 
     if (update_cc)
         memcpy(&cc, &tc, sizeof(avconfig_t));
 
+    set_default_c_pp_coeffs();
+    set_default_c_shmask();
     set_default_vm_table();
 
     return 0;

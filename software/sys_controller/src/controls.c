@@ -63,12 +63,17 @@ btn_code_t b_code;
 extern int enable_tp, enable_isl;
 extern uint8_t smp_cur, smp_edit, dtmg_cur, dtmg_edit;
 extern oper_mode_t oper_mode;
+extern mode_data_t vmode_in;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 extern menuitem_t menu_scanlines_items[];
 extern menuitem_t menu_output_items[];
 extern menuitem_t menu_settings_items[];
 extern menuitem_t menu_advtiming_items[];
+extern menuitem_t menu_lm_items[];
+extern menuitem_t menu_pure_lm_items[];
+extern menuitem_t menu_adap_lm_items[];
+extern menuitem_t menu_profile_load;
 #ifdef VIP
 extern menuitem_t menu_scaler_items[];
 #endif
@@ -77,20 +82,19 @@ int setup_rc()
 {
     int i, confirm, retval=0;
     uint32_t remote_code_raw_prev;
-    uint8_t btn_press, btn_press_prev = 0;
 
     remote_code_raw_prev = (IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE) & CONTROLS_RC_MASK) >> CONTROLS_RC_OFFS;
 
     for (i=0; i<REMOTE_MAX_KEYS; i++) {
         sniprintf(menu_row1, US2066_ROW_LEN+1, "Press");
-        strncpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
+        strlcpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
         ui_disp_menu(1);
         confirm = 0;
 
         while (1) {
             controls = IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE);
             remote_code_raw = (controls & CONTROLS_RC_MASK) >> CONTROLS_RC_OFFS;
-            btn_press = !!(((~controls & CONTROLS_BTN_MASK) >> CONTROLS_BTN_OFFS) & PB_PRESS);
+            btn_vec = (~controls & CONTROLS_BTN_MASK) >> CONTROLS_BTN_OFFS;
 
             if (remote_code_raw && (remote_code_raw != remote_code_raw_prev)) {
                 if (confirm == 0) {
@@ -104,18 +108,16 @@ int setup_rc()
                         confirm = 2;
                     } else {
                         sniprintf(menu_row1, US2066_ROW_LEN+1, "Mismatch, retry");
-                        strncpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
+                        strlcpy(menu_row2, rc_keydesc[i], US2066_ROW_LEN+1);
                         ui_disp_menu(1);
                         confirm = 0;
                     }
                 }
             }
 
-            if (!btn_press_prev && btn_press) {
+            if ((btn_vec_prev & PB_PRESS) && !btn_vec) {
                 if (i == 0) {
-                    set_default_keymap();
                     retval = 1;
-                    set_func_ret_msg("Default map set");
                     i=REMOTE_MAX_KEYS;
                 } else {
                     i-=2;
@@ -124,7 +126,7 @@ int setup_rc()
             }
 
             remote_code_raw_prev = remote_code_raw;
-            btn_press_prev = btn_press;
+            btn_vec_prev = btn_vec;
 
             if (confirm == 2)
                 break;
@@ -132,6 +134,28 @@ int setup_rc()
             usleep(MAINLOOP_INTERVAL_US);
         }
     }
+
+    if (retval == 1) {
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "Load default map?");
+#ifdef DE10N
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Y:KEY0 N:KEY1");
+#else
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "N:< Y:>");
+#endif
+        ui_disp_menu(1);
+
+#ifdef DE10N
+        if (prompt_yesno(RC_DOWN, JOY_DOWN, RC_MENU, PB_PRESS) == 1) {
+#else
+        if (prompt_yesno(RC_RIGHT, JOY_RIGHT, RC_LEFT, JOY_LEFT) == 1) {
+#endif
+            set_default_keymap();
+            set_func_ret_msg("Default map set");
+        } else {
+            set_func_ret_msg("Cancelled");
+        }
+    }
+
 #ifdef DE10N
     write_userdata_sd(SD_INIT_CONFIG_SLOT);
 #else
@@ -139,6 +163,34 @@ int setup_rc()
 #endif
 
     return retval;
+}
+
+int prompt_yesno(rc_code_t rem_yes, btn_code_t btn_yes, rc_code_t rem_no, btn_code_t btn_no) {
+    int retval = -1;
+    uint32_t remote_code_raw_prev;
+
+    remote_code_raw_prev = (IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE) & CONTROLS_RC_MASK) >> CONTROLS_RC_OFFS;
+
+    while (1) {
+        controls = IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE);
+        remote_code_raw = (controls & CONTROLS_RC_MASK) >> CONTROLS_RC_OFFS;
+        btn_vec = (~controls & CONTROLS_BTN_MASK) >> CONTROLS_BTN_OFFS;
+
+        if ((remote_code_raw && (remote_code_raw != remote_code_raw_prev)) || (btn_vec_prev && !btn_vec)) {
+            if ((remote_code_raw == rc_keymap[rem_yes]) || (btn_vec_prev & btn_yes))
+                retval = 1;
+            else if ((remote_code_raw == rc_keymap[rem_no]) || (btn_vec_prev & btn_no))
+                retval = 0;
+        }
+
+        remote_code_raw_prev = remote_code_raw;
+        btn_vec_prev = btn_vec;
+
+        if (retval >= 0)
+            return retval;
+
+        usleep(MAINLOOP_INTERVAL_US);
+    }
 }
 
 void set_default_keymap() {
@@ -206,6 +258,7 @@ void read_controls() {
 void parse_control()
 {
     int prof_x10=0, ret=0, retval;
+    int plm_group_proc_map[] = {-1, 0, 0, 1, 2, 2, 3, 3, -1, 4, -1};
 
     if (sys_is_powered_on()) {
         if (!is_menu_active()) {
@@ -215,9 +268,9 @@ void parse_control()
                 display_menu(r_code, b_code);
             if (enable_tp) {
                 if ((r_code == RC_LEFT) || (b_code == BC_LEFT))
-                    quick_adjust(&menu_output_items[1], -1);
+                    quick_adjust(&menu_output_items[1], -1, 1);
                 if ((r_code == RC_RIGHT) || (b_code == BC_RIGHT))
-                    quick_adjust(&menu_output_items[1], 1);
+                    quick_adjust(&menu_output_items[1], 1, 1);
             }
             if (enable_isl) {
                 if ((r_code == RC_PHASE_PLUS) || (r_code == RC_PHASE_MINUS))
@@ -228,11 +281,11 @@ void parse_control()
             if (r_code == RC_SL_MODE)
                 enter_cstm(&menu_scanlines_items[0], 1);
             if (r_code == RC_SL_TYPE)
-                enter_cstm(&menu_scanlines_items[5], 1);
+                enter_cstm(&menu_scanlines_items[6], 1);
             if (r_code == RC_SL_ALIGNM)
-                quick_adjust(&menu_scanlines_items[4], 1);
+                quick_adjust(&menu_scanlines_items[5], 1, 1);
             if ((r_code == RC_SL_PLUS) || (r_code == RC_SL_MINUS))
-                quick_adjust(&menu_scanlines_items[1], (r_code == RC_SL_PLUS) ? 1 : -1);
+                quick_adjust(&menu_scanlines_items[1], (r_code == RC_SL_PLUS) ? 1 : -1, 1);
 #ifdef VIP
             if (oper_mode == OPERMODE_SCALER) {
                 if (r_code == RC_SCL_RES)
@@ -242,7 +295,7 @@ void parse_control()
                 if (r_code == RC_SCL_SCL_ALG)
                     enter_cstm(&menu_scaler_items[5], 1);
                 if (r_code == RC_SCL_DIL_ALG)
-                    enter_cstm(&menu_scaler_items[7], 1);
+                    enter_cstm(&menu_scaler_items[8], 1);
                 if (r_code == RC_SCL_AR)
                     enter_cstm(&menu_scaler_items[4], 1);
                 /*if (r_code == RC_SCL_ROT)
@@ -256,8 +309,24 @@ void parse_control()
                     enter_cstm(&menu_advtiming_items[(r_code == RC_SCL_SIZE) ? 1 : 2], 1);
                 }
             }
+            if (r_code == RC_SCL)
+                quick_adjust(&menu_output_items[0], 1, 0);
+            if ((r_code == RC_LM_PURE) || (r_code == RC_LM_ADAPT)) {
+                quick_adjust(&menu_output_items[0], 0, 0);
+                quick_adjust(&menu_lm_items[0], (r_code == RC_LM_ADAPT), 0);
+            }
+            if (r_code == RC_LM_DIL)
+                quick_adjust(&menu_lm_items[1], 1, 1);
+            if (r_code == RC_LM_PROC) {
+                if (oper_mode == OPERMODE_ADAPT_LM && (vmode_in.group != GROUP_NONE))
+                    enter_cstm(&menu_adap_lm_items[vmode_in.group-1], 1);
+                else if (oper_mode == OPERMODE_PURE_LM && (plm_group_proc_map[vmode_in.group] != -1))
+                    enter_cstm(&menu_pure_lm_items[plm_group_proc_map[vmode_in.group]], 1);
+            }
             if (r_code == RC_OSD)
-                enter_cstm(&menu_settings_items[1], 1);
+                enter_cstm(&menu_settings_items[2], 1);
+            if (r_code == RC_PROF_HOTKEY)
+                enter_cstm(&menu_profile_load, 1);
         } else {
             if ((r_code <= RC_RIGHT) || ((b_code >= BC_OK) && (b_code <= BC_RIGHT)))
                 display_menu(r_code, b_code);

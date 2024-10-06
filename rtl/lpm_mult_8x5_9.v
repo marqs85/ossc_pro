@@ -4,7 +4,7 @@
 // MODULE: lpm_mult 
 
 // ============================================================
-// File Name: lpm_mult_sl.v
+// File Name: lpm_mult_8x5_9.v
 // Megafunction Name(s):
 // 			lpm_mult
 //
@@ -37,7 +37,7 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module lpm_mult_sl (
+module lpm_mult_8x5_9 (
 	clock,
 	dataa,
 	datab,
@@ -45,11 +45,11 @@ module lpm_mult_sl (
 
 	input	  clock;
 	input	[7:0]  dataa;
-	input	[7:0]  datab;
-	output	[7:0]  result;
+	input	[4:0]  datab;
+	output	[8:0]  result;
 
-	wire [7:0] sub_wire0;
-	wire [7:0] result = sub_wire0[7:0];
+	wire [8:0] sub_wire0;
+	wire [8:0] result = sub_wire0[8:0];
 
 	lpm_mult	lpm_mult_component (
 				.clock (clock),
@@ -66,8 +66,8 @@ module lpm_mult_sl (
 		lpm_mult_component.lpm_representation = "UNSIGNED",
 		lpm_mult_component.lpm_type = "LPM_MULT",
 		lpm_mult_component.lpm_widtha = 8,
-		lpm_mult_component.lpm_widthb = 8,
-		lpm_mult_component.lpm_widthp = 8;
+		lpm_mult_component.lpm_widthb = 5,
+		lpm_mult_component.lpm_widthp = 9;
 
 
 endmodule
@@ -86,8 +86,8 @@ endmodule
 // Retrieval info: PRIVATE: USE_MULT NUMERIC "1"
 // Retrieval info: PRIVATE: ValidConstant NUMERIC "0"
 // Retrieval info: PRIVATE: WidthA NUMERIC "8"
-// Retrieval info: PRIVATE: WidthB NUMERIC "8"
-// Retrieval info: PRIVATE: WidthP NUMERIC "8"
+// Retrieval info: PRIVATE: WidthB NUMERIC "5"
+// Retrieval info: PRIVATE: WidthP NUMERIC "9"
 // Retrieval info: PRIVATE: aclr NUMERIC "0"
 // Retrieval info: PRIVATE: clken NUMERIC "0"
 // Retrieval info: PRIVATE: new_diagram STRING "1"
@@ -98,20 +98,20 @@ endmodule
 // Retrieval info: CONSTANT: LPM_REPRESENTATION STRING "UNSIGNED"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "LPM_MULT"
 // Retrieval info: CONSTANT: LPM_WIDTHA NUMERIC "8"
-// Retrieval info: CONSTANT: LPM_WIDTHB NUMERIC "8"
-// Retrieval info: CONSTANT: LPM_WIDTHP NUMERIC "8"
+// Retrieval info: CONSTANT: LPM_WIDTHB NUMERIC "5"
+// Retrieval info: CONSTANT: LPM_WIDTHP NUMERIC "9"
 // Retrieval info: USED_PORT: clock 0 0 0 0 INPUT NODEFVAL "clock"
 // Retrieval info: USED_PORT: dataa 0 0 8 0 INPUT NODEFVAL "dataa[7..0]"
-// Retrieval info: USED_PORT: datab 0 0 8 0 INPUT NODEFVAL "datab[7..0]"
-// Retrieval info: USED_PORT: result 0 0 8 0 OUTPUT NODEFVAL "result[7..0]"
+// Retrieval info: USED_PORT: datab 0 0 5 0 INPUT NODEFVAL "datab[4..0]"
+// Retrieval info: USED_PORT: result 0 0 9 0 OUTPUT NODEFVAL "result[8..0]"
 // Retrieval info: CONNECT: @clock 0 0 0 0 clock 0 0 0 0
 // Retrieval info: CONNECT: @dataa 0 0 8 0 dataa 0 0 8 0
-// Retrieval info: CONNECT: @datab 0 0 8 0 datab 0 0 8 0
-// Retrieval info: CONNECT: result 0 0 8 0 @result 0 0 8 0
-// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_sl.v TRUE
-// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_sl.inc FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_sl.cmp FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_sl.bsf FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_sl_inst.v FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_sl_bb.v FALSE
+// Retrieval info: CONNECT: @datab 0 0 5 0 datab 0 0 5 0
+// Retrieval info: CONNECT: result 0 0 9 0 @result 0 0 9 0
+// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_8x5_9.v TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_8x5_9.inc FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_8x5_9.cmp FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_8x5_9.bsf FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_8x5_9_inst.v FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_8x5_9_bb.v FALSE
 // Retrieval info: LIB_FILE: lpm

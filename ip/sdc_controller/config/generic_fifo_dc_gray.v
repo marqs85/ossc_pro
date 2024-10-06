@@ -119,6 +119,8 @@ empty will place the FIFO in an undefined state.
 
 */
 
+`define ALTERA_M10K_FIFO_SIZE
+
 
 module generic_fifo_dc_gray(	rd_clk, wr_clk, rst, clr, din, we,
 		dout, re, full, empty, wr_level, rd_level );
@@ -136,21 +138,30 @@ output			empty;
 output	[1:0]		wr_level;
 output	[1:0]		rd_level;
 
+// Round up fifo size to M10K size (only for pow2 dw due to Quartus limitations)
+`ifdef ALTERA_M10K_FIFO_SIZE
+//localparam aw_r_pre = $clog2($floor(8192.0/dw));
+//localparam aw_r = ($pow(2, aw_r_pre)*dw <= 8192) ? aw_r_pre : aw_r_pre-1;
+localparam aw_r = $clog2(8192/dw);
+`else
+localparam aw_r = aw;
+`endif
+
 ////////////////////////////////////////////////////////////////////
 //
 // Local Wires
 //
 
-reg	[aw:0]		wp_bin, wp_gray;
-reg	[aw:0]		rp_bin, rp_gray;
-reg	[aw:0]		wp_s, rp_s;
+reg	[aw_r:0]		wp_bin, wp_gray;
+reg	[aw_r:0]		rp_bin, rp_gray;
+reg	[aw_r:0]		wp_s, rp_s;
 reg			full, empty;
 
-wire	[aw:0]		wp_bin_next, wp_gray_next;
-wire	[aw:0]		rp_bin_next, rp_gray_next;
+wire	[aw_r:0]		wp_bin_next, wp_gray_next;
+wire	[aw_r:0]		rp_bin_next, rp_gray_next;
 
-wire	[aw:0]		wp_bin_x, rp_bin_x;
-reg	[aw-1:0]	d1, d2;
+wire	[aw_r:0]		wp_bin_x, rp_bin_x;
+reg	[aw_r-1:0]	d1, d2;
 
 reg			rd_rst, wr_rst;
 reg			rd_rst_r, wr_rst_r;
@@ -203,18 +214,18 @@ always @(posedge wr_clk or posedge clr)
 // Memory Block
 //
 
-generic_dpram  #(aw,dw) u0(
+generic_dpram  #(aw_r,dw) u0(
 	.rclk(		rd_clk		),
 	.rrst(		!rd_rst		),
 	.rce(		1'b1		),
 	.oe(		1'b1		),
-	.raddr(		rp_bin[aw-1:0]	),
+	.raddr(		rp_bin[aw_r-1:0]	),
 	.dout(		dout		),
 	.wclk(		wr_clk		),
 	.wrst(		!wr_rst		),
 	.wce(		1'b1		),
 	.we(		we		),
-	.waddr(		wp_bin[aw-1:0]	),
+	.waddr(		wp_bin[aw_r-1:0]	),
 	.di(		din		)
 	);
 
@@ -225,27 +236,27 @@ generic_dpram  #(aw,dw) u0(
 
 `ifdef WRRST_SYNC_CIRCUITRY
 always @(posedge wr_clk)
-	if(!wr_rst)	wp_bin <= {aw+1{1'b0}};
+	if(!wr_rst)	wp_bin <= {aw_r+1{1'b0}};
 	else
-	if(wr_clr)	wp_bin <= {aw+1{1'b0}};
+	if(wr_clr)	wp_bin <= {aw_r+1{1'b0}};
 	else
 	if(we)		wp_bin <= wp_bin_next;
 
 always @(posedge wr_clk)
-	if(!wr_rst)	wp_gray <= {aw+1{1'b0}};
+	if(!wr_rst)	wp_gray <= {aw_r+1{1'b0}};
 	else
-	if(wr_clr)	wp_gray <= {aw+1{1'b0}};
+	if(wr_clr)	wp_gray <= {aw_r+1{1'b0}};
 	else
 	if(we)		wp_gray <= wp_gray_next;
 `else
 always @(posedge wr_clk or negedge rst) begin
     if (!rst) begin
-        wp_bin <= {aw+1{1'b0}};
-        wp_gray <= {aw+1{1'b0}};
+        wp_bin <= {aw_r+1{1'b0}};
+        wp_gray <= {aw_r+1{1'b0}};
     end else begin
         if (wr_clr) begin
-            wp_bin <= {aw+1{1'b0}};
-            wp_gray <= {aw+1{1'b0}};
+            wp_bin <= {aw_r+1{1'b0}};
+            wp_gray <= {aw_r+1{1'b0}};
         end else if (we) begin
             wp_bin <= wp_bin_next;
             wp_gray <= wp_gray_next;
@@ -254,32 +265,32 @@ always @(posedge wr_clk or negedge rst) begin
 end
 `endif
 
-assign wp_bin_next  = wp_bin + {{aw{1'b0}},1'b1};
-assign wp_gray_next = wp_bin_next ^ {1'b0, wp_bin_next[aw:1]};
+assign wp_bin_next  = wp_bin + {{aw_r{1'b0}},1'b1};
+assign wp_gray_next = wp_bin_next ^ {1'b0, wp_bin_next[aw_r:1]};
 
 `ifdef RDRST_SYNC_CIRCUITRY
 always @(posedge rd_clk)
-	if(!rd_rst)	rp_bin <= {aw+1{1'b0}};
+	if(!rd_rst)	rp_bin <= {aw_r+1{1'b0}};
 	else
-	if(rd_clr)	rp_bin <= {aw+1{1'b0}};
+	if(rd_clr)	rp_bin <= {aw_r+1{1'b0}};
 	else
 	if(re)		rp_bin <= rp_bin_next;
 
 always @(posedge rd_clk)
-	if(!rd_rst)	rp_gray <= {aw+1{1'b0}};
+	if(!rd_rst)	rp_gray <= {aw_r+1{1'b0}};
 	else
-	if(rd_clr)	rp_gray <= {aw+1{1'b0}};
+	if(rd_clr)	rp_gray <= {aw_r+1{1'b0}};
 	else
 	if(re)		rp_gray <= rp_gray_next;
 `else
 always @(posedge rd_clk or negedge rst) begin
     if (!rst) begin
-        rp_bin <= {aw+1{1'b0}};
-        rp_gray <= {aw+1{1'b0}};
+        rp_bin <= {aw_r+1{1'b0}};
+        rp_gray <= {aw_r+1{1'b0}};
     end else begin
         if (rd_clr) begin
-            rp_bin <= {aw+1{1'b0}};
-            rp_gray <= {aw+1{1'b0}};
+            rp_bin <= {aw_r+1{1'b0}};
+            rp_gray <= {aw_r+1{1'b0}};
         end else if (re) begin
             rp_bin <= rp_bin_next;
             rp_gray <= rp_gray_next;
@@ -288,8 +299,8 @@ always @(posedge rd_clk or negedge rst) begin
 end
 `endif
 
-assign rp_bin_next  = rp_bin + {{aw{1'b0}},1'b1};
-assign rp_gray_next = rp_bin_next ^ {1'b0, rp_bin_next[aw:1]};
+assign rp_bin_next  = rp_bin + {{aw_r{1'b0}},1'b1};
+assign rp_gray_next = rp_bin_next ^ {1'b0, rp_bin_next[aw_r:1]};
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -307,15 +318,15 @@ always @(posedge wr_clk)	rp_s <= rp_gray;
 // Registered Full & Empty Flags
 //
 
-assign wp_bin_x = wp_s ^ {1'b0, wp_bin_x[aw:1]};	// convert gray to binary
-assign rp_bin_x = rp_s ^ {1'b0, rp_bin_x[aw:1]};	// convert gray to binary
+assign wp_bin_x = wp_s ^ {1'b0, wp_bin_x[aw_r:1]};	// convert gray to binary
+assign rp_bin_x = rp_s ^ {1'b0, rp_bin_x[aw_r:1]};	// convert gray to binary
 
 always @(posedge rd_clk)
         empty <= (wp_s == rp_gray) | (re & (wp_s == rp_gray_next));
 
 always @(posedge wr_clk)
-        full <= ((wp_bin[aw-1:0] == rp_bin_x[aw-1:0]) & (wp_bin[aw] != rp_bin_x[aw])) |
-        (we & (wp_bin_next[aw-1:0] == rp_bin_x[aw-1:0]) & (wp_bin_next[aw] != rp_bin_x[aw]));
+        full <= ((wp_bin[aw_r-1:0] == rp_bin_x[aw_r-1:0]) & (wp_bin[aw_r] != rp_bin_x[aw_r])) |
+        (we & (wp_bin_next[aw_r-1:0] == rp_bin_x[aw_r-1:0]) & (wp_bin_next[aw_r] != rp_bin_x[aw_r]));
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -323,21 +334,21 @@ always @(posedge wr_clk)
 //
 reg	[1:0]		wr_level;
 reg	[1:0]		rd_level;
-reg	[aw-1:0]	wp_bin_xr, rp_bin_xr;
+reg	[aw_r-1:0]	wp_bin_xr, rp_bin_xr;
 reg			full_rc;
 reg			full_wc;
 
 always @(posedge wr_clk)	full_wc <= full;
-always @(posedge wr_clk)	rp_bin_xr <=  ~rp_bin_x[aw-1:0] + {{aw-1{1'b0}}, 1'b1};
-always @(posedge wr_clk)	d1 <= wp_bin[aw-1:0] + rp_bin_xr[aw-1:0];
+always @(posedge wr_clk)	rp_bin_xr <=  ~rp_bin_x[aw_r-1:0] + {{aw_r-1{1'b0}}, 1'b1};
+always @(posedge wr_clk)	d1 <= wp_bin[aw_r-1:0] + rp_bin_xr[aw_r-1:0];
 
-always @(posedge wr_clk)	wr_level <= {d1[aw-1] | full | full_wc, d1[aw-2] | full | full_wc};
+always @(posedge wr_clk)	wr_level <= {d1[aw_r-1] | full | full_wc, d1[aw_r-2] | full | full_wc};
 
-always @(posedge rd_clk)	wp_bin_xr <=  ~wp_bin_x[aw-1:0];
-always @(posedge rd_clk)	d2 <= rp_bin[aw-1:0] + wp_bin_xr[aw-1:0];
+always @(posedge rd_clk)	wp_bin_xr <=  ~wp_bin_x[aw_r-1:0];
+always @(posedge rd_clk)	d2 <= rp_bin[aw_r-1:0] + wp_bin_xr[aw_r-1:0];
 
 always @(posedge rd_clk)	full_rc <= full;
-always @(posedge rd_clk)	rd_level <= full_rc ? 2'h0 : {d2[aw-1] | empty, d2[aw-2] | empty};
+always @(posedge rd_clk)	rd_level <= full_rc ? 2'h0 : {d2[aw_r-1] | empty, d2[aw_r-2] | empty};
 
 ////////////////////////////////////////////////////////////////////
 //

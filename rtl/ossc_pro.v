@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2019  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2019-2024  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -19,6 +19,8 @@
 
 `define PO_RESET_WIDTH 27000
 `define PCB_1P3
+`define EXTRA_AV_OUT
+`define LEGACY_AV_IN
 
 `define VIP
 `define PIXPAR2
@@ -37,8 +39,10 @@ module ossc_pro (
     input ISL_INT_N_i,
     output ISL_EXT_PCLK_o,
     output ISL_RESET_N_o,
+`ifndef PCB_1P5
     output ISL_COAST_o,
     output ISL_CLAMP_o,
+`endif
 
     input HDMIRX_PCLK_i,
     input HDMIRX_AP_i,
@@ -101,11 +105,26 @@ module ossc_pro (
     inout [3:0] SD_DATA_io,
     input SD_DETECT_i,
 
+`ifdef PCB_1P5
+    inout USB_DP_io,
+    inout USB_DN_io,
+`endif
+
     inout [5:0] EXT_IO_A_io,
 
     inout [31:0] EXT_IO_B_io,
     output [1:0] LS_DIR_o
 );
+
+localparam EXP_SEL_OFF = 0;
+localparam EXP_SEL_EXTRA_OUT = 1;
+localparam EXP_SEL_LEGAGY_IN = 2;
+localparam EXP_SEL_UVC_BDG = 3;
+
+localparam EXTRA_OUT_RGBHV = 0;
+localparam EXTRA_OUT_RGBCS_RGBS = 1;
+localparam EXTRA_OUT_RGsB = 2;
+localparam EXTRA_OUT_YPbPr = 3;
 
 wire jtagm_reset_req;
 
@@ -117,18 +136,21 @@ wire emif_hwreset_n = sys_ctrl[3];
 wire emif_swreset_n = sys_ctrl[4];
 wire emif_powerdn_req = sys_ctrl[5];
 wire emif_mpfe_reset_n = sys_ctrl[6];
-wire capture_sel = sys_ctrl[7];
-wire isl_hsync_pol = sys_ctrl[8];
-wire isl_vsync_pol = sys_ctrl[9];
-wire isl_vsync_type = sys_ctrl[10];
-wire audmux_sel = sys_ctrl[11];
+wire [1:0] capture_sel = sys_ctrl[8:7];
+wire isl_hsync_pol = sys_ctrl[9];
+wire isl_vsync_pol = sys_ctrl[10];
+wire isl_vsync_type = sys_ctrl[11];
 wire testpattern_enable = sys_ctrl[12];
 wire csc_enable = sys_ctrl[13];
 wire framelock = sys_ctrl[14];
-wire hdmirx_spdif = sys_ctrl[15];
+wire hdmirx_aud_sel = sys_ctrl[15];
 wire [3:0] fan_duty = sys_ctrl[19:16];
 wire [3:0] led_duty = sys_ctrl[23:20];
 wire dram_refresh_enable = sys_ctrl[24];
+wire vip_dil_reset_n = sys_ctrl[25];
+wire [1:0] extra_out_mode = sys_ctrl[27:26];
+wire [1:0] exp_sel = sys_ctrl[29:28];
+wire audmux_sel = sys_ctrl[30];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -167,8 +189,8 @@ wire cvi_overflow, cvo_underflow;
 wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
 wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
-wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2;
-wire [31:0] misc_config, sl_config, sl_config2, sl_config3;
+wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2, xy_out_config3;
+wire [31:0] misc_config, misc_config2, sl_config, sl_config2, sl_config3, sl_config4;
 
 reg [23:0] resync_led_ctr;
 reg resync_strobe_sync1_reg, resync_strobe_sync2_reg, resync_strobe_prev;
@@ -185,9 +207,11 @@ wire fan_pwm;
 assign FAN_PWM_o = ~(sys_poweron & fan_pwm);
 
 wire [11:0] xpos_sc;
-wire [10:0] ypos_sc;
+wire [11:0] ypos_sc;
 wire osd_enable;
 wire [1:0] osd_color;
+wire [3:0] x_ctr_shmask, y_ctr_shmask;
+wire [10:0] shmask_data;
 
 assign ISL_RESET_N_o = isl_reset_n;
 assign HDMIRX_RESET_N_o = hdmirx_reset_n;
@@ -200,9 +224,7 @@ wire sd_cmd_oe_o, sd_cmd_out_o, sd_dat_oe_o;
 wire [3:0] sd_dat_out_o;
 
 assign SD_CMD_io = sd_cmd_oe_o ? sd_cmd_out_o : 1'bz;
-assign SD_DATA_io[3] = sd_dat_oe_o ? sd_dat_out_o[3] : 1'bz;
-assign SD_DATA_io[2:1] = 2'bzz;
-assign SD_DATA_io[0] = sd_dat_oe_o ? sd_dat_out_o[0] : 1'bz;
+assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
 
 assign FPGA_PCLK1x_o = pclk_capture;
 
@@ -233,7 +255,7 @@ end
 wire [7:0] ISL_R_post, ISL_G_post, ISL_B_post;
 wire ISL_HSYNC_post, ISL_VSYNC_post, ISL_DE_post, ISL_FID_post, ISL_datavalid_post;
 wire ISL_fe_interlace, ISL_fe_frame_change, ISL_sof_scaler;
-wire [19:0] ISL_fe_pcnt_frame;
+wire [19:0] ISL_fe_pcnt_field;
 wire [10:0] ISL_fe_vtotal, ISL_fe_xpos, ISL_fe_ypos;
 isl51002_frontend u_isl_frontend ( 
     .PCLK_i(ISL_PCLK_i),
@@ -256,6 +278,8 @@ isl51002_frontend u_isl_frontend (
     .hv_in_config(hv_in_config),
     .hv_in_config2(hv_in_config2),
     .hv_in_config3(hv_in_config3),
+    .misc_config(misc_config),
+    .misc_config2(misc_config2),
     .R_o(ISL_R_post),
     .G_o(ISL_G_post),
     .B_o(ISL_B_post),
@@ -270,14 +294,14 @@ isl51002_frontend u_isl_frontend (
     .vtotal(ISL_fe_vtotal),
     .frame_change(ISL_fe_frame_change),
     .sof_scaler(ISL_sof_scaler),
-    .pcnt_frame(ISL_fe_pcnt_frame)
+    .pcnt_field(ISL_fe_pcnt_field)
 );
 
 // ADV7611 HDMI RX
-reg [7:0] HDMIRX_R, HDMIRX_G, HDMIRX_B;
+reg [7:0] HDMIRX_R, HDMIRX_G, HDMIRX_B /* synthesis ramstyle = "logic" */;
 reg HDMIRX_HSYNC, HDMIRX_VSYNC, HDMIRX_DE;
-reg [7:0] HDMIRX_R_iq, HDMIRX_G_iq, HDMIRX_B_iq;
-reg HDMIRX_HSYNC_iq, HDMIRX_VSYNC_iq, HDMIRX_DE_iq;
+reg [7:0] HDMIRX_R_iq, HDMIRX_G_iq, HDMIRX_B_iq, HDMIRX_R_iqq, HDMIRX_G_iqq, HDMIRX_B_iqq /* synthesis ramstyle = "logic" */;
+reg HDMIRX_HSYNC_iq, HDMIRX_VSYNC_iq, HDMIRX_DE_iq, HDMIRX_HSYNC_iqq, HDMIRX_VSYNC_iqq, HDMIRX_DE_iqq;
 always @(posedge HDMIRX_PCLK_i) begin
     HDMIRX_R_iq <= HDMIRX_R_i;
     HDMIRX_G_iq <= HDMIRX_G_i;
@@ -286,16 +310,23 @@ always @(posedge HDMIRX_PCLK_i) begin
     HDMIRX_VSYNC_iq <= HDMIRX_VSYNC_i;
     HDMIRX_DE_iq <= HDMIRX_DE_i;
 
-    HDMIRX_R <= HDMIRX_R_iq;
-    HDMIRX_G <= HDMIRX_G_iq;
-    HDMIRX_B <= HDMIRX_B_iq;
-    HDMIRX_HSYNC <= HDMIRX_HSYNC_iq;
-    HDMIRX_VSYNC <= HDMIRX_VSYNC_iq;
-    HDMIRX_DE <= HDMIRX_DE_iq;
+    HDMIRX_R_iqq <= HDMIRX_R_iq;
+    HDMIRX_G_iqq <= HDMIRX_G_iq;
+    HDMIRX_B_iqq <= HDMIRX_B_iq;
+    HDMIRX_HSYNC_iqq <= HDMIRX_HSYNC_iq;
+    HDMIRX_VSYNC_iqq <= HDMIRX_VSYNC_iq;
+    HDMIRX_DE_iqq <= HDMIRX_DE_iq;
+
+    HDMIRX_R <= HDMIRX_R_iqq;
+    HDMIRX_G <= HDMIRX_G_iqq;
+    HDMIRX_B <= HDMIRX_B_iqq;
+    HDMIRX_HSYNC <= HDMIRX_HSYNC_iqq;
+    HDMIRX_VSYNC <= HDMIRX_VSYNC_iqq;
+    HDMIRX_DE <= HDMIRX_DE_iqq;
 end
 
 wire [7:0] HDMIRX_R_post, HDMIRX_G_post, HDMIRX_B_post;
-wire HDMIRX_HSYNC_post, HDMIRX_VSYNC_post, HDMIRX_DE_post, HDMIRX_FID_post;
+wire HDMIRX_HSYNC_post, HDMIRX_VSYNC_post, HDMIRX_DE_post, HDMIRX_FID_post, HDMIRX_datavalid_post;
 wire HDMIRX_fe_interlace, HDMIRX_fe_frame_change, HDMIRX_sof_scaler;
 wire [10:0] HDMIRX_fe_xpos, HDMIRX_fe_ypos;
 adv7611_frontend u_hdmirx_frontend ( 
@@ -319,16 +350,75 @@ adv7611_frontend u_hdmirx_frontend (
     .DE_o(HDMIRX_DE_post),
     .FID_o(HDMIRX_FID_post),
     .interlace_flag(HDMIRX_fe_interlace),
+    .datavalid_o(HDMIRX_datavalid_post),
     .xpos_o(HDMIRX_fe_xpos),
     .ypos_o(HDMIRX_fe_ypos),
     .frame_change(HDMIRX_fe_frame_change),
     .sof_scaler(HDMIRX_sof_scaler)
 );
 
-// capture clock mux
+// ADV7280A SDP
+`ifdef LEGACY_AV_IN
+wire SDP_PCLK_i = EXT_IO_A_io[0];
+wire SDP_PCLK;
+wire [7:0] SDP_P_DATA_i = {EXT_IO_B_io[5], EXT_IO_B_io[4], EXT_IO_B_io[7], EXT_IO_B_io[6], EXT_IO_B_io[9], EXT_IO_B_io[8], EXT_IO_B_io[11], EXT_IO_B_io[10]};
+wire SDP_HS_i = EXT_IO_B_io[3];
+wire SDP_VS_i = EXT_IO_B_io[0];
+wire SDP_IRQ_i = EXT_IO_B_io[1];
+
+reg SDP_HS, SDP_VS;
+reg [7:0] SDP_P_DATA;
+
+always @(posedge SDP_PCLK_i) begin
+    SDP_P_DATA <= SDP_P_DATA_i;
+    SDP_HS <= SDP_HS_i;
+    SDP_VS <= SDP_VS_i;
+end
+
+wire [7:0] SDP_R_post, SDP_G_post, SDP_B_post;
+wire SDP_HSYNC_post, SDP_VSYNC_post, SDP_DE_post, SDP_FID_post, SDP_datavalid_post;
+wire SDP_fe_interlace, SDP_fe_frame_change, SDP_sof_scaler;
+wire [19:0] SDP_fe_pcnt_field;
+wire [10:0] SDP_fe_vtotal, SDP_fe_xpos, SDP_fe_ypos;
+adv7280a_frontend u_sdp_frontend ( 
+    .PCLK_i(SDP_PCLK_i),
+    .CLK_MEAS_i(CLK27_i),
+    .reset_n(sys_reset_n),
+    .P_DATA_i(SDP_P_DATA),
+    .HS_i(SDP_HS),
+    .VS_i(SDP_VS),
+    .hv_in_config(hv_in_config),
+    .hv_in_config2(hv_in_config2),
+    .hv_in_config3(hv_in_config3),
+    .R_o(SDP_R_post),
+    .G_o(SDP_G_post),
+    .B_o(SDP_B_post),
+    .HSYNC_o(SDP_HSYNC_post),
+    .VSYNC_o(SDP_VSYNC_post),
+    .DE_o(SDP_DE_post),
+    .FID_o(SDP_FID_post),
+    .interlace_flag(SDP_fe_interlace),
+    .datavalid_o(SDP_datavalid_post),
+    .xpos_o(SDP_fe_xpos),
+    .ypos_o(SDP_fe_ypos),
+    .vtotal(SDP_fe_vtotal),
+    .frame_change(SDP_fe_frame_change),
+    .sof_scaler(SDP_sof_scaler),
+    .pcnt_field(SDP_fe_pcnt_field)
+);
+`endif
+
+pll_sdp u_pll_sdp (
+    .refclk(SDP_PCLK_i),
+    .rst(!capture_sel[1]),
+    .outclk_0(SDP_PCLK),
+    .locked()
+);
+
+// capture clock mux (inputs [3:2] must be PLL outputs)
 cyclonev_clkselect clkmux_capture ( 
-    .clkselect({1'b0, capture_sel}),
-    .inclk({2'b00, HDMIRX_PCLK_i, ISL_PCLK_i}),
+    .clkselect(capture_sel),
+    .inclk({1'b0, SDP_PCLK, HDMIRX_PCLK_i, ISL_PCLK_i}),
     .outclk(pclk_capture)
 );
 
@@ -337,20 +427,21 @@ reg [7:0] R_capt, G_capt, B_capt;
 reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt, datavalid_capt;
 reg interlace_flag_capt, frame_change_capt, sof_scaler_capt;
 reg [10:0] xpos_capt, ypos_capt;
+wire [31:0] fe_status = capture_sel[1] ? {SDP_fe_pcnt_field, SDP_fe_interlace, SDP_fe_vtotal} : {ISL_fe_pcnt_field, ISL_fe_interlace, ISL_fe_vtotal};
 always @(posedge pclk_capture) begin
-    R_capt <= capture_sel ? HDMIRX_R_post : ISL_R_post;
-    G_capt <= capture_sel ? HDMIRX_G_post : ISL_G_post;
-    B_capt <= capture_sel ? HDMIRX_B_post : ISL_B_post;
-    HSYNC_capt <= capture_sel ? HDMIRX_HSYNC_post : ISL_HSYNC_post;
-    VSYNC_capt <= capture_sel ? HDMIRX_VSYNC_post : ISL_VSYNC_post;
-    DE_capt <= capture_sel ? HDMIRX_DE_post : ISL_DE_post;
-    datavalid_capt <= capture_sel ? 1'b1 : ISL_datavalid_post;
-    FID_capt <= capture_sel ? HDMIRX_FID_post : ISL_FID_post;
-    interlace_flag_capt <= capture_sel ? HDMIRX_fe_interlace : ISL_fe_interlace;
-    frame_change_capt <= capture_sel ? HDMIRX_fe_frame_change : ISL_fe_frame_change;
-    sof_scaler_capt <= capture_sel ? HDMIRX_sof_scaler : ISL_sof_scaler;
-    xpos_capt <= capture_sel ? HDMIRX_fe_xpos : ISL_fe_xpos;
-    ypos_capt <= capture_sel ? HDMIRX_fe_ypos : ISL_fe_ypos;
+    R_capt <= capture_sel[1] ? SDP_R_post : (capture_sel[0] ? HDMIRX_R_post : ISL_R_post);
+    G_capt <= capture_sel[1] ? SDP_G_post : (capture_sel[0] ? HDMIRX_G_post : ISL_G_post);
+    B_capt <= capture_sel[1] ? SDP_B_post : (capture_sel[0] ? HDMIRX_B_post : ISL_B_post);
+    HSYNC_capt <= capture_sel[1] ? SDP_HSYNC_post : (capture_sel[0] ? HDMIRX_HSYNC_post : ISL_HSYNC_post);
+    VSYNC_capt <= capture_sel[1] ? SDP_VSYNC_post : (capture_sel[0] ? HDMIRX_VSYNC_post : ISL_VSYNC_post);
+    DE_capt <= capture_sel[1] ? SDP_DE_post : (capture_sel[0] ? HDMIRX_DE_post : ISL_DE_post);
+    datavalid_capt <= capture_sel[1] ? SDP_datavalid_post : (capture_sel[0] ? HDMIRX_datavalid_post : ISL_datavalid_post);
+    FID_capt <= capture_sel[1] ? SDP_FID_post : (capture_sel[0] ? HDMIRX_FID_post : ISL_FID_post);
+    interlace_flag_capt <= capture_sel[1] ? SDP_fe_interlace : (capture_sel[0] ? HDMIRX_fe_interlace : ISL_fe_interlace);
+    frame_change_capt <= capture_sel[1] ? SDP_fe_frame_change : (capture_sel[0] ? HDMIRX_fe_frame_change : ISL_fe_frame_change);
+    sof_scaler_capt <= capture_sel[1] ? SDP_sof_scaler : (capture_sel[0] ? HDMIRX_sof_scaler : ISL_sof_scaler);
+    xpos_capt <= capture_sel[1] ? SDP_fe_xpos : (capture_sel[0] ? HDMIRX_fe_xpos : ISL_fe_xpos);
+    ypos_capt <= capture_sel[1] ? SDP_fe_ypos : (capture_sel[0] ? HDMIRX_fe_ypos : ISL_fe_ypos);
 end
 
 // output clock assignment
@@ -508,39 +599,70 @@ always @(posedge pclk_out) begin
 end
 
 //audio
-assign HDMITX_I2S_BCK_o = capture_sel ? HDMIRX_I2S_BCK_i : PCM_I2S_BCK_i;
-assign HDMITX_I2S_WS_o = capture_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
-assign HDMITX_I2S_DATA_o = capture_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
-assign HDMITX_SPDIF_o = hdmirx_spdif ? HDMIRX_AP_i : SPDIF_EXT_i;
+assign HDMITX_I2S_BCK_o = hdmirx_aud_sel ? HDMIRX_I2S_BCK_i : PCM_I2S_BCK_i;
+assign HDMITX_I2S_WS_o = hdmirx_aud_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
+assign HDMITX_I2S_DATA_o = hdmirx_aud_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
+assign HDMITX_SPDIF_o = sys_poweron ? (hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i) : 1'b0;
 
 assign AUDMUX_o = ~audmux_sel;
 
 // 0=input 1=output
-assign LS_DIR_o = 2'b11;
+assign LS_DIR_o = (exp_sel == EXP_SEL_LEGAGY_IN) ? 2'b10 : 2'b11;
 
 `ifdef EXTRA_AV_OUT
+// CSC for YPbPr
+wire [7:0] VGA_CSC_R_out, VGA_CSC_G_out, VGA_CSC_B_out;
+wire VGA_CSC_HSYNC_out, VGA_CSC_VSYNC_out, VGA_CSC_DE_out;
+output_csc csc_vga_inst (
+    .PCLK_i(pclk_out),
+    .reset_n(1'b1),
+    .enable((exp_sel == EXP_SEL_EXTRA_OUT) & (extra_out_mode == EXTRA_OUT_YPbPr)),
+    .R_i(R_out),
+    .G_i(G_out),
+    .B_i(B_out),
+    .HSYNC_i(HSYNC_out),
+    .VSYNC_i(VSYNC_out),
+    .DE_i(DE_out),
+    .R_o(VGA_CSC_R_out),
+    .G_o(VGA_CSC_G_out),
+    .B_o(VGA_CSC_B_out),
+    .HSYNC_o(VGA_CSC_HSYNC_out),
+    .VSYNC_o(VGA_CSC_VSYNC_out),
+    .DE_o(VGA_CSC_DE_out),
+);
+
 // VGA DAC
-reg [7:0] VGA_R, VGA_G, VGA_B;
-reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N;
+reg [7:0] VGA_R, VGA_G, VGA_B, VGA_R_pre, VGA_G_pre, VGA_B_pre;
+reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N, VGA_HS_pre, VGA_VS_pre, VGA_SYNC_N_pre, VGA_BLANK_N_pre;
 always @(posedge pclk_out) begin
-    VGA_R <= R_out;
-    VGA_G <= G_out;
-    VGA_B <= B_out;
-    VGA_HS <= HSYNC_out;
-    VGA_VS <= VSYNC_out;
-    VGA_BLANK_N <= DE_out;
-    VGA_SYNC_N <= 1'b0;
+    if (exp_sel == EXP_SEL_EXTRA_OUT) begin
+        VGA_R_pre <= VGA_CSC_R_out;
+        VGA_G_pre <= VGA_CSC_G_out;
+        VGA_B_pre <= VGA_CSC_B_out;
+        VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_HSYNC_out : ~(VGA_CSC_HSYNC_out ^ VGA_CSC_VSYNC_out);
+        VGA_VS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_VSYNC_out : 1'b1;
+        VGA_BLANK_N_pre <= (extra_out_mode == EXTRA_OUT_YPbPr) ? 1'b1 : VGA_CSC_DE_out;
+        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? ~(VGA_CSC_HSYNC_out ^ VGA_CSC_VSYNC_out) : 1'b0;
+
+        VGA_R <= VGA_R_pre;
+        VGA_G <= VGA_G_pre;
+        VGA_B <= VGA_B_pre;
+        VGA_HS <= VGA_HS_pre;
+        VGA_VS <= VGA_VS_pre;
+        VGA_BLANK_N <= VGA_BLANK_N_pre;
+        VGA_SYNC_N <= VGA_SYNC_N_pre;
+    end
 end
 assign EXT_IO_A_io[4] = sys_poweron; // VGA_PSAVE_N
 assign EXT_IO_A_io[5] = sys_poweron; // AUDIO_MUTE_N
-assign EXT_IO_B_io[27] = ~pclk_out;
-assign {EXT_IO_B_io[6], EXT_IO_B_io[7], EXT_IO_B_io[4], EXT_IO_B_io[5], EXT_IO_B_io[2], EXT_IO_B_io[3], EXT_IO_B_io[0], EXT_IO_B_io[1]} = VGA_R;
-assign {EXT_IO_B_io[14], EXT_IO_B_io[15], EXT_IO_B_io[12], EXT_IO_B_io[13], EXT_IO_B_io[10], EXT_IO_B_io[11], EXT_IO_B_io[8], EXT_IO_B_io[9]} = VGA_G;
-assign {EXT_IO_B_io[24], EXT_IO_B_io[25], EXT_IO_B_io[22], EXT_IO_B_io[23], EXT_IO_B_io[20], EXT_IO_B_io[21], EXT_IO_B_io[18], EXT_IO_B_io[19]} = VGA_B;
-assign EXT_IO_B_io[29] = VGA_HS;
-assign EXT_IO_B_io[30] = VGA_VS;
-assign EXT_IO_B_io[17] = VGA_BLANK_N;
-assign EXT_IO_B_io[16] = VGA_SYNC_N;
+assign EXT_IO_B_io[27] = (exp_sel == EXP_SEL_EXTRA_OUT) ? ~pclk_out : 'z;
+assign {EXT_IO_B_io[6], EXT_IO_B_io[7], EXT_IO_B_io[4], EXT_IO_B_io[5], EXT_IO_B_io[2], EXT_IO_B_io[3], EXT_IO_B_io[0], EXT_IO_B_io[1]} = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_R : 'z;
+assign {EXT_IO_B_io[14], EXT_IO_B_io[15], EXT_IO_B_io[12], EXT_IO_B_io[13], EXT_IO_B_io[10], EXT_IO_B_io[11], EXT_IO_B_io[8], EXT_IO_B_io[9]} = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_G : 'z;
+assign {EXT_IO_B_io[24], EXT_IO_B_io[25], EXT_IO_B_io[22], EXT_IO_B_io[23], EXT_IO_B_io[20], EXT_IO_B_io[21], EXT_IO_B_io[18], EXT_IO_B_io[19]} = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_B : 'z;
+assign EXT_IO_B_io[29] = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_HS : 'z;
+assign EXT_IO_B_io[30] = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_VS : 'z;
+assign EXT_IO_B_io[17] = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_BLANK_N : 'z;
+assign EXT_IO_B_io[16] = (exp_sel == EXP_SEL_EXTRA_OUT) ? VGA_SYNC_N : 'z;
 `else
 assign EXT_IO_A_io = {6{&btn_sync2_reg}};
 assign EXT_IO_B_io = {32{&btn_sync2_reg}};
@@ -619,7 +741,7 @@ sys sys_inst (
     .sdc_controller_0_sd_sd_cmd_dat_i       (SD_CMD_io),
     .sdc_controller_0_sd_sd_cmd_out_o       (sd_cmd_out_o),
     .sdc_controller_0_sd_sd_cmd_oe_o        (sd_cmd_oe_o),
-    .sdc_controller_0_sd_sd_dat_dat_i       ({SD_DATA_io[3], 2'b11, SD_DATA_io[0]}),
+    .sdc_controller_0_sd_sd_dat_dat_i       (SD_DATA_io),
     .sdc_controller_0_sd_sd_dat_out_o       (sd_dat_out_o),
     .sdc_controller_0_sd_sd_dat_oe_o        (sd_dat_oe_o),
     .sdc_controller_0_sd_clk_o_clk          (SD_CLK_o),
@@ -629,9 +751,7 @@ sys sys_inst (
     .pio_0_sys_ctrl_out_export              (sys_ctrl),
     .pio_1_controls_in_export               (controls),
     .pio_2_sys_status_in_export             (sys_status),
-    .sc_config_0_sc_if_fe_status_i          ({20'h0, ISL_fe_interlace, ISL_fe_vtotal}),
-    .sc_config_0_sc_if_fe_status2_i         ({12'h0, ISL_fe_pcnt_frame}),
-    .sc_config_0_sc_if_lt_status_i          (32'h00000000),
+    .sc_config_0_sc_if_fe_status_i          (fe_status),
     .sc_config_0_sc_if_hv_in_config_o       (hv_in_config),
     .sc_config_0_sc_if_hv_in_config2_o      (hv_in_config2),
     .sc_config_0_sc_if_hv_in_config3_o      (hv_in_config3),
@@ -640,10 +760,17 @@ sys sys_inst (
     .sc_config_0_sc_if_hv_out_config3_o     (hv_out_config3),
     .sc_config_0_sc_if_xy_out_config_o      (xy_out_config),
     .sc_config_0_sc_if_xy_out_config2_o     (xy_out_config2),
+    .sc_config_0_sc_if_xy_out_config3_o     (xy_out_config3),
     .sc_config_0_sc_if_misc_config_o        (misc_config),
+    .sc_config_0_sc_if_misc_config2_o       (misc_config2),
     .sc_config_0_sc_if_sl_config_o          (sl_config),
     .sc_config_0_sc_if_sl_config2_o         (sl_config2),
     .sc_config_0_sc_if_sl_config3_o         (sl_config3),
+    .sc_config_0_sc_if_sl_config4_o         (sl_config4),
+    .sc_config_0_shmask_if_vclk             (PCLK_sc),
+    .sc_config_0_shmask_if_shmask_xpos      (x_ctr_shmask),
+    .sc_config_0_shmask_if_shmask_ypos      (y_ctr_shmask),
+    .sc_config_0_shmask_if_shmask_data      (shmask_data),
     .osd_generator_0_osd_if_vclk            (PCLK_sc),
     .osd_generator_0_osd_if_xpos            (xpos_sc),
     .osd_generator_0_osd_if_ypos            (ypos_sc),
@@ -694,6 +821,7 @@ sys sys_inst (
     pclk_capture
 `endif
     ),
+    .vip_dil_reset_reset_n                                     (vip_dil_reset_n),
     .alt_vip_cl_cvi_0_clocked_video_vid_data                   (VIP_DATA_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_de                     (VIP_DE_i),
     .alt_vip_cl_cvi_0_clocked_video_vid_datavalid              (!dc_fifo_in_rdempty_prev),
@@ -734,6 +862,13 @@ sys sys_inst (
 `endif
 );
 
+// These do not work in current Quartus version (23.1) and a patch file (scripts/qsys.patch) must be used after Qsys generation instead
+defparam
+    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_1_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_0_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_2_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.mm_interconnect_1.mem_if_lpddr2_emif_0_avl_0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1;
+
 scanconverter #(
     .EMIF_ENABLE(1),
     .NUM_LINE_BUFFERS(2048)
@@ -759,10 +894,12 @@ scanconverter #(
     .hv_out_config3(hv_out_config3),
     .xy_out_config(xy_out_config),
     .xy_out_config2(xy_out_config2),
+    .xy_out_config3(xy_out_config3),
     .misc_config(misc_config),
     .sl_config(sl_config),
     .sl_config2(sl_config2),
     .sl_config3(sl_config3),
+    .sl_config4(sl_config4),
     .testpattern_enable(testpattern_enable),
     .lb_enable(lb_enable),
     .ext_sync_mode(vip_select),
@@ -779,6 +916,9 @@ scanconverter #(
     .DE_o(DE_sc),
     .xpos_o(xpos_sc),
     .ypos_o(ypos_sc),
+    .x_ctr_shmask(x_ctr_shmask),
+    .y_ctr_shmask(y_ctr_shmask),
+    .shmask_data(shmask_data),
     .resync_strobe(resync_strobe_i),
     .emif_br_clk(emif_br_clk),
     .emif_br_reset(emif_br_reset),

@@ -33,20 +33,26 @@
 #define SCTRL_EMIF_SWRESET_N    (1<<4)
 #define SCTRL_EMIF_POWERDN_REQ  (1<<5)
 #define SCTRL_EMIF_MPFE_RESET_N (1<<6)
-#define SCTRL_CAPTURE_SEL       (1<<7)
-#define SCTRL_ISL_HS_POL        (1<<8)
-#define SCTRL_ISL_VS_POL        (1<<9)
-#define SCTRL_ISL_VS_TYPE       (1<<10)
-#define SCTRL_AUDMUX_SEL        (1<<11)
+#define SCTRL_CAPTURE_SEL_OFFS  7
+#define SCTRL_CAPTURE_SEL_MASK  (0x3<<SCTRL_CAPTURE_SEL_OFFS)
+#define SCTRL_ISL_HS_POL        (1<<9)
+#define SCTRL_ISL_VS_POL        (1<<10)
+#define SCTRL_ISL_VS_TYPE       (1<<11)
 #define SCTRL_VGTP_ENABLE       (1<<12)
 #define SCTRL_CSC_ENABLE        (1<<13)
 #define SCTRL_FRAMELOCK         (1<<14)
-#define SCTRL_HDMIRX_SPDIF      (1<<15)
+#define SCTRL_HDMIRX_AUD_SEL    (1<<15)
 #define SCTRL_FAN_PWM_OFFS      16
 #define SCTRL_FAN_PWM_MASK      (0xf<<SCTRL_FAN_PWM_OFFS)
 #define SCTRL_LED_PWM_OFFS      20
 #define SCTRL_LED_PWM_MASK      (0xf<<SCTRL_LED_PWM_OFFS)
 #define SCTRL_DRAM_RFR_ENA      (1<<24)
+#define SCTRL_VIP_DIL_RESET_N   (1<<25)
+#define SCTRL_EXTRA_AV_O_OFFS   26
+#define SCTRL_EXTRA_AV_O_MASK   (0x3<<SCTRL_EXTRA_AV_O_OFFS)
+#define SCTRL_EXP_SEL_OFFS      28
+#define SCTRL_EXP_SEL_MASK      (0x3<<SCTRL_EXP_SEL_OFFS)
+#define SCTRL_AUDMUX_SEL        (1<<30)
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -55,6 +61,10 @@
 #define SSTAT_EMIF_POWERDN_ACK_BIT      3
 #define SSTAT_EMIF_PLL_LOCKED           4
 #define SSTAT_SD_DETECT_BIT             5
+
+#define SCTRL_CAPTURE_SEL_ISL       0
+#define SCTRL_CAPTURE_SEL_HDMIRX    1
+#define SCTRL_CAPTURE_SEL_SDP       2
 
 typedef enum {
     AV_TESTPAT      = 0,
@@ -70,7 +80,10 @@ typedef enum {
     AV3_RGBS,
     AV3_RGsB,
     AV3_YPbPr,
-    AV4
+    AV4,
+    AV_EXP_SVIDEO,
+    AV_EXP_CVBS,
+    AV_EXP_RF,
 } avinput_t;
 
 #ifdef DExx_FW
@@ -93,10 +106,34 @@ typedef struct {
     uint8_t osd_enable;
     uint8_t osd_status_timeout;
 #ifndef DExx_FW
+    uint8_t power_up_state;
     uint8_t fan_pwm;
     uint8_t led_pwm;
 #endif
 } settings_t;
+
+typedef struct {
+    char name[13];
+    uint8_t bits;
+    int16_t v[64][4];
+} pp_coeff;
+
+typedef struct {
+    char name[19];
+    uint8_t ea;
+    pp_coeff coeffs[4];
+} c_pp_coeffs_t;
+
+typedef struct {
+    uint8_t iv_x;
+    uint8_t iv_y;
+    uint16_t v[16][16];
+} shmask_data_arr;
+
+typedef struct {
+    char name[20];
+    shmask_data_arr arr;
+} c_shmask_t;
 
 void ui_disp_menu(uint8_t osd_mode);
 void ui_disp_status(uint8_t refresh_osd_timer);
@@ -109,6 +146,8 @@ void switch_audmux(uint8_t audmux_sel);
 
 void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
 
+void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode);
+
 void set_dram_refresh(uint8_t enable);
 
 int sys_is_powered_on();
@@ -118,8 +157,14 @@ void sys_toggle_power();
 void print_vm_stats();
 
 uint16_t get_sampler_phase();
-void set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc);
+int set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc);
 void set_default_settings();
 void update_settings(int init_setup);
+
+void set_default_c_pp_coeffs();
+int load_scl_coeffs(char *dirname, char *filename);
+
+void set_default_c_shmask();
+int load_shmask(char *dirname, char *filename);
 
 #endif

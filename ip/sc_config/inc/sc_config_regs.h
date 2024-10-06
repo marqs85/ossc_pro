@@ -27,18 +27,10 @@ typedef union {
     struct {
         uint16_t vtotal:11;
         uint8_t interlace_flag:1;
-        uint32_t fe_rsv:20;
+        uint32_t pcnt_field:20;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } fe_status_reg;
-
-typedef union {
-    struct {
-        uint32_t pcnt_frame:20;
-        uint16_t fe_rsv:12;
-    } __attribute__((packed, __may_alias__));
-    uint32_t data;
-} fe_status2_reg;
 
 typedef union {
     struct {
@@ -62,20 +54,26 @@ typedef union {
 typedef union {
     struct {
         uint16_t h_backporch:9;
-        uint16_t v_total:11;
-        uint16_t v_active:11;
+        uint16_t v_total:12;
+        uint16_t v_backporch:9;
         uint8_t interlaced:1;
+        uint8_t hv2_rsv:1;
+    } __attribute__((packed, __may_alias__));
+    struct {
+        uint16_t hv2_alt_rsv1:9;
+        uint8_t h_skip:5;
+        uint8_t h_sample_sel:5;
+        uint16_t hv2_alt_rsv2:13;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } hv_config2_reg;
 
 typedef union {
     struct {
+        uint16_t v_active:12;
         uint8_t v_synclen:4;
-        uint16_t v_backporch:9;
-        uint16_t v_startline:11;
-        uint8_t h_skip:4;
-        uint8_t h_sample_sel:4;
+        uint16_t v_startline:12;
+        uint8_t hv3_rsv:4;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } hv_config3_reg;
@@ -83,22 +81,30 @@ typedef union {
 typedef union {
     struct {
         uint16_t x_size:12;
-        uint16_t y_size:11;
-        int16_t y_offset:9;
+        uint16_t y_size:12;
+        int8_t x_rpt:4;
+        int8_t y_rpt:4;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } xy_config_reg;
 
 typedef union {
     struct {
-        int16_t x_offset:10;
-        uint8_t x_start_lb:8;
-        int8_t y_start_lb:6;
-        int8_t x_rpt:4;
-        int8_t y_rpt:4;
+        int16_t x_offset:11;
+        int16_t y_offset:9;
+        uint16_t xy2_rsv:12;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } xy_config2_reg;
+
+typedef union {
+    struct {
+        uint8_t x_start_lb:8;
+        int8_t y_start_lb:8;
+        uint32_t xy3_rsv:16;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} xy_config3_reg;
 
 typedef union {
     struct {
@@ -111,43 +117,67 @@ typedef union {
         uint8_t vip_enable:1;
         uint8_t bfi_str:4;
         uint8_t bfi_enable:1;
-        uint32_t misc_rsv:11;
+        uint8_t shmask_enable:1;
+        uint8_t shmask_iv_x:4;
+        uint8_t shmask_iv_y:4;
+        uint32_t misc_rsv:2;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } misc_config_reg;
 
 typedef union {
     struct {
-        uint32_t sl_l_str_arr:24;
-        uint8_t sl_l_overlay:6;
-        uint8_t sl_method:1;
-        uint8_t sl_altern:1;
+        uint8_t lumacode_mode:3;
+        uint32_t misc2_rsv:29;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} misc_config2_reg;
+
+typedef union {
+    struct {
+        uint32_t sl_l_str_arr_l;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } sl_config_reg;
 
 typedef union {
     struct {
-        uint32_t sl_c_str_arr_l;
+        uint32_t sl_l_str_arr_h:8;
+        uint32_t sl_l_overlay:10;
+        uint8_t sl_iv_y:4;
+        uint8_t sl_method:1;
+        uint8_t sl_altern:1;
+        uint8_t sl_hybr_str:5;
+        uint32_t sl2_rsv:3;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } sl_config2_reg;
 
 typedef union {
     struct {
-        uint32_t sl_c_str_arr_h:8;
-        uint32_t sl_c_overlay:10;
-        uint8_t sl_iv_y:3;
-        uint8_t sl_iv_x:4;
-        uint32_t sl_rsv:7;
+        uint32_t sl_c_str_arr_l;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } sl_config3_reg;
 
+typedef union {
+    struct {
+        uint32_t sl_c_str_arr_h:8;
+        uint32_t sl_c_overlay:10;
+        uint8_t sl_iv_x:4;
+        uint32_t sl4_rsv:10;
+    } __attribute__((packed, __may_alias__));
+    uint32_t data;
+} sl_config4_reg;
+
+// shmask regs
+typedef struct {
+    uint32_t data[16][16];
+} shmask_array;
+
 typedef struct {
     fe_status_reg fe_status;
-    fe_status2_reg fe_status2;
-    lt_status_reg lt_status;
+    //lt_status_reg lt_status;
     hv_config_reg hv_in_config;
     hv_config2_reg hv_in_config2;
     hv_config3_reg hv_in_config3;
@@ -156,10 +186,14 @@ typedef struct {
     hv_config3_reg hv_out_config3;
     xy_config_reg xy_out_config;
     xy_config2_reg xy_out_config2;
+    xy_config3_reg xy_out_config3;
     misc_config_reg misc_config;
+    misc_config2_reg misc_config2;
     sl_config_reg sl_config;
     sl_config2_reg sl_config2;
     sl_config3_reg sl_config3;
+    sl_config4_reg sl_config4;
+    shmask_array shmask_data_array __attribute__ ((aligned (1024)));
 } sc_regs;
 
 #endif //SC_CONFIG_REGS_H_

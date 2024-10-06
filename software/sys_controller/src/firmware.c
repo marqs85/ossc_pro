@@ -23,10 +23,11 @@
 #include "file.h"
 #include "flash.h"
 #include "utils.h"
+#include "menu.h"
 #include "us2066.h"
 #include "av_controller.h"
 
-#define DRAM_TMP_ADDR (0x10000000 + 0x08000000)
+#define DRAM_TMP_ADDR (0x10000000 + 0x05000000)
 
 #define PAD_TO_ALIGN4(x) (4*((x+3)/4))
 
@@ -43,7 +44,7 @@ int fw_update() {
     uint32_t crcval;
     unsigned char *dram_tmp = (unsigned char*)DRAM_TMP_ADDR;
 
-    strncpy(menu_row2, "Please wait...", OSD_CHAR_COLS);
+    strlcpy(menu_row2, "Please wait...", US2066_ROW_LEN+1);
     ui_disp_menu(1);
 
     if (!sd_det) {
@@ -86,6 +87,19 @@ int fw_update() {
             }
         }
 
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "v%u.%u%s%s (%lu parts)", hdr.fw_version_major, hdr.fw_version_minor, hdr.fw_suffix[0] ? "-" : "", hdr.fw_suffix, hdr.num_images);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Update? N:< Y:>");
+        ui_disp_menu(1);
+
+        if (prompt_yesno(RC_RIGHT, JOY_RIGHT, RC_LEFT, JOY_LEFT) != 1) {
+            set_func_ret_msg("Cancelled");
+            retval = 1;
+            goto close_file;
+        }
+
+        strlcpy(menu_row2, "Please wait...", US2066_ROW_LEN+1);
+        ui_disp_menu(1);
+
         printf("Copying images to DRAM...\n");
         set_dram_refresh(1);
         if ((f_read(&fw_file, dram_tmp, bytes_to_copy, &bytes_read) != F_OK) || (bytes_read != bytes_to_copy)) {
@@ -100,7 +114,7 @@ int fw_update() {
             crcval = crc32(dram_tmp, hdr.image_info[i].size, 1);
             dram_tmp += PAD_TO_ALIGN4(hdr.image_info[i].size);
             if (crcval != hdr.image_info[i].crc) {
-                printf("Image %u: Invalid CRC (0x%.8x)\n", crcval);
+                printf("Image %u: Invalid CRC (0x%.8x)\n", i, crcval);
                 retval = -9;
                 goto close_file;
             }
@@ -109,6 +123,8 @@ int fw_update() {
         file_close(&fw_file);
 
         printf("Starting update procedure...\n");
+        strlcpy(menu_row1, "Updating", US2066_ROW_LEN+1);
+        ui_disp_menu(1);
 
         // No return from here
         fw_update_commit(&hdr);
@@ -152,6 +168,9 @@ void __attribute__((noinline, __section__(".text_bram"))) fw_update_commit(fw_he
             *data_to++ = *data_from++;
         }
     }
+
+    // flush command FIFO before FPGA reconfiguration start
+    *(volatile uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE);
 
     rem_reconfig_dev.regs->reconfig_start = 1;
 

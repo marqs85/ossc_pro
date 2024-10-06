@@ -41,7 +41,7 @@ set_global_assignment -name DEVICE 5CEFA5F23C8
 set_global_assignment -name TOP_LEVEL_ENTITY ossc_pro
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 17.1.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:23:54  SEPTEMBER 01, 2019"
-set_global_assignment -name LAST_QUARTUS_VERSION "21.1.0 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "23.1std.1 Lite Edition"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
@@ -122,10 +122,42 @@ set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_B_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_HSYNC_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_VSYNC_o
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to HDMITX_DE_o
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[0]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[1]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[2]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[3]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[4]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[5]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[6]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[7]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[8]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[9]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[10]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[11]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[12]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[13]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[14]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[15]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[16]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[17]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[18]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[19]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[20]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[21]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[22]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[23]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[24]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[25]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[26]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[27]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[28]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[29]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[30]
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[31]
 set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCQ128
 set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 3.3V
 set_global_assignment -name ENABLE_SIGNALTAP OFF
-set_global_assignment -name USE_SIGNALTAP_FILE output_files/ossc_pro_emif.stp
+set_global_assignment -name USE_SIGNALTAP_FILE output_files/ossc_pro_syncdebug.stp
 set_global_assignment -name GENERATE_RBF_FILE ON
 
 
@@ -147,9 +179,6 @@ set_global_assignment -name EDA_TEST_BENCH_FILE rtl/tb/lpddr2model/mobile_ddr2.v
 
 set_global_assignment -name FLOW_ENABLE_POWER_ANALYZER ON
 set_global_assignment -name POWER_DEFAULT_INPUT_IO_TOGGLE_RATE "12.5 %"
-
-
-
 
 
 set_location_assignment PIN_T19 -to AUDMUX_o
@@ -598,33 +627,29 @@ set_global_assignment -name USE_DLL_FREQUENCY_FOR_DQS_DELAY_CHAIN ON
 set_global_assignment -name UNIPHY_SEQUENCER_DQS_CONFIG_ENABLE ON
 
 
-
-
-
-
-
-
 set_global_assignment -name SMART_RECOMPILE ON
 
 set_global_assignment -name SEED 1
-
-
-
-
 
 set_global_assignment -name STRATIXIII_UPDATE_MODE REMOTE
 
 
 
+
+
+set_location_assignment CLKSEL_X28_Y0_N8 -to clkmux_capture
+set_location_assignment CLKCTRL_G7 -to HDMIRX_PCLK_i~inputCLKENA0
 set_global_assignment -name SDC_FILE ossc_pro.sdc
 set_global_assignment -name QIP_FILE sys/synthesis/sys.qip
 set_global_assignment -name VERILOG_FILE rtl/ic_frontends/isl51002/isl51002_frontend.v
 set_global_assignment -name VERILOG_FILE rtl/ic_frontends/adv7611/adv7611_frontend.v
+set_global_assignment -name VERILOG_FILE rtl/ic_frontends/adv7280a/adv7280a_frontend.v
 set_global_assignment -name VERILOG_FILE rtl/scanconverter.v
 set_global_assignment -name VERILOG_FILE rtl/linebuf_top.v
 set_global_assignment -name VERILOG_FILE rtl/ir_rcv.v
 set_global_assignment -name VERILOG_FILE rtl/pwm_2ch.v
 set_global_assignment -name VERILOG_FILE rtl/dram_refresh_sched.v
+set_global_assignment -name VERILOG_FILE rtl/output_csc.v
 set_global_assignment -name SIP_FILE sys/simulation/sys.sip
 set_global_assignment -name QIP_FILE software/sys_controller/mem_init/meminit.qip
 set_global_assignment -name SIP_FILE software/sys_controller/mem_init/meminit.sip
@@ -634,9 +659,13 @@ set_global_assignment -name QIP_FILE rtl/linebuf.qip
 set_global_assignment -name QIP_FILE rtl/linebuf_double.qip
 set_global_assignment -name QIP_FILE rtl/char_array.qip
 set_global_assignment -name QIP_FILE rtl/char_rom.qip
+set_global_assignment -name QIP_FILE rtl/shmask_array.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_in.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_out.qip
+set_global_assignment -name QIP_FILE rtl/lpm_mult_8x5_9.qip
 set_global_assignment -name QIP_FILE rtl/lpm_mult_sl.qip
 set_global_assignment -name QIP_FILE rtl/dc_fifo_emif_wr.qip
+set_global_assignment -name QIP_FILE rtl/pll_sdp.qip
+set_global_assignment -name SIP_FILE rtl/pll_sdp.sip
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
