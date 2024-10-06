@@ -52,6 +52,28 @@ git submodule update --init --recursive
 
 NOTE: If you want to generate distributable bitstream and do not have Intel VIP license, disable alt_vip_* modules in Qsys before platform generation and comment out \`define VIP at the top of rtl/ossc_pro.v.
 
+Building RTL using the Docker image
+--------------------------
+Once you built the image (we'll assume it is named ossc_pro), you can run this command while in the repo :
+
+~~~~
+$ docker run -it --rm \
+   -e LM_LICENSE_FILE=/opt/license.dat \ # If you have a license
+   -v /path/to/license.dat:/opt/license.dat:ro \ # If you have a license
+   -v $(pwd):/build \
+   ossc_pro \
+   /bin/bash
+~~~~
+
+It will spawn a bash prompt with Quartus Lite, the RISC-V toolchain installed.
+
+Here are the commands used for building the RTL without GUI:
+~~~~
+# qsys-generate --synthesis=VERILOG sys.qsys 
+# patch -p0 < scripts/qsys.patch
+# touch software/sys_controller_bsp/bsp_timestamp
+# quartus_sh --flow compile ossc_pro.qpf
+~~~~
 
 Building software image
 --------------------------
@@ -102,7 +124,6 @@ The primary firmware has FPGA bitstream at offset 0x0 and SW image at 0xA00000 s
 ./create_fw_img 2 ../output_files/ossc_pro.rbf 0x0 ../software/sys_controller/mem_init/flash.bin 0xA00000 0.69
 ~~~~
 This creates ossc_pro_\<version\>.bin which can be copied to root of SD card as ossc_pro.bin.
-
 
 Alternative firmware images and dynamic reconfiguration
 --------------------------
