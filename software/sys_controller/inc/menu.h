@@ -136,6 +136,7 @@ void cstm_position(menucode_id code, int setup_disp);
 void cstm_profile_load(menucode_id code, int setup_disp);
 void cstm_scl_alg_load(menucode_id code, int setup_disp);
 void cstm_shmask_load(menucode_id code, int setup_disp);
+void cstm_edid_load(menucode_id code, int setup_disp);
 void cstm_vm_stats(menucode_id code, int setup_disp);
 void cstm_listview(menucode_id code, int setup_disp);
 void enter_cstm(menuitem_t *item, int detached_mode);

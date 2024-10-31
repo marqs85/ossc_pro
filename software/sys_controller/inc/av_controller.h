@@ -135,6 +135,13 @@ typedef struct {
     shmask_data_arr arr;
 } c_shmask_t;
 
+typedef struct {
+    char name[20];
+    edid_t edid;
+} c_edid_t;
+
+typedef int (*load_func)(char*, char*);
+
 void ui_disp_menu(uint8_t osd_mode);
 void ui_disp_status(uint8_t refresh_osd_timer);
 
@@ -166,5 +173,9 @@ int load_scl_coeffs(char *dirname, char *filename);
 
 void set_default_c_shmask();
 int load_shmask(char *dirname, char *filename);
+
+void set_default_c_edid();
+int load_edid(char *dirname, char *filename);
+void set_custom_edid_reload();
 
 #endif
