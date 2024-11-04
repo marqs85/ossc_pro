@@ -1198,10 +1198,10 @@
   <parameter name="MEM_NUMBER_OF_RANKS_PER_DIMM" value="1" />
   <parameter name="MEM_RANK_MULTIPLICATION_FACTOR" value="1" />
   <parameter name="MEM_ROW_ADDR_WIDTH" value="13" />
-  <parameter name="MEM_TCL" value="4" />
+  <parameter name="MEM_TCL" value="5" />
   <parameter name="MEM_TFAW_NS" value="50.0" />
   <parameter name="MEM_TINIT_US" value="200" />
-  <parameter name="MEM_TMRD_CK" value="5" />
+  <parameter name="MEM_TMRD_CK" value="3" />
   <parameter name="MEM_TRAS_NS" value="42.0" />
   <parameter name="MEM_TRCD_NS" value="18.0" />
   <parameter name="MEM_TREFI_US" value="7.8" />
@@ -1351,20 +1351,20 @@
   <parameter name="TIMING_BOARD_TDS" value="0.5" />
   <parameter name="TIMING_BOARD_TIH" value="0.5" />
   <parameter name="TIMING_BOARD_TIS" value="0.5" />
-  <parameter name="TIMING_TDH" value="300" />
+  <parameter name="TIMING_TDH" value="350" />
   <parameter name="TIMING_TDQSCK" value="5500" />
-  <parameter name="TIMING_TDQSCKDL" value="1800" />
-  <parameter name="TIMING_TDQSCKDM" value="1350" />
-  <parameter name="TIMING_TDQSCKDS" value="670" />
+  <parameter name="TIMING_TDQSCKDL" value="1400" />
+  <parameter name="TIMING_TDQSCKDM" value="1050" />
+  <parameter name="TIMING_TDQSCKDS" value="540" />
   <parameter name="TIMING_TDQSH" value="0.4" />
-  <parameter name="TIMING_TDQSQ" value="340" />
-  <parameter name="TIMING_TDQSS" value="1.25" />
-  <parameter name="TIMING_TDS" value="210" />
+  <parameter name="TIMING_TDQSQ" value="280" />
+  <parameter name="TIMING_TDQSS" value="0.75" />
+  <parameter name="TIMING_TDS" value="350" />
   <parameter name="TIMING_TDSH" value="0.2" />
   <parameter name="TIMING_TDSS" value="0.2" />
-  <parameter name="TIMING_TIH" value="330" />
-  <parameter name="TIMING_TIS" value="240" />
-  <parameter name="TIMING_TQHS" value="400" />
+  <parameter name="TIMING_TIH" value="370" />
+  <parameter name="TIMING_TIS" value="370" />
+  <parameter name="TIMING_TQHS" value="340" />
   <parameter name="TRACKING_ERROR_TEST" value="false" />
   <parameter name="TRACKING_WATCH_TEST" value="false" />
   <parameter name="TREFI" value="35100" />
