@@ -47,6 +47,7 @@ extern sync_timings_t sdp_timings[NUM_VIDEO_GROUPS];
 extern uint8_t update_cur_vm;
 extern c_pp_coeffs_t c_pp_coeffs;
 extern c_shmask_t c_shmask;
+extern c_edid_t c_edid;
 
 char target_profile_name[USERDATA_NAME_LEN+1], cur_profile_name[USERDATA_NAME_LEN+1];
 
@@ -65,12 +66,13 @@ const ude_item_map ude_initcfg_items[] = {
 
 const ude_item_map ude_profile_items[] = {
     {{0, 72, sizeof(video_modes_plm_default)}, video_modes_plm},
-    {{1, 74, sizeof(video_modes_default)}, video_modes},
+    {{1, 77, sizeof(video_modes_default)}, video_modes},
     {{2, 76, sizeof(smp_presets_default)}, smp_presets},
     UDE_ITEM(86, 72, hdmi_timings),
     UDE_ITEM(91, 75, sdp_timings),
     UDE_ITEM(95, 76, c_pp_coeffs),
     UDE_ITEM(96, 76, c_shmask),
+    UDE_ITEM(97, 77, c_edid),
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -110,7 +112,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
-    UDE_ITEM(41, 74, tc.tp_mode),
+    UDE_ITEM(41, 77, tc.tp_mode),
     UDE_ITEM(42, 58, tc.lm_deint_mode),
     UDE_ITEM(43, 58, tc.nir_even_offset),
     UDE_ITEM(44, 58, tc.ar_256col),
@@ -125,7 +127,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(53, 58, tc.upsample2x),
     UDE_ITEM(54, 60, tc.ypbpr_cs),
     UDE_ITEM(55, 58, tc.audmux_sel),
-    UDE_ITEM(56, 58, tc.audio_src_map),
+    UDE_ITEM(56, 77, tc.audio_src_map),
     UDE_ITEM(57, 58, tc.reverse_lpf),
     UDE_ITEM(58, 58, tc.audio_fmt),
 #ifdef VIP
@@ -159,7 +161,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(77, 75, tc.hdmitx_cfg),
 #endif
 #ifdef INC_ADV761X
-    UDE_ITEM(78, 69, tc.hdmirx_cfg),
+    UDE_ITEM(78, 77, tc.hdmirx_cfg),
 #endif
 #ifdef INC_PCM186X
     UDE_ITEM(79, 58, tc.pcm_cfg),
@@ -168,7 +170,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(80, 74, tc.scl_crt_out_mode),
     UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
-    UDE_ITEM(82, 75, tc.pm_ad_1080p),
+    UDE_ITEM(82, 77, tc.pm_ad_1080p),
     UDE_ITEM(83, 67, tc.l6_mode),
     UDE_ITEM(84, 76, tc.shmask_mode),
     UDE_ITEM(85, 72, tc.timing_1080p120),
@@ -181,11 +183,12 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(90, 75, tc.extra_av_out_mode),
     // 91 reserved for sdp_timings
 #ifndef DExx_FW
-    UDE_ITEM(92, 75, tc.sdp_cfg),
+    UDE_ITEM(92, 77, tc.sdp_cfg),
 #endif
     UDE_ITEM(93, 76, tc.lumacode_mode),
     UDE_ITEM(94, 76, tc.shmask_str),
-    // 95-96 reserved
+    // 95-97 reserved
+    UDE_ITEM(98, 77, tc.hdmi_pixeldecim_mode),
 };
 
 int write_userdata(uint8_t entry) {

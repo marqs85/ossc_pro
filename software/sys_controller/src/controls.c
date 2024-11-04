@@ -277,7 +277,7 @@ void parse_control()
                     quick_adjust_phase(r_code == RC_PHASE_PLUS);
             }
             if (r_code == RC_INFO)
-                print_vm_stats();
+                print_vm_stats(0);
             if (r_code == RC_SL_MODE)
                 enter_cstm(&menu_scanlines_items[0], 1);
             if (r_code == RC_SL_TYPE)

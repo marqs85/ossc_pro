@@ -69,9 +69,9 @@ const avconfig_t tc_default = {
     .syncmux_stc = 1,
 #endif
 #ifndef DExx_FW
-    .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL},
+    .audio_src_map = {AUD_AV1_ANALOG, AUD_AV2_ANALOG, AUD_AV3_ANALOG, AUD_AV4_DIGITAL, AUD_AV2_ANALOG},
 #else
-    .audio_src_map = {AUD_AV1_ANALOG, 0, 0, 0},
+    .audio_src_map = {AUD_AV1_ANALOG, 0, 0, 0, 0},
 #endif
     .extra_av_out_mode = 1,
 };
@@ -108,7 +108,7 @@ status_t update_avconfig() {
     if (tc.syncmux_stc != cc.syncmux_stc)
         set_syncmux_biasmode(tc.syncmux_stc);
 #endif
-    if (memcmp(tc.audio_src_map, cc.audio_src_map, 4*sizeof(audinput_t)))
+    if (memcmp(tc.audio_src_map, cc.audio_src_map, 5*sizeof(audinput_t)))
         switch_audsrc(tc.audio_src_map, &tc.hdmitx_cfg.audio_fmt);
 
     memcpy(&cc, &tc, sizeof(avconfig_t));
@@ -134,6 +134,9 @@ int set_default_profile(int update_cc)
 #ifdef INC_SII1136
     sii1136_get_default_cfg(&tc.hdmitx_cfg);
 #endif
+#ifdef INC_ADV761X
+    adv761x_get_default_cfg(&tc.hdmirx_cfg);
+#endif
 #ifdef INC_PCM186X
     pcm186x_get_default_cfg(&tc.pcm_cfg);
 #endif
@@ -149,6 +152,7 @@ int set_default_profile(int update_cc)
 
     set_default_c_pp_coeffs();
     set_default_c_shmask();
+    set_default_c_edid();
     set_default_vm_table();
 
     return 0;
@@ -166,6 +170,10 @@ int load_profile() {
     retval = read_userdata(profile_sel_menu, 0);
     if (retval == 0) {
         profile_sel = profile_sel_menu;
+
+        // enforce custom EDID update
+        if (tc.hdmirx_cfg.edid_sel == 3)
+            set_custom_edid_reload();
 
         // Change the input if the new profile demands it.
         /*if (tc.link_av != AV_LAST)

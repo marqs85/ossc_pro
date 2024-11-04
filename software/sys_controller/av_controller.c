@@ -49,8 +49,12 @@
 #include "firmware.h"
 #include "userdata.h"
 
+#include "src/edid_presets.c"
+#include "src/shmask_arrays.c"
+#include "src/scl_pp_coeffs.c"
+
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 76
+#define FW_VER_MINOR 77
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -85,31 +89,6 @@
 
 #define VIP_WDOG_VALUE 10
 
-unsigned char pro_edid_bin[] = {
-  0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x36, 0x51, 0x5c, 0x05,
-  0x15, 0xcd, 0x5b, 0x07, 0x0a, 0x1d, 0x01, 0x04, 0xa2, 0x3c, 0x22, 0x78,
-  0xff, 0xde, 0x51, 0xa3, 0x54, 0x4c, 0x99, 0x26, 0x0f, 0x50, 0x54, 0xff,
-  0xff, 0xff, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-  0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3a, 0x80, 0x18, 0x71, 0x38,
-  0x2d, 0x40, 0x58, 0x2c, 0x45, 0x00, 0x55, 0x50, 0x21, 0x00, 0x00, 0x1a,
-  0x00, 0x00, 0x00, 0xff, 0x00, 0x32, 0x30, 0x35, 0x34, 0x38, 0x31, 0x32,
-  0x35, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xfd, 0x00, 0x2d,
-  0x90, 0x0a, 0x96, 0x14, 0x01, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-  0x00, 0x00, 0x00, 0xfc, 0x00, 0x4f, 0x53, 0x53, 0x43, 0x20, 0x50, 0x72,
-  0x6f, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x01, 0x46, 0x02, 0x03, 0x40, 0xf2,
-  0x50, 0x9f, 0x90, 0x14, 0x05, 0x20, 0x13, 0x04, 0x12, 0x03, 0x11, 0x02,
-  0x16, 0x07, 0x15, 0x06, 0x01, 0x29, 0x0f, 0x7f, 0x07, 0x17, 0x7f, 0xff,
-  0x3f, 0x7f, 0xff, 0x83, 0x4f, 0x00, 0x00, 0x78, 0x03, 0x0c, 0x00, 0x10,
-  0x00, 0x88, 0x26, 0x2f, 0x01, 0x01, 0x01, 0x01, 0xff, 0xfc, 0x06, 0x16,
-  0x08, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe3, 0x05, 0x1f, 0x01,
-  0x01, 0x1d, 0x80, 0xd0, 0x72, 0x1c, 0x16, 0x20, 0x10, 0x2c, 0x25, 0x80,
-  0xba, 0x88, 0x21, 0x00, 0x00, 0x9e, 0x01, 0x1d, 0x80, 0x18, 0x71, 0x1c,
-  0x16, 0x20, 0x58, 0x2c, 0x25, 0x00, 0xba, 0x88, 0x21, 0x00, 0x00, 0x9e,
-  0x01, 0x1d, 0x00, 0xbc, 0x52, 0xd0, 0x1e, 0x20, 0xb8, 0x28, 0x55, 0x40,
-  0xba, 0x88, 0x21, 0x00, 0x00, 0x1e, 0x01, 0x1d, 0x00, 0x72, 0x51, 0xd0,
-  0x1e, 0x20, 0x6e, 0x3c
-};
-
 // Default settings
 const settings_t ts_default = {
     .default_avinput = 0,
@@ -118,6 +97,9 @@ const settings_t ts_default = {
     .fan_pwm = 0,
     .led_pwm = 5,
 };
+
+c_edid_t c_edid;
+const edid_t* edid_list[] = {&pro_edid_default, &pro_edid_2ch, &pro_edid_dc10b, &c_edid.edid};
 
 isl51002_dev isl_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                         .i2c_addr = ISL51002_BASE,
@@ -143,8 +125,7 @@ adv761x_dev advrx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                          .hdmi_base = ADV7610_HDMI_BASE,
                          .cp_base = ADV7610_CP_BASE,
                          .xtal_freq = 27000000LU,
-                         .edid = pro_edid_bin,
-                         .edid_len = sizeof(pro_edid_bin)};
+                         .edid_list = edid_list};
 
 #ifdef INC_ADV7513
 adv7513_dev advtx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
@@ -212,10 +193,7 @@ extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 extern const char *avinput_str[];
 
-FIL file;
 char char_buff[256];
-
-#include "src/shmask_arrays.c"
 
 c_shmask_t c_shmask;
 const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_tv, &shmask_pvm, &shmask_pvm_2530, &shmask_xc_3315c, &shmask_c_1084, &shmask_jvc, &shmask_vga, &c_shmask.arr};
@@ -224,8 +202,6 @@ int shmask_loaded_str = -1;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
 
 #ifdef VIP
-#include "src/scl_pp_coeffs.c"
-
 c_pp_coeffs_t c_pp_coeffs;
 const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
                                             {{&pp_coeff_lanczos3, NULL}, {&pp_coeff_lanczos3, NULL}},
@@ -819,22 +795,6 @@ int check_sdcard() {
     return ret;
 }
 
-int update_edid() {
-    FIL edid_file;
-    unsigned bytes_read;
-
-    if (!sd_det)
-        return -1;
-
-    if (!file_open(&edid_file, "edid.bin") && (f_size(&edid_file) == sizeof(pro_edid_bin))) {
-        f_read(&edid_file, pro_edid_bin, sizeof(pro_edid_bin), &bytes_read);
-        printf("Custom edid set\n");
-        file_close(&edid_file);
-    }
-
-    return 0;
-}
-
 int init_hw()
 {
     int ret;
@@ -882,9 +842,7 @@ int init_hw()
     // Init ocsdc driver
     mmc_dev = ocsdc_mmc_init(SDC_CONTROLLER_QSYS_0_BASE, SDC_FREQ, SDC_HOST_CAPS);
 
-    // Load custom EDID if available and reset MMC/SD status as entering standby
-    check_sdcard();
-    update_edid();
+    // Reset MMC/SD status as entering standby
     mmc_dev->has_init = 0;
     sd_det = sd_det_prev = 0;
 
@@ -945,6 +903,9 @@ int init_hw()
 
     update_settings(1);
 
+    // Configure HDMI RX at startup (EDID etc.)
+    adv761x_update_config(&advrx_dev, &get_target_avconfig()->hdmirx_cfg);
+
     return 0;
 }
 
@@ -999,7 +960,7 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
     else if (avinput == AV4)
         audsrc = audsrc_map[3];
     else
-        audsrc = AUD_AV2_ANALOG; // AV_EXP
+        audsrc = audsrc_map[4]; // AV_EXP
 
     if (audsrc <= AUD_AV3_ANALOG)
         pcm186x_source_sel(&pcm_dev, audsrc);
@@ -1049,7 +1010,7 @@ void sys_toggle_power() {
     sys_powered_on ^= 1;
 }
 
-void print_vm_stats() {
+void print_vm_stats(int menu_mode) {
     alt_timestamp_type ts = alt_timestamp();
     int row = 0;
     memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
@@ -1091,7 +1052,8 @@ void print_vm_stats() {
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Uptime:");
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%luh %lumin", (uint32_t)((ts/TIMER_0_FREQ)/3600), ((uint32_t)((ts/TIMER_0_FREQ)/60) % 60));
 
-    osd->osd_config.status_refresh = 1;
+    if (!menu_mode)
+        osd->osd_config.status_refresh = 1;
     osd->osd_row_color.mask = 0;
     osd->osd_sec_enable[0].mask = (1<<(row+1))-1;
     osd->osd_sec_enable[1].mask = (1<<(row+1))-1;
@@ -1152,11 +1114,19 @@ void set_default_c_shmask() {
     strncpy(c_shmask.name, "Custom: <none>", 20);
 }
 
+void set_default_c_edid() {
+    memset(&c_edid, 0, sizeof(c_shmask));
+    strncpy(c_edid.name, "Custom: <none>", 20);
+}
+
 int load_scl_coeffs(char *dirname, char *filename) {
+    FIL file;
     FIL f_coeff;
+    char dirname_root[10];
     int i, p, n, pp_bits, lines=0;
 
-    f_chdir(dirname);
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
 
     if (!file_open(&file, filename)) {
         while ((lines < 4) && file_get_string(&file, char_buff, sizeof(char_buff))) {
@@ -1221,14 +1191,16 @@ int load_scl_coeffs(char *dirname, char *filename) {
 
 int load_shmask(char *dirname, char *filename) {
     FIL f_shmask;
+    char dirname_root[10];
     int arr_size_loaded=0;
     int v0=0,v1=0;
     int p;
 
-    f_chdir(dirname);
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
 
-    if (!file_open(&file, filename)) {
-        while (file_get_string(&file, char_buff, sizeof(char_buff))) {
+    if (!file_open(&f_shmask, filename)) {
+        while (file_get_string(&f_shmask, char_buff, sizeof(char_buff))) {
             // strip CR / CRLF
             char_buff[strcspn(char_buff, "\r\n")] = 0;
 
@@ -1262,7 +1234,7 @@ int load_shmask(char *dirname, char *filename) {
             }
         }
 
-        file_close(&file);
+        file_close(&f_shmask);
     }
 
     f_chdir("/");
@@ -1271,6 +1243,38 @@ int load_shmask(char *dirname, char *filename) {
     shmask_loaded_array = -1;
     update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
     return 0;
+}
+
+int load_edid(char *dirname, char *filename) {
+    FIL f_edid;
+    char dirname_root[10];
+    unsigned bytes_read;
+
+    if (!sd_det)
+        return -1;
+
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
+
+    if (!file_open(&f_edid, filename) && (f_size(&f_edid) <= EDID_MAX_SIZE)) {
+        f_read(&f_edid, c_edid.edid.data, f_size(&f_edid), &bytes_read);
+        file_close(&f_edid);
+    }
+
+    f_chdir("/");
+
+    c_edid.edid.len = bytes_read;
+    sniprintf(c_edid.name, sizeof(c_edid.name), "C: %s", filename);
+
+    // Enfoce custom edid update
+    if (advrx_dev.cfg.edid_sel == 3)
+        set_custom_edid_reload();
+
+    return 0;
+}
+
+void set_custom_edid_reload() {
+    advrx_dev.cfg.edid_sel = 0;
 }
 
 void update_settings(int init_setup) {
@@ -1661,7 +1665,7 @@ void mainloop()
                     if (advrx_dev.ss.interlace_flag)
                         vmode_in.timings.v_hz_x100 *= 2;
 
-                    h_skip_prev = (advrx_dev.cfg.pixelderep_mode == 0) ? (advrx_dev.pixelderep_ifr-advrx_dev.pixelderep) : 0;
+                    h_skip_prev = (cur_avconfig->hdmi_pixeldecim_mode == 0) ? (advrx_dev.pixelderep_ifr-advrx_dev.pixelderep) : (cur_avconfig->hdmi_pixeldecim_mode-1);
 
                     sniprintf(vmode_in.name, sizeof(vmode_in.name), "%ux%u%c", advrx_dev.ss.h_active/(h_skip_prev+1), (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active/(h_skip_prev+1);

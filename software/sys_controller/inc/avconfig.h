@@ -144,6 +144,7 @@ typedef struct {
     uint8_t oper_mode;
     uint8_t timing_1080p120;
     uint8_t timing_2160p60;
+    uint8_t hdmi_pixeldecim_mode;
 
     /* Postprocessing settings */
     uint8_t sl_mode;
@@ -189,7 +190,7 @@ typedef struct {
     uint8_t tp_mode;
     uint8_t audio_fmt;
     uint8_t audmux_sel;
-    audinput_t audio_src_map[4];
+    audinput_t audio_src_map[5];
     uint8_t exp_sel;
     uint8_t extra_av_out_mode;
 #ifdef INC_THS7353
