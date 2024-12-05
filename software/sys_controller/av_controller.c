@@ -202,6 +202,7 @@ int shmask_loaded_str = -1;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
 
 #ifdef VIP
+alt_timestamp_type vip_resync_ts;
 c_pp_coeffs_t c_pp_coeffs;
 const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
                                             {{&pp_coeff_lanczos3, NULL}, {&pp_coeff_lanczos3, NULL}},
@@ -505,9 +506,9 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     h_frontporch = h_blank-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
     v_frontporch = v_blank-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
 
-    // VIP frame reader swaps buffers at the end of read frame while writer apparently does it just before frame to be written (?)
+    // VIP frame reader swaps buffers at the end of read frame (~10 lines before VCO outputs last active line) while writer does it just before first active line written
     // SOF needs to be offset accordingly to minimize FB latency
-    hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+20+((v_frontporch*100*vm_in->timings.v_total)/(100*vm_out->timings.v_total));
+    hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+10;
 
     sc->hv_in_config = hv_in_config;
     sc->hv_in_config2 = hv_in_config2;
@@ -630,11 +631,14 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         vip_cvo->fid_f = 2*vm_conf->y_size + vip_cvo->v_blank_f0 + vip_cvo->v_frontporch_f0;
         vip_cvo->h_polarity = 0;
         vip_cvo->v_polarity = 0;
+        vip_cvo->sof_line = vm_out->timings.v_synclen + vm_out->timings.v_backporch + vm_conf->y_offset + vm_conf->y_size - 10; // final active pixel gets written to FB around here
         vip_cvo->valid = 1;
     }
 
-    if (vm_conf->framelock)
+    if (vm_conf->framelock) {
         vip_cvo->ctrl |= (1<<4);
+        vip_resync_ts = alt_timestamp();
+    }
 #endif
 }
 
@@ -673,6 +677,14 @@ int vip_wdog_update() {
     }
 
     return 0;
+}
+
+void vip_cvo_restart() {
+    vip_cvo->ctrl &= ~(1<<0);
+    usleep(10000);
+    vip_cvo->ctrl |= (1<<0);
+    vip_cvo->ctrl |= (1<<4);
+    vip_resync_ts = alt_timestamp();
 }
 #endif
 
@@ -1867,8 +1879,11 @@ void mainloop()
         pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);
 
 #ifdef VIP
+        // Monitor if VIP DIL gets stuck or CVO fails framelocking
         if (vip_wdog_update())
             update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+        if ((oper_mode == OPERMODE_SCALER) && vm_conf.framelock && (IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE) & (1<<SSTAT_CVO_RESYNC_BIT)) && (alt_timestamp() >= vip_resync_ts + 100000*(TIMER_0_FREQ/1000000)))
+            vip_cvo_restart();
 #endif
 
         check_sdcard();

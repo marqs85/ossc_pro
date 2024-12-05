@@ -61,6 +61,7 @@
 #define SSTAT_EMIF_POWERDN_ACK_BIT      3
 #define SSTAT_EMIF_PLL_LOCKED           4
 #define SSTAT_SD_DETECT_BIT             5
+#define SSTAT_CVO_RESYNC_BIT            29
 
 #define SCTRL_CAPTURE_SEL_ISL       0
 #define SCTRL_CAPTURE_SEL_HDMIRX    1
