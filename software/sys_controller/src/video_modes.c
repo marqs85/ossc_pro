@@ -345,7 +345,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {-1, STDMODE_480p_60_CRT, STDMODE_480p_100_CRT, STDMODE_480p_120_CRT},
                                          {STDMODE_540p_50_CRT, STDMODE_540p_60_CRT, -1, -1},
                                          {-1, STDMODE_1024x768_60, STDMODE_1024x768_60, STDMODE_1024x768_60},
-                                         {-1, STDMODE_1280x960_60, STDMODE_1280x960_60, STDMODE_1280x960_60}};
+                                         {-1, STDMODE_1280x960_60, STDMODE_1280x960_60, STDMODE_1280x960_60},
+                                         {-1, STDMODE_2048x1536_60, -1, -1}};
 
     const stdmode_t *pm_scl_map = cc->scl_out_type ? pm_scl_map_crt[cc->scl_crt_out_mode] : pm_scl_map_dfp[cc->scl_out_mode];
 

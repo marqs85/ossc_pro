@@ -146,6 +146,8 @@ const mode_data_t video_modes_default[] = {
     /* 2560x1440 (CVT-RB) */
     { "2560x1440_50",  HDMI_Unknown,     {2560, 1440,   5000,  2720, 0, 1474,   80, 26,   32, 5,  0},  0,  {{16,  9}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     { "2560x1440_60",  HDMI_Unknown,     {2560, 1440,   6000,  2720, 0, 1481,   80, 33,   32, 5,  0},  0,  {{16,  9}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
+    /* Quad-XGA */
+    { "2048x1536_60",  HDMI_Unknown,     {2048, 1536,   6000,  2688, 0, 1612,  340, 58,  252, 6,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     /* 2880x2160 (CVT-RB with PR2) */
     { "2880x2160_50",  HDMI_Unknown,     {1440, 2160,   5000,  1520, 0, 2211,   40, 44,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
     { "2880x2160_60",  HDMI_Unknown,     {1440, 2160,   6000,  1520, 0, 2222,   40, 55,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },

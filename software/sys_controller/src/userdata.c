@@ -66,7 +66,7 @@ const ude_item_map ude_initcfg_items[] = {
 
 const ude_item_map ude_profile_items[] = {
     {{0, 72, sizeof(video_modes_plm_default)}, video_modes_plm},
-    {{1, 77, sizeof(video_modes_default)}, video_modes},
+    {{1, 78, sizeof(video_modes_default)}, video_modes},
     {{2, 76, sizeof(smp_presets_default)}, smp_presets},
     UDE_ITEM(86, 72, hdmi_timings),
     UDE_ITEM(91, 75, sdp_timings),
@@ -167,7 +167,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(79, 58, tc.pcm_cfg),
 #endif
 #ifdef VIP
-    UDE_ITEM(80, 74, tc.scl_crt_out_mode),
+    UDE_ITEM(80, 78, tc.scl_crt_out_mode),
     UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
     UDE_ITEM(82, 77, tc.pm_ad_1080p),
