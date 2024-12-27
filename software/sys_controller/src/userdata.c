@@ -189,6 +189,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(94, 76, tc.shmask_str),
     // 95-97 reserved
     UDE_ITEM(98, 77, tc.hdmi_pixeldecim_mode),
+    UDE_ITEM(99, 78, tc.isl_ext_range),
 };
 
 int write_userdata(uint8_t entry) {

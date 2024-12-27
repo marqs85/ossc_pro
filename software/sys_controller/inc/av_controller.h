@@ -146,6 +146,8 @@ typedef int (*load_func)(char*, char*);
 void ui_disp_menu(uint8_t osd_mode);
 void ui_disp_status(uint8_t refresh_osd_timer);
 
+void restart_isl(uint8_t isl_ext_range);
+
 void switch_input(rc_code_t rcode, btn_code_t bcode);
 
 void set_syncmux_biasmode(uint8_t syncmux_stc);

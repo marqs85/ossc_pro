@@ -101,10 +101,13 @@ const settings_t ts_default = {
 c_edid_t c_edid;
 const edid_t* edid_list[] = {&pro_edid_default, &pro_edid_2ch, &pro_edid_dc10b, &c_edid.edid};
 
+#define ISL_XTAL_FREQ       27000000LU
+#define ISL_XTAL_FREQ_EXT   26000000LU
+
 isl51002_dev isl_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                         .i2c_addr = ISL51002_BASE,
                         .xclk_out_en = 0,
-                        .xtal_freq = 27000000LU};
+                        .xtal_freq = ISL_XTAL_FREQ};
 
 ths7353_dev ths_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                         .i2c_addr = THS7353_BASE};
@@ -853,6 +856,7 @@ int init_hw()
     us2066_init(&chardisp_dev);
 
     // Init ISL51002
+    isl_dev.xtal_freq = ISL_XTAL_FREQ;
     ret = isl_init(&isl_dev);
     if (ret != 0) {
         sniprintf(row1, US2066_ROW_LEN+1, "ISL51002 init fail");
@@ -948,6 +952,12 @@ int init_hw()
     adv761x_update_config(&advrx_dev, &get_target_avconfig()->hdmirx_cfg);
 
     return 0;
+}
+
+void restart_isl(uint8_t isl_ext_range) {
+    isl_dev.xtal_freq = isl_ext_range ? ISL_XTAL_FREQ_EXT : ISL_XTAL_FREQ;
+    isl_dev.sync_active = 0;
+    isl_init(&isl_dev);
 }
 
 void switch_input(rc_code_t rcode, btn_code_t bcode) {

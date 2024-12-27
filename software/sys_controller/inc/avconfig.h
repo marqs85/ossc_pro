@@ -193,6 +193,7 @@ typedef struct {
     audinput_t audio_src_map[5];
     uint8_t exp_sel;
     uint8_t extra_av_out_mode;
+    uint8_t isl_ext_range;
 #ifdef INC_THS7353
     uint8_t syncmux_stc;
 #endif

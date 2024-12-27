@@ -347,6 +347,7 @@ MENU(menu_isl_sync_opt, P99_PROTECT({
     { "H-PLL Pre-Coast",                        OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.pre_coast,   OPT_NOWRAP, 0, PLL_COAST_MAX, lines_disp } } },
     { "H-PLL Post-Coast",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.post_coast,  OPT_NOWRAP, 0, PLL_COAST_MAX, lines_disp } } },
     { "H-PLL Loop Gain",                        OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.pll_loop_gain, OPT_NOWRAP, 0, PLL_LOOP_GAIN_MAX, value_disp } } },
+    { "Ext. dotclk range",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.isl_ext_range,         OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
 }))
 
 #ifdef INC_ADV761X
