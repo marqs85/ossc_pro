@@ -304,6 +304,15 @@ typedef struct {
     uint32_t ctrl;
     uint32_t status;
     uint32_t irq;
+    uint32_t out_switch;
+    uint32_t dout_ctrl[12];
+    uint32_t din_cons_mode;
+} vip_swi_ii_regs;
+
+typedef struct {
+    uint32_t ctrl;
+    uint32_t status;
+    uint32_t irq;
     uint32_t frame_cnt;
     uint32_t drop_rpt_cnt;
     uint32_t unused[3];
@@ -318,6 +327,8 @@ volatile vip_dil_ii_regs *vip_dil = (volatile vip_dil_ii_regs*)ALT_VIP_CL_DIL_0_
 volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)ALT_VIP_CL_VFB_0_BASE;
 volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)ALT_VIP_CL_SCL_0_BASE;
 volatile vip_il_ii_regs *vip_il = (volatile vip_il_ii_regs*)ALT_VIP_CL_IL_0_BASE;
+volatile vip_swi_ii_regs *vip_swi_pre_dil = (volatile vip_swi_ii_regs*)ALT_VIP_CL_SWI_0_BASE;
+volatile vip_swi_ii_regs *vip_swi_post_dil = (volatile vip_swi_ii_regs*)ALT_VIP_CL_SWI_1_BASE;
 volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)ALT_VIP_CL_CVO_0_BASE;
 #endif
 
@@ -530,6 +541,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_cvi->ctrl = vip_enable;
     vip_dil->ctrl = vip_enable;
     vip_il->ctrl = vip_enable;
+    vip_swi_pre_dil->ctrl = vip_enable;
+    vip_swi_post_dil->ctrl = vip_enable;
 
     if (avconfig->scl_alg == 0)
         scl_target_pp_coeff = ((vm_in->group >= GROUP_240P) && (vm_in->group <= GROUP_288P)) ? 0 : 2; // Nearest or Lanchos3_sharp
@@ -559,6 +572,17 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     }
 
     vip_dil->motion_shift = avconfig->scl_dil_motion_shift;
+
+    if ((vip_swi_pre_dil->dout_ctrl[0] != !vm_in->timings.interlaced) || (vip_swi_pre_dil->dout_ctrl[1] != vm_in->timings.interlaced)) {
+        vip_swi_pre_dil->dout_ctrl[0] = !vm_in->timings.interlaced;
+        vip_swi_pre_dil->dout_ctrl[1] = vm_in->timings.interlaced;
+        vip_swi_pre_dil->out_switch = 1;
+    }
+
+    if (vip_swi_post_dil->dout_ctrl[0] != 1<<(vm_in->timings.interlaced)) {
+        vip_swi_post_dil->dout_ctrl[0] = 1<<(vm_in->timings.interlaced);
+        vip_swi_post_dil->out_switch = 1;
+    }
 
     vip_il->config = !vm_out->timings.interlaced;
 
@@ -653,7 +677,15 @@ void vip_dil_hard_reset() {
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 }
 
-int vip_wdog_update() {
+void vip_cvo_restart() {
+    vip_cvo->ctrl &= ~(1<<0);
+    usleep(10000);
+    vip_cvo->ctrl |= (1<<0);
+    vip_cvo->ctrl |= (1<<4);
+    vip_resync_ts = alt_timestamp();
+}
+
+int vip_wdog_update(uint8_t framelock) {
     static uint8_t vip_wdog_ctr = 0;
     static uint32_t vip_frame_cnt_prev = 0;
 
@@ -670,21 +702,18 @@ int vip_wdog_update() {
 
     vip_frame_cnt_prev = vip_frame_cnt;
 
+    if ((IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE) & (1<<SSTAT_CVO_RESYNC_BIT)) && (alt_timestamp() >= vip_resync_ts + 100000*(TIMER_0_FREQ/1000000))) {
+        printf("Restarting CVO due to framelock timeout\n");
+        vip_cvo_restart();
+    }
     if (vip_wdog_ctr >= VIP_WDOG_VALUE) {
+        printf("Resetting DIL due to watchdog timeout\n");
         vip_dil_hard_reset();
         vip_wdog_ctr = 0;
         return 1;
     }
 
     return 0;
-}
-
-void vip_cvo_restart() {
-    vip_cvo->ctrl &= ~(1<<0);
-    usleep(10000);
-    vip_cvo->ctrl |= (1<<0);
-    vip_cvo->ctrl |= (1<<4);
-    vip_resync_ts = alt_timestamp();
 }
 #endif
 
@@ -1880,10 +1909,8 @@ void mainloop()
 
 #ifdef VIP
         // Monitor if VIP DIL gets stuck or CVO fails framelocking
-        if (vip_wdog_update())
+        if ((oper_mode == OPERMODE_SCALER) && vip_wdog_update(vm_conf.framelock))
             update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
-        if ((oper_mode == OPERMODE_SCALER) && vm_conf.framelock && (IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE) & (1<<SSTAT_CVO_RESYNC_BIT)) && (alt_timestamp() >= vip_resync_ts + 100000*(TIMER_0_FREQ/1000000)))
-            vip_cvo_restart();
 #endif
 
         check_sdcard();
@@ -1961,6 +1988,8 @@ int main()
         vip_cvi->ctrl = 0;
         vip_dil->ctrl = 0;
         vip_il->ctrl = 0;
+        vip_swi_pre_dil->ctrl = 0;
+        vip_swi_post_dil->ctrl = 0;
         vip_scl_pp->ctrl = 0;
         vip_fb->ctrl = 0;
         vip_cvo->ctrl = 0;
