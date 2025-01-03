@@ -67,17 +67,17 @@ extern mode_data_t vmode_in;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 extern settings_t ts;
 
-extern menuitem_t menu_scanlines_items[];
-extern menuitem_t menu_output_items[];
-extern menuitem_t menu_settings_items[];
-extern menuitem_t menu_advtiming_items[];
-extern menuitem_t menu_lm_items[];
-extern menuitem_t menu_pure_lm_items[];
-extern menuitem_t menu_adap_lm_items[];
-extern menuitem_t menu_main_items[];
-extern menuitem_t menu_profile_load;
+extern const menuitem_t menu_scanlines_items[];
+extern const menuitem_t menu_output_items[];
+extern const menuitem_t menu_settings_items[];
+extern const menuitem_t menu_advtiming_items[];
+extern const menuitem_t menu_lm_items[];
+extern const menuitem_t menu_pure_lm_items[];
+extern const menuitem_t menu_adap_lm_items[];
+extern const menuitem_t menu_main_items[];
+extern const menuitem_t menu_profile_load;
 #ifdef VIP
-extern menuitem_t menu_scaler_items[];
+extern const menuitem_t menu_scaler_items[];
 #endif
 
 int setup_rc()
