@@ -38,6 +38,7 @@
 #endif
 #ifndef DExx_FW
 #include "adv7280a.h"
+#include "si2177.h"
 #endif
 
 #define SIGNED_NUMVAL_ZERO  128
@@ -212,6 +213,7 @@ typedef struct {
 #endif
 #ifndef DExx_FW
     adv7280a_config sdp_cfg __attribute__ ((aligned (4)));
+    si2177_config sirf_cfg __attribute__ ((aligned (4)));
 #endif
 } __attribute__((packed)) avconfig_t;
 

@@ -173,6 +173,7 @@ static const char* const comb_ctapsn_desc[] = { "3->2", "5->3", "5->4" };
 static const char* const comb_ctapsp_desc[] = { "5->3 (2-tap)", "5->3 (3-tap)", "5->4 (4-tap)" };
 static const char* const comb_mode_desc[] = { "Adaptive", "Off", "Fixed (top)", "Fixed (all)", "Fixed (bottom)" };
 static const char* const cti_ab_desc[] = { "Sharpest", "Sharp", "Smooth", "Smoothest" };
+static const char* const tv_std_desc[] = { "NTSC M", "PAL B/G/H" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -509,6 +510,8 @@ MENU(menu_sdp, P99_PROTECT({
     { "NTSC Comb Y mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_ymode_ntsc, OPT_NOWRAP, SETTING_ITEM(comb_mode_desc) } } },
     { "CTI alpha blend",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.cti_ab,          OPT_NOWRAP, SETTING_ITEM(cti_ab_desc) } } },
     { "CTI chroma thold",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.cti_c_th,        OPT_NOWRAP, 0, 0xff, value_disp } } },
+    { "RF TV system",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.tv_std,         OPT_NOWRAP, SETTING_ITEM(tv_std_desc) } } },
+    { "RF chscan (2min)",                       OPT_FUNC_CALL,          { .fun = { rf_chscan, NULL } } },
 }))
 
 MENU(menu_exp, P99_PROTECT({

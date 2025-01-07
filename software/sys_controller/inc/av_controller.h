@@ -53,6 +53,7 @@
 #define SCTRL_EXP_SEL_OFFS      28
 #define SCTRL_EXP_SEL_MASK      (0x3<<SCTRL_EXP_SEL_OFFS)
 #define SCTRL_AUDMUX_SEL        (1<<30)
+#define SCTRL_RF_AUD_SEL        (1<<31)
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -180,5 +181,7 @@ int load_shmask(char *dirname, char *filename);
 void set_default_c_edid();
 int load_edid(char *dirname, char *filename);
 void set_custom_edid_reload();
+
+int rf_chscan();
 
 #endif

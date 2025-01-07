@@ -152,6 +152,7 @@ wire vip_dil_reset_n = sys_ctrl[25];
 wire [1:0] extra_out_mode = sys_ctrl[27:26];
 wire [1:0] exp_sel = sys_ctrl[29:28];
 wire audmux_sel = sys_ctrl[30];
+wire legacy_aud_sel = sys_ctrl[31];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -369,6 +370,9 @@ wire [7:0] SDP_P_DATA_i = {EXT_IO_B_io[5], EXT_IO_B_io[4], EXT_IO_B_io[7], EXT_I
 wire SDP_HS_i = EXT_IO_B_io[3];
 wire SDP_VS_i = EXT_IO_B_io[0];
 wire SDP_IRQ_i = EXT_IO_B_io[1];
+wire RF_AADC_BCK_i = EXT_IO_B_io[12];
+wire RF_AADC_WS_i = EXT_IO_B_io[13];
+wire RF_AADC_DATA_i = EXT_IO_B_io[14];
 
 reg SDP_HS, SDP_VS;
 reg [7:0] SDP_P_DATA;
@@ -614,9 +618,9 @@ always @(posedge pclk_out) begin
 end
 
 //audio
-assign HDMITX_I2S_BCK_o = hdmirx_aud_sel ? HDMIRX_I2S_BCK_i : PCM_I2S_BCK_i;
-assign HDMITX_I2S_WS_o = hdmirx_aud_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
-assign HDMITX_I2S_DATA_o = hdmirx_aud_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
+assign HDMITX_I2S_BCK_o = hdmirx_aud_sel ? HDMIRX_I2S_BCK_i : (legacy_aud_sel ? RF_AADC_BCK_i : PCM_I2S_BCK_i);
+assign HDMITX_I2S_WS_o = hdmirx_aud_sel ? HDMIRX_I2S_WS_i : (legacy_aud_sel ? RF_AADC_WS_i : PCM_I2S_WS_i);
+assign HDMITX_I2S_DATA_o = hdmirx_aud_sel ? HDMIRX_AP_i : (legacy_aud_sel ? RF_AADC_DATA_i : PCM_I2S_DATA_i);
 assign HDMITX_SPDIF_o = sys_poweron ? (hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i) : 1'b0;
 
 assign AUDMUX_o = ~audmux_sel;

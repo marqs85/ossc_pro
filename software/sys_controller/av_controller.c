@@ -198,6 +198,9 @@ extern const char *avinput_str[];
 
 char char_buff[256];
 
+const si5351_ms_config_t legacyav_sdp_conf =      {3682, 38, 125, 3442, 451014, 715909, 0, 0, 0};
+const si5351_ms_config_t legacyav_aadc_48k_conf = {3682, 38, 125, 72, 0, 0, 0, 0, 0};
+
 c_shmask_t c_shmask;
 const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_tv, &shmask_pvm, &shmask_pvm_2530, &shmask_xc_3315c, &shmask_c_1084, &shmask_jvc, &shmask_vga, &c_shmask.arr};
 int shmask_loaded_array = 0;
@@ -705,7 +708,7 @@ int vip_wdog_update(uint8_t framelock) {
 
     vip_frame_cnt_prev = vip_frame_cnt;
 
-    if ((IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE) & (1<<SSTAT_CVO_RESYNC_BIT)) && (alt_timestamp() >= vip_resync_ts + 100000*(TIMER_0_FREQ/1000000))) {
+    if (framelock && (IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE) & (1<<SSTAT_CVO_RESYNC_BIT)) && (alt_timestamp() >= vip_resync_ts + 100000*(TIMER_0_FREQ/1000000))) {
         printf("Restarting CVO due to framelock timeout\n");
         vip_cvo_restart();
     }
@@ -906,8 +909,12 @@ int init_hw()
     // Init ADV7280A and Si2177 (expansion card)
     ret = adv7280a_init(&advsdp_dev);
     advsdp_dev_avail = (ret == 0);
-    ret = si2177_init(&sirf_dev);
-    sirf_dev_avail = (ret == 0);
+    if (advsdp_dev_avail) {
+        ret = si2177_init(&sirf_dev);
+        sirf_dev_avail = (ret == 0);
+    } else {
+        sirf_dev_avail = 0;
+    }
 
     // Auto-detect expansion
     if (pcm_out_dev_avail)
@@ -1328,6 +1335,20 @@ void set_custom_edid_reload() {
     advrx_dev.cfg.edid_sel = 0;
 }
 
+int rf_chscan() {
+    avconfig_t *tgt_avconfig = get_target_avconfig();
+    char ch_str[US2066_ROW_LEN+1];
+    int retval = si2177_channelscan(&sirf_dev, tgt_avconfig->sirf_cfg.chlist);
+
+    if (retval >= 0) {
+        sniprintf(ch_str, US2066_ROW_LEN+1, "%d channels found", retval);
+        set_func_ret_msg(ch_str);
+        return 1;
+    } else {
+        return retval;
+    }
+}
+
 void update_settings(int init_setup) {
     if (init_setup || (ts.osd_enable != cs.osd_enable) || (ts.osd_status_timeout != cs.osd_status_timeout)) {
         osd->osd_config.enable = !!ts.osd_enable;
@@ -1481,7 +1502,7 @@ void mainloop()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL_MASK|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL);
+            sys_ctrl &= ~(SCTRL_CAPTURE_SEL_MASK|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL|SCTRL_RF_AUD_SEL);
 
             ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, cur_avconfig->syncmux_stc ? THS_BIAS_STC_MID : THS_BIAS_AC, (3-cur_avconfig->syncmux_stc), (3-cur_avconfig->syncmux_stc));
 
@@ -1505,7 +1526,10 @@ void mainloop()
                 sys_ctrl |= (SCTRL_CAPTURE_SEL_HDMIRX<<SCTRL_CAPTURE_SEL_OFFS);
             } else if (enable_sdp) {
                 sys_ctrl |= (SCTRL_CAPTURE_SEL_SDP<<SCTRL_CAPTURE_SEL_OFFS);
-                si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 2863636, 2700000, NULL);
+                if (target_avinput == AV_EXP_RF)
+                    sys_ctrl |= SCTRL_RF_AUD_SEL;
+                si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&legacyav_sdp_conf);
+                si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK6, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&legacyav_aadc_48k_conf);
             } else if (enable_tp) {
                 sys_ctrl |= SCTRL_VGTP_ENABLE;
             }
@@ -1914,12 +1938,13 @@ void mainloop()
 #endif
 
         adv7280a_update_config(&advsdp_dev, &cur_avconfig->sdp_cfg);
+        si2177_update_config(&sirf_dev, &cur_avconfig->sirf_cfg);
 
         pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);
 
 #ifdef VIP
         // Monitor if VIP DIL gets stuck or CVO fails framelocking
-        if ((oper_mode == OPERMODE_SCALER) && vip_wdog_update(vm_conf.framelock))
+        if (((enable_isl && isl_dev.sync_active) || (enable_hdmirx && advrx_dev.sync_active) || (enable_sdp && advsdp_dev.sync_active)) && (oper_mode == OPERMODE_SCALER) && vip_wdog_update(vm_conf.framelock))
             update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
 #endif
 

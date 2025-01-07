@@ -147,6 +147,7 @@ int set_default_profile(int update_cc)
     tc.hdmitx_cfg.i2s_fs = IEC60958_FS_96KHZ;
 #else
     adv7280a_get_default_cfg(&tc.sdp_cfg);
+    si2177_get_default_cfg(&tc.sirf_cfg);
 #endif
 
     if (update_cc)
