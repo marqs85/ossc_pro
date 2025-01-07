@@ -53,6 +53,7 @@
 #define SCTRL_EXP_SEL_OFFS      28
 #define SCTRL_EXP_SEL_MASK      (0x3<<SCTRL_EXP_SEL_OFFS)
 #define SCTRL_AUDMUX_SEL        (1<<30)
+#define SCTRL_RF_AUD_SEL        (1<<31)
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -61,6 +62,7 @@
 #define SSTAT_EMIF_POWERDN_ACK_BIT      3
 #define SSTAT_EMIF_PLL_LOCKED           4
 #define SSTAT_SD_DETECT_BIT             5
+#define SSTAT_CVO_RESYNC_BIT            29
 
 #define SCTRL_CAPTURE_SEL_ISL       0
 #define SCTRL_CAPTURE_SEL_HDMIRX    1
@@ -145,6 +147,8 @@ typedef int (*load_func)(char*, char*);
 void ui_disp_menu(uint8_t osd_mode);
 void ui_disp_status(uint8_t refresh_osd_timer);
 
+void restart_isl(uint8_t isl_ext_range);
+
 void switch_input(rc_code_t rcode, btn_code_t bcode);
 
 void set_syncmux_biasmode(uint8_t syncmux_stc);
@@ -177,5 +181,7 @@ int load_shmask(char *dirname, char *filename);
 void set_default_c_edid();
 int load_edid(char *dirname, char *filename);
 void set_custom_edid_reload();
+
+int rf_chscan();
 
 #endif

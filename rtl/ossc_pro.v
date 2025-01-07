@@ -152,6 +152,7 @@ wire vip_dil_reset_n = sys_ctrl[25];
 wire [1:0] extra_out_mode = sys_ctrl[27:26];
 wire [1:0] exp_sel = sys_ctrl[29:28];
 wire audmux_sel = sys_ctrl[30];
+wire legacy_aud_sel = sys_ctrl[31];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -185,10 +186,13 @@ wire emif_rd_read, emif_rd_waitrequest, emif_rd_readdatavalid, emif_wr_write, em
 
 wire sd_detect = ~SD_DETECT_i;
 
-wire cvi_overflow, cvo_underflow;
+wire cvi_overflow, cvo_underflow, cvo_sof;
+
+reg [2:0] cvo_resync_ctr;
+wire cvo_resync = (cvo_resync_ctr == '1);
 
 wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
-wire [31:0] sys_status = {cvi_overflow, cvo_underflow, 24'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
+wire [31:0] sys_status = {cvi_overflow, cvo_underflow, cvo_resync, 23'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
 wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2, xy_out_config3;
 wire [31:0] misc_config, misc_config2, sl_config, sl_config2, sl_config3, sl_config4;
@@ -366,6 +370,9 @@ wire [7:0] SDP_P_DATA_i = {EXT_IO_B_io[5], EXT_IO_B_io[4], EXT_IO_B_io[7], EXT_I
 wire SDP_HS_i = EXT_IO_B_io[3];
 wire SDP_VS_i = EXT_IO_B_io[0];
 wire SDP_IRQ_i = EXT_IO_B_io[1];
+wire RF_AADC_BCK_i = EXT_IO_B_io[12];
+wire RF_AADC_WS_i = EXT_IO_B_io[13];
+wire RF_AADC_DATA_i = EXT_IO_B_io[14];
 
 reg SDP_HS, SDP_VS;
 reg [7:0] SDP_P_DATA;
@@ -550,11 +557,22 @@ wire VSYNC_vip = VIP_VSYNC_o;
 wire DE_vip = VIP_DE_o;
 `endif // PIXPAR2
 
-reg VSYNC_vip_prev;
+reg VSYNC_vip_prev, cvo_sof_prev;
 wire vip_frame_start = VSYNC_vip_prev & ~VSYNC_vip & ~HSYNC_vip;
 
 always @(posedge pclk_out) begin
     VSYNC_vip_prev <= VSYNC_vip;
+end
+
+always @(posedge pclk_out_div2) begin
+    if (cvo_sof_prev & ~cvo_sof) begin
+        if (sof_scaler_capt)
+            cvo_resync_ctr <= '0;
+        else if (~sof_scaler_capt & (cvo_resync_ctr != '1))
+            cvo_resync_ctr <= cvo_resync_ctr + 1'b1;
+    end
+
+    cvo_sof_prev <= cvo_sof;
 end
 `endif // VIP
 
@@ -600,9 +618,9 @@ always @(posedge pclk_out) begin
 end
 
 //audio
-assign HDMITX_I2S_BCK_o = hdmirx_aud_sel ? HDMIRX_I2S_BCK_i : PCM_I2S_BCK_i;
-assign HDMITX_I2S_WS_o = hdmirx_aud_sel ? HDMIRX_I2S_WS_i : PCM_I2S_WS_i;
-assign HDMITX_I2S_DATA_o = hdmirx_aud_sel ? HDMIRX_AP_i : PCM_I2S_DATA_i;
+assign HDMITX_I2S_BCK_o = hdmirx_aud_sel ? HDMIRX_I2S_BCK_i : (legacy_aud_sel ? RF_AADC_BCK_i : PCM_I2S_BCK_i);
+assign HDMITX_I2S_WS_o = hdmirx_aud_sel ? HDMIRX_I2S_WS_i : (legacy_aud_sel ? RF_AADC_WS_i : PCM_I2S_WS_i);
+assign HDMITX_I2S_DATA_o = hdmirx_aud_sel ? HDMIRX_AP_i : (legacy_aud_sel ? RF_AADC_DATA_i : PCM_I2S_DATA_i);
 assign HDMITX_SPDIF_o = sys_poweron ? (hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i) : 1'b0;
 
 assign AUDMUX_o = ~audmux_sel;
@@ -851,7 +869,7 @@ sys sys_inst (
     .alt_vip_cl_cvo_0_clocked_video_vid_std                    (),
     .alt_vip_cl_cvo_0_clocked_video_vid_vcoclk_div             (),
     .alt_vip_cl_cvo_0_clocked_video_vid_sof_locked             (),
-    .alt_vip_cl_cvo_0_clocked_video_vid_sof                    (),
+    .alt_vip_cl_cvo_0_clocked_video_vid_sof                    (cvo_sof),
     .alt_vip_cl_cvo_0_clocked_video_vid_datavalid              (VIP_DE_o),
     .alt_vip_cl_cvo_0_clocked_video_vid_v_sync                 (VIP_VSYNC_o),
     .alt_vip_cl_cvo_0_clocked_video_vid_h_sync                 (VIP_HSYNC_o),

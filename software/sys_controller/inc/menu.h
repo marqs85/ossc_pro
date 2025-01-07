@@ -62,7 +62,7 @@ typedef struct {
     uint8_t min;
     uint8_t max;
     uint8_t list_view;
-    const char **setting_str;
+    const char *const *const setting_str;
 } opt_avconfig_selection;
 
 typedef struct {
@@ -112,13 +112,13 @@ typedef struct {
 
 struct menustruct {
     uint8_t num_items;
-    menuitem_t *items;
+    const menuitem_t *items;
 };
 
 #define SETTING_ITEM(x) 0, sizeof(x)/sizeof(char*)-1, 0, x
 #define SETTING_ITEM_LIST(x) 0, sizeof(x)/sizeof(char*)-1, 1, x
 #define SETTING_ONLY_LIST(x) 0, sizeof(x)/sizeof(char*)-1, 2, x
-#define MENU(X, Y) menuitem_t X##_items[] = Y; const menu_t X = { sizeof(X##_items)/sizeof(menuitem_t), X##_items };
+#define MENU(X, Y) const menuitem_t X##_items[] = Y; const menu_t X = { sizeof(X##_items)/sizeof(menuitem_t), X##_items };
 #define P99_PROTECT(...) __VA_ARGS__
 
 typedef struct {
@@ -139,8 +139,8 @@ void cstm_shmask_load(menucode_id code, int setup_disp);
 void cstm_edid_load(menucode_id code, int setup_disp);
 void cstm_vm_stats(menucode_id code, int setup_disp);
 void cstm_listview(menucode_id code, int setup_disp);
-void enter_cstm(menuitem_t *item, int detached_mode);
-void quick_adjust(menuitem_t *item, int adj, int is_relative);
+void enter_cstm(const menuitem_t *item, int detached_mode);
+void quick_adjust(const menuitem_t *item, int adj, int is_relative);
 void quick_adjust_phase(uint8_t dir);
 void display_menu(rc_code_t rcode, btn_code_t bcode);
 void set_func_ret_msg(char *msg);
