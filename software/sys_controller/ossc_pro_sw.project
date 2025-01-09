@@ -42,6 +42,7 @@
     <File Name="src/firmware.c"/>
     <File Name="src/scl_pp_coeffs.c"/>
     <File Name="src/shmask_arrays.c"/>
+    <File Name="src/edid_presets.c"/>
     <File Name="src/file.c"/>
     <File Name="src/video_modes_list.c"/>
     <File Name="src/video_modes.c"/>
@@ -121,7 +122,32 @@
       <File Name="ic_drivers/adv7280a/adv7280a.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="si2177">
-      <File Name="ic_drivers/si2177/si2177_regs.h"/>
+      <VirtualDirectory Name="video_si21xx_superset">
+        <VirtualDirectory Name="SILABS_SUPERSET">
+          <VirtualDirectory Name="TER">
+            <VirtualDirectory Name="Si2177">
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_Commands_Prototypes.h"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L1_Commands.c"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_typedefs.h"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L1_API.c"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L2_API.c"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_firmware_3_1_build_3.h"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L1_API.h"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_Properties.h"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_Properties_Strings.h"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L1_Properties.c"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_Properties_Functions.h"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L2_API.h"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_Commands.h"/>
+              <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L1_User_Properties.c"/>
+            </VirtualDirectory>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Si_I2C">
+            <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/Si_I2C/Silabs_L0_Connection.c"/>
+            <File Name="ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/Si_I2C/Silabs_L0_API.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <File Name="ic_drivers/si2177/si2177.h"/>
       <File Name="ic_drivers/si2177/si2177.c"/>
     </VirtualDirectory>

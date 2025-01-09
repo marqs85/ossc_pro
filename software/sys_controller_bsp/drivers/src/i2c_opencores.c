@@ -29,7 +29,7 @@ void I2C_init(alt_u32 base,alt_u32 clk,alt_u32 speed)
 {
   alt_u32 prescale = (clk/( 5 * speed))-1;
 #ifdef  I2C_DEBUG
-        printf(" Initializing  I2C at 0x%x, \n\twith clock speed 0x%x \n\tand SCL speed 0x%x \n\tand prescale 0x%x\n",base,clk,speed,prescale);
+        dd_printf(" Initializing  I2C at 0x%x, \n\twith clock speed 0x%x \n\tand SCL speed 0x%x \n\tand prescale 0x%x\n",base,clk,speed,prescale);
 #endif
   IOWR_I2C_OPENCORES_CTR(base, 0x00); /* turn off the core*/
 
@@ -59,7 +59,7 @@ return value
 int I2C_start(alt_u32 base, alt_u32 add, alt_u32 read)
 {
 #ifdef  I2C_DEBUG
-        printf(" Start  I2C at 0x%x, \n\twith address 0x%x \n\tand read 0x%x \n\tand prescale 0x%x\n",base,add,read);
+        dd_printf(" Start  I2C at 0x%x, \n\twith address 0x%x \n\tand read 0x%x\n",base,add,read);
 #endif
 
           /* transmit the address shifted by one and the read/write bit*/
@@ -75,14 +75,14 @@ int I2C_start(alt_u32 base, alt_u32 add, alt_u32 read)
    if(IORD_I2C_OPENCORES_SR(base) & I2C_OPENCORES_SR_RXNACK_MSK)
    {
 #ifdef  I2C_DEBUG
-        printf("\tNOACK\n");
+        dd_printf("\tNOACK\n");
 #endif
         return (I2C_NOACK);
    }
    else
    {
 #ifdef  I2C_DEBUG
-        printf("\tACK\n");
+        dd_printf("\tACK\n");
 #endif
        return (I2C_ACK);
    }
@@ -105,7 +105,7 @@ return value
 alt_u32 I2C_read(alt_u32 base,alt_u32 last)
 {
 #ifdef  I2C_DEBUG
-        printf(" Read I2C at 0x%x, \n\twith last0x%x\n",base,last);
+        dd_printf(" Read I2C at 0x%x, \n\twith last 0x%x\n",base,last);
 #endif
   if( last)
   {
@@ -130,7 +130,7 @@ alt_u32 I2C_read(alt_u32 base,alt_u32 last)
 int I2C_write
             assumes that any addressing and start
             has already been done.
-            writes one byte of data from the slave.  
+            writes one byte of data from the slave.
             If last is set the stop bit set.
 inputs
       base = the base address of the component
@@ -144,8 +144,8 @@ return value
 *****************************************************************/
 alt_u32 I2C_write(alt_u32 base,alt_u8 data, alt_u32 last)
 {
-  #ifdef  I2C_DEBUG
-        printf(" Read I2C at 0x%x, \n\twith data 0x%x,\n\twith last0x%x\n",base,data,last);
+#ifdef  I2C_DEBUG
+        dd_printf(" Write I2C at 0x%x, \n\twith data 0x%x,\n\twith last 0x%x\n",base,data,last);
 #endif
                  /* transmit the data*/
   IOWR_I2C_OPENCORES_TXR(base, data);
@@ -168,14 +168,14 @@ alt_u32 I2C_write(alt_u32 base,alt_u8 data, alt_u32 last)
    if(IORD_I2C_OPENCORES_SR(base) & I2C_OPENCORES_SR_RXNACK_MSK)
    {
 #ifdef  I2C_DEBUG
-        printf("\tNOACK\n");
+        dd_printf("\tNOACK\n");
 #endif
         return (I2C_NOACK);
    }
    else
    {
 #ifdef  I2C_DEBUG
-        printf("\tACK\n");
+        dd_printf("\tACK\n");
 #endif
        return (I2C_ACK);
    }

@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "29";
+         value = "31";
          type = "int";
       }
    }
@@ -55,7 +55,7 @@
    {
       datum _sortIndex
       {
-         value = "25";
+         value = "26";
          type = "int";
       }
    }
@@ -76,7 +76,7 @@
    {
       datum _sortIndex
       {
-         value = "28";
+         value = "30";
          type = "int";
       }
    }
@@ -97,7 +97,7 @@
    {
       datum _sortIndex
       {
-         value = "27";
+         value = "29";
          type = "int";
       }
    }
@@ -114,11 +114,53 @@
          type = "String";
       }
    }
+   element alt_vip_cl_swi_0
+   {
+      datum _sortIndex
+      {
+         value = "25";
+         type = "int";
+      }
+   }
+   element alt_vip_cl_swi_0.control
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "256";
+         type = "String";
+      }
+   }
+   element alt_vip_cl_swi_1
+   {
+      datum _sortIndex
+      {
+         value = "27";
+         type = "int";
+      }
+   }
+   element alt_vip_cl_swi_1.control
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "768";
+         type = "String";
+      }
+   }
    element alt_vip_cl_vfb_0
    {
       datum _sortIndex
       {
-         value = "26";
+         value = "28";
          type = "int";
       }
    }
@@ -935,6 +977,32 @@
   <parameter name="V_TAPS" value="4" />
  </module>
  <module
+   name="alt_vip_cl_swi_0"
+   kind="alt_vip_cl_swi"
+   version="23.1"
+   enabled="1">
+  <parameter name="BITS_PER_SYMBOL" value="8" />
+  <parameter name="COLOR_PLANES_ARE_IN_PARALLEL" value="1" />
+  <parameter name="NO_OF_INPUTS" value="1" />
+  <parameter name="NO_OF_OUTPUTS" value="2" />
+  <parameter name="NUMBER_OF_COLOR_PLANES" value="3" />
+  <parameter name="PIXELS_IN_PARALLEL" value="2" />
+  <parameter name="READY_LATENCY" value="1" />
+ </module>
+ <module
+   name="alt_vip_cl_swi_1"
+   kind="alt_vip_cl_swi"
+   version="23.1"
+   enabled="1">
+  <parameter name="BITS_PER_SYMBOL" value="8" />
+  <parameter name="COLOR_PLANES_ARE_IN_PARALLEL" value="1" />
+  <parameter name="NO_OF_INPUTS" value="2" />
+  <parameter name="NO_OF_OUTPUTS" value="1" />
+  <parameter name="NUMBER_OF_COLOR_PLANES" value="3" />
+  <parameter name="PIXELS_IN_PARALLEL" value="2" />
+  <parameter name="READY_LATENCY" value="1" />
+ </module>
+ <module
    name="alt_vip_cl_vfb_0"
    kind="alt_vip_cl_vfb"
    version="21.1"
@@ -1201,7 +1269,7 @@
   <parameter name="MEM_TCL" value="4" />
   <parameter name="MEM_TFAW_NS" value="50.0" />
   <parameter name="MEM_TINIT_US" value="200" />
-  <parameter name="MEM_TMRD_CK" value="5" />
+  <parameter name="MEM_TMRD_CK" value="3" />
   <parameter name="MEM_TRAS_NS" value="42.0" />
   <parameter name="MEM_TRCD_NS" value="18.0" />
   <parameter name="MEM_TREFI_US" value="7.8" />
@@ -1351,20 +1419,20 @@
   <parameter name="TIMING_BOARD_TDS" value="0.5" />
   <parameter name="TIMING_BOARD_TIH" value="0.5" />
   <parameter name="TIMING_BOARD_TIS" value="0.5" />
-  <parameter name="TIMING_TDH" value="300" />
+  <parameter name="TIMING_TDH" value="350" />
   <parameter name="TIMING_TDQSCK" value="5500" />
-  <parameter name="TIMING_TDQSCKDL" value="1800" />
-  <parameter name="TIMING_TDQSCKDM" value="1350" />
-  <parameter name="TIMING_TDQSCKDS" value="670" />
+  <parameter name="TIMING_TDQSCKDL" value="1400" />
+  <parameter name="TIMING_TDQSCKDM" value="1050" />
+  <parameter name="TIMING_TDQSCKDS" value="540" />
   <parameter name="TIMING_TDQSH" value="0.4" />
-  <parameter name="TIMING_TDQSQ" value="340" />
-  <parameter name="TIMING_TDQSS" value="1.25" />
-  <parameter name="TIMING_TDS" value="210" />
+  <parameter name="TIMING_TDQSQ" value="280" />
+  <parameter name="TIMING_TDQSS" value="0.75" />
+  <parameter name="TIMING_TDS" value="350" />
   <parameter name="TIMING_TDSH" value="0.2" />
   <parameter name="TIMING_TDSS" value="0.2" />
-  <parameter name="TIMING_TIH" value="330" />
-  <parameter name="TIMING_TIS" value="240" />
-  <parameter name="TIMING_TQHS" value="400" />
+  <parameter name="TIMING_TIH" value="370" />
+  <parameter name="TIMING_TIS" value="370" />
+  <parameter name="TIMING_TQHS" value="340" />
   <parameter name="TRACKING_ERROR_TEST" value="false" />
   <parameter name="TRACKING_WATCH_TEST" value="false" />
   <parameter name="TREFI" value="35100" />
@@ -1708,7 +1776,7 @@
   <parameter name="gui_use_locked" value="true" />
  </module>
  <module name="pulpino_0" kind="pulpino" version="1.0" enabled="1">
-  <parameter name="AUTO_INTERRUPT_RECEIVER_INTERRUPTS_USED" value="127" />
+  <parameter name="AUTO_INTERRUPT_RECEIVER_INTERRUPTS_USED" value="511" />
   <parameter name="AXI_ADDR_WIDTH" value="32" />
   <parameter name="AXI_DATA_WIDTH" value="32" />
   <parameter name="AXI_ID_MASTER_WIDTH" value="10" />
@@ -2065,6 +2133,24 @@
  <connection
    kind="avalon"
    version="23.1"
+   start="mm_clock_crossing_bridge_2.m0"
+   end="alt_vip_cl_swi_0.control">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0100" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="23.1"
+   start="mm_clock_crossing_bridge_2.m0"
+   end="alt_vip_cl_swi_1.control">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0300" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="23.1"
    start="alt_vip_cl_dil_0.ma_read_master"
    end="mem_if_lpddr2_emif_0.avl_0">
   <parameter name="arbitrationPriority" value="1" />
@@ -2146,11 +2232,6 @@
  <connection
    kind="avalon_streaming"
    version="23.1"
-   start="alt_vip_cl_dil_0.dout"
-   end="alt_vip_cl_vfb_0.din" />
- <connection
-   kind="avalon_streaming"
-   version="23.1"
    start="alt_vip_cl_vfb_0.dout"
    end="alt_vip_cl_scl_0.din" />
  <connection
@@ -2166,7 +2247,27 @@
  <connection
    kind="avalon_streaming"
    version="23.1"
+   start="alt_vip_cl_dil_0.dout"
+   end="alt_vip_cl_swi_1.din_1" />
+ <connection
+   kind="avalon_streaming"
+   version="23.1"
+   start="alt_vip_cl_swi_1.dout_0"
+   end="alt_vip_cl_vfb_0.din" />
+ <connection
+   kind="avalon_streaming"
+   version="23.1"
    start="alt_vip_cl_cvi_0.dout_0"
+   end="alt_vip_cl_swi_0.din_0" />
+ <connection
+   kind="avalon_streaming"
+   version="23.1"
+   start="alt_vip_cl_swi_0.dout_0"
+   end="alt_vip_cl_swi_1.din_0" />
+ <connection
+   kind="avalon_streaming"
+   version="23.1"
+   start="alt_vip_cl_swi_0.dout_1"
    end="alt_vip_cl_dil_0.din" />
  <connection kind="clock" version="23.1" start="clk_27.clk" end="jtag_uart_0.clk" />
  <connection kind="clock" version="23.1" start="clk_27.clk" end="pio_0.clk" />
@@ -2351,6 +2452,16 @@
    start="pll_0.outclk1"
    end="alt_vip_cl_interlacer_0.main_clock" />
  <connection
+   kind="clock"
+   version="23.1"
+   start="pll_0.outclk1"
+   end="alt_vip_cl_swi_0.main_clock" />
+ <connection
+   kind="clock"
+   version="23.1"
+   start="pll_0.outclk1"
+   end="alt_vip_cl_swi_1.main_clock" />
+ <connection
    kind="interrupt"
    version="23.1"
    start="pulpino_0.interrupt_receiver"
@@ -2363,6 +2474,20 @@
    start="pulpino_0.interrupt_receiver"
    end="sdc_controller_0.int_data">
   <parameter name="irqNumber" value="3" />
+ </connection>
+ <connection
+   kind="interrupt"
+   version="23.1"
+   start="pulpino_0.interrupt_receiver"
+   end="alt_vip_cl_swi_0.interrupt">
+  <parameter name="irqNumber" value="7" />
+ </connection>
+ <connection
+   kind="interrupt"
+   version="23.1"
+   start="pulpino_0.interrupt_receiver"
+   end="alt_vip_cl_swi_1.interrupt">
+  <parameter name="irqNumber" value="8" />
  </connection>
  <connection
    kind="interrupt"
@@ -2518,6 +2643,16 @@
    kind="reset"
    version="23.1"
    start="reset_bridge_0.out_reset"
+   end="alt_vip_cl_swi_0.main_clock_reset" />
+ <connection
+   kind="reset"
+   version="23.1"
+   start="reset_bridge_0.out_reset"
+   end="alt_vip_cl_swi_1.main_clock_reset" />
+ <connection
+   kind="reset"
+   version="23.1"
+   start="reset_bridge_0.out_reset"
    end="alt_vip_cl_cvi_0.main_reset" />
  <connection
    kind="reset"
@@ -2533,12 +2668,12 @@
    kind="reset"
    version="23.1"
    start="reset_bridge_0.out_reset"
-   end="alt_vip_cl_cvo_0.main_reset" />
+   end="alt_vip_cl_interlacer_0.main_reset" />
  <connection
    kind="reset"
    version="23.1"
    start="reset_bridge_0.out_reset"
-   end="alt_vip_cl_interlacer_0.main_reset" />
+   end="alt_vip_cl_cvo_0.main_reset" />
  <connection
    kind="reset"
    version="23.1"

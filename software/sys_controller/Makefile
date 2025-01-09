@@ -163,6 +163,12 @@ C_SRCS += ic_drivers/pcm514x/pcm514x.c
 C_SRCS += ic_drivers/sii1136/sii1136.c
 C_SRCS += ic_drivers/adv7280a/adv7280a.c
 C_SRCS += ic_drivers/si2177/si2177.c
+C_SRCS += ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/Si_I2C/Silabs_L0_Connection.c
+C_SRCS += ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L1_API.c
+C_SRCS += ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L1_Commands.c
+C_SRCS += ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L1_Properties.c
+C_SRCS += ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L1_User_Properties.c
+C_SRCS += ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177/Si2177_L2_API.c
 C_SRCS += fatfs/source/diskio.c
 C_SRCS += fatfs/source/ff.c
 C_SRCS += fatfs/source/ffsystem.c
@@ -221,6 +227,8 @@ APP_INCLUDE_DIRS += ic_drivers/pcm514x
 APP_INCLUDE_DIRS += ic_drivers/sii1136
 APP_INCLUDE_DIRS += ic_drivers/adv7280a
 APP_INCLUDE_DIRS += ic_drivers/si2177
+APP_INCLUDE_DIRS += ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/Si_I2C
+APP_INCLUDE_DIRS += ic_drivers/si2177/video_si21xx_superset/SILABS_SUPERSET/TER/Si2177
 APP_INCLUDE_DIRS += fatfs/source
 APP_LIBRARY_DIRS :=
 APP_LIBRARY_NAMES :=
@@ -1148,4 +1156,9 @@ regenerate_hex: clean mem_init_generate_new
 
 .PHONY: rv-reprogram
 rv-reprogram: mem_init_generate_new
+	jtagconfig
 	system-console -cli --script ../../scripts/rv-reprogram.tcl
+
+rv-bt:
+	jtagconfig
+	system-console -cli --script ../../scripts/rv-bt.tcl

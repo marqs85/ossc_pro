@@ -49,8 +49,12 @@
 #include "firmware.h"
 #include "userdata.h"
 
+#include "src/edid_presets.c"
+#include "src/shmask_arrays.c"
+#include "src/scl_pp_coeffs.c"
+
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 76
+#define FW_VER_MINOR 78
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -85,31 +89,6 @@
 
 #define VIP_WDOG_VALUE 10
 
-unsigned char pro_edid_bin[] = {
-  0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x36, 0x51, 0x5c, 0x05,
-  0x15, 0xcd, 0x5b, 0x07, 0x0a, 0x1d, 0x01, 0x04, 0xa2, 0x3c, 0x22, 0x78,
-  0xff, 0xde, 0x51, 0xa3, 0x54, 0x4c, 0x99, 0x26, 0x0f, 0x50, 0x54, 0xff,
-  0xff, 0xff, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-  0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3a, 0x80, 0x18, 0x71, 0x38,
-  0x2d, 0x40, 0x58, 0x2c, 0x45, 0x00, 0x55, 0x50, 0x21, 0x00, 0x00, 0x1a,
-  0x00, 0x00, 0x00, 0xff, 0x00, 0x32, 0x30, 0x35, 0x34, 0x38, 0x31, 0x32,
-  0x35, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xfd, 0x00, 0x2d,
-  0x90, 0x0a, 0x96, 0x14, 0x01, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-  0x00, 0x00, 0x00, 0xfc, 0x00, 0x4f, 0x53, 0x53, 0x43, 0x20, 0x50, 0x72,
-  0x6f, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x01, 0x46, 0x02, 0x03, 0x40, 0xf2,
-  0x50, 0x9f, 0x90, 0x14, 0x05, 0x20, 0x13, 0x04, 0x12, 0x03, 0x11, 0x02,
-  0x16, 0x07, 0x15, 0x06, 0x01, 0x29, 0x0f, 0x7f, 0x07, 0x17, 0x7f, 0xff,
-  0x3f, 0x7f, 0xff, 0x83, 0x4f, 0x00, 0x00, 0x78, 0x03, 0x0c, 0x00, 0x10,
-  0x00, 0x88, 0x26, 0x2f, 0x01, 0x01, 0x01, 0x01, 0xff, 0xfc, 0x06, 0x16,
-  0x08, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe3, 0x05, 0x1f, 0x01,
-  0x01, 0x1d, 0x80, 0xd0, 0x72, 0x1c, 0x16, 0x20, 0x10, 0x2c, 0x25, 0x80,
-  0xba, 0x88, 0x21, 0x00, 0x00, 0x9e, 0x01, 0x1d, 0x80, 0x18, 0x71, 0x1c,
-  0x16, 0x20, 0x58, 0x2c, 0x25, 0x00, 0xba, 0x88, 0x21, 0x00, 0x00, 0x9e,
-  0x01, 0x1d, 0x00, 0xbc, 0x52, 0xd0, 0x1e, 0x20, 0xb8, 0x28, 0x55, 0x40,
-  0xba, 0x88, 0x21, 0x00, 0x00, 0x1e, 0x01, 0x1d, 0x00, 0x72, 0x51, 0xd0,
-  0x1e, 0x20, 0x6e, 0x3c
-};
-
 // Default settings
 const settings_t ts_default = {
     .default_avinput = 0,
@@ -119,10 +98,16 @@ const settings_t ts_default = {
     .led_pwm = 5,
 };
 
+c_edid_t c_edid;
+const edid_t* edid_list[] = {&pro_edid_default, &pro_edid_2ch, &pro_edid_dc10b, &c_edid.edid};
+
+#define ISL_XTAL_FREQ       27000000LU
+#define ISL_XTAL_FREQ_EXT   26000000LU
+
 isl51002_dev isl_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                         .i2c_addr = ISL51002_BASE,
                         .xclk_out_en = 0,
-                        .xtal_freq = 27000000LU};
+                        .xtal_freq = ISL_XTAL_FREQ};
 
 ths7353_dev ths_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                         .i2c_addr = THS7353_BASE};
@@ -143,8 +128,7 @@ adv761x_dev advrx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
                          .hdmi_base = ADV7610_HDMI_BASE,
                          .cp_base = ADV7610_CP_BASE,
                          .xtal_freq = 27000000LU,
-                         .edid = pro_edid_bin,
-                         .edid_len = sizeof(pro_edid_bin)};
+                         .edid_list = edid_list};
 
 #ifdef INC_ADV7513
 adv7513_dev advtx_dev = {.i2cm_base = I2C_OPENCORES_0_BASE,
@@ -212,10 +196,10 @@ extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 extern const char *avinput_str[];
 
-FIL file;
 char char_buff[256];
 
-#include "src/shmask_arrays.c"
+const si5351_ms_config_t legacyav_sdp_conf =      {3682, 38, 125, 3442, 451014, 715909, 0, 0, 0};
+const si5351_ms_config_t legacyav_aadc_48k_conf = {3682, 38, 125, 72, 0, 0, 0, 0, 0};
 
 c_shmask_t c_shmask;
 const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_tv, &shmask_pvm, &shmask_pvm_2530, &shmask_xc_3315c, &shmask_c_1084, &shmask_jvc, &shmask_vga, &c_shmask.arr};
@@ -224,8 +208,7 @@ int shmask_loaded_str = -1;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
 
 #ifdef VIP
-#include "src/scl_pp_coeffs.c"
-
+alt_timestamp_type vip_resync_ts;
 c_pp_coeffs_t c_pp_coeffs;
 const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
                                             {{&pp_coeff_lanczos3, NULL}, {&pp_coeff_lanczos3, NULL}},
@@ -327,6 +310,15 @@ typedef struct {
     uint32_t ctrl;
     uint32_t status;
     uint32_t irq;
+    uint32_t out_switch;
+    uint32_t dout_ctrl[12];
+    uint32_t din_cons_mode;
+} vip_swi_ii_regs;
+
+typedef struct {
+    uint32_t ctrl;
+    uint32_t status;
+    uint32_t irq;
     uint32_t frame_cnt;
     uint32_t drop_rpt_cnt;
     uint32_t unused[3];
@@ -341,6 +333,8 @@ volatile vip_dil_ii_regs *vip_dil = (volatile vip_dil_ii_regs*)ALT_VIP_CL_DIL_0_
 volatile vip_vfb_ii_regs *vip_fb = (volatile vip_vfb_ii_regs*)ALT_VIP_CL_VFB_0_BASE;
 volatile vip_scl_ii_regs *vip_scl_pp = (volatile vip_scl_ii_regs*)ALT_VIP_CL_SCL_0_BASE;
 volatile vip_il_ii_regs *vip_il = (volatile vip_il_ii_regs*)ALT_VIP_CL_IL_0_BASE;
+volatile vip_swi_ii_regs *vip_swi_pre_dil = (volatile vip_swi_ii_regs*)ALT_VIP_CL_SWI_0_BASE;
+volatile vip_swi_ii_regs *vip_swi_post_dil = (volatile vip_swi_ii_regs*)ALT_VIP_CL_SWI_1_BASE;
 volatile vip_cvo_ii_regs *vip_cvo = (volatile vip_cvo_ii_regs*)ALT_VIP_CL_CVO_0_BASE;
 #endif
 
@@ -529,9 +523,9 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     h_frontporch = h_blank-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
     v_frontporch = v_blank-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
 
-    // VIP frame reader swaps buffers at the end of read frame while writer apparently does it just before frame to be written (?)
+    // VIP frame reader swaps buffers at the end of read frame (~10 lines before VCO outputs last active line) while writer does it just before first active line written
     // SOF needs to be offset accordingly to minimize FB latency
-    hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+20+((v_frontporch*100*vm_in->timings.v_total)/(100*vm_out->timings.v_total));
+    hv_in_config3.v_startline = vm_in->timings.v_synclen+vm_in->timings.v_backporch+10;
 
     sc->hv_in_config = hv_in_config;
     sc->hv_in_config2 = hv_in_config2;
@@ -553,6 +547,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     vip_cvi->ctrl = vip_enable;
     vip_dil->ctrl = vip_enable;
     vip_il->ctrl = vip_enable;
+    vip_swi_pre_dil->ctrl = vip_enable;
+    vip_swi_post_dil->ctrl = vip_enable;
 
     if (avconfig->scl_alg == 0)
         scl_target_pp_coeff = ((vm_in->group >= GROUP_240P) && (vm_in->group <= GROUP_288P)) ? 0 : 2; // Nearest or Lanchos3_sharp
@@ -582,6 +578,17 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     }
 
     vip_dil->motion_shift = avconfig->scl_dil_motion_shift;
+
+    if ((vip_swi_pre_dil->dout_ctrl[0] != !vm_in->timings.interlaced) || (vip_swi_pre_dil->dout_ctrl[1] != vm_in->timings.interlaced)) {
+        vip_swi_pre_dil->dout_ctrl[0] = !vm_in->timings.interlaced;
+        vip_swi_pre_dil->dout_ctrl[1] = vm_in->timings.interlaced;
+        vip_swi_pre_dil->out_switch = 1;
+    }
+
+    if (vip_swi_post_dil->dout_ctrl[0] != 1<<(vm_in->timings.interlaced)) {
+        vip_swi_post_dil->dout_ctrl[0] = 1<<(vm_in->timings.interlaced);
+        vip_swi_post_dil->out_switch = 1;
+    }
 
     vip_il->config = !vm_out->timings.interlaced;
 
@@ -654,11 +661,14 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         vip_cvo->fid_f = 2*vm_conf->y_size + vip_cvo->v_blank_f0 + vip_cvo->v_frontporch_f0;
         vip_cvo->h_polarity = 0;
         vip_cvo->v_polarity = 0;
+        vip_cvo->sof_line = vm_out->timings.v_synclen + vm_out->timings.v_backporch + vm_conf->y_offset + vm_conf->y_size - 10; // final active pixel gets written to FB around here
         vip_cvo->valid = 1;
     }
 
-    if (vm_conf->framelock)
+    if (vm_conf->framelock) {
         vip_cvo->ctrl |= (1<<4);
+        vip_resync_ts = alt_timestamp();
+    }
 #endif
 }
 
@@ -673,7 +683,15 @@ void vip_dil_hard_reset() {
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 }
 
-int vip_wdog_update() {
+void vip_cvo_restart() {
+    vip_cvo->ctrl &= ~(1<<0);
+    usleep(10000);
+    vip_cvo->ctrl |= (1<<0);
+    vip_cvo->ctrl |= (1<<4);
+    vip_resync_ts = alt_timestamp();
+}
+
+int vip_wdog_update(uint8_t framelock) {
     static uint8_t vip_wdog_ctr = 0;
     static uint32_t vip_frame_cnt_prev = 0;
 
@@ -690,7 +708,12 @@ int vip_wdog_update() {
 
     vip_frame_cnt_prev = vip_frame_cnt;
 
+    if (framelock && (IORD_ALTERA_AVALON_PIO_DATA(PIO_2_BASE) & (1<<SSTAT_CVO_RESYNC_BIT)) && (alt_timestamp() >= vip_resync_ts + 100000*(TIMER_0_FREQ/1000000))) {
+        printf("Restarting CVO due to framelock timeout\n");
+        vip_cvo_restart();
+    }
     if (vip_wdog_ctr >= VIP_WDOG_VALUE) {
+        printf("Resetting DIL due to watchdog timeout\n");
         vip_dil_hard_reset();
         vip_wdog_ctr = 0;
         return 1;
@@ -819,22 +842,6 @@ int check_sdcard() {
     return ret;
 }
 
-int update_edid() {
-    FIL edid_file;
-    unsigned bytes_read;
-
-    if (!sd_det)
-        return -1;
-
-    if (!file_open(&edid_file, "edid.bin") && (f_size(&edid_file) == sizeof(pro_edid_bin))) {
-        f_read(&edid_file, pro_edid_bin, sizeof(pro_edid_bin), &bytes_read);
-        printf("Custom edid set\n");
-        file_close(&edid_file);
-    }
-
-    return 0;
-}
-
 int init_hw()
 {
     int ret;
@@ -852,6 +859,7 @@ int init_hw()
     us2066_init(&chardisp_dev);
 
     // Init ISL51002
+    isl_dev.xtal_freq = ISL_XTAL_FREQ;
     ret = isl_init(&isl_dev);
     if (ret != 0) {
         sniprintf(row1, US2066_ROW_LEN+1, "ISL51002 init fail");
@@ -882,9 +890,7 @@ int init_hw()
     // Init ocsdc driver
     mmc_dev = ocsdc_mmc_init(SDC_CONTROLLER_QSYS_0_BASE, SDC_FREQ, SDC_HOST_CAPS);
 
-    // Load custom EDID if available and reset MMC/SD status as entering standby
-    check_sdcard();
-    update_edid();
+    // Reset MMC/SD status as entering standby
     mmc_dev->has_init = 0;
     sd_det = sd_det_prev = 0;
 
@@ -903,8 +909,12 @@ int init_hw()
     // Init ADV7280A and Si2177 (expansion card)
     ret = adv7280a_init(&advsdp_dev);
     advsdp_dev_avail = (ret == 0);
-    ret = si2177_init(&sirf_dev);
-    sirf_dev_avail = (ret == 0);
+    if (advsdp_dev_avail) {
+        ret = si2177_init(&sirf_dev);
+        sirf_dev_avail = (ret == 0);
+    } else {
+        sirf_dev_avail = 0;
+    }
 
     // Auto-detect expansion
     if (pcm_out_dev_avail)
@@ -945,7 +955,16 @@ int init_hw()
 
     update_settings(1);
 
+    // Configure HDMI RX at startup (EDID etc.)
+    adv761x_update_config(&advrx_dev, &get_target_avconfig()->hdmirx_cfg);
+
     return 0;
+}
+
+void restart_isl(uint8_t isl_ext_range) {
+    isl_dev.xtal_freq = isl_ext_range ? ISL_XTAL_FREQ_EXT : ISL_XTAL_FREQ;
+    isl_dev.sync_active = 0;
+    isl_init(&isl_dev);
 }
 
 void switch_input(rc_code_t rcode, btn_code_t bcode) {
@@ -999,7 +1018,7 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
     else if (avinput == AV4)
         audsrc = audsrc_map[3];
     else
-        audsrc = AUD_AV2_ANALOG; // AV_EXP
+        audsrc = audsrc_map[4]; // AV_EXP
 
     if (audsrc <= AUD_AV3_ANALOG)
         pcm186x_source_sel(&pcm_dev, audsrc);
@@ -1049,7 +1068,7 @@ void sys_toggle_power() {
     sys_powered_on ^= 1;
 }
 
-void print_vm_stats() {
+void print_vm_stats(int menu_mode) {
     alt_timestamp_type ts = alt_timestamp();
     int row = 0;
     memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
@@ -1091,7 +1110,8 @@ void print_vm_stats() {
     sniprintf((char*)osd->osd_array.data[++row][0], OSD_CHAR_COLS, "Uptime:");
     sniprintf((char*)osd->osd_array.data[row][1], OSD_CHAR_COLS, "%luh %lumin", (uint32_t)((ts/TIMER_0_FREQ)/3600), ((uint32_t)((ts/TIMER_0_FREQ)/60) % 60));
 
-    osd->osd_config.status_refresh = 1;
+    if (!menu_mode)
+        osd->osd_config.status_refresh = 1;
     osd->osd_row_color.mask = 0;
     osd->osd_sec_enable[0].mask = (1<<(row+1))-1;
     osd->osd_sec_enable[1].mask = (1<<(row+1))-1;
@@ -1152,11 +1172,19 @@ void set_default_c_shmask() {
     strncpy(c_shmask.name, "Custom: <none>", 20);
 }
 
+void set_default_c_edid() {
+    memset(&c_edid, 0, sizeof(c_shmask));
+    strncpy(c_edid.name, "Custom: <none>", 20);
+}
+
 int load_scl_coeffs(char *dirname, char *filename) {
+    FIL file;
     FIL f_coeff;
+    char dirname_root[10];
     int i, p, n, pp_bits, lines=0;
 
-    f_chdir(dirname);
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
 
     if (!file_open(&file, filename)) {
         while ((lines < 4) && file_get_string(&file, char_buff, sizeof(char_buff))) {
@@ -1221,14 +1249,16 @@ int load_scl_coeffs(char *dirname, char *filename) {
 
 int load_shmask(char *dirname, char *filename) {
     FIL f_shmask;
+    char dirname_root[10];
     int arr_size_loaded=0;
     int v0=0,v1=0;
     int p;
 
-    f_chdir(dirname);
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
 
-    if (!file_open(&file, filename)) {
-        while (file_get_string(&file, char_buff, sizeof(char_buff))) {
+    if (!file_open(&f_shmask, filename)) {
+        while (file_get_string(&f_shmask, char_buff, sizeof(char_buff))) {
             // strip CR / CRLF
             char_buff[strcspn(char_buff, "\r\n")] = 0;
 
@@ -1262,7 +1292,7 @@ int load_shmask(char *dirname, char *filename) {
             }
         }
 
-        file_close(&file);
+        file_close(&f_shmask);
     }
 
     f_chdir("/");
@@ -1271,6 +1301,52 @@ int load_shmask(char *dirname, char *filename) {
     shmask_loaded_array = -1;
     update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
     return 0;
+}
+
+int load_edid(char *dirname, char *filename) {
+    FIL f_edid;
+    char dirname_root[10];
+    unsigned bytes_read;
+
+    if (!sd_det)
+        return -1;
+
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
+
+    if (!file_open(&f_edid, filename) && (f_size(&f_edid) <= EDID_MAX_SIZE)) {
+        f_read(&f_edid, c_edid.edid.data, f_size(&f_edid), &bytes_read);
+        file_close(&f_edid);
+    }
+
+    f_chdir("/");
+
+    c_edid.edid.len = bytes_read;
+    sniprintf(c_edid.name, sizeof(c_edid.name), "C: %s", filename);
+
+    // Enfoce custom edid update
+    if (advrx_dev.cfg.edid_sel == 3)
+        set_custom_edid_reload();
+
+    return 0;
+}
+
+void set_custom_edid_reload() {
+    advrx_dev.cfg.edid_sel = 0;
+}
+
+int rf_chscan() {
+    avconfig_t *tgt_avconfig = get_target_avconfig();
+    char ch_str[US2066_ROW_LEN+1];
+    int retval = si2177_channelscan(&sirf_dev, tgt_avconfig->sirf_cfg.chlist);
+
+    if (retval >= 0) {
+        sniprintf(ch_str, US2066_ROW_LEN+1, "%d channels found", retval);
+        set_func_ret_msg(ch_str);
+        return 1;
+    } else {
+        return retval;
+    }
 }
 
 void update_settings(int init_setup) {
@@ -1426,7 +1502,7 @@ void mainloop()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL_MASK|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL);
+            sys_ctrl &= ~(SCTRL_CAPTURE_SEL_MASK|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL|SCTRL_RF_AUD_SEL);
 
             ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, cur_avconfig->syncmux_stc ? THS_BIAS_STC_MID : THS_BIAS_AC, (3-cur_avconfig->syncmux_stc), (3-cur_avconfig->syncmux_stc));
 
@@ -1450,7 +1526,10 @@ void mainloop()
                 sys_ctrl |= (SCTRL_CAPTURE_SEL_HDMIRX<<SCTRL_CAPTURE_SEL_OFFS);
             } else if (enable_sdp) {
                 sys_ctrl |= (SCTRL_CAPTURE_SEL_SDP<<SCTRL_CAPTURE_SEL_OFFS);
-                si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 2863636, 2700000, NULL);
+                if (target_avinput == AV_EXP_RF)
+                    sys_ctrl |= SCTRL_RF_AUD_SEL;
+                si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&legacyav_sdp_conf);
+                si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK6, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&legacyav_aadc_48k_conf);
             } else if (enable_tp) {
                 sys_ctrl |= SCTRL_VGTP_ENABLE;
             }
@@ -1661,7 +1740,7 @@ void mainloop()
                     if (advrx_dev.ss.interlace_flag)
                         vmode_in.timings.v_hz_x100 *= 2;
 
-                    h_skip_prev = (advrx_dev.cfg.pixelderep_mode == 0) ? (advrx_dev.pixelderep_ifr-advrx_dev.pixelderep) : 0;
+                    h_skip_prev = (cur_avconfig->hdmi_pixeldecim_mode == 0) ? (advrx_dev.pixelderep_ifr-advrx_dev.pixelderep) : (cur_avconfig->hdmi_pixeldecim_mode-1);
 
                     sniprintf(vmode_in.name, sizeof(vmode_in.name), "%ux%u%c", advrx_dev.ss.h_active/(h_skip_prev+1), (advrx_dev.ss.v_active<<advrx_dev.ss.interlace_flag), advrx_dev.ss.interlace_flag ? 'i' : '\0');
                     vmode_in.timings.h_active = advrx_dev.ss.h_active/(h_skip_prev+1);
@@ -1859,11 +1938,13 @@ void mainloop()
 #endif
 
         adv7280a_update_config(&advsdp_dev, &cur_avconfig->sdp_cfg);
+        si2177_update_config(&sirf_dev, &cur_avconfig->sirf_cfg);
 
         pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);
 
 #ifdef VIP
-        if (vip_wdog_update())
+        // Monitor if VIP DIL gets stuck or CVO fails framelocking
+        if (((enable_isl && isl_dev.sync_active) || (enable_hdmirx && advrx_dev.sync_active) || (enable_sdp && advsdp_dev.sync_active)) && (oper_mode == OPERMODE_SCALER) && vip_wdog_update(vm_conf.framelock))
             update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
 #endif
 
@@ -1942,6 +2023,8 @@ int main()
         vip_cvi->ctrl = 0;
         vip_dil->ctrl = 0;
         vip_il->ctrl = 0;
+        vip_swi_pre_dil->ctrl = 0;
+        vip_swi_post_dil->ctrl = 0;
         vip_scl_pp->ctrl = 0;
         vip_fb->ctrl = 0;
         vip_cvo->ctrl = 0;

@@ -65,17 +65,19 @@ extern uint8_t smp_cur, smp_edit, dtmg_cur, dtmg_edit;
 extern oper_mode_t oper_mode;
 extern mode_data_t vmode_in;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
+extern settings_t ts;
 
-extern menuitem_t menu_scanlines_items[];
-extern menuitem_t menu_output_items[];
-extern menuitem_t menu_settings_items[];
-extern menuitem_t menu_advtiming_items[];
-extern menuitem_t menu_lm_items[];
-extern menuitem_t menu_pure_lm_items[];
-extern menuitem_t menu_adap_lm_items[];
-extern menuitem_t menu_profile_load;
+extern const menuitem_t menu_scanlines_items[];
+extern const menuitem_t menu_output_items[];
+extern const menuitem_t menu_settings_items[];
+extern const menuitem_t menu_advtiming_items[];
+extern const menuitem_t menu_lm_items[];
+extern const menuitem_t menu_pure_lm_items[];
+extern const menuitem_t menu_adap_lm_items[];
+extern const menuitem_t menu_main_items[];
+extern const menuitem_t menu_profile_load;
 #ifdef VIP
-extern menuitem_t menu_scaler_items[];
+extern const menuitem_t menu_scaler_items[];
 #endif
 
 int setup_rc()
@@ -276,8 +278,16 @@ void parse_control()
                 if ((r_code == RC_PHASE_PLUS) || (r_code == RC_PHASE_MINUS))
                     quick_adjust_phase(r_code == RC_PHASE_PLUS);
             }
-            if (r_code == RC_INFO)
-                print_vm_stats();
+            if (r_code == RC_INFO) {
+#ifndef DExx_FW
+#ifdef VIP
+                if (ts.osd_status_timeout == 3)
+                    enter_cstm(&menu_main_items[11], 1);
+                else
+#endif
+#endif
+                    print_vm_stats(0);
+            }
             if (r_code == RC_SL_MODE)
                 enter_cstm(&menu_scanlines_items[0], 1);
             if (r_code == RC_SL_TYPE)

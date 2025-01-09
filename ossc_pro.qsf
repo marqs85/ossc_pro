@@ -671,4 +671,5 @@ set_global_assignment -name SIP_FILE rtl/pll_sdp.sip
 set_location_assignment CLKSEL_X42_Y0_N8 -to clkmux_capture
 set_location_assignment CLKCTRL_G4 -to ISL_PCLK_i~inputCLKENA0
 set_location_assignment CLKCTRL_G5 -to HDMIRX_PCLK_i~inputCLKENA0
+
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

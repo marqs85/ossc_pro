@@ -62,6 +62,7 @@ extern uint8_t profile_sel_menu, sd_profile_sel_menu;
 
 extern c_pp_coeffs_t c_pp_coeffs;
 extern c_shmask_t c_shmask;
+extern c_edid_t c_edid;
 
 char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1], func_ret_status[US2066_ROW_LEN+1];
 extern char target_profile_name[USERDATA_NAME_LEN+1];
@@ -78,98 +79,101 @@ void (*cstm_f)(menucode_id, int);
 
 // Listview variables
 uint8_t lw_mp;
-menuitem_t *lw_item;
+const menuitem_t *lw_item;
 
 static int osd_list_iter;
 
-static const char *off_on_desc[] = { LNG("Off","ｵﾌ"), LNG("On","ｵﾝ") };
-static const char *ypbpr_cs_desc[] = { "Auto", "Rec. 601", "Rec. 709" };
-static const char *s480p_mode_desc[] = { LNG("Auto","ｵｰﾄ"), "DTV 480p", "VESA 640x480@60" };
-static const char *s400p_mode_desc[] = { "VGA 640x400@70", "VGA 720x400@70" };
-static const char *syncmux_stc_desc[] = { "Off", "On (5MHz LPF)", "On (2.5MHz LPF)", "On (0.5MHz LPF)" };
-static const char *l3_mode_desc[] = { LNG("Generic 16:9","ｼﾞｪﾈﾘｯｸ 16:9"), LNG("Generic 4:3","ｼﾞｪﾈﾘｯｸ 4:3"), LNG("512x240 optim.","512x240 ｻｲﾃｷｶ."), LNG("384x240 optim.","384x240 ｻｲﾃｷｶ."), LNG("320x240 optim.","320x240 ｻｲﾃｷｶ."), LNG("256x240 optim.","256x240 ｻｲﾃｷｶ.") };
-static const char *l2l4l5l6_mode_desc[] = { LNG("Generic 4:3","ｼﾞｪﾈﾘｯｸ 4:3"), LNG("512x240 optim.","512x240 ｻｲﾃｷｶ."), LNG("384x240 optim.","384x240 ｻｲﾃｷｶ."), LNG("320x240 optim.","320x240 ｻｲﾃｷｶ."), LNG("256x240 optim.","256x240 ｻｲﾃｷｶ.") };
-static const char *l5_fmt_desc[] = { "1920x1080", "1600x1200", "1920x1200" };
-static const char *pm_240p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line3x", "Line4x", "Line5x", "Line6x" };
-static const char *pm_480i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (Deint)", "Line3x (laced)", "Line4x (Deint)" };
-static const char *pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line3x Generic", "Line2x 240x360", "Line3x 240x360" };
-static const char *pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x" };
-static const char *pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (Deint)" };
-static const char *pm_ad_240p_desc[] = { "240p_CRT (Passthru)", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)", "2560x1440 (Line6x)", "2880x2160 (Line9x)" };
-static const char *pm_ad_288p_desc[] = { "288p_CRT (Passthru)", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1200 (Line4x)", "1920x1440 (Line5x)", "2560x1440 (Line5x)", "2880x2160 (Line7x)" };
-static const char *pm_ad_384p_desc[] = { "1280x720 (Line2x)", "1024x768 (Line2x)", "1920x1080 (Line3x)", "1600x1200 (Line3x)", "1920x1200 (Line3x)", "1920x1440 (Line4x)", "2560x1440 (Line4x)" };
-static const char *pm_ad_480i_desc[] = { "720x480i (Passthru)", "240p_CRT (NI rest)", "720x480 (Dint@L2x)", "1280x1024 (Dint@L4x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1440 (Dint@L6x)", "2560x1440 (Dint@L6x)" };
-static const char *pm_ad_576i_desc[] = { "720x576i (Passthru)", "288p_CRT (NI rest)", "720x576 (Dint@L2x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1200 (Dint@L4x)" };
-static const char *pm_ad_480p_desc[] = { "720x480 (Passthru)", "720x480i (Line drop)", "240p_CRT (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)", "2560x1440 (Line3x)" };
-static const char *pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x576i (Line drop)", "288p_CRT (Line drop)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1200 (Line2x)" };
-static const char *pm_ad_720p_desc[] = { "1280x720 (Passthru)", "240p_CRT (Line drop)", "480i_CRT (Line drop)", "2560x1440 (Line2x)" };
-static const char *pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint@L2x)" };
-static const char *pm_ad_1080p_desc[] = { "1920x1080 (Passthru)", "1920x1080i (Line drop)", "540p_CRT (Line drop)" };
-static const char *sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol", "MSX 256col", "Spectrum 352col" };
-static const char *sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
-static const char *sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
-static const char *sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
-static const char *sm_ad_576p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 576p 4:3", "DTV 576p 16:9" };
-static const char *lm_deint_mode_desc[] = { "Bob", "Noninterlace restore" };
-static const char *ar_256col_desc[] = { "Pseudo 4:3 DAR", "1:1 PAR" };
-static const char *tx_mode_desc[] = { "HDMI (RGB Full)", "HDMI (RGB Limited)", "HDMI (YCbCr444)", "DVI" };
-static const char *hdmi_vrr_desc[] = { "Off", "Freesync" };
-static const char *sl_mode_desc[] = { LNG("Off","ｵﾌ"), LNG("Auto","ｵｰﾄ"), LNG("On","ｵﾝ") };
-static const char *sl_method_desc[] = { LNG("Multiplication","Multiplication"), LNG("Subtraction","Subtraction") };
-static const char *sl_type_desc[] = { LNG("Horizontal","ﾖｺ"), LNG("Vertical","ﾀﾃ"), "Horiz. + Vert.", "Custom" };
-static const char *sl_id_desc[] = { LNG("Top","ｳｴ"), LNG("Bottom","ｼﾀ") };
+static const char* const off_on_desc[] = { LNG("Off","ｵﾌ"), LNG("On","ｵﾝ") };
+static const char* const ypbpr_cs_desc[] = { "Auto", "Rec. 601", "Rec. 709" };
+static const char* const s480p_mode_desc[] = { LNG("Auto","ｵｰﾄ"), "DTV 480p", "VESA 640x480@60" };
+static const char* const s400p_mode_desc[] = { "VGA 640x400@70", "VGA 720x400@70" };
+static const char* const syncmux_stc_desc[] = { "Off", "On (5MHz LPF)", "On (2.5MHz LPF)", "On (0.5MHz LPF)" };
+static const char* const l3_mode_desc[] = { LNG("Generic 16:9","ｼﾞｪﾈﾘｯｸ 16:9"), LNG("Generic 4:3","ｼﾞｪﾈﾘｯｸ 4:3"), LNG("512x240 optim.","512x240 ｻｲﾃｷｶ."), LNG("384x240 optim.","384x240 ｻｲﾃｷｶ."), LNG("320x240 optim.","320x240 ｻｲﾃｷｶ."), LNG("256x240 optim.","256x240 ｻｲﾃｷｶ.") };
+static const char* const l2l4l5l6_mode_desc[] = { LNG("Generic 4:3","ｼﾞｪﾈﾘｯｸ 4:3"), LNG("512x240 optim.","512x240 ｻｲﾃｷｶ."), LNG("384x240 optim.","384x240 ｻｲﾃｷｶ."), LNG("320x240 optim.","320x240 ｻｲﾃｷｶ."), LNG("256x240 optim.","256x240 ｻｲﾃｷｶ.") };
+static const char* const l5_fmt_desc[] = { "1920x1080", "1600x1200", "1920x1200" };
+static const char* const pm_240p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line3x", "Line4x", "Line5x", "Line6x" };
+static const char* const pm_480i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (Deint)", "Line3x (laced)", "Line4x (Deint)" };
+static const char* const pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x", "Line3x Generic", "Line2x 240x360", "Line3x 240x360" };
+static const char* const pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x" };
+static const char* const pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (Deint)" };
+static const char* const pm_ad_240p_desc[] = { "240p_CRT (Passthru)", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)", "2560x1440 (Line6x)", "2880x2160 (Line9x)" };
+static const char* const pm_ad_288p_desc[] = { "288p_CRT (Passthru)", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1200 (Line4x)", "1920x1440 (Line5x)", "2560x1440 (Line5x)", "2880x2160 (Line7x)" };
+static const char* const pm_ad_384p_desc[] = { "1280x720 (Line2x)", "1024x768 (Line2x)", "1920x1080 (Line3x)", "1600x1200 (Line3x)", "1920x1200 (Line3x)", "1920x1440 (Line4x)", "2560x1440 (Line4x)" };
+static const char* const pm_ad_480i_desc[] = { "720x480i (Passthru)", "240p_CRT (NI rest)", "720x480 (Dint@L2x)", "1280x1024 (Dint@L4x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1440 (Dint@L6x)", "2560x1440 (Dint@L6x)" };
+static const char* const pm_ad_576i_desc[] = { "720x576i (Passthru)", "288p_CRT (NI rest)", "720x576 (Dint@L2x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1200 (Dint@L4x)" };
+static const char* const pm_ad_480p_desc[] = { "720x480 (Passthru)", "720x480i (Line drop)", "240p_CRT (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)", "2560x1440 (Line3x)" };
+static const char* const pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x576i (Line drop)", "288p_CRT (Line drop)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1200 (Line2x)" };
+static const char* const pm_ad_720p_desc[] = { "1280x720 (Passthru)", "240p_CRT (Line drop)", "480i_CRT (Line drop)", "2560x1440 (Line2x)" };
+static const char* const pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint@L2x)" };
+static const char* const pm_ad_1080p_desc[] = { "1920x1080 (Passthru)", "1920x1080i (Line drop)", "540p_CRT (Line drop)", "240p_CRT (Line drop)" };
+static const char* const sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol", "MSX 256col", "Spectrum 352col" };
+static const char* const sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
+static const char* const sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
+static const char* const sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
+static const char* const sm_ad_576p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 576p 4:3", "DTV 576p 16:9" };
+static const char* const lm_deint_mode_desc[] = { "Bob", "Noninterlace restore" };
+static const char* const ar_256col_desc[] = { "Pseudo 4:3 DAR", "1:1 PAR" };
+static const char* const tx_mode_desc[] = { "HDMI (RGB Full)", "HDMI (RGB Limited)", "HDMI (YCbCr444)", "DVI" };
+static const char* const hdmi_vrr_desc[] = { "Off", "Freesync" };
+static const char* const sl_mode_desc[] = { LNG("Off","ｵﾌ"), LNG("Auto","ｵｰﾄ"), LNG("On","ｵﾝ") };
+static const char* const sl_method_desc[] = { LNG("Multiplication","Multiplication"), LNG("Subtraction","Subtraction") };
+static const char* const sl_type_desc[] = { LNG("Horizontal","ﾖｺ"), LNG("Vertical","ﾀﾃ"), "Horiz. + Vert.", "Custom" };
+static const char* const sl_id_desc[] = { LNG("Top","ｳｴ"), LNG("Bottom","ｼﾀ") };
 #ifdef DExx_FW
-const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS" };
-static const char *audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz" };
-static const char *audio_src_desc[] = { "AV1 (analog)", "SPDIF" };
+const char* const avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS" };
+static const char* const audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz" };
+static const char* const audio_src_desc[] = { "AV1 (analog)", "SPDIF" };
 #else
-const char *avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4", "EXP_Svideo", "EXP_CVBS", "EXP_RF" };
-static const char *audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz", "24bit/192kHz" };
-static const char *audio_src_desc[] = { "AV1 (analog)", "AV2 (analog)", "AV3 (analog)", "SPDIF", "AV4 (digital)" };
+const char* const avinput_str[] = { "Test pattern", "AV1_RGBS", "AV1_RGsB", "AV1_YPbPr", "AV1_RGBHV", "AV1_RGBCS", "AV2_YPbPr", "AV2_RGsB", "AV3_RGBHV", "AV3_RGBCS", "AV3_RGBS", "AV3_RGsB", "AV3_YPbPr", "AV4", "EXP_Svideo", "EXP_CVBS", "EXP_RF" };
+static const char* const audio_fmt_desc[] = { "24bit/48kHz", "24bit/96kHz", "24bit/192kHz" };
+static const char* const audio_src_desc[] = { "AV1 (analog)", "AV2 (analog)", "AV3 (analog)", "SPDIF", "AV4 (digital)" };
 #endif
-static const char *audio_sr_desc[] = { "Off", "On (4.0)", "On (5.1)", "On (7.1)" };
-static const char *audmux_sel_desc[] = { "AV3 input", "AV1 output" };
-static const char *power_up_state_desc[] = { "Standby", "Active" };
-static const char *osd_enable_desc[] = { "Off", "Full", "Simple" };
-static const char *osd_status_desc[] = { "2s", "5s", "10s", "Off" };
-static const char *rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
-static const char *auto_input_desc[] = { "Off", "Current input", "All inputs" };
-static const char *mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
-static const char *shmask_mode_desc[] = { "Off", "A-Grille", "TV", "PVM", "PVM-2530", "XC-3315C", "C-1084", "JVC", "VGA", c_shmask.name };
-static const char *lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "NES" };
-static const char *adv761x_rgb_range_desc[] = { "Limited", "Full" };
-static const char *oper_mode_desc[] = { "Line multiplier", "Scaler" };
-static const char *lm_mode_desc[] = { "Pure", "Adaptive" };
-static const char *scl_out_mode_desc[] = { "720x480 (60Hz)", "720x480 WS (60Hz)", "720x576 (50Hz)", "720x576 WS (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080i (50-120Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)", "2880x2160 (50-60Hz)" };
-static const char *scl_crt_out_mode_desc[] = { "240p (60-120Hz)", "240p WS (60-120Hz)", "288p (50-100Hz)", "288p WS (50-100Hz)", "480i (60Hz)", "480i WS (60Hz)", "576i (50Hz)", "576i WS (50Hz)", "480p (60-120Hz)", "540p (50-60Hz)", "1024x768 (60-120Hz)", "1280x960 (60-120Hz)" };
-static const char *scl_out_type_desc[] = { "DFP", "CRT" };
-static const char *scl_framelock_desc[] = { "On", "On (2x source Hz)", "Off (source Hz)", "Off (preset Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
-static const char *scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
-static const char *scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "GS medium", "GS soft", c_pp_coeffs.name };
-static const char *scl_gen_sr_desc[] = { "Auto", "Lowest", "Highest" };
+static const char* const audio_sr_desc[] = { "Off", "On (4.0)", "On (5.1)", "On (7.1)" };
+static const char* const audmux_sel_desc[] = { "AV3 input", "AV1 output" };
+static const char* const power_up_state_desc[] = { "Standby", "Active" };
+static const char* const osd_enable_desc[] = { "Off", "Full", "Simple" };
+static const char* const osd_status_desc[] = { "2s", "5s", "10s", "Off" };
+static const char* const rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
+static const char* const auto_input_desc[] = { "Off", "Current input", "All inputs" };
+static const char* const mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
+static const char* const shmask_mode_desc[] = { "Off", "A-Grille", "TV", "PVM", "PVM-2530", "XC-3315C", "C-1084", "JVC", "VGA", c_shmask.name };
+static const char* const lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "NES" };
+static const char* const adv761x_rgb_range_desc[] = { "Limited", "Full" };
+static const char* const oper_mode_desc[] = { "Line multiplier", "Scaler" };
+static const char* const lm_mode_desc[] = { "Pure", "Adaptive" };
+static const char* const scl_out_mode_desc[] = { "720x480 (60Hz)", "720x480 WS (60Hz)", "720x576 (50Hz)", "720x576 WS (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080i (50-120Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)", "2880x2160 (50-60Hz)" };
+static const char* const scl_crt_out_mode_desc[] = { "240p (60-120Hz)", "240p WS (60-120Hz)", "288p (50-100Hz)", "288p WS (50-100Hz)", "480i (60Hz)", "480i WS (60Hz)", "576i (50Hz)", "576i WS (50Hz)", "480p (60-120Hz)", "540p (50-60Hz)", "1024x768 (60-120Hz)", "1280x960 (60-120Hz)", "2048x1536 (60Hz)" };
+static const char* const scl_out_type_desc[] = { "DFP", "CRT" };
+static const char* const scl_framelock_desc[] = { "On", "On (2x source Hz)", "Off (source Hz)", "Off (preset Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
+static const char* const scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
+static const char* const scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "GS medium", "GS soft", c_pp_coeffs.name };
+static const char* const scl_gen_sr_desc[] = { "Auto", "Lowest", "Highest" };
 #ifndef VIP_DIL_B
 #ifdef DEBUG
-static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Visualize motion" };
+static const char* const scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Visualize motion" };
 #else
-static const char *scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive" };
+static const char* const scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive" };
 #endif
 #endif
-static const char *sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol", "MSX 256col", "Spectrum 352col" };
-static const char *sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
-static const char *sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
-static const char *sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
-static const char *sm_scl_576p_desc[] = { "Generic", "DTV 576p", "GC 640col" };
-static const char *timing_1080p120_desc[] = { "CVT-RB", "Min. blank", "CEA-861", "CEA-861 PR2x" };
-static const char *timing_2160p60_desc[] = { "CVT-RB PR2x", "Min. blank PR2x" };
-static const char *exp_sel_desc[] = { "Auto", "Off", "Extra AV out", "Legacy AV in", "UVC bridge" };
-static const char *extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB", "YPbPr" };
-static const char *hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
-static const char *sdp_timings_groups[] = { "-", "SDP 240p", "SDP 288p", "-", "SDP 480i", "SDP 576i", "-", "-", "-", "-", "-" };
-static const char *sh_filt_c_desc[] = { "Auto 1.5MHz", "Auto 2.17MHz", "SH1", "SH2", "SH3", "SH4", "SH5", "Wideband" };
-static const char *comb_str_desc[] = { "Narrow", "Medium", "Medium+", "Wide" };
-static const char *comb_ctapsn_desc[] = { "3->2", "5->3", "5->4" };
-static const char *comb_ctapsp_desc[] = { "5->3 (2-tap)", "5->3 (3-tap)", "5->4 (4-tap)" };
-static const char *comb_mode_desc[] = { "Adaptive", "Off", "Fixed (top)", "Fixed (all)", "Fixed (bottom)" };
+static const char* const sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol", "MSX 256col", "Spectrum 352col" };
+static const char* const sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
+static const char* const sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
+static const char* const sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
+static const char* const sm_scl_576p_desc[] = { "Generic", "DTV 576p", "GC 640col" };
+static const char* const timing_1080p120_desc[] = { "CVT-RB", "Min. blank", "CEA-861", "CEA-861 PR2x" };
+static const char* const timing_2160p60_desc[] = { "CVT-RB PR2x", "Min. blank PR2x" };
+static const char* const edid_sel_desc[] = { "Default", "2ch audio", "10bpc RGB+HDR", c_edid.name };
+static const char* const exp_sel_desc[] = { "Auto", "Off", "Extra AV out", "Legacy AV in", "UVC bridge" };
+static const char* const extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB", "YPbPr" };
+static const char* const hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
+static const char* const sdp_timings_groups[] = { "-", "SDP 240p", "SDP 288p", "-", "SDP 480i", "SDP 576i", "-", "-", "-", "-", "-" };
+static const char* const sh_filt_c_desc[] = { "Auto 1.5MHz", "Auto 2.17MHz", "SH1", "SH2", "SH3", "SH4", "SH5", "Wideband" };
+static const char* const comb_str_desc[] = { "Narrow", "Medium", "Medium+", "Wide" };
+static const char* const comb_ctapsn_desc[] = { "3->2", "5->3", "5->4" };
+static const char* const comb_ctapsp_desc[] = { "5->3 (2-tap)", "5->3 (3-tap)", "5->4 (4-tap)" };
+static const char* const comb_mode_desc[] = { "Adaptive", "Off", "Fixed (top)", "Fixed (all)", "Fixed (bottom)" };
+static const char* const cti_ab_desc[] = { "Sharpest", "Sharp", "Smooth", "Smoothest" };
+static const char* const tv_std_desc[] = { "NTSC M", "PAL B/G/H" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -226,7 +230,7 @@ static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mod
 }
 
 #ifndef DExx_FW
-static void pixelderep_mode_disp(uint8_t v) {
+static void hdmi_pixeldecim_mode_disp(uint8_t v) {
     if (v)
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%ux", v);
     else
@@ -344,12 +348,16 @@ MENU(menu_isl_sync_opt, P99_PROTECT({
     { "H-PLL Pre-Coast",                        OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.pre_coast,   OPT_NOWRAP, 0, PLL_COAST_MAX, lines_disp } } },
     { "H-PLL Post-Coast",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.post_coast,  OPT_NOWRAP, 0, PLL_COAST_MAX, lines_disp } } },
     { "H-PLL Loop Gain",                        OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.pll_loop_gain, OPT_NOWRAP, 0, PLL_LOOP_GAIN_MAX, value_disp } } },
+    { "Ext. dotclk range",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.isl_ext_range,         OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
 }))
 
 #ifdef INC_ADV761X
 MENU(menu_adv_video_opt, P99_PROTECT({
     { "Default RGB range",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmirx_cfg.default_rgb_range,    OPT_WRAP,   SETTING_ITEM(adv761x_rgb_range_desc) } } },
-    { "Pixel de-repetition",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.hdmirx_cfg.pixelderep_mode,      OPT_NOWRAP, 0, 10, pixelderep_mode_disp } } },
+    { "Pixel decimation",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.hdmi_pixeldecim_mode,      OPT_NOWRAP, 0, 32, hdmi_pixeldecim_mode_disp } } },
+    { "DV1 menu mode",                          OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmirx_cfg.enable_dv1_menu,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
+    { "EDID selection",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmirx_cfg.edid_sel,         OPT_WRAP,   SETTING_ITEM_LIST(edid_sel_desc) } } },
+    { "Custom EDID load",                       OPT_CUSTOMMENU,         { .cstm = { &cstm_edid_load } } },
 }))
 #endif
 
@@ -477,6 +485,7 @@ MENU(menu_audio, P99_PROTECT({
     { "AV2 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[1], OPT_NOWRAP, 1, 3, audio_src_disp } } },
     { "AV3 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[2], OPT_NOWRAP, 1, 3, audio_src_disp } } },
     { "AV4 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[3], OPT_NOWRAP, 1, 4, audio_src_disp } } },
+    { "EXP audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[4], OPT_NOWRAP, 1, 3, audio_src_disp } } },
     { "3.5mm jack assign",                      OPT_AVCONFIG_SELECTION,  { .sel = { &tc.audmux_sel,     OPT_WRAP, SETTING_ITEM(audmux_sel_desc) } } },
 #else
     { "AV1 audio source",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.audio_src_map[0], OPT_NOWRAP, 0, 1, audio_src_disp } } },
@@ -499,6 +508,10 @@ MENU(menu_sdp, P99_PROTECT({
     { "NTSC Comb C taps",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_ctaps_ntsc, OPT_NOWRAP, SETTING_ITEM(comb_ctapsn_desc) } } },
     { "NTSC Comb C mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_cmode_ntsc, OPT_NOWRAP, SETTING_ITEM(comb_mode_desc) } } },
     { "NTSC Comb Y mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_ymode_ntsc, OPT_NOWRAP, SETTING_ITEM(comb_mode_desc) } } },
+    { "CTI alpha blend",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.cti_ab,          OPT_NOWRAP, SETTING_ITEM(cti_ab_desc) } } },
+    { "CTI chroma thold",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.cti_c_th,        OPT_NOWRAP, 0, 0xff, value_disp } } },
+    { "RF TV system",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.tv_std,         OPT_NOWRAP, SETTING_ITEM(tv_std_desc) } } },
+    { "RF chscan (2min)",                       OPT_FUNC_CALL,          { .fun = { rf_chscan, NULL } } },
 }))
 
 MENU(menu_exp, P99_PROTECT({
@@ -557,10 +570,11 @@ MENU(menu_main, P99_PROTECT({
 #ifndef DExx_FW
     { "Expansion opt.",                         OPT_SUBMENU,            { .sub = { &menu_exp, NULL, NULL } } },
 #endif
+    { "Signal info",                            OPT_CUSTOMMENU,         { .cstm = { &cstm_vm_stats } } },
     { "Settings",                               OPT_SUBMENU,             { .sub = { &menu_settings, NULL, NULL } } },
 }))
 
-menuitem_t menu_profile_load = {"Profile load", OPT_CUSTOMMENU,         { .cstm = { &cstm_profile_load } } };
+const menuitem_t menu_profile_load = {"Profile load", OPT_CUSTOMMENU,         { .cstm = { &cstm_profile_load } } };
 
 
 int is_menu_active() {
@@ -591,7 +605,7 @@ menunavi* get_current_menunavi() {
     return &navi[navlvl];
 }
 
-void write_option_name(menuitem_t *item)
+void write_option_name(const menuitem_t *item)
 {
     int i, offset;
 
@@ -622,7 +636,7 @@ void write_option_name(menuitem_t *item)
     }
 }
 
-void write_option_value(menuitem_t *item, int func_called, int retval)
+void write_option_value(const menuitem_t *item, int func_called, int retval)
 {
     switch (item->type) {
         case OPT_AVCONFIG_SELECTION:
@@ -667,7 +681,7 @@ void write_option_value(menuitem_t *item, int func_called, int retval)
 
 void render_osd_menu() {
     int i;
-    menuitem_t *item;
+    const menuitem_t *item;
     uint32_t row_mask[2] = {0, 0};
 
     if (!menu_active || (ts.osd_enable != 1))
@@ -1145,22 +1159,27 @@ void osd_array_fname_fill(FILINFO *fno) {
     osd_list_iter++;
 }
 
-void cstm_scl_alg_load(menucode_id code, int setup_disp) {
+void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, load_func load_f) {
     uint32_t row_mask[2] = {0x03, 0x00};
     int i, retval, items_curpage;
-    static int scl_alg_nav = 0;
-    static int scl_alg_page = 0;
-    static int scl_alg_files;
+    static int file_load_nav = 0;
+    static int file_load_page = 0;
+    static int files_found;
 
     FILINFO fno;
 
     if (setup_disp) {
-        scl_alg_files = find_files_exec("scl_alg", "*.cfg", &fno, 0, 99, NULL);
-        printf("%d scl_alg .cfg files found\n", scl_alg_files);
+        files_found = find_files_exec(dir, pattern, &fno, 0, 99, NULL);
+        printf("%d %s files found\n", files_found, dir);
+
+        if (file_load_page*20+file_load_nav > files_found) {
+            file_load_page = 0;
+            file_load_nav = 0;
+        }
     }
 
-    if (scl_alg_files == 0) {
-        sniprintf(menu_row1, US2066_ROW_LEN+1, "No scl_alg/*.cfg");
+    if (files_found == 0) {
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "No %s/%s", dir, pattern);
         sniprintf(menu_row2, US2066_ROW_LEN+1, "files found");
         ui_disp_menu(1);
 
@@ -1170,53 +1189,53 @@ void cstm_scl_alg_load(menucode_id code, int setup_disp) {
     // Parse menu control
     switch (code) {
     case PREV_PAGE:
-        scl_alg_nav--;
+        file_load_nav--;
         break;
     case NEXT_PAGE:
-        scl_alg_nav++;
+        file_load_nav++;
         break;
     case VAL_MINUS:
-        scl_alg_page = (scl_alg_page == 0) ? ((scl_alg_files-1)/20) : (scl_alg_page - 1);
+        file_load_page = (file_load_page == 0) ? ((files_found-1)/20) : (file_load_page - 1);
         setup_disp = 1;
         break;
     case VAL_PLUS:
-        scl_alg_page = (scl_alg_page + 1) % (((scl_alg_files-1)/20)+1);
+        file_load_page = (file_load_page + 1) % (((files_found-1)/20)+1);
         setup_disp = 1;
         break;
     case OPT_SELECT:
-        find_files_exec("scl_alg", "*.cfg", &fno, 0, scl_alg_page*20+scl_alg_nav, NULL);
+        find_files_exec(dir, pattern, &fno, 0, file_load_page*20+file_load_nav, NULL);
 
-        retval = load_scl_coeffs("/scl_alg", fno.fname);
-        sniprintf((char*)osd->osd_array.data[scl_alg_nav+2][1], OSD_CHAR_COLS, (retval==0) ? "OK" : "Failed");
+        retval = load_f(dir, fno.fname);
+        sniprintf((char*)osd->osd_array.data[file_load_nav+2][1], OSD_CHAR_COLS, (retval==0) ? "OK" : "Failed");
 
-        row_mask[1] = (1<<(scl_alg_nav+2));
+        row_mask[1] = (1<<(file_load_nav+2));
         osd->osd_sec_enable[1].mask = row_mask[1];
         break;
     default:
         break;
     }
 
-    if (scl_alg_page > (scl_alg_files/20))
-        scl_alg_page = 0;
-    items_curpage = scl_alg_files-scl_alg_page*20;
+    if (file_load_page > (files_found/20))
+        file_load_page = 0;
+    items_curpage = files_found-file_load_page*20;
     if (items_curpage > 20)
         items_curpage = 20;
 
-    if (scl_alg_nav < 0)
-        scl_alg_nav = items_curpage-1;
-    else if (scl_alg_nav >= items_curpage)
-        scl_alg_nav = 0;
+    if (file_load_nav < 0)
+        file_load_nav = items_curpage-1;
+    else if (file_load_nav >= items_curpage)
+        file_load_nav = 0;
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
-        sniprintf(menu_row1, US2066_ROW_LEN+1, "SCL alg page %d/%d", scl_alg_page+1, ((scl_alg_files-1)/20)+1);
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "%s page %d/%d", dir, file_load_page+1, ((files_found-1)/20)+1);
         strncpy((char*)osd->osd_array.data[0][0], menu_row1, OSD_CHAR_COLS);
         for (i=0; i<OSD_CHAR_COLS; i++)
             osd->osd_array.data[1][0][i] = '-';
 
         osd_list_iter = 0;
-        find_files_exec("scl_alg", "*.cfg", &fno, scl_alg_page*20, scl_alg_page*20+items_curpage-1, osd_array_fname_fill);
+        find_files_exec(dir, pattern, &fno, file_load_page*20, file_load_page*20+items_curpage-1, osd_array_fname_fill);
 
         for (i=0; i<items_curpage; i++)
             row_mask[0] |= (1<<(i+2));
@@ -1228,101 +1247,27 @@ void cstm_scl_alg_load(menucode_id code, int setup_disp) {
         osd->osd_sec_enable[1].mask = row_mask[1];
     }
 
-    osd->osd_row_color.mask = (1<<(scl_alg_nav+2));
+    osd->osd_row_color.mask = (1<<(file_load_nav+2));
 
     //sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
 
     ui_disp_menu(0);
 }
 
+void cstm_scl_alg_load(menucode_id code, int setup_disp) {
+    cstm_file_load(code, setup_disp, "scl_alg", "*.cfg", load_scl_coeffs);
+}
+
 void cstm_shmask_load(menucode_id code, int setup_disp) {
-    uint32_t row_mask[2] = {0x03, 0x00};
-    int i, retval, items_curpage;
-    static int shmask_nav = 0;
-    static int shmask_page = 0;
-    static int shmask_files;
+    cstm_file_load(code, setup_disp, "shmask", "*.txt", load_shmask);
+}
 
-    FILINFO fno;
+void cstm_edid_load(menucode_id code, int setup_disp) {
+    cstm_file_load(code, setup_disp, "edid", "*.bin", load_edid);
+}
 
-    if (setup_disp) {
-        shmask_files = find_files_exec("shmask", "*.txt", &fno, 0, 99, NULL);
-        printf("%d shmask .txt files found\n", shmask_files);
-    }
-
-    if (shmask_files == 0) {
-        sniprintf(menu_row1, US2066_ROW_LEN+1, "No shmask/*.txt");
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "files found");
-        ui_disp_menu(1);
-
-        return;
-    }
-
-    // Parse menu control
-    switch (code) {
-    case PREV_PAGE:
-        shmask_nav--;
-        break;
-    case NEXT_PAGE:
-        shmask_nav++;
-        break;
-    case VAL_MINUS:
-        shmask_page = (shmask_page == 0) ? ((shmask_files-1)/20) : (shmask_page - 1);
-        setup_disp = 1;
-        break;
-    case VAL_PLUS:
-        shmask_page = (shmask_page + 1) % (((shmask_files-1)/20)+1);
-        setup_disp = 1;
-        break;
-    case OPT_SELECT:
-        find_files_exec("shmask", "*.txt", &fno, 0, shmask_page*20+shmask_nav, NULL);
-
-        retval = load_shmask("/shmask", fno.fname);
-        sniprintf((char*)osd->osd_array.data[shmask_nav+2][1], OSD_CHAR_COLS, (retval==0) ? "OK" : "Failed");
-
-        row_mask[1] = (1<<(shmask_nav+2));
-        osd->osd_sec_enable[1].mask = row_mask[1];
-        break;
-    default:
-        break;
-    }
-
-    if (shmask_page > (shmask_files/20))
-        shmask_page = 0;
-    items_curpage = shmask_files-shmask_page*20;
-    if (items_curpage > 20)
-        items_curpage = 20;
-
-    if (shmask_nav < 0)
-        shmask_nav = items_curpage-1;
-    else if (shmask_nav >= items_curpage)
-        shmask_nav = 0;
-
-    if (setup_disp) {
-        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
-
-        sniprintf(menu_row1, US2066_ROW_LEN+1, "Shmask page %d/%d", shmask_page+1, ((shmask_files-1)/20)+1);
-        strncpy((char*)osd->osd_array.data[0][0], menu_row1, OSD_CHAR_COLS);
-        for (i=0; i<OSD_CHAR_COLS; i++)
-            osd->osd_array.data[1][0][i] = '-';
-
-        osd_list_iter = 0;
-        find_files_exec("shmask", "*.txt", &fno, shmask_page*20, shmask_page*20+items_curpage-1, osd_array_fname_fill);
-
-        for (i=0; i<items_curpage; i++)
-            row_mask[0] |= (1<<(i+2));
-
-        sniprintf((char*)osd->osd_array.data[items_curpage+3][0], OSD_CHAR_COLS, "< Prev       Next >");
-        row_mask[0] |= (3<<(items_curpage+2));
-
-        osd->osd_sec_enable[0].mask = row_mask[0];
-        osd->osd_sec_enable[1].mask = row_mask[1];
-    }
-
-    osd->osd_row_color.mask = (1<<(shmask_nav+2));
-
-    //sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
-
-    ui_disp_menu(0);
+void cstm_vm_stats(menucode_id code, int setup_disp) {
+    print_vm_stats(1);
 }
 
 void cstm_listview(menucode_id code, int setup_disp) {
@@ -1371,7 +1316,7 @@ void cstm_listview(menucode_id code, int setup_disp) {
     ui_disp_menu(0);
 }
 
-void enter_cstm(menuitem_t *item, int detached_mode) {
+void enter_cstm(const menuitem_t *item, int detached_mode) {
     if (detached_mode) {
         navlvl = 0;
         menu_active = 1;
@@ -1386,7 +1331,7 @@ void enter_cstm(menuitem_t *item, int detached_mode) {
     cstm_f(NO_ACTION, 1);
 }
 
-void quick_adjust(menuitem_t *item, int adj, int is_relative) {
+void quick_adjust(const menuitem_t *item, int adj, int is_relative) {
     int adj_data = is_relative ? ((int)(*item->num.data) + adj) : adj;
 
     if (adj_data < (int)item->num.min)
@@ -1435,7 +1380,7 @@ void quick_adjust_phase(uint8_t dir) {
 void display_menu(rc_code_t rcode, btn_code_t bcode)
 {
     menucode_id code = NO_ACTION;
-    menuitem_t *item;
+    const menuitem_t *item;
     uint8_t *val, val_wrap, val_min, val_max;
     uint16_t *val_u16, val_u16_min, val_u16_max;
     int i, func_called = 0, retval = 0, forcedisp=0;

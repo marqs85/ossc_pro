@@ -38,6 +38,7 @@
 #endif
 #ifndef DExx_FW
 #include "adv7280a.h"
+#include "si2177.h"
 #endif
 
 #define SIGNED_NUMVAL_ZERO  128
@@ -144,6 +145,7 @@ typedef struct {
     uint8_t oper_mode;
     uint8_t timing_1080p120;
     uint8_t timing_2160p60;
+    uint8_t hdmi_pixeldecim_mode;
 
     /* Postprocessing settings */
     uint8_t sl_mode;
@@ -189,9 +191,10 @@ typedef struct {
     uint8_t tp_mode;
     uint8_t audio_fmt;
     uint8_t audmux_sel;
-    audinput_t audio_src_map[4];
+    audinput_t audio_src_map[5];
     uint8_t exp_sel;
     uint8_t extra_av_out_mode;
+    uint8_t isl_ext_range;
 #ifdef INC_THS7353
     uint8_t syncmux_stc;
 #endif
@@ -210,6 +213,7 @@ typedef struct {
 #endif
 #ifndef DExx_FW
     adv7280a_config sdp_cfg __attribute__ ((aligned (4)));
+    si2177_config sirf_cfg __attribute__ ((aligned (4)));
 #endif
 } __attribute__((packed)) avconfig_t;
 
