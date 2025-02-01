@@ -924,6 +924,7 @@ int init_hw()
     else
         exp_det = 0;
 
+    printf("Exp_det: %u\n", exp_det);
     switch_expansion(0, 1);
 
     // Init ADV7610
@@ -1920,6 +1921,14 @@ void mainloop()
 
                         update_osd_size(&vmode_out);
                         update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+
+                        // Setup VIC and pixel repetition
+#ifdef INC_ADV7513
+                        adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
+#endif
+#ifdef INC_SII1136
+                        sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
+#endif
                     }
                 } else if (status & SC_CONFIG_CHANGE) {
                     update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
