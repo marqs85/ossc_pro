@@ -588,12 +588,12 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
     const ad_mode_t pm_ad_288p_map[] = {{STDMODE_288p_CRT, 0}, {STDMODE_576p, 1}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3},
                                         {STDMODE_1920x1200_50, 3}, {STDMODE_1920x1440_50, 4}, {STDMODE_2560x1440_50, 4}, {timings_2160p60[cc->timing_2160p60], 6}};
     const ad_mode_t pm_ad_384p_map[] = {{STDMODE_720p_60, 1}, {STDMODE_1024x768_60, 1}, {STDMODE_1080p_60, 2},
-                                        {STDMODE_1600x1200_60, 2}, {STDMODE_1920x1200_60, 2}, {STDMODE_1920x1440_60, 3}, {STDMODE_2560x1440_60, 3}};
+                                        {STDMODE_1600x1200_60, 2}, {STDMODE_1920x1200_60, 2}, {STDMODE_1920x1440_60, 3}, {STDMODE_2560x1440_60, 3}, {STDMODE_2560x1920_60, 4}};
     const ad_mode_t pm_ad_480i_map[] = {{STDMODE_480i, 0}, {STDMODE_240p_CRT, 0}, {STDMODE_480p, 1}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3},
                                         {STDMODE_1920x1440_60, 5}, {STDMODE_2560x1440_60, 5}};
     const ad_mode_t pm_ad_576i_map[] = {{STDMODE_576i, 0}, {STDMODE_288p_CRT, 0}, {STDMODE_576p, 1}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3}, {STDMODE_1920x1200_50, 3}};
     const ad_mode_t pm_ad_480p_map[] = {{STDMODE_480p, 0}, {STDMODE_480i, -1}, {STDMODE_240p_CRT, -1}, {STDMODE_1280x1024_60, 1}, {STDMODE_1080i_60, 0}, {STDMODE_1080p_60, 1},
-                                        {STDMODE_1920x1440_60, 2}, {STDMODE_2560x1440_60, 2}};
+                                        {STDMODE_1920x1440_60, 2}, {STDMODE_2560x1440_60, 2}, {STDMODE_2560x1920_60, 3}};
     const ad_mode_t pm_ad_576p_map[] = {{STDMODE_576p, 0}, {STDMODE_576i, -1}, {STDMODE_288p_CRT, -1}, {STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}, {STDMODE_1920x1200_50, 1}};
     const ad_mode_t pm_ad_720p_map[] = {{STDMODE_720p_50, 0}, {STDMODE_288p_WS_CRT, -2}, {STDMODE_576i_WS_CRT, -2}, {STDMODE_2560x1440_50, 1}};
     const ad_mode_t pm_ad_1080i_map[] = {{STDMODE_1080i_50, 0}, {STDMODE_1080p_50, 1}};
@@ -806,6 +806,10 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
             vm_conf->x_rpt = 7;
         else if (target_sm_list[vm_in->group] == SM_OPT_PSP_480COL)
             vm_conf->x_rpt = 4;
+        break;
+    case STDMODE_2560x1920_60:
+        if (vm_in->timings.h_active <= 768)
+            vm_conf->x_rpt = 1;
         break;
     default:
         break;
