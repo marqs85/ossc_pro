@@ -148,6 +148,8 @@ const mode_data_t video_modes_default[] = {
     { "2560x1440_60",  HDMI_Unknown,     {2560, 1440,   6000,  2720, 0, 1481,   80, 33,   32, 5,  0},  0,  {{16,  9}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     /* Quad-XGA */
     { "2048x1536_60",  HDMI_Unknown,     {2048, 1536,   6000,  2688, 0, 1612,  340, 58,  252, 6,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
+    /* CVT 2560x1920 with reduced blanking */
+    { "2560x1920_60",  HDMI_Unknown,     {1280, 1920,   6000,  1360, 0, 1975,   40, 48,   16, 4,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
     /* 2880x2160 (CVT-RB with PR2) */
     { "2880x2160_50",  HDMI_Unknown,     {1440, 2160,   5000,  1520, 0, 2211,   40, 44,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
     { "2880x2160_60",  HDMI_Unknown,     {1440, 2160,   6000,  1520, 0, 2222,   40, 55,   16, 4,  0},  0,  {{4,  3}},   VIDEO_PC,                 GROUP_NONE,   0,         TX_2X, TX_1X },
@@ -233,6 +235,7 @@ const smp_preset_t smp_presets_default[] = {
     /* Other VESA modes */
     { "PC 800x600_60",  SM_OPT_PC_HDTV,    { 800,  600,      0,  1056, 0,  628,   88, 23,  128, 4,  0},  0,  0,  { 4,  3},    VIDEO_PC,  GROUP_NONE },
     { "PC 1024x768_60", SM_OPT_PC_HDTV,    {1024,  768,      0,  1344, 0,  806,  160, 29,  136, 6,  0},  0,  0,  { 4,  3},    VIDEO_PC,  GROUP_NONE },
+    { "PC 1152x864_75", SM_OPT_PC_HDTV,    {1152,  864,      0,  1600, 0,  900,  256, 32,  128, 3,  0},  0,  0,  { 4,  3},    VIDEO_PC,  GROUP_NONE },
     { "PC 1280x960_60", SM_OPT_PC_HDTV,    {1280,  960,      0,  1800, 0, 1000,  312, 36,  112, 3,  0},  0,  0,  { 4,  3},    VIDEO_PC,  GROUP_NONE },
     { "PC 1280x1024_60",SM_OPT_PC_HDTV,    {1280, 1024,      0,  1688, 0, 1066,  248, 38,  112, 3,  0},  0,  0,  { 5,  4},    VIDEO_PC,  GROUP_NONE },
     { "PC 1600x1200_60",SM_OPT_PC_HDTV,    {1600, 1200,      0,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  0,  { 4,  3},    VIDEO_PC,  GROUP_NONE },
