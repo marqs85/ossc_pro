@@ -1799,7 +1799,7 @@ void mainloop()
                                                  si_clk_src,
                                                  pclk_i_hz,
                                                  vm_conf.framelock ? vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock : pclk_o_hz/1000,
-                                                 vm_conf.framelock ? advrx_dev.ss.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
+                                                 vm_conf.framelock ? advrx_dev.ss.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1)+advrx_dev.ss.f_pix_adder : si_dev.xtal_freq/1000,
                                                  NULL);
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
