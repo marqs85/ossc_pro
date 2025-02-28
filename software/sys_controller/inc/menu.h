@@ -134,6 +134,7 @@ void cstm_clock_phase(menucode_id code, int setup_disp);
 void cstm_size(menucode_id code, int setup_disp);
 void cstm_position(menucode_id code, int setup_disp);
 void cstm_profile_load(menucode_id code, int setup_disp);
+void cstm_rf_tune(menucode_id code, int setup_disp);
 void cstm_scl_alg_load(menucode_id code, int setup_disp);
 void cstm_shmask_load(menucode_id code, int setup_disp);
 void cstm_edid_load(menucode_id code, int setup_disp);
@@ -153,5 +154,6 @@ static void vm_out_tweak(uint16_t *v);
 static void smp_select();
 static int smp_is_active();
 static int smp_reset();
+int rf_chscan();
 
 #endif

@@ -1336,20 +1336,6 @@ void set_custom_edid_reload() {
     advrx_dev.cfg.edid_sel = 0;
 }
 
-int rf_chscan() {
-    avconfig_t *tgt_avconfig = get_target_avconfig();
-    char ch_str[US2066_ROW_LEN+1];
-    int retval = si2177_channelscan(&sirf_dev, tgt_avconfig->sirf_cfg.chlist);
-
-    if (retval >= 0) {
-        sniprintf(ch_str, US2066_ROW_LEN+1, "%d channels found", retval);
-        set_func_ret_msg(ch_str);
-        return 1;
-    } else {
-        return retval;
-    }
-}
-
 void update_settings(int init_setup) {
     if (init_setup || (ts.osd_enable != cs.osd_enable) || (ts.osd_status_timeout != cs.osd_status_timeout)) {
         osd->osd_config.enable = !!ts.osd_enable;

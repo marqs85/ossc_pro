@@ -46,6 +46,7 @@ extern isl51002_dev isl_dev;
 extern adv761x_dev advrx_dev;
 #endif
 extern adv7280a_dev advsdp_dev;
+extern si2177_dev sirf_dev;
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
 extern mode_data_t video_modes[];
@@ -59,6 +60,8 @@ extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
 extern uint8_t sl_def_iv_x, sl_def_iv_y;
 extern avinput_t target_avinput;
 extern uint8_t profile_sel_menu, sd_profile_sel_menu;
+extern const unsigned char tv_std_id_arr[];
+extern const char* const tv_std_name_arr[];
 
 extern c_pp_coeffs_t c_pp_coeffs;
 extern c_shmask_t c_shmask;
@@ -69,7 +72,7 @@ extern char target_profile_name[USERDATA_NAME_LEN+1];
 
 uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_active, tc_v_synclen, tc_v_bporch, tc_v_active, tc_sampler_phase, tc_h_mask, tc_v_mask, tc_v_total, tc_v_hz, tc_v_hz_frac;
 uint8_t menu_active;
-uint8_t vm_cur, vm_sel, vm_edit, vm_out_cur, vm_out_sel, vm_out_edit, smp_cur, smp_sel, smp_edit, dtmg_cur, dtmg_edit;
+uint8_t vm_cur, vm_sel, vm_edit, vm_out_cur, vm_out_sel, vm_out_edit, smp_cur, smp_sel, smp_edit, dtmg_cur, dtmg_edit, rfscan_sys_sel;
 
 menunavi navi[MAX_MENU_DEPTH];
 uint8_t navlvl;
@@ -173,7 +176,8 @@ static const char* const comb_ctapsn_desc[] = { "3->2", "5->3", "5->4" };
 static const char* const comb_ctapsp_desc[] = { "5->3 (2-tap)", "5->3 (3-tap)", "5->4 (4-tap)" };
 static const char* const comb_mode_desc[] = { "Adaptive", "Off", "Fixed (top)", "Fixed (all)", "Fixed (bottom)" };
 static const char* const cti_ab_desc[] = { "Sharpest", "Sharp", "Smooth", "Smoothest" };
-static const char* const tv_std_desc[] = { "NTSC M", "PAL B/G/H" };
+static const char* const if_comp_desc[] = { "Off", "NTSC -3dB", "NTSC -6dB", "NTSC -10dB", "PAL -2dB", "PAL -5dB", "PAL -7dB" };
+static const char* const audio_demod_mode_desc[] = { "SIF", "AM", "FM1", "FM2" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -200,6 +204,7 @@ static void pwm_disp (uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%"
 //static void link_av_desc (avinput_t v) { strlcpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
 static void profile_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (read_userdata(v, 1) != 0) ? "<empty>" : target_profile_name); }
 static void sd_profile_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (read_userdata_sd(v, 1) != 0) ? "<empty>" : target_profile_name); }
+static void rfscan_sys_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", tv_std_name_arr[v]); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
 
@@ -254,6 +259,7 @@ static arg_info_t vm_out_arg_info = {&vm_out_sel, 0, vm_display_name};
 static arg_info_t smp_arg_info = {&smp_sel, 0, smp_display_name};
 static const arg_info_t profile_arg_info = {&profile_sel_menu, MAX_PROFILE, profile_disp};
 static const arg_info_t sd_profile_arg_info = {&sd_profile_sel_menu, MAX_SD_PROFILE, sd_profile_disp};
+static const arg_info_t rfscan_arg_info = {&rfscan_sys_sel, 2, rfscan_sys_disp};
 
 
 MENU(menu_advtiming_plm, P99_PROTECT({
@@ -510,8 +516,10 @@ MENU(menu_sdp, P99_PROTECT({
     { "NTSC Comb Y mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_ymode_ntsc, OPT_NOWRAP, SETTING_ITEM(comb_mode_desc) } } },
     { "CTI alpha blend",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.cti_ab,          OPT_NOWRAP, SETTING_ITEM(cti_ab_desc) } } },
     { "CTI chroma thold",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.cti_c_th,        OPT_NOWRAP, 0, 0xff, value_disp } } },
-    { "RF TV system",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.tv_std,         OPT_NOWRAP, SETTING_ITEM(tv_std_desc) } } },
-    { "RF chscan (2min)",                       OPT_FUNC_CALL,          { .fun = { rf_chscan, NULL } } },
+    { "RF SAW compensation",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.if_comp,         OPT_NOWRAP, SETTING_ITEM(if_comp_desc) } } },
+    { "RF audio demod",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.audio_demod_mode, OPT_NOWRAP, SETTING_ITEM(audio_demod_mode_desc) } } },
+    { "RF manual tune",                         OPT_CUSTOMMENU,         { .cstm = { &cstm_rf_tune } } },
+    { "RF chscan (2min)",                       OPT_FUNC_CALL,          { .fun = { rf_chscan, &rfscan_arg_info } } },
 }))
 
 MENU(menu_exp, P99_PROTECT({
@@ -1154,6 +1162,74 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
     ui_disp_menu(0);
 }
 
+void cstm_rf_tune(menucode_id code, int setup_disp) {
+    uint32_t row_mask[2] = {0x7f, 0x70};
+    int i, adj=0;
+
+    if (setup_disp) {
+        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+
+        sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       +1MHz");
+        sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
+        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "-.1MHz < \x85 > +.1MHz");
+        sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
+        sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       -1MHz");
+        sniprintf((char*)osd->osd_array.data[5][1], OSD_CHAR_COLS, "--------------------");
+
+        sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "\x85 TV system");
+
+        osd->osd_sec_enable[0].mask = row_mask[0];
+        osd->osd_sec_enable[1].mask = row_mask[1];
+        osd->osd_row_color.mask = 0;
+    }
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+    case NEXT_PAGE:
+        adj = (code == NEXT_PAGE) ? -1000000 : 1000000;
+        break;
+    case VAL_MINUS:
+    case VAL_PLUS:
+        adj = (code == VAL_PLUS) ? 100000 : -100000;
+        break;
+    case OPT_SELECT:
+        for (i=0; i<3; i++) {
+            if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].tv_system == tv_std_id_arr[i]) {
+                tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].tv_system = tv_std_id_arr[(i+1) % 3];
+                break;
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq + adj < 40000000)
+        adj = 40000000 - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq;
+    else if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq + adj > 854000000)
+        adj = tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq - 854000000;
+
+    if (adj != 0) {
+        tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq += adj;
+        si2177_tune(&sirf_dev, &tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx]);
+    }
+
+    // clear rows
+    strncpy((char*)osd->osd_array.data[4][1], "", OSD_CHAR_COLS);
+    strncpy((char*)osd->osd_array.data[6][1], "", OSD_CHAR_COLS);
+
+    sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "CH%d: %lu.%luMHz", tc.sirf_cfg.ch_idx+1, tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/1000000, (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/100000)%10);
+    for (i=0; i<3; i++) {
+        if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].tv_system == tv_std_id_arr[i]) {
+            sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%s", tv_std_name_arr[i]);
+            break;
+        }
+    }
+
+    ui_disp_menu(0);
+}
+
 void osd_array_fname_fill(FILINFO *fno) {
     sniprintf((char*)osd->osd_array.data[osd_list_iter+2][0], OSD_CHAR_COLS, "%s", fno->fname);
     osd_list_iter++;
@@ -1704,4 +1780,34 @@ static int smp_reset() {
         update_cur_vm = 1;
 
     return 0;
+}
+
+int rf_chscan() {
+    char ch_str[US2066_ROW_LEN+1];
+    const rf_band_t rf_bands[] = { { "VHF I",    40000000,  88000000},
+                                   { "VHF II",   90000000, 110000000},
+                                   { "VHF III", 160000000, 240000000},
+                                   { "UHF IV",  470000000, 612000000},
+                                   { "UHF V",   614000000, 854000000} };
+    int i, retval, num_ch=0;
+
+    for (i=0; i<sizeof(rf_bands)/sizeof(rf_band_t); i++) {
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "Scanning %s...", rf_bands[i].name);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%d channels found", num_ch);
+        ui_disp_menu(1);
+
+        retval = si2177_channelscan(&sirf_dev, tc.sirf_cfg.chlist, rfscan_sys_sel, rf_bands[i].start_freq, rf_bands[i].stop_freq);
+
+        if (retval >= 0) {
+            num_ch += retval;
+            if (num_ch >= 1)
+                break;
+        } else {
+            return retval;
+        }
+    }
+
+    sniprintf(ch_str, US2066_ROW_LEN+1, "%d channels found", num_ch);
+    set_func_ret_msg(ch_str);
+    return 1;
 }

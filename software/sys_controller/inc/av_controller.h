@@ -142,6 +142,12 @@ typedef struct {
     edid_t edid;
 } c_edid_t;
 
+typedef struct {
+    char name[8];
+    uint32_t start_freq;
+    uint32_t stop_freq;
+} rf_band_t;
+
 typedef int (*load_func)(char*, char*);
 
 void ui_disp_menu(uint8_t osd_mode);
@@ -181,7 +187,5 @@ int load_shmask(char *dirname, char *filename);
 void set_default_c_edid();
 int load_edid(char *dirname, char *filename);
 void set_custom_edid_reload();
-
-int rf_chscan();
 
 #endif
