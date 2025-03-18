@@ -147,7 +147,7 @@ close_file:
 }
 
 // commit FW update. Do not call functions located in flash during update
-void __attribute__((noinline, __section__(".text_bram"))) fw_update_commit(fw_header *hdr) {
+void __attribute__((noinline, flatten, noreturn, __section__(".text_bram"))) fw_update_commit(fw_header *hdr) {
     int i, j, sectors;
     uint32_t addr;
     uint32_t *data_from, *data_to, *data_end;

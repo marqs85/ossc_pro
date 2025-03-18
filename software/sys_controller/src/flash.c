@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include "flash.h"
 
-void __attribute__((noinline, __section__(".text_bram"))) flash_write_protect(flash_ctrl_dev *dev, int enable) {
+void __attribute__((noinline, flatten, __section__(".text_bram"))) flash_write_protect(flash_ctrl_dev *dev, int enable) {
     // Write enable
     dev->regs->flash_cmd_cfg = 0x00000006;
     dev->regs->flash_cmd_ctrl = 1;
@@ -43,7 +43,7 @@ void __attribute__((noinline, __section__(".text_bram"))) flash_write_protect(fl
     dev->regs->flash_cmd_ctrl = 1;
 }
 
-void __attribute__((noinline, __section__(".text_bram"))) flash_sector_erase(flash_ctrl_dev *dev, uint32_t addr) {
+void __attribute__((noinline, flatten, __section__(".text_bram"))) flash_sector_erase(flash_ctrl_dev *dev, uint32_t addr) {
     // Write enable
     dev->regs->flash_cmd_cfg = 0x00000006;
     dev->regs->flash_cmd_ctrl = 1;
