@@ -107,6 +107,7 @@ typedef struct {
     avinput_t default_avinput;
     uint8_t osd_enable;
     uint8_t osd_status_timeout;
+    uint8_t osd_highlight_color;
 #ifndef DExx_FW
     uint8_t power_up_state;
     uint8_t fan_pwm;

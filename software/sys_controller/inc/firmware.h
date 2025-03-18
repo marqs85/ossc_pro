@@ -56,7 +56,7 @@ typedef struct {
     volatile rem_update_regs *regs;
 } rem_update_dev;
 
-int fw_update();
+int fw_update(char *dirname, char *filename);
 
 void fw_update_commit(fw_header *hdr);
 

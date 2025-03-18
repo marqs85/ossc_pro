@@ -94,6 +94,7 @@ const settings_t ts_default = {
     .default_avinput = 0,
     .osd_enable = 1,
     .osd_status_timeout = 1,
+    .osd_highlight_color = 4,
     .fan_pwm = 0,
     .led_pwm = 5,
 };
@@ -1184,6 +1185,9 @@ int load_scl_coeffs(char *dirname, char *filename) {
     char dirname_root[10];
     int i, p, n, pp_bits, lines=0;
 
+    if (!sd_det)
+        return -1;
+
     sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
     f_chdir(dirname_root);
 
@@ -1254,6 +1258,9 @@ int load_shmask(char *dirname, char *filename) {
     int arr_size_loaded=0;
     int v0=0,v1=0;
     int p;
+
+    if (!sd_det)
+        return -1;
 
     sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
     f_chdir(dirname_root);
@@ -1337,9 +1344,10 @@ void set_custom_edid_reload() {
 }
 
 void update_settings(int init_setup) {
-    if (init_setup || (ts.osd_enable != cs.osd_enable) || (ts.osd_status_timeout != cs.osd_status_timeout)) {
+    if (init_setup || (ts.osd_enable != cs.osd_enable) || (ts.osd_status_timeout != cs.osd_status_timeout) || (ts.osd_highlight_color != cs.osd_highlight_color)) {
         osd->osd_config.enable = !!ts.osd_enable;
         osd->osd_config.status_timeout = ts.osd_status_timeout;
+        osd->osd_config.highlight_color = 2+ts.osd_highlight_color;
         refresh_osd();
     }
     if (init_setup || (ts.fan_pwm != cs.fan_pwm) || (ts.led_pwm != cs.led_pwm)) {

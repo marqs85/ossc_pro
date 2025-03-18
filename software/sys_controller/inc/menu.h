@@ -32,7 +32,17 @@ typedef enum {
     PREV_PAGE,
     NEXT_PAGE,
     VAL_MINUS,
-    VAL_PLUS
+    VAL_PLUS,
+    MENU_BTN1,
+    MENU_BTN2,
+    MENU_BTN3,
+    MENU_BTN4,
+    MENU_BTN5,
+    MENU_BTN6,
+    MENU_BTN7,
+    MENU_BTN8,
+    MENU_BTN9,
+    MENU_BTN0,
 } menucode_id;
 
 typedef enum {
@@ -138,6 +148,7 @@ void cstm_rf_tune(menucode_id code, int setup_disp);
 void cstm_scl_alg_load(menucode_id code, int setup_disp);
 void cstm_shmask_load(menucode_id code, int setup_disp);
 void cstm_edid_load(menucode_id code, int setup_disp);
+void cstm_fw_update(menucode_id code, int setup_disp);
 void cstm_vm_stats(menucode_id code, int setup_disp);
 void cstm_listview(menucode_id code, int setup_disp);
 void enter_cstm(const menuitem_t *item, int detached_mode);

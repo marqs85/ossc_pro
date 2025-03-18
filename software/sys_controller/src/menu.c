@@ -60,6 +60,7 @@ extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
 extern uint8_t sl_def_iv_x, sl_def_iv_y;
 extern avinput_t target_avinput;
 extern uint8_t profile_sel_menu, sd_profile_sel_menu;
+extern uint8_t sd_det;
 extern const unsigned char tv_std_id_arr[];
 extern const char* const tv_std_name_arr[];
 
@@ -136,6 +137,7 @@ static const char* const audmux_sel_desc[] = { "AV3 input", "AV1 output" };
 static const char* const power_up_state_desc[] = { "Standby", "Active" };
 static const char* const osd_enable_desc[] = { "Off", "Full", "Simple" };
 static const char* const osd_status_desc[] = { "2s", "5s", "10s", "Off" };
+static const char* const osd_color_desc[] = { "Green", "Cyan", "Red", "Magenta", "Yellow" };
 static const char* const rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
 static const char* const auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char* const mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
@@ -543,6 +545,7 @@ MENU(menu_settings, P99_PROTECT({
     //{ "Auto AV3 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av3_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
     { "OSD",                                    OPT_AVCONFIG_SELECTION, { .sel = { &ts.osd_enable,   OPT_WRAP,   SETTING_ITEM_LIST(osd_enable_desc) } } },
     { "OSD status disp.",                       OPT_AVCONFIG_SELECTION, { .sel = { &ts.osd_status_timeout,   OPT_WRAP,   SETTING_ITEM_LIST(osd_status_desc) } } },
+    { "OSD cursor color",                       OPT_AVCONFIG_SELECTION, { .sel = { &ts.osd_highlight_color,   OPT_WRAP,   SETTING_ITEM_LIST(osd_color_desc) } } },
 #ifndef DExx_FW
     { "Fan PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.fan_pwm,   OPT_NOWRAP, 0, 10,  pwm_disp } } },
     { "Led PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.led_pwm,   OPT_NOWRAP, 1, 10,  pwm_disp } } },
@@ -556,7 +559,7 @@ MENU(menu_settings, P99_PROTECT({
     { "SD Save profile" ,                      OPT_FUNC_CALL,          { .fun = { save_profile_sd, &sd_profile_arg_info } } },
     { LNG("Reset profile","ｾｯﾃｲｵｼｮｷｶ"),          OPT_FUNC_CALL,          { .fun = { reset_profile, NULL } } },
 #ifdef OSSC_PRO_FINAL_CFG
-    { LNG("Fw. update","ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ"),       OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
+    { LNG("Fw. update","ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ"),       OPT_CUSTOMMENU,         { .cstm = { &cstm_fw_update } } },
 #endif
 }))
 
@@ -607,6 +610,7 @@ void init_menu() {
     osd->osd_config.x_offset = 3;
     osd->osd_config.y_offset = 3;
     osd->osd_config.border_color = 1;
+    osd->osd_config.highlight_color = 6;
 }
 
 menunavi* get_current_menunavi() {
@@ -1072,7 +1076,9 @@ void cstm_position(menucode_id code, int setup_disp) {
 void cstm_profile_load(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x03, 0x00};
     int i, retval, items_curpage;
+    char p_load_str[3];
     static int nav = 0;
+    static int p_load = -1;
 #ifdef DE10N
     static int page = 1;
 #else
@@ -1080,43 +1086,60 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
 #endif
 
     // Parse menu control
-    switch (code) {
-    case PREV_PAGE:
-        nav--;
-        break;
-    case NEXT_PAGE:
-        nav++;
-        break;
-    case VAL_MINUS:
-#ifdef DE10N
-        page = (page == 1) ? 5 : (page - 1);
-#else
-        page = (page == 0) ? 5 : (page - 1);
-#endif
-        setup_disp = 1;
-        break;
-    case VAL_PLUS:
-#ifdef DE10N
-        page = (page == 5) ? 1 : (page + 1);
-#else
-        page = (page + 1) % 6;
-#endif
-        setup_disp = 1;
-        break;
-    case OPT_SELECT:
-        if (page == 0)
-            retval = read_userdata(nav, 0);
+    if ((code >= MENU_BTN1) && (code <= MENU_BTN0)) {
+        if ((p_load == -1) || (p_load >= 10))
+            p_load = ((code - MENU_BTN1) + 1) % 10;
         else
-            retval = read_userdata_sd((page-1)*20+nav, 0);
-        if (retval < 0)
-            sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, "Failed (%d)", retval);
-        else
-            sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, (retval > 0) ? func_ret_status : "OK");
-        row_mask[1] = (1<<(nav+2));
-        osd->osd_sec_enable[1].mask = row_mask[1];
-        break;
-    default:
-        break;
+            p_load = p_load*10 + (((code - MENU_BTN1) + 1) % 10);
+    } else {
+        sniprintf((char*)osd->osd_array.data[nav+2][0], 4, "%2u:", (page == 0) ? nav : (page-1)*20+nav);
+
+        switch (code) {
+        case PREV_PAGE:
+            nav--;
+            break;
+        case NEXT_PAGE:
+            nav++;
+            break;
+        case VAL_MINUS:
+#ifdef DE10N
+            page = (page == 1) ? 5 : (page - 1);
+#else
+            page = (page == 0) ? 5 : (page - 1);
+#endif
+            setup_disp = 1;
+            break;
+        case VAL_PLUS:
+#ifdef DE10N
+            page = (page == 5) ? 1 : (page + 1);
+#else
+            page = (page + 1) % 6;
+#endif
+            setup_disp = 1;
+            break;
+        case OPT_SELECT:
+            if (p_load == -1) {
+                if (page == 0)
+                    retval = read_userdata(nav, 0);
+                else
+                    retval = read_userdata_sd((page-1)*20+nav, 0);
+            } else {
+                if (p_load <= MAX_PROFILE)
+                    retval = read_userdata(p_load, 0);
+                else
+                    retval = read_userdata_sd(p_load, 0);
+            }
+            if (retval < 0)
+                sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, "Failed (%d)", retval);
+            else
+                sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, (retval > 0) ? func_ret_status : "OK");
+            row_mask[1] = (1<<(nav+2));
+            osd->osd_sec_enable[1].mask = row_mask[1];
+            break;
+        default:
+            break;
+        }
+        p_load = -1;
     }
 
     items_curpage = (page == 0) ? MAX_PROFILE+1 : (MAX_SD_PROFILE+1 - (page-1)*20 >= 20 ? 20 : (MAX_SD_PROFILE % 20));
@@ -1128,6 +1151,7 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+        p_load = -1;
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%s (%s)", menu_profile_load.name, ((page == 0) ? "int" : "SD"));
         sniprintf(menu_row1, US2066_ROW_LEN+1, "%s (%s)", menu_profile_load.name, ((page == 0) ? "int" : "SD"));
@@ -1139,7 +1163,7 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
                 retval = read_userdata(i, 1);
             else
                 retval = read_userdata_sd((page-1)*20+i, 1);
-            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%u: %s", (page == 0) ? i : (page-1)*20+i, (retval != 0) ? "<empty>" : target_profile_name);
+            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%2u: %s", (page == 0) ? i : (page-1)*20+i, (retval != 0) ? "<empty>" : target_profile_name);
             row_mask[0] |= (1<<(i+2));
         }
 
@@ -1157,7 +1181,12 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
     else
         retval = read_userdata_sd((page-1)*20+nav, 1);
 
-    sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
+    if (p_load != -1) {
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%d", p_load);
+        sniprintf((char*)osd->osd_array.data[nav+2][0], 4, "%2u*", p_load);
+    } else {
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
+    }
 
     ui_disp_menu(0);
 }
@@ -1244,6 +1273,14 @@ void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, 
 
     FILINFO fno;
 
+    if (!sd_det) {
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "No SD card");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "detected");
+        ui_disp_menu(1);
+
+        return;
+    }
+
     if (setup_disp) {
         files_found = find_files_exec(dir, pattern, &fno, 0, 99, NULL);
         printf("%d %s files found\n", files_found, dir);
@@ -1280,12 +1317,8 @@ void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, 
         break;
     case OPT_SELECT:
         find_files_exec(dir, pattern, &fno, 0, file_load_page*20+file_load_nav, NULL);
-
         retval = load_f(dir, fno.fname);
-        sniprintf((char*)osd->osd_array.data[file_load_nav+2][1], OSD_CHAR_COLS, (retval==0) ? "OK" : "Failed");
-
-        row_mask[1] = (1<<(file_load_nav+2));
-        osd->osd_sec_enable[1].mask = row_mask[1];
+        setup_disp = 1;
         break;
     default:
         break;
@@ -1319,6 +1352,19 @@ void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, 
         sniprintf((char*)osd->osd_array.data[items_curpage+3][0], OSD_CHAR_COLS, "< Prev       Next >");
         row_mask[0] |= (3<<(items_curpage+2));
 
+        if (code == OPT_SELECT) {
+            if (retval == 0)
+                strlcpy(menu_row2, "Done", US2066_ROW_LEN+1);
+            else if (retval < 0)
+                sniprintf(menu_row2, US2066_ROW_LEN+1, "Failed (%d)", retval);
+            else
+                strlcpy(menu_row2, func_ret_status, US2066_ROW_LEN+1);
+
+            strncpy((char*)osd->osd_array.data[file_load_nav+2][1], menu_row2, OSD_CHAR_COLS);
+
+            row_mask[1] = (1<<(file_load_nav+2));
+        }
+
         osd->osd_sec_enable[0].mask = row_mask[0];
         osd->osd_sec_enable[1].mask = row_mask[1];
     }
@@ -1340,6 +1386,28 @@ void cstm_shmask_load(menucode_id code, int setup_disp) {
 
 void cstm_edid_load(menucode_id code, int setup_disp) {
     cstm_file_load(code, setup_disp, "edid", "*.bin", load_edid);
+}
+
+void cstm_fw_update(menucode_id code, int setup_disp) {
+    int retval;
+
+    if (setup_disp) {
+        retval = fw_update("/", "ossc_pro.bin");
+        // default file found
+        if ((retval < -2) || (retval >= 0)) {
+            cstm_f = NULL;
+            osd->osd_row_color.mask = (1<<navi[navlvl].mp);
+            render_osd_menu();
+            if (retval < 0)
+                sniprintf(menu_row2, US2066_ROW_LEN+1, "Failed (%d)", retval);
+            else
+                strlcpy(menu_row2, func_ret_status, US2066_ROW_LEN+1);
+            ui_disp_menu(2);
+            return;
+        }
+    }
+
+    cstm_file_load(code, setup_disp, "fw", "*.bin", fw_update);
 }
 
 void cstm_vm_stats(menucode_id code, int setup_disp) {
@@ -1468,6 +1536,8 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
             render_osd_menu();
     } else if ((rcode >= RC_OK) && (rcode < RC_INFO)) {
         code = OPT_SELECT+(rcode-RC_OK);
+    } else if (rcode <= RC_BTN0) {
+        code = MENU_BTN1+rcode;
     } else if (bcode != (btn_code_t)-1) {
         code = OPT_SELECT+(bcode-BC_OK);
     }
@@ -1491,7 +1561,7 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
     switch (code) {
     case PREV_PAGE:
     case NEXT_PAGE:
-        if ((item->type == OPT_FUNC_CALL) || (item->type == OPT_SUBMENU))
+        if ((item->type == OPT_FUNC_CALL) || (item->type == OPT_SUBMENU) || (item->type == OPT_CUSTOMMENU))
             osd->osd_sec_enable[1].mask &= ~(1<<navi[navlvl].mp);
 
         if (code == PREV_PAGE)
