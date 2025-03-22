@@ -214,7 +214,7 @@ assign FAN_PWM_o = ~(sys_poweron & fan_pwm);
 wire [11:0] xpos_sc;
 wire [11:0] ypos_sc;
 wire osd_enable;
-wire [1:0] osd_color;
+wire [2:0] osd_color;
 wire [3:0] x_ctr_shmask, y_ctr_shmask;
 wire [10:0] shmask_data;
 
@@ -584,15 +584,7 @@ wire HSYNC_sc, VSYNC_sc, DE_sc;
 
 always @(posedge pclk_out) begin
     if (osd_enable) begin
-        if (osd_color == 2'h0) begin
-            {R_out, G_out, B_out} <= 24'h000000;
-        end else if (osd_color == 2'h1) begin
-            {R_out, G_out, B_out} <= 24'h0000ff;
-        end else if (osd_color == 2'h2) begin
-            {R_out, G_out, B_out} <= 24'hffff00;
-        end else begin
-            {R_out, G_out, B_out} <= 24'hffffff;
-        end
+        {R_out, G_out, B_out} <= {{8{osd_color[2]}}, {8{osd_color[1]}}, {8{osd_color[0]}}};
     end else begin
         {R_out, G_out, B_out} <= {R_sc, G_sc, B_sc};
     end

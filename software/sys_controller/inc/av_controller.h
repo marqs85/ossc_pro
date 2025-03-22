@@ -107,6 +107,7 @@ typedef struct {
     avinput_t default_avinput;
     uint8_t osd_enable;
     uint8_t osd_status_timeout;
+    uint8_t osd_highlight_color;
 #ifndef DExx_FW
     uint8_t power_up_state;
     uint8_t fan_pwm;
@@ -141,6 +142,12 @@ typedef struct {
     char name[20];
     edid_t edid;
 } c_edid_t;
+
+typedef struct {
+    char name[8];
+    uint32_t start_freq;
+    uint32_t stop_freq;
+} rf_band_t;
 
 typedef int (*load_func)(char*, char*);
 
@@ -181,7 +188,5 @@ int load_shmask(char *dirname, char *filename);
 void set_default_c_edid();
 int load_edid(char *dirname, char *filename);
 void set_custom_edid_reload();
-
-int rf_chscan();
 
 #endif

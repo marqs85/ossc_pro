@@ -62,6 +62,7 @@ const ude_item_map ude_initcfg_items[] = {
     //UDE_ITEM(6, 69, ts.extra_av_out_mode),
     UDE_ITEM(7, 76, ts.power_up_state),
 #endif
+    UDE_ITEM(8, 78, ts.osd_highlight_color),
 };
 
 const ude_item_map ude_profile_items[] = {

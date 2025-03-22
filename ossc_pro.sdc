@@ -15,6 +15,7 @@ create_clock -period 5MHz -name bck_hdmirx [get_ports HDMIRX_I2S_BCK_i]
 
 if {$legacy_av_in} {
     create_clock -period 27MHz -name pclk_sdp [get_ports EXT_IO_A_io[0]]
+    create_clock -period 24.576MHz -name bck_extpcm [get_ports EXT_IO_B_io[12]]
 }
 
 create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 88 -duty_cycle 50.00 -name pll_0_vco {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
@@ -26,13 +27,16 @@ create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].g
 
 create_generated_clock -name sd_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q]
 
+create_generated_clock -name flash_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sys_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|sys_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|flash_clk_reg|q]
+
 # output clocks
 #set pclk_out_port [get_ports HDMITX_PCLK_o]
 set i2s_bck_out_port [get_ports HDMITX_I2S_BCK_o]
 #create_generated_clock -name pclk_out -master_clock pclk_isl -source [get_ports ISL_PCLK_i] -multiply_by 1 $pclk_out_port
 #create_generated_clock -name pclk_out -master_clock pclk_hdmirx -source [get_ports HDMIRX_PCLK_i] -multiply_by 1 $pclk_out_port
-#create_generated_clock -name bck_out -master_clock bck_pcm -source [get_ports PCM_I2S_BCK_i] -multiply_by 1 $i2s_bck_out_port
-create_generated_clock -name bck_out -master_clock bck_hdmirx -source [get_ports HDMIRX_I2S_BCK_i] -multiply_by 1 $i2s_bck_out_port
+create_generated_clock -name bck_pcm_out -master_clock bck_pcm -source [get_ports PCM_I2S_BCK_i] -multiply_by 1 $i2s_bck_out_port
+create_generated_clock -name bck_hdmirx_out -master_clock bck_hdmirx -source [get_ports HDMIRX_I2S_BCK_i] -multiply_by 1 $i2s_bck_out_port -add
+create_generated_clock -name bck_extpcm_out -master_clock bck_extpcm -source [get_ports EXT_IO_B_io[12]] -multiply_by 1 $i2s_bck_out_port -add
 create_generated_clock -name sd_clk_out -master_clock sd_clk -source [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q] -multiply_by 1 [get_ports {SD_CLK_o}]
 
 # retrieve post-mapping clkmux output pin
@@ -68,7 +72,7 @@ derive_clock_uncertainty
 
 set_clock_groups -asynchronous -group \
                             {clk27} \
-                            {clk108 sd_clk sd_clk_out} \
+                            {clk108 sd_clk sd_clk_out flash_clk} \
                             {clk148p5} \
                             {pclk_isl pclk_isl_postmux} \
                             {pclk_isl_postmux_div2} \
@@ -78,8 +82,10 @@ set_clock_groups -asynchronous -group \
                             {pclk_sdp_postmux_div2} \
                             {pclk_si pclk_si_out pclk_si_out_vga} \
                             {pclk_si_div2} \
-                            {si_clk_extra} \
-                            {bck_hdmirx bck_pcm bck_out}
+                            {bck_pcm bck_pcm_out} \
+                            {bck_hdmirx bck_hdmirx_out} \
+                            {bck_extpcm bck_extpcm_out} \
+                            {si_clk_extra}
 
 
 ### IO delays ###
@@ -126,8 +132,12 @@ foreach_in_collection c [get_clocks pclk_*_out] {
     set_output_delay -clock $c -clock_fall -max $hdmitx_dmax $hdmitx_data_outputs -add_delay
 }
 
-set_output_delay -clock bck_out -min $hdmitx_dmin [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
-set_output_delay -clock bck_out -max $hdmitx_dmax [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
+set_output_delay -clock bck_pcm_out -min $hdmitx_dmin [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
+set_output_delay -clock bck_pcm_out -max $hdmitx_dmax [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
+set_output_delay -clock bck_hdmirx_out -min $hdmitx_dmin [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
+set_output_delay -clock bck_hdmirx_out -max $hdmitx_dmax [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
+set_output_delay -clock bck_extpcm_out -min $hdmitx_dmin [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
+set_output_delay -clock bck_extpcm_out -max $hdmitx_dmax [get_ports {HDMITX_I2S_WS_o HDMITX_I2S_DATA_o}] -add_delay
 set_false_path -to [get_ports {HDMITX_SPDIF_o HDMITX_5V_EN_o}]
 
 # extra_av_out
@@ -153,6 +163,9 @@ if {$legacy_av_in} {
     set sdp_inputs [get_ports {EXT_IO_B_io[0] EXT_IO_B_io[3] EXT_IO_B_io[4] EXT_IO_B_io[5] EXT_IO_B_io[6] EXT_IO_B_io[7] EXT_IO_B_io[8] EXT_IO_B_io[9] EXT_IO_B_io[10] EXT_IO_B_io[11]}]
     set_input_delay -clock pclk_sdp -clock_fall -min $sdp_dmin $sdp_inputs -add_delay
     set_input_delay -clock pclk_sdp -clock_fall -max $sdp_dmax $sdp_inputs -add_delay
+
+    # PCM1808
+    set_input_delay 0 -clock bck_extpcm -clock_fall [get_ports {EXT_IO_B_io[13] EXT_IO_B_io[14]}]
 } else {
     set_false_path -from [get_ports {EXT_IO_A_io* EXT_IO_B_io*}]
 }

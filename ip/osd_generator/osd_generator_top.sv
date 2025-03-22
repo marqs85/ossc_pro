@@ -35,7 +35,7 @@ module osd_generator_top (
     input [11:0] xpos,
     input [10:0] ypos,
     output reg osd_enable,
-    output reg [1:0] osd_color
+    output reg [2:0] osd_color
 );
 
 localparam CHAR_ROWS = 25;
@@ -43,10 +43,10 @@ localparam CHAR_COLS = 20;
 localparam CHAR_SECTIONS = 2;
 localparam CHAR_SEC_SEPARATOR = 2;
 
-localparam BG_BLACK =   2'h0;
-localparam BG_BLUE =    2'h1;
-localparam BG_YELLOW =  2'h2;
-localparam BG_WHITE =   2'h3;
+localparam BG_BLACK =   3'h0;
+localparam BG_BLUE =    3'h1;
+localparam BG_YELLOW =  3'h6;
+localparam BG_WHITE =   3'h7;
 
 localparam OSD_CONFIG_REGNUM =          8'hfa;
 localparam OSD_ROW_LSEC_ENABLE_REGNUM = 8'hfb;
@@ -71,7 +71,8 @@ wire [2:0] x_offset = osd_config[7:5];
 wire [2:0] y_offset = osd_config[10:8];
 wire [1:0] x_size = osd_config[12:11];
 wire [1:0] y_size = osd_config[14:13];
-wire [1:0] border_color = osd_config[16:15];
+wire [2:0] border_color = osd_config[17:15];
+wire [2:0] highlight_color = osd_config[20:18];
 
 wire [11:0] xpos_scaled_w = (xpos >> x_size)-({3'h0, x_offset} << 3);
 wire [10:0] ypos_scaled_w = (ypos >> y_size)-({3'h0, y_offset} << 3);
@@ -147,7 +148,7 @@ always @(posedge vclk) begin
 
     if (osd_text_act_pp[6]) begin
         if (char_px) begin
-            osd_color <= config_reg[OSD_ROW_COLOR_REGNUM][char_row] ? BG_YELLOW : BG_WHITE;
+            osd_color <= config_reg[OSD_ROW_COLOR_REGNUM][char_row] ? highlight_color : BG_WHITE;
         end else begin
             osd_color <= BG_BLUE;
         end

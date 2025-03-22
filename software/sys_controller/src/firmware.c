@@ -36,23 +36,28 @@ extern flash_ctrl_dev flashctrl_dev;
 extern uint8_t sd_det;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
-int fw_update() {
+int fw_update(char *dirname, char *filename) {
     FIL fw_file;
+    char dirname_root[10];
     fw_header hdr;
     int i, retval = 0;
     unsigned bytes_read, bytes_to_copy=0;
     uint32_t crcval;
     unsigned char *dram_tmp = (unsigned char*)DRAM_TMP_ADDR;
 
-    strlcpy(menu_row2, "Please wait...", US2066_ROW_LEN+1);
-    ui_disp_menu(1);
-
     if (!sd_det) {
         printf("SD card not detected\n");
         return -1;
     }
 
-    if (!file_open(&fw_file, "ossc_pro.bin")) {
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
+
+    if (!file_open(&fw_file, filename)) {
+        strlcpy(menu_row1, "Checking FW", US2066_ROW_LEN+1);
+        strlcpy(menu_row2, "Please wait...", US2066_ROW_LEN+1);
+        ui_disp_menu(1);
+
         if (f_read(&fw_file, &hdr, sizeof(hdr), &bytes_read) != F_OK) {
             printf("FW hdr read error\n");
             retval = -3;
@@ -130,17 +135,19 @@ int fw_update() {
         fw_update_commit(&hdr);
     } else {
         printf("FW file not found\n");
+        f_chdir("/");
         return -2;
     }
 
 close_file:
     file_close(&fw_file);
+    f_chdir("/");
     set_dram_refresh(0);
     return retval;
 }
 
 // commit FW update. Do not call functions located in flash during update
-void __attribute__((noinline, __section__(".text_bram"))) fw_update_commit(fw_header *hdr) {
+void __attribute__((noinline, flatten, noreturn, __section__(".text_bram"))) fw_update_commit(fw_header *hdr) {
     int i, j, sectors;
     uint32_t addr;
     uint32_t *data_from, *data_to, *data_end;
