@@ -41,7 +41,7 @@ uint32_t gcd(uint32_t a, uint32_t b)
 }
 
 #ifdef HW_CRC32_0_BASE
-unsigned long __attribute__((noinline, __section__(".text_bram"))) crc32(unsigned char *input_data, unsigned long input_data_length, int do_initialize)
+unsigned long __attribute__((noinline, flatten, __section__(".text_bram"))) crc32(unsigned char *input_data, unsigned long input_data_length, int do_initialize)
 {
     unsigned long index;
 

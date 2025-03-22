@@ -46,6 +46,7 @@ extern isl51002_dev isl_dev;
 extern adv761x_dev advrx_dev;
 #endif
 extern adv7280a_dev advsdp_dev;
+extern si2177_dev sirf_dev;
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
 extern mode_data_t video_modes[];
@@ -59,6 +60,9 @@ extern const int num_video_modes_plm, num_video_modes, num_smp_presets;
 extern uint8_t sl_def_iv_x, sl_def_iv_y;
 extern avinput_t target_avinput;
 extern uint8_t profile_sel_menu, sd_profile_sel_menu;
+extern uint8_t sd_det;
+extern const unsigned char tv_std_id_arr[];
+extern const char* const tv_std_name_arr[];
 
 extern c_pp_coeffs_t c_pp_coeffs;
 extern c_shmask_t c_shmask;
@@ -69,7 +73,7 @@ extern char target_profile_name[USERDATA_NAME_LEN+1];
 
 uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_active, tc_v_synclen, tc_v_bporch, tc_v_active, tc_sampler_phase, tc_h_mask, tc_v_mask, tc_v_total, tc_v_hz, tc_v_hz_frac;
 uint8_t menu_active;
-uint8_t vm_cur, vm_sel, vm_edit, vm_out_cur, vm_out_sel, vm_out_edit, smp_cur, smp_sel, smp_edit, dtmg_cur, dtmg_edit;
+uint8_t vm_cur, vm_sel, vm_edit, vm_out_cur, vm_out_sel, vm_out_edit, smp_cur, smp_sel, smp_edit, dtmg_cur, dtmg_edit, rfscan_sys_sel;
 
 menunavi navi[MAX_MENU_DEPTH];
 uint8_t navlvl;
@@ -98,10 +102,10 @@ static const char* const pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ")
 static const char* const pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (Deint)" };
 static const char* const pm_ad_240p_desc[] = { "240p_CRT (Passthru)", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)", "2560x1440 (Line6x)", "2880x2160 (Line9x)" };
 static const char* const pm_ad_288p_desc[] = { "288p_CRT (Passthru)", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1200 (Line4x)", "1920x1440 (Line5x)", "2560x1440 (Line5x)", "2880x2160 (Line7x)" };
-static const char* const pm_ad_384p_desc[] = { "1280x720 (Line2x)", "1024x768 (Line2x)", "1920x1080 (Line3x)", "1600x1200 (Line3x)", "1920x1200 (Line3x)", "1920x1440 (Line4x)", "2560x1440 (Line4x)" };
+static const char* const pm_ad_384p_desc[] = { "1280x720 (Line2x)", "1024x768 (Line2x)", "1920x1080 (Line3x)", "1600x1200 (Line3x)", "1920x1200 (Line3x)", "1920x1440 (Line4x)", "2560x1440 (Line4x)", "2560x1920 (Line5x)" };
 static const char* const pm_ad_480i_desc[] = { "720x480i (Passthru)", "240p_CRT (NI rest)", "720x480 (Dint@L2x)", "1280x1024 (Dint@L4x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1440 (Dint@L6x)", "2560x1440 (Dint@L6x)" };
 static const char* const pm_ad_576i_desc[] = { "720x576i (Passthru)", "288p_CRT (NI rest)", "720x576 (Dint@L2x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1200 (Dint@L4x)" };
-static const char* const pm_ad_480p_desc[] = { "720x480 (Passthru)", "720x480i (Line drop)", "240p_CRT (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)", "2560x1440 (Line3x)" };
+static const char* const pm_ad_480p_desc[] = { "720x480 (Passthru)", "720x480i (Line drop)", "240p_CRT (Line drop)", "1280x1024 (Line2x)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1440 (Line3x)", "2560x1440 (Line3x)", "2560x1920 (Line4x)" };
 static const char* const pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x576i (Line drop)", "288p_CRT (Line drop)", "1920x1080i (Line1x)", "1920x1080 (Line2x)", "1920x1200 (Line2x)" };
 static const char* const pm_ad_720p_desc[] = { "1280x720 (Passthru)", "240p_CRT (Line drop)", "480i_CRT (Line drop)", "2560x1440 (Line2x)" };
 static const char* const pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint@L2x)" };
@@ -133,6 +137,7 @@ static const char* const audmux_sel_desc[] = { "AV3 input", "AV1 output" };
 static const char* const power_up_state_desc[] = { "Standby", "Active" };
 static const char* const osd_enable_desc[] = { "Off", "Full", "Simple" };
 static const char* const osd_status_desc[] = { "2s", "5s", "10s", "Off" };
+static const char* const osd_color_desc[] = { "Green", "Cyan", "Red", "Magenta", "Yellow" };
 static const char* const rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
 static const char* const auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char* const mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
@@ -173,7 +178,8 @@ static const char* const comb_ctapsn_desc[] = { "3->2", "5->3", "5->4" };
 static const char* const comb_ctapsp_desc[] = { "5->3 (2-tap)", "5->3 (3-tap)", "5->4 (4-tap)" };
 static const char* const comb_mode_desc[] = { "Adaptive", "Off", "Fixed (top)", "Fixed (all)", "Fixed (bottom)" };
 static const char* const cti_ab_desc[] = { "Sharpest", "Sharp", "Smooth", "Smoothest" };
-static const char* const tv_std_desc[] = { "NTSC M", "PAL B/G/H" };
+static const char* const if_comp_desc[] = { "Off", "NTSC -3dB", "NTSC -6dB", "NTSC -10dB", "PAL -2dB", "PAL -5dB", "PAL -7dB" };
+static const char* const audio_demod_mode_desc[] = { "SIF", "AM", "FM1", "FM2" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -200,6 +206,7 @@ static void pwm_disp (uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u%%"
 //static void link_av_desc (avinput_t v) { strlcpy(menu_row2, v == AV_LAST ? "No link" : avinput_str[v], US2066_ROW_LEN+1); }
 static void profile_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (read_userdata(v, 1) != 0) ? "<empty>" : target_profile_name); }
 static void sd_profile_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", v, (read_userdata_sd(v, 1) != 0) ? "<empty>" : target_profile_name); }
+static void rfscan_sys_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", tv_std_name_arr[v]); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
 
@@ -254,6 +261,7 @@ static arg_info_t vm_out_arg_info = {&vm_out_sel, 0, vm_display_name};
 static arg_info_t smp_arg_info = {&smp_sel, 0, smp_display_name};
 static const arg_info_t profile_arg_info = {&profile_sel_menu, MAX_PROFILE, profile_disp};
 static const arg_info_t sd_profile_arg_info = {&sd_profile_sel_menu, MAX_SD_PROFILE, sd_profile_disp};
+static const arg_info_t rfscan_arg_info = {&rfscan_sys_sel, 2, rfscan_sys_disp};
 
 
 MENU(menu_advtiming_plm, P99_PROTECT({
@@ -510,8 +518,10 @@ MENU(menu_sdp, P99_PROTECT({
     { "NTSC Comb Y mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_ymode_ntsc, OPT_NOWRAP, SETTING_ITEM(comb_mode_desc) } } },
     { "CTI alpha blend",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.cti_ab,          OPT_NOWRAP, SETTING_ITEM(cti_ab_desc) } } },
     { "CTI chroma thold",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.cti_c_th,        OPT_NOWRAP, 0, 0xff, value_disp } } },
-    { "RF TV system",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.tv_std,         OPT_NOWRAP, SETTING_ITEM(tv_std_desc) } } },
-    { "RF chscan (2min)",                       OPT_FUNC_CALL,          { .fun = { rf_chscan, NULL } } },
+    { "RF SAW compensation",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.if_comp,         OPT_NOWRAP, SETTING_ITEM(if_comp_desc) } } },
+    { "RF audio demod",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.audio_demod_mode, OPT_NOWRAP, SETTING_ITEM(audio_demod_mode_desc) } } },
+    { "RF manual tune",                         OPT_CUSTOMMENU,         { .cstm = { &cstm_rf_tune } } },
+    { "RF chscan (2min)",                       OPT_FUNC_CALL,          { .fun = { rf_chscan, &rfscan_arg_info } } },
 }))
 
 MENU(menu_exp, P99_PROTECT({
@@ -535,6 +545,7 @@ MENU(menu_settings, P99_PROTECT({
     //{ "Auto AV3 Y/Gs",                          OPT_AVCONFIG_SELECTION, { .sel = { &auto_av3_ypbpr,     OPT_WRAP, SETTING_ITEM(rgsb_ypbpr_desc) } } },
     { "OSD",                                    OPT_AVCONFIG_SELECTION, { .sel = { &ts.osd_enable,   OPT_WRAP,   SETTING_ITEM_LIST(osd_enable_desc) } } },
     { "OSD status disp.",                       OPT_AVCONFIG_SELECTION, { .sel = { &ts.osd_status_timeout,   OPT_WRAP,   SETTING_ITEM_LIST(osd_status_desc) } } },
+    { "OSD cursor color",                       OPT_AVCONFIG_SELECTION, { .sel = { &ts.osd_highlight_color,   OPT_WRAP,   SETTING_ITEM_LIST(osd_color_desc) } } },
 #ifndef DExx_FW
     { "Fan PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.fan_pwm,   OPT_NOWRAP, 0, 10,  pwm_disp } } },
     { "Led PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.led_pwm,   OPT_NOWRAP, 1, 10,  pwm_disp } } },
@@ -548,7 +559,7 @@ MENU(menu_settings, P99_PROTECT({
     { "SD Save profile" ,                      OPT_FUNC_CALL,          { .fun = { save_profile_sd, &sd_profile_arg_info } } },
     { LNG("Reset profile","ｾｯﾃｲｵｼｮｷｶ"),          OPT_FUNC_CALL,          { .fun = { reset_profile, NULL } } },
 #ifdef OSSC_PRO_FINAL_CFG
-    { LNG("Fw. update","ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ"),       OPT_FUNC_CALL,          { .fun = { fw_update, NULL } } },
+    { LNG("Fw. update","ﾌｧｰﾑｳｪｱｱｯﾌﾟﾃﾞｰﾄ"),       OPT_CUSTOMMENU,         { .cstm = { &cstm_fw_update } } },
 #endif
 }))
 
@@ -599,6 +610,7 @@ void init_menu() {
     osd->osd_config.x_offset = 3;
     osd->osd_config.y_offset = 3;
     osd->osd_config.border_color = 1;
+    osd->osd_config.highlight_color = 6;
 }
 
 menunavi* get_current_menunavi() {
@@ -1064,7 +1076,9 @@ void cstm_position(menucode_id code, int setup_disp) {
 void cstm_profile_load(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x03, 0x00};
     int i, retval, items_curpage;
+    char p_load_str[3];
     static int nav = 0;
+    static int p_load = -1;
 #ifdef DE10N
     static int page = 1;
 #else
@@ -1072,43 +1086,60 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
 #endif
 
     // Parse menu control
-    switch (code) {
-    case PREV_PAGE:
-        nav--;
-        break;
-    case NEXT_PAGE:
-        nav++;
-        break;
-    case VAL_MINUS:
-#ifdef DE10N
-        page = (page == 1) ? 5 : (page - 1);
-#else
-        page = (page == 0) ? 5 : (page - 1);
-#endif
-        setup_disp = 1;
-        break;
-    case VAL_PLUS:
-#ifdef DE10N
-        page = (page == 5) ? 1 : (page + 1);
-#else
-        page = (page + 1) % 6;
-#endif
-        setup_disp = 1;
-        break;
-    case OPT_SELECT:
-        if (page == 0)
-            retval = read_userdata(nav, 0);
+    if ((code >= MENU_BTN1) && (code <= MENU_BTN0)) {
+        if ((p_load == -1) || (p_load >= 10))
+            p_load = ((code - MENU_BTN1) + 1) % 10;
         else
-            retval = read_userdata_sd((page-1)*20+nav, 0);
-        if (retval < 0)
-            sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, "Failed (%d)", retval);
-        else
-            sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, (retval > 0) ? func_ret_status : "OK");
-        row_mask[1] = (1<<(nav+2));
-        osd->osd_sec_enable[1].mask = row_mask[1];
-        break;
-    default:
-        break;
+            p_load = p_load*10 + (((code - MENU_BTN1) + 1) % 10);
+    } else {
+        sniprintf((char*)osd->osd_array.data[nav+2][0], 4, "%2u:", (page == 0) ? nav : (page-1)*20+nav);
+
+        switch (code) {
+        case PREV_PAGE:
+            nav--;
+            break;
+        case NEXT_PAGE:
+            nav++;
+            break;
+        case VAL_MINUS:
+#ifdef DE10N
+            page = (page == 1) ? 5 : (page - 1);
+#else
+            page = (page == 0) ? 5 : (page - 1);
+#endif
+            setup_disp = 1;
+            break;
+        case VAL_PLUS:
+#ifdef DE10N
+            page = (page == 5) ? 1 : (page + 1);
+#else
+            page = (page + 1) % 6;
+#endif
+            setup_disp = 1;
+            break;
+        case OPT_SELECT:
+            if (p_load == -1) {
+                if (page == 0)
+                    retval = read_userdata(nav, 0);
+                else
+                    retval = read_userdata_sd((page-1)*20+nav, 0);
+            } else {
+                if (p_load <= MAX_PROFILE)
+                    retval = read_userdata(p_load, 0);
+                else
+                    retval = read_userdata_sd(p_load, 0);
+            }
+            if (retval < 0)
+                sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, "Failed (%d)", retval);
+            else
+                sniprintf((char*)osd->osd_array.data[nav+2][1], OSD_CHAR_COLS, (retval > 0) ? func_ret_status : "OK");
+            row_mask[1] = (1<<(nav+2));
+            osd->osd_sec_enable[1].mask = row_mask[1];
+            break;
+        default:
+            break;
+        }
+        p_load = -1;
     }
 
     items_curpage = (page == 0) ? MAX_PROFILE+1 : (MAX_SD_PROFILE+1 - (page-1)*20 >= 20 ? 20 : (MAX_SD_PROFILE % 20));
@@ -1120,6 +1151,7 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+        p_load = -1;
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%s (%s)", menu_profile_load.name, ((page == 0) ? "int" : "SD"));
         sniprintf(menu_row1, US2066_ROW_LEN+1, "%s (%s)", menu_profile_load.name, ((page == 0) ? "int" : "SD"));
@@ -1131,7 +1163,7 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
                 retval = read_userdata(i, 1);
             else
                 retval = read_userdata_sd((page-1)*20+i, 1);
-            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%u: %s", (page == 0) ? i : (page-1)*20+i, (retval != 0) ? "<empty>" : target_profile_name);
+            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%2u: %s", (page == 0) ? i : (page-1)*20+i, (retval != 0) ? "<empty>" : target_profile_name);
             row_mask[0] |= (1<<(i+2));
         }
 
@@ -1149,7 +1181,80 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
     else
         retval = read_userdata_sd((page-1)*20+nav, 1);
 
-    sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
+    if (p_load != -1) {
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%d", p_load);
+        sniprintf((char*)osd->osd_array.data[nav+2][0], 4, "%2u*", p_load);
+    } else {
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
+    }
+
+    ui_disp_menu(0);
+}
+
+void cstm_rf_tune(menucode_id code, int setup_disp) {
+    uint32_t row_mask[2] = {0x7f, 0x70};
+    int i, adj=0;
+
+    if (setup_disp) {
+        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+
+        sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       +1MHz");
+        sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
+        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "-.1MHz < \x85 > +.1MHz");
+        sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
+        sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       -1MHz");
+        sniprintf((char*)osd->osd_array.data[5][1], OSD_CHAR_COLS, "--------------------");
+
+        sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "\x85 TV system");
+
+        osd->osd_sec_enable[0].mask = row_mask[0];
+        osd->osd_sec_enable[1].mask = row_mask[1];
+        osd->osd_row_color.mask = 0;
+    }
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+    case NEXT_PAGE:
+        adj = (code == NEXT_PAGE) ? -1000000 : 1000000;
+        break;
+    case VAL_MINUS:
+    case VAL_PLUS:
+        adj = (code == VAL_PLUS) ? 100000 : -100000;
+        break;
+    case OPT_SELECT:
+        for (i=0; i<3; i++) {
+            if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].tv_system == tv_std_id_arr[i]) {
+                tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].tv_system = tv_std_id_arr[(i+1) % 3];
+                break;
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq + adj < 40000000)
+        adj = 40000000 - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq;
+    else if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq + adj > 854000000)
+        adj = tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq - 854000000;
+
+    if (adj != 0) {
+        tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq += adj;
+        si2177_tune(&sirf_dev, &tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx]);
+    }
+
+    // clear rows
+    strncpy((char*)osd->osd_array.data[4][1], "", OSD_CHAR_COLS);
+    strncpy((char*)osd->osd_array.data[6][1], "", OSD_CHAR_COLS);
+
+    sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "CH%d: %lu.%luMHz", tc.sirf_cfg.ch_idx+1, tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/1000000, (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/100000)%10);
+    for (i=0; i<3; i++) {
+        if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].tv_system == tv_std_id_arr[i]) {
+            sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%s", tv_std_name_arr[i]);
+            break;
+        }
+    }
 
     ui_disp_menu(0);
 }
@@ -1167,6 +1272,14 @@ void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, 
     static int files_found;
 
     FILINFO fno;
+
+    if (!sd_det) {
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "No SD card");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "detected");
+        ui_disp_menu(1);
+
+        return;
+    }
 
     if (setup_disp) {
         files_found = find_files_exec(dir, pattern, &fno, 0, 99, NULL);
@@ -1204,12 +1317,8 @@ void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, 
         break;
     case OPT_SELECT:
         find_files_exec(dir, pattern, &fno, 0, file_load_page*20+file_load_nav, NULL);
-
         retval = load_f(dir, fno.fname);
-        sniprintf((char*)osd->osd_array.data[file_load_nav+2][1], OSD_CHAR_COLS, (retval==0) ? "OK" : "Failed");
-
-        row_mask[1] = (1<<(file_load_nav+2));
-        osd->osd_sec_enable[1].mask = row_mask[1];
+        setup_disp = 1;
         break;
     default:
         break;
@@ -1243,6 +1352,19 @@ void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, 
         sniprintf((char*)osd->osd_array.data[items_curpage+3][0], OSD_CHAR_COLS, "< Prev       Next >");
         row_mask[0] |= (3<<(items_curpage+2));
 
+        if (code == OPT_SELECT) {
+            if (retval == 0)
+                strlcpy(menu_row2, "Done", US2066_ROW_LEN+1);
+            else if (retval < 0)
+                sniprintf(menu_row2, US2066_ROW_LEN+1, "Failed (%d)", retval);
+            else
+                strlcpy(menu_row2, func_ret_status, US2066_ROW_LEN+1);
+
+            strncpy((char*)osd->osd_array.data[file_load_nav+2][1], menu_row2, OSD_CHAR_COLS);
+
+            row_mask[1] = (1<<(file_load_nav+2));
+        }
+
         osd->osd_sec_enable[0].mask = row_mask[0];
         osd->osd_sec_enable[1].mask = row_mask[1];
     }
@@ -1264,6 +1386,28 @@ void cstm_shmask_load(menucode_id code, int setup_disp) {
 
 void cstm_edid_load(menucode_id code, int setup_disp) {
     cstm_file_load(code, setup_disp, "edid", "*.bin", load_edid);
+}
+
+void cstm_fw_update(menucode_id code, int setup_disp) {
+    int retval;
+
+    if (setup_disp) {
+        retval = fw_update("/", "ossc_pro.bin");
+        // default file found
+        if ((retval < -2) || (retval >= 0)) {
+            cstm_f = NULL;
+            osd->osd_row_color.mask = (1<<navi[navlvl].mp);
+            render_osd_menu();
+            if (retval < 0)
+                sniprintf(menu_row2, US2066_ROW_LEN+1, "Failed (%d)", retval);
+            else
+                strlcpy(menu_row2, func_ret_status, US2066_ROW_LEN+1);
+            ui_disp_menu(2);
+            return;
+        }
+    }
+
+    cstm_file_load(code, setup_disp, "fw", "*.bin", fw_update);
 }
 
 void cstm_vm_stats(menucode_id code, int setup_disp) {
@@ -1392,6 +1536,8 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
             render_osd_menu();
     } else if ((rcode >= RC_OK) && (rcode < RC_INFO)) {
         code = OPT_SELECT+(rcode-RC_OK);
+    } else if (rcode <= RC_BTN0) {
+        code = MENU_BTN1+rcode;
     } else if (bcode != (btn_code_t)-1) {
         code = OPT_SELECT+(bcode-BC_OK);
     }
@@ -1415,7 +1561,7 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
     switch (code) {
     case PREV_PAGE:
     case NEXT_PAGE:
-        if ((item->type == OPT_FUNC_CALL) || (item->type == OPT_SUBMENU))
+        if ((item->type == OPT_FUNC_CALL) || (item->type == OPT_SUBMENU) || (item->type == OPT_CUSTOMMENU))
             osd->osd_sec_enable[1].mask &= ~(1<<navi[navlvl].mp);
 
         if (code == PREV_PAGE)
@@ -1704,4 +1850,34 @@ static int smp_reset() {
         update_cur_vm = 1;
 
     return 0;
+}
+
+int rf_chscan() {
+    char ch_str[US2066_ROW_LEN+1];
+    const rf_band_t rf_bands[] = { { "VHF I",    40000000,  88000000},
+                                   { "VHF II",   90000000, 110000000},
+                                   { "VHF III", 160000000, 240000000},
+                                   { "UHF IV",  470000000, 612000000},
+                                   { "UHF V",   614000000, 854000000} };
+    int i, retval, num_ch=0;
+
+    for (i=0; i<sizeof(rf_bands)/sizeof(rf_band_t); i++) {
+        sniprintf(menu_row1, US2066_ROW_LEN+1, "Scanning %s...", rf_bands[i].name);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%d channels found", num_ch);
+        ui_disp_menu(1);
+
+        retval = si2177_channelscan(&sirf_dev, tc.sirf_cfg.chlist, rfscan_sys_sel, rf_bands[i].start_freq, rf_bands[i].stop_freq);
+
+        if (retval >= 0) {
+            num_ch += retval;
+            if (num_ch >= 1)
+                break;
+        } else {
+            return retval;
+        }
+    }
+
+    sniprintf(ch_str, US2066_ROW_LEN+1, "%d channels found", num_ch);
+    set_func_ret_msg(ch_str);
+    return 1;
 }

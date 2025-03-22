@@ -94,6 +94,7 @@ const settings_t ts_default = {
     .default_avinput = 0,
     .osd_enable = 1,
     .osd_status_timeout = 1,
+    .osd_highlight_color = 4,
     .fan_pwm = 0,
     .led_pwm = 5,
 };
@@ -924,6 +925,7 @@ int init_hw()
     else
         exp_det = 0;
 
+    printf("Exp_det: %u\n", exp_det);
     switch_expansion(0, 1);
 
     // Init ADV7610
@@ -1183,6 +1185,9 @@ int load_scl_coeffs(char *dirname, char *filename) {
     char dirname_root[10];
     int i, p, n, pp_bits, lines=0;
 
+    if (!sd_det)
+        return -1;
+
     sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
     f_chdir(dirname_root);
 
@@ -1253,6 +1258,9 @@ int load_shmask(char *dirname, char *filename) {
     int arr_size_loaded=0;
     int v0=0,v1=0;
     int p;
+
+    if (!sd_det)
+        return -1;
 
     sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
     f_chdir(dirname_root);
@@ -1335,24 +1343,11 @@ void set_custom_edid_reload() {
     advrx_dev.cfg.edid_sel = 0;
 }
 
-int rf_chscan() {
-    avconfig_t *tgt_avconfig = get_target_avconfig();
-    char ch_str[US2066_ROW_LEN+1];
-    int retval = si2177_channelscan(&sirf_dev, tgt_avconfig->sirf_cfg.chlist);
-
-    if (retval >= 0) {
-        sniprintf(ch_str, US2066_ROW_LEN+1, "%d channels found", retval);
-        set_func_ret_msg(ch_str);
-        return 1;
-    } else {
-        return retval;
-    }
-}
-
 void update_settings(int init_setup) {
-    if (init_setup || (ts.osd_enable != cs.osd_enable) || (ts.osd_status_timeout != cs.osd_status_timeout)) {
+    if (init_setup || (ts.osd_enable != cs.osd_enable) || (ts.osd_status_timeout != cs.osd_status_timeout) || (ts.osd_highlight_color != cs.osd_highlight_color)) {
         osd->osd_config.enable = !!ts.osd_enable;
         osd->osd_config.status_timeout = ts.osd_status_timeout;
+        osd->osd_config.highlight_color = 2+ts.osd_highlight_color;
         refresh_osd();
     }
     if (init_setup || (ts.fan_pwm != cs.fan_pwm) || (ts.led_pwm != cs.led_pwm)) {
@@ -1798,7 +1793,7 @@ void mainloop()
                                                  si_clk_src,
                                                  pclk_i_hz,
                                                  vm_conf.framelock ? vmode_out.timings.h_total*vmode_out.timings.v_total*(vmode_in.timings.interlaced+1)*vm_conf.framelock : pclk_o_hz/1000,
-                                                 vm_conf.framelock ? advrx_dev.ss.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1) : si_dev.xtal_freq/1000,
+                                                 vm_conf.framelock ? advrx_dev.ss.h_total*vmode_in.timings.v_total*(vmode_out.timings.interlaced+1)+advrx_dev.ss.f_pix_adder : si_dev.xtal_freq/1000,
                                                  NULL);
                         else
                             si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, si_clk_src, pclk_i_hz, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
@@ -1920,6 +1915,14 @@ void mainloop()
 
                         update_osd_size(&vmode_out);
                         update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+
+                        // Setup VIC and pixel repetition
+#ifdef INC_ADV7513
+                        adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
+#endif
+#ifdef INC_SII1136
+                        sii1136_init_mode(&siitx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic, pclk_o_hz);
+#endif
                     }
                 } else if (status & SC_CONFIG_CHANGE) {
                     update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);

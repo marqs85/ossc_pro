@@ -1162,3 +1162,7 @@ rv-reprogram: mem_init_generate_new
 rv-bt:
 	jtagconfig
 	system-console -cli --script ../../scripts/rv-bt.tcl
+
+rv-reboot:
+	jtagconfig
+	system-console -cli --script ../../scripts/rv-reboot.tcl
