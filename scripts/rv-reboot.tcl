@@ -16,7 +16,8 @@ set master_service_path [lindex $service_paths 0]
 set claim_path [claim_service master $master_service_path mylib]
 
 puts "Halting CPU"
-master_write_32 $claim_path 0x0 0x10000
+master_write_32 $claim_path 0x40 0x00000001
+master_write_32 $claim_path 0x40 0x80000001
 
 close_service master $claim_path
 

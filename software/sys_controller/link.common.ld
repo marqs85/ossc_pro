@@ -1,13 +1,15 @@
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 
-/* First 160 flash sectors reserved for 2 compressed bitstreams (2x 5.2MB).
-   Last 16 flash sectors reserved for userdata (16x 64KB).
-   That leaves 80 sectors (10MB) for flash_imem (2x 2.6MB). */
+/* First 240 flash sectors reserved for 4 firmware images (4x 3.84MB).
+   In typical configuration a firmware image consists of
+   * compressed bitstream (45 sectors / 2.88MB)
+   * flash_imem (15 sectors / 0.96MB)
+   Last 16 flash sectors reserved for userdata (16x 64KB). */
 MEMORY
 {
-    flash_imem : ORIGIN = 0x02A00000, LENGTH = 2621440
-    dataram    : ORIGIN = 0x00010000, LENGTH = 0x8000
+    flash_imem : ORIGIN = 0x022D0000, LENGTH = 983040
+    dataram    : ORIGIN = 0x00010000, LENGTH = 32768
 }
 
 /* Stack information variables */
@@ -52,6 +54,7 @@ SECTIONS
         *(.rodata.*)
         *(.srodata);
         *(.srodata.*)
+        . = ALIGN(4);
     } > flash_imem
 
     /*--------------------------------------------------------------------*/
@@ -82,18 +85,18 @@ SECTIONS
     } > dataram
 
     .text_bram : AT ( LOADADDR (.rodata) + SIZEOF (.rodata) ) {
-        PROVIDE (__ram_text_start = ABSOLUTE(.));
         . = ALIGN(4);
+        PROVIDE (__ram_text_start = ABSOLUTE(.));
         *(.text_bram);
-        LONG(0)
+        . = ALIGN(4);
         PROVIDE (__ram_text_end = ABSOLUTE(.));
     } > dataram
 
     PROVIDE (__flash_text_bram_start = LOADADDR(.text_bram));
 
     .data : AT ( LOADADDR (.text_bram) + SIZEOF (.text_bram) ) {
-        PROVIDE (__ram_rwdata_start = ABSOLUTE(.));
         . = ALIGN(4);
+        PROVIDE (__ram_rwdata_start = ABSOLUTE(.));
         sdata  =  .;
         _sdata  =  .;
         *(.data);
@@ -104,6 +107,7 @@ SECTIONS
         *(.sdata2.*)
         edata  =  .;
         _edata  =  .;
+        . = ALIGN(4);
         PROVIDE (__ram_rwdata_end = ABSOLUTE(.));
     } > dataram
 
