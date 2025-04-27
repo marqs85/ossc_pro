@@ -127,7 +127,8 @@ localparam EXTRA_OUT_RGBCS_RGBS = 1;
 localparam EXTRA_OUT_RGsB = 2;
 localparam EXTRA_OUT_YPbPr = 3;
 
-wire jtagm_reset_req;
+wire jtagm_reset_req, ndmreset_req;
+reg ndmreset_ack, ndmreset_pulse;
 
 wire [31:0] sys_ctrl;
 wire sys_poweron = sys_ctrl[0];
@@ -171,7 +172,7 @@ wire pll_locked, emif_pll_locked;
 `ifdef SIMULATION
 wire sys_reset_n = (po_reset_n & pll_locked);
 `else
-wire sys_reset_n = (po_reset_n & ~jtagm_reset_req & pll_locked);
+wire sys_reset_n = (po_reset_n & ~jtagm_reset_req & ~ndmreset_pulse & pll_locked);
 `endif
 
 wire emif_status_init_done, emif_status_cal_success, emif_status_cal_fail, emif_status_powerdn_ack;
@@ -688,6 +689,13 @@ begin
         po_reset_ctr <= po_reset_ctr + 1'b1;
 end
 
+// ndmreset pulse & ack for RISC-V DM
+always @(posedge CLK27_i)
+begin
+    ndmreset_pulse <= !ndmreset_ack & ndmreset_req;
+    ndmreset_ack <= ndmreset_req;
+end
+
 always @(posedge CLK27_i) begin
     if (sys_poweron) begin
         if (~resync_strobe_prev & resync_strobe) begin
@@ -741,9 +749,11 @@ end
 // Qsys system
 sys sys_inst (
     .clk_clk                                (CLK27_i),
-    .reset_reset_n                          (sys_reset_n),
-    .pll_0_reset_reset                      (~po_reset_n),
+    .reset_sys_reset_n                      (sys_reset_n),
+    .reset_po_reset_n                       (po_reset_n),
     .pll_0_locked_export                    (pll_locked),
+    .ibex_0_ndm_ndmreset_o                  (ndmreset_req),
+    .ibex_0_ndm_ndmreset_ack_i              (ndmreset_ack),
     .ibex_0_config_boot_addr_i              (32'h022d0000),
     .ibex_0_config_core_sleep_o             (),
     .master_0_master_reset_reset            (jtagm_reset_req),

@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "24";
+         value = "25";
          type = "int";
       }
    }
@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "31";
+         value = "32";
          type = "int";
       }
    }
@@ -55,7 +55,7 @@
    {
       datum _sortIndex
       {
-         value = "26";
+         value = "27";
          type = "int";
       }
    }
@@ -76,7 +76,7 @@
    {
       datum _sortIndex
       {
-         value = "30";
+         value = "31";
          type = "int";
       }
    }
@@ -97,7 +97,7 @@
    {
       datum _sortIndex
       {
-         value = "29";
+         value = "30";
          type = "int";
       }
    }
@@ -118,7 +118,7 @@
    {
       datum _sortIndex
       {
-         value = "25";
+         value = "26";
          type = "int";
       }
    }
@@ -139,7 +139,7 @@
    {
       datum _sortIndex
       {
-         value = "27";
+         value = "28";
          type = "int";
       }
    }
@@ -160,7 +160,7 @@
    {
       datum _sortIndex
       {
-         value = "28";
+         value = "29";
          type = "int";
       }
    }
@@ -181,7 +181,7 @@
    {
       datum _sortIndex
       {
-         value = "21";
+         value = "22";
          type = "int";
       }
    }
@@ -197,7 +197,7 @@
    {
       datum _sortIndex
       {
-         value = "12";
+         value = "13";
          type = "int";
       }
    }
@@ -218,7 +218,7 @@
    {
       datum _sortIndex
       {
-         value = "13";
+         value = "14";
          type = "int";
       }
    }
@@ -239,7 +239,7 @@
    {
       datum _sortIndex
       {
-         value = "5";
+         value = "6";
          type = "int";
       }
    }
@@ -268,7 +268,7 @@
    {
       datum _sortIndex
       {
-         value = "6";
+         value = "7";
          type = "int";
       }
    }
@@ -302,7 +302,7 @@
    {
       datum _sortIndex
       {
-         value = "10";
+         value = "11";
          type = "int";
       }
    }
@@ -323,7 +323,7 @@
    {
       datum _sortIndex
       {
-         value = "8";
+         value = "9";
          type = "int";
       }
    }
@@ -331,7 +331,7 @@
    {
       datum _sortIndex
       {
-         value = "22";
+         value = "23";
          type = "int";
       }
    }
@@ -352,7 +352,7 @@
    {
       datum _sortIndex
       {
-         value = "2";
+         value = "3";
          type = "int";
       }
    }
@@ -373,7 +373,7 @@
    {
       datum _sortIndex
       {
-         value = "3";
+         value = "4";
          type = "int";
       }
    }
@@ -394,7 +394,7 @@
    {
       datum _sortIndex
       {
-         value = "4";
+         value = "5";
          type = "int";
       }
    }
@@ -415,7 +415,7 @@
    {
       datum _sortIndex
       {
-         value = "7";
+         value = "8";
          type = "int";
       }
    }
@@ -449,7 +449,7 @@
    {
       datum _sortIndex
       {
-         value = "18";
+         value = "19";
          type = "int";
       }
    }
@@ -470,7 +470,7 @@
    {
       datum _sortIndex
       {
-         value = "14";
+         value = "15";
          type = "int";
       }
    }
@@ -491,7 +491,7 @@
    {
       datum _sortIndex
       {
-         value = "15";
+         value = "16";
          type = "int";
       }
    }
@@ -512,7 +512,7 @@
    {
       datum _sortIndex
       {
-         value = "16";
+         value = "17";
          type = "int";
       }
    }
@@ -533,6 +533,14 @@
    {
       datum _sortIndex
       {
+         value = "2";
+         type = "int";
+      }
+   }
+   element po_reset_bridge_0
+   {
+      datum _sortIndex
+      {
          value = "1";
          type = "int";
       }
@@ -541,7 +549,7 @@
    {
       datum _sortIndex
       {
-         value = "19";
+         value = "20";
          type = "int";
       }
    }
@@ -562,7 +570,7 @@
    {
       datum _sortIndex
       {
-         value = "20";
+         value = "21";
          type = "int";
       }
    }
@@ -570,7 +578,7 @@
    {
       datum _sortIndex
       {
-         value = "23";
+         value = "24";
          type = "int";
       }
    }
@@ -578,7 +586,7 @@
    {
       datum _sortIndex
       {
-         value = "17";
+         value = "18";
          type = "int";
       }
    }
@@ -599,7 +607,7 @@
    {
       datum _sortIndex
       {
-         value = "11";
+         value = "12";
          type = "int";
       }
    }
@@ -620,7 +628,7 @@
    {
       datum _sortIndex
       {
-         value = "9";
+         value = "10";
          type = "int";
       }
    }
@@ -689,6 +697,7 @@
    internal="ibex_0.config"
    type="conduit"
    dir="end" />
+ <interface name="ibex_0_ndm" internal="ibex_0.ndm" type="conduit" dir="end" />
  <interface
    name="master_0_master_reset"
    internal="master_0.master_reset"
@@ -760,8 +769,16 @@
    type="conduit"
    dir="end" />
  <interface name="pll_0_locked" internal="pll_0.locked" type="conduit" dir="end" />
- <interface name="pll_0_reset" internal="pll_0.reset" type="reset" dir="end" />
- <interface name="reset" internal="clk_27.clk_in_reset" type="reset" dir="end" />
+ <interface
+   name="reset_po"
+   internal="po_reset_bridge_0.in_reset"
+   type="reset"
+   dir="end" />
+ <interface
+   name="reset_sys"
+   internal="clk_27.clk_in_reset"
+   type="reset"
+   dir="end" />
  <interface
    name="sc_config_0_sc_if"
    internal="sc_config_0.sc_if"
@@ -1071,7 +1088,7 @@
   <parameter name="clockFrequency" value="27000000" />
   <parameter name="clockFrequencyKnown" value="true" />
   <parameter name="inputClockFrequency" value="0" />
-  <parameter name="resetSynchronousEdges" value="NONE" />
+  <parameter name="resetSynchronousEdges" value="DEASSERT" />
  </module>
  <module name="hw_crc32_0" kind="hw_crc32" version="1.0" enabled="1" />
  <module
@@ -1083,6 +1100,7 @@
  </module>
  <module name="ibex_0" kind="ibex" version="1.0" enabled="1">
   <parameter name="AUTO_INTERRUPT_RECEIVER_INTERRUPTS_USED" value="511" />
+  <parameter name="IBEX_ICACHE" value="true" />
   <parameter name="IBEX_RV32E" value="true" />
  </module>
  <module
@@ -1537,7 +1555,7 @@
   <parameter name="instanceID" value="NONE" />
   <parameter name="memorySize" value="32768" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
-  <parameter name="resetrequest_enabled" value="true" />
+  <parameter name="resetrequest_enabled" value="false" />
   <parameter name="simAllowMRAMContentsFile" value="false" />
   <parameter name="simMemInitOnlyFilename" value="0" />
   <parameter name="singleClockOperation" value="true" />
@@ -1792,6 +1810,17 @@
   <parameter name="gui_switchover_delay" value="0" />
   <parameter name="gui_switchover_mode">Automatic Switchover</parameter>
   <parameter name="gui_use_locked" value="true" />
+ </module>
+ <module
+   name="po_reset_bridge_0"
+   kind="altera_reset_bridge"
+   version="24.1"
+   enabled="1">
+  <parameter name="ACTIVE_LOW_RESET" value="1" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="27000000" />
+  <parameter name="NUM_RESET_OUTPUTS" value="1" />
+  <parameter name="SYNCHRONOUS_EDGES" value="deassert" />
+  <parameter name="USE_RESET_REQUEST" value="0" />
  </module>
  <module
    name="remote_update_0"
@@ -2303,6 +2332,11 @@
    kind="clock"
    version="24.1"
    start="clk_27.clk"
+   end="po_reset_bridge_0.clk" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="clk_27.clk"
    end="onchip_memory2_0.clk1" />
  <connection
    kind="clock"
@@ -2548,11 +2582,6 @@
    kind="reset"
    version="24.1"
    start="clk_27.clk_reset"
-   end="master_0.clk_reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
    end="i2c_opencores_0.clock_reset" />
  <connection
    kind="reset"
@@ -2662,6 +2691,11 @@
  <connection
    kind="reset"
    version="24.1"
+   start="po_reset_bridge_0.out_reset"
+   end="master_0.clk_reset" />
+ <connection
+   kind="reset"
+   version="24.1"
    start="reset_bridge_0.out_reset"
    end="alt_vip_cl_swi_0.main_clock_reset" />
  <connection
@@ -2747,8 +2781,18 @@
  <connection
    kind="reset"
    version="24.1"
+   start="po_reset_bridge_0.out_reset"
+   end="ibex_0.po_reset_sink" />
+ <connection
+   kind="reset"
+   version="24.1"
    start="reset_bridge_0.out_reset"
    end="avalon_bridge_mod_0.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="po_reset_bridge_0.out_reset"
+   end="pll_0.reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="false" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />

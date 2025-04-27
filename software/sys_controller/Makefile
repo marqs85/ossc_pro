@@ -1165,3 +1165,7 @@ rv-bt:
 rv-reboot:
 	jtagconfig
 	system-console -cli --script ../../scripts/rv-reboot.tcl
+
+rv-ndmreset:
+	jtagconfig
+	system-console -cli --script ../../scripts/rv-ndmreset.tcl
