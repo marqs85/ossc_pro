@@ -179,7 +179,7 @@ static const char* const comb_ctapsp_desc[] = { "5->3 (2-tap)", "5->3 (3-tap)", 
 static const char* const comb_mode_desc[] = { "Adaptive", "Off", "Fixed (top)", "Fixed (all)", "Fixed (bottom)" };
 static const char* const cti_ab_desc[] = { "Sharpest", "Sharp", "Smooth", "Smoothest" };
 static const char* const if_comp_desc[] = { "Off", "NTSC -3dB", "NTSC -6dB", "NTSC -10dB", "PAL -2dB", "PAL -5dB", "PAL -7dB" };
-static const char* const audio_demod_mode_desc[] = { "SIF", "AM", "FM1", "FM2" };
+static const char* const audio_demod_mode_desc[] = { "AM", "FM1", "FM2" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -1192,20 +1192,21 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
 }
 
 void cstm_rf_tune(menucode_id code, int setup_disp) {
-    uint32_t row_mask[2] = {0x7f, 0x70};
-    int i, adj=0;
+    uint32_t row_mask[2] = {0xff, 0xf0};
+    int i, adj=0, adj_ft=0;
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       +1MHz");
         sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
-        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "-.1MHz < \x85 > +.1MHz");
+        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, " FINE- < \x85 > FINE+");
         sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
         sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       -1MHz");
         sniprintf((char*)osd->osd_array.data[5][1], OSD_CHAR_COLS, "--------------------");
 
         sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "\x85 TV system");
+        sniprintf((char*)osd->osd_array.data[7][0], OSD_CHAR_COLS, "Fine tune offset");
 
         osd->osd_sec_enable[0].mask = row_mask[0];
         osd->osd_sec_enable[1].mask = row_mask[1];
@@ -1220,7 +1221,7 @@ void cstm_rf_tune(menucode_id code, int setup_disp) {
         break;
     case VAL_MINUS:
     case VAL_PLUS:
-        adj = (code == VAL_PLUS) ? 100000 : -100000;
+        adj_ft = (code == VAL_PLUS) ? 20 : -20;
         break;
     case OPT_SELECT:
         for (i=0; i<3; i++) {
@@ -1237,24 +1238,32 @@ void cstm_rf_tune(menucode_id code, int setup_disp) {
     if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq + adj < 40000000)
         adj = 40000000 - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq;
     else if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq + adj > 854000000)
-        adj = tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq - 854000000;
+        adj = 854000000 - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq;
 
-    if (adj != 0) {
+    if (adj != 0)
         tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq += adj;
-        si2177_tune(&sirf_dev, &tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx]);
-    }
+
+    if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset + adj_ft < Si2177_FINE_TUNE_CMD_OFFSET_500HZ_MIN)
+        adj_ft = Si2177_FINE_TUNE_CMD_OFFSET_500HZ_MIN - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset;
+    else if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset + adj_ft > Si2177_FINE_TUNE_CMD_OFFSET_500HZ_MAX)
+        adj_ft = Si2177_FINE_TUNE_CMD_OFFSET_500HZ_MAX - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset;
+
+    if (adj_ft != 0)
+        tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset += adj_ft;
 
     // clear rows
     strncpy((char*)osd->osd_array.data[4][1], "", OSD_CHAR_COLS);
     strncpy((char*)osd->osd_array.data[6][1], "", OSD_CHAR_COLS);
 
-    sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "CH%d: %lu.%luMHz", tc.sirf_cfg.ch_idx+1, tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/1000000, (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/100000)%10);
+    sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "CH%d: %lu.%luMHz", tc.sirf_cfg.ch_idx+1, tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/1000000,
+              (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/100000)%10);
     for (i=0; i<3; i++) {
         if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].tv_system == tv_std_id_arr[i]) {
             sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%s", tv_std_name_arr[i]);
             break;
         }
     }
+    sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%dkHz", tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset/2);
 
     ui_disp_menu(0);
 }

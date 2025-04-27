@@ -192,7 +192,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(98, 77, tc.hdmi_pixeldecim_mode),
     UDE_ITEM(99, 78, tc.isl_ext_range),
 #ifndef DExx_FW
-    UDE_ITEM(100, 78, tc.sirf_cfg),
+    UDE_ITEM(100, 79, tc.sirf_cfg),
 #endif
 };
 
