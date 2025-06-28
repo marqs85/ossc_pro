@@ -186,7 +186,7 @@ const ude_item_map ude_profile_items[] = {
 #ifndef DExx_FW
     UDE_ITEM(92, 77, tc.sdp_cfg),
 #endif
-    UDE_ITEM(93, 76, tc.lumacode_mode),
+    UDE_ITEM(93, 79, tc.lumacode_mode),
     UDE_ITEM(94, 76, tc.shmask_str),
     // 95-97 reserved
     UDE_ITEM(98, 77, tc.hdmi_pixeldecim_mode),
@@ -194,6 +194,7 @@ const ude_item_map ude_profile_items[] = {
 #ifndef DExx_FW
     UDE_ITEM(100, 79, tc.sirf_cfg),
 #endif
+    UDE_ITEM(101, 79, tc.lumacode_pal),
 };
 
 int write_userdata(uint8_t entry) {

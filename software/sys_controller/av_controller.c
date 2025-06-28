@@ -52,6 +52,7 @@
 #include "src/edid_presets.c"
 #include "src/shmask_arrays.c"
 #include "src/scl_pp_coeffs.c"
+#include "src/lumacode_palettes.c"
 
 #define FW_VER_MAJOR 0
 #define FW_VER_MINOR 79
@@ -207,6 +208,9 @@ const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_
 int shmask_loaded_array = 0;
 int shmask_loaded_str = -1;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
+
+const lc_palette_set* lc_palette_set_list[] = {&lc_palette_pal};
+int loaded_lc_palette = -1;
 
 #ifdef VIP
 alt_timestamp_type vip_resync_ts;
@@ -416,6 +420,12 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         shmask_loaded_str = avconfig->shmask_str;
     } else {
         shmask_data_arr_ptr = shmask_loaded_array ? (shmask_data_arr*)shmask_data_arr_list[shmask_loaded_array] : (shmask_data_arr*)shmask_data_arr_list[1];
+    }
+
+    if (avconfig->lumacode_mode && (avconfig->lumacode_pal != loaded_lc_palette)) {
+        for (i=0; i<(sizeof(lc_palette_set)/4); i++)
+            sc->lumacode_pal_ram.data[i] = lc_palette_set_list[avconfig->lumacode_pal]->data[i];
+        loaded_lc_palette = avconfig->lumacode_pal;
     }
 
     // Set input params

@@ -170,6 +170,7 @@ typedef struct {
     uint8_t shmask_str;
     uint8_t reverse_lpf;
     uint8_t lumacode_mode;
+    uint8_t lumacode_pal;
     uint8_t ypbpr_cs;
     /* Common LM settings */
     uint8_t lm_deint_mode;

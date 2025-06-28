@@ -149,6 +149,18 @@ typedef struct {
     uint32_t stop_freq;
 } rf_band_t;
 
+typedef union {
+    struct {
+        uint32_t c64_pal[16];
+        uint32_t zx_pal[16];
+        uint32_t msx_pal[16];
+        uint32_t nes_pal[64];
+        uint32_t tia_pal[128];
+        uint32_t gtia_pal[256];
+    } __attribute__((packed, __may_alias__));
+    uint32_t data[496];
+} lc_palette_set;
+
 typedef int (*load_func)(char*, char*);
 
 void ui_disp_menu(uint8_t osd_mode);

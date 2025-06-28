@@ -234,6 +234,10 @@ assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
 
 assign FPGA_PCLK1x_o = pclk_capture;
 
+wire [31:0] lumacode_data;
+wire [8:0] lumacode_addr;
+wire lumacode_rden;
+
 // ISL51002 RGB digitizer
 reg [7:0] ISL_R, ISL_G, ISL_B;
 reg ISL_HS;
@@ -286,6 +290,7 @@ isl51002_frontend u_isl_frontend (
     .hv_in_config3(hv_in_config3),
     .misc_config(misc_config),
     .misc_config2(misc_config2),
+    .lumacode_data(lumacode_data),
     .R_o(ISL_R_post),
     .G_o(ISL_G_post),
     .B_o(ISL_B_post),
@@ -300,7 +305,9 @@ isl51002_frontend u_isl_frontend (
     .vtotal(ISL_fe_vtotal),
     .frame_change(ISL_fe_frame_change),
     .sof_scaler(ISL_sof_scaler),
-    .pcnt_field(ISL_fe_pcnt_field)
+    .pcnt_field(ISL_fe_pcnt_field),
+    .lumacode_addr(lumacode_addr),
+    .lumacode_rden(lumacode_rden)
 );
 
 // ADV7611 HDMI RX
@@ -790,6 +797,10 @@ sys sys_inst (
     .sc_config_0_shmask_if_shmask_xpos      (x_ctr_shmask),
     .sc_config_0_shmask_if_shmask_ypos      (y_ctr_shmask),
     .sc_config_0_shmask_if_shmask_data      (shmask_data),
+    .sc_config_0_lc_ram_if_lumacode_clk_i   (ISL_PCLK_i),
+    .sc_config_0_lc_ram_if_lumacode_addr_i  (lumacode_addr),
+    .sc_config_0_lc_ram_if_lumacode_rden_i  (lumacode_rden),
+    .sc_config_0_lc_ram_if_lumacode_data_o  (lumacode_data),
     .osd_generator_0_osd_if_vclk            (PCLK_sc),
     .osd_generator_0_osd_if_xpos            (xpos_sc),
     .osd_generator_0_osd_if_ypos            (ypos_sc),

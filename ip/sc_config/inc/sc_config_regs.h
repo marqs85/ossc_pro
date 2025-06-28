@@ -175,6 +175,12 @@ typedef struct {
     uint32_t data[16][16];
 } shmask_array;
 
+// lumacode palatte ram
+typedef struct {
+    uint32_t padding[16];
+    uint32_t data[496];
+} lc_pal_ram;
+
 typedef struct {
     fe_status_reg fe_status;
     //lt_status_reg lt_status;
@@ -194,6 +200,7 @@ typedef struct {
     sl_config3_reg sl_config3;
     sl_config4_reg sl_config4;
     shmask_array shmask_data_array __attribute__ ((aligned (1024)));
+    lc_pal_ram lumacode_pal_ram __attribute__ ((aligned (2048)));
 } sc_regs;
 
 #endif //SC_CONFIG_REGS_H_
