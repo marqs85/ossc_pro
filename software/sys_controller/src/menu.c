@@ -180,6 +180,7 @@ static const char* const comb_ctapsp_desc[] = { "5->3 (2-tap)", "5->3 (3-tap)", 
 static const char* const comb_mode_desc[] = { "Adaptive", "Off", "Fixed (top)", "Fixed (all)", "Fixed (bottom)" };
 static const char* const cti_ab_desc[] = { "Sharpest", "Sharp", "Smooth", "Smoothest" };
 static const char* const if_comp_desc[] = { "Off", "NTSC -3dB", "NTSC -6dB", "NTSC -10dB", "PAL -2dB", "PAL -5dB", "PAL -7dB" };
+static const char* const rf_cvbs_gain_sel[] = { "Normal", "EXT-75ohm" };
 static const char* const audio_demod_mode_desc[] = { "AM", "FM1", "FM2" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
@@ -521,6 +522,7 @@ MENU(menu_sdp, P99_PROTECT({
     { "CTI alpha blend",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.cti_ab,          OPT_NOWRAP, SETTING_ITEM(cti_ab_desc) } } },
     { "CTI chroma thold",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.cti_c_th,        OPT_NOWRAP, 0, 0xff, value_disp } } },
     { "RF SAW compensation",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.if_comp,         OPT_NOWRAP, SETTING_ITEM(if_comp_desc) } } },
+    { "RF cvbs gain",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.cvbs_gain_sel,  OPT_NOWRAP, SETTING_ITEM(rf_cvbs_gain_sel) } } },
     { "RF audio demod",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.audio_demod_mode, OPT_NOWRAP, SETTING_ITEM(audio_demod_mode_desc) } } },
     { "RF manual tune",                         OPT_CUSTOMMENU,         { .cstm = { &cstm_rf_tune } } },
     { "RF chscan (2min)",                       OPT_FUNC_CALL,          { .fun = { rf_chscan, &rfscan_arg_info } } },
