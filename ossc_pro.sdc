@@ -23,8 +23,8 @@ create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_
 create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 9 -duty_cycle 50.00 -name clk48 {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk}
 create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 3 -duty_cycle 50.00 -name clk148p5 {sys_inst|pll_0|altera_pll_i|general[2].gpll~PLL_OUTPUT_COUNTER|divclk}
 
-create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 22 -duty_cycle 50.00 -name pll_sdp_vco {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
-create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 11 -duty_cycle 50.00 -name pclk_sdp_postpll {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
+create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 24 -duty_cycle 50.00 -name pll_sdp_vco {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
+create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 12 -duty_cycle 50.00 -name pclk_sdp_postpll {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
 
 create_generated_clock -name sd_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q]
 
@@ -126,7 +126,7 @@ set_false_path -to [get_ports {HDMIRX_RESET_N_o}]
 #}
 
 # SiI1136
-set hdmitx_dmin -0.45
+set hdmitx_dmin -0.25
 set hdmitx_dmax 1.36
 set hdmitx_data_outputs [get_ports {HDMITX_R_o* HDMITX_G_o* HDMITX_B_o* HDMITX_HSYNC_o HDMITX_VSYNC_o HDMITX_DE_o}]
 foreach_in_collection c [get_clocks pclk_*_out] {
@@ -145,7 +145,7 @@ set_false_path -to [get_ports {HDMITX_SPDIF_o HDMITX_5V_EN_o}]
 # extra_av_out
 if {$extra_av_out} {
     # ADV7125
-    set vga_dmin -1.5
+    set vga_dmin -1.3
     set vga_dmax 0.2
     set vga_data_outputs [get_ports {EXT_IO_B_io[6] EXT_IO_B_io[7] EXT_IO_B_io[4] EXT_IO_B_io[5] EXT_IO_B_io[2] EXT_IO_B_io[3] EXT_IO_B_io[0] EXT_IO_B_io[1]
                                      EXT_IO_B_io[14] EXT_IO_B_io[15] EXT_IO_B_io[12] EXT_IO_B_io[13] EXT_IO_B_io[10] EXT_IO_B_io[11] EXT_IO_B_io[8] EXT_IO_B_io[9]

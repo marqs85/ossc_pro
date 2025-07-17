@@ -638,6 +638,7 @@ set_global_assignment -name STRATIXIII_UPDATE_MODE REMOTE
 
 
 set_location_assignment CLKSEL_X28_Y0_N8 -to clkmux_capture
+set_location_assignment CLKCTRL_G4 -to ISL_PCLK_i~inputCLKENA0
 set_location_assignment CLKCTRL_G7 -to HDMIRX_PCLK_i~inputCLKENA0
 set_global_assignment -name SDC_FILE ossc_pro.sdc
 set_global_assignment -name QIP_FILE sys/synthesis/sys.qip

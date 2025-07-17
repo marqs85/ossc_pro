@@ -1,6 +1,6 @@
 --- sys/synthesis/submodules/sys_mm_interconnect_0.v	2023-10-29 17:53:11.806522733 +0200
 +++ sys/synthesis/submodules/sys_mm_interconnect_0.v	2023-10-29 18:04:50.827992821 +0200
-@@ -3105,7 +3105,7 @@
+@@ -3454,7 +3454,7 @@
  		.USE_PACKETS         (1),
  		.USE_FILL_LEVEL      (0),
  		.EMPTY_LATENCY       (1),
@@ -9,7 +9,7 @@
  		.USE_STORE_FORWARD   (0),
  		.USE_ALMOST_FULL_IF  (0),
  		.USE_ALMOST_EMPTY_IF (0)
-@@ -4271,7 +4271,7 @@
+@@ -3745,7 +3745,7 @@
  		.USE_PACKETS         (1),
  		.USE_FILL_LEVEL      (0),
  		.EMPTY_LATENCY       (1),
@@ -18,7 +18,7 @@
  		.USE_STORE_FORWARD   (0),
  		.USE_ALMOST_FULL_IF  (0),
  		.USE_ALMOST_EMPTY_IF (0)
-@@ -4437,7 +4437,7 @@
+@@ -4911,7 +4911,7 @@
  		.USE_PACKETS         (1),
  		.USE_FILL_LEVEL      (0),
  		.EMPTY_LATENCY       (1),

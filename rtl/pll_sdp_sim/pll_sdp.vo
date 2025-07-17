@@ -227,7 +227,7 @@ module  pll_sdp
 		pll_sdp_altera_pll_altera_pll_i_639.n_cnt_odd_div_duty_en = "false",
 		pll_sdp_altera_pll_altera_pll_i_639.number_of_clocks = 1,
 		pll_sdp_altera_pll_altera_pll_i_639.operation_mode = "direct",
-		pll_sdp_altera_pll_altera_pll_i_639.output_clock_frequency0 = "28.636000 MHz",
+		pll_sdp_altera_pll_altera_pll_i_639.output_clock_frequency0 = "27.000000 MHz",
 		pll_sdp_altera_pll_altera_pll_i_639.output_clock_frequency1 = "0 MHz",
 		pll_sdp_altera_pll_altera_pll_i_639.output_clock_frequency10 = "0 MHz",
 		pll_sdp_altera_pll_altera_pll_i_639.output_clock_frequency11 = "0 MHz",
@@ -287,7 +287,7 @@ module  pll_sdp
 		pll_sdp_altera_pll_altera_pll_i_639.pll_vco_div = 1,
 		pll_sdp_altera_pll_altera_pll_i_639.pll_vcoph_div = 1,
 		pll_sdp_altera_pll_altera_pll_i_639.refclk1_frequency = "0 MHz",
-		pll_sdp_altera_pll_altera_pll_i_639.reference_clock_frequency = "28.636 MHz",
+		pll_sdp_altera_pll_altera_pll_i_639.reference_clock_frequency = "27.0 MHz",
 		pll_sdp_altera_pll_altera_pll_i_639.sim_additional_refclk_cycles_to_lock = 0;
 	assign
 		locked = wire_pll_sdp_altera_pll_altera_pll_i_639_locked,

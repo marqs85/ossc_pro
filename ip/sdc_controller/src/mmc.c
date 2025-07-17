@@ -31,6 +31,7 @@
 #ifndef MMC_DEBUG
 #define DBG_PRINTF(...)
 #else
+extern int dd_printf(const char *__restrict fmt, ...);
 #define DBG_PRINTF dd_printf
 #endif
 
