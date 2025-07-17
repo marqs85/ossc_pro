@@ -448,6 +448,14 @@
 
 
 /*
+ * usb_0 configuration
+ *
+ */
+
+#define CORE_USB_0_BASE 0x23600
+
+
+/*
  * VIP
  *
  */

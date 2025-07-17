@@ -18,9 +18,10 @@ if {$legacy_av_in} {
     create_clock -period 24.576MHz -name bck_extpcm [get_ports EXT_IO_B_io[12]]
 }
 
-create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 88 -duty_cycle 50.00 -name pll_0_vco {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
-create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 11 -duty_cycle 50.00 -name clk108 {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
-create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 8 -duty_cycle 50.00 -name clk148p5 {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk}
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 32 -duty_cycle 50.00 -name pll_0_vco {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 4 -duty_cycle 50.00 -name clk108 {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 9 -duty_cycle 50.00 -name clk48 {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk}
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 3 -duty_cycle 50.00 -name clk148p5 {sys_inst|pll_0|altera_pll_i|general[2].gpll~PLL_OUTPUT_COUNTER|divclk}
 
 create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 22 -duty_cycle 50.00 -name pll_sdp_vco {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
 create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 11 -duty_cycle 50.00 -name pclk_sdp_postpll {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
@@ -72,6 +73,7 @@ derive_clock_uncertainty
 
 set_clock_groups -asynchronous -group \
                             {clk27} \
+                            {clk48} \
                             {clk108 sd_clk sd_clk_out flash_clk} \
                             {clk148p5} \
                             {pclk_isl pclk_isl_postmux} \
@@ -172,6 +174,10 @@ if {$legacy_av_in} {
 
 # PCM1862
 set_input_delay 0 -clock bck_pcm -clock_fall [get_ports {PCM_I2S_WS_i PCM_I2S_DATA_i}]
+
+# USB TODO
+set_false_path -from [get_ports {USB_D*}]
+set_false_path -to [get_ports {USB_D*}]
 
 # Misc
 set_false_path -from [get_ports {BTN_i* IR_RX_i SCL_io SDA_io SI_INT_N_i SPDIF_EXT_i SD_DETECT_i}]

@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "25";
+         value = "26";
          type = "int";
       }
    }
@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "32";
+         value = "33";
          type = "int";
       }
    }
@@ -55,7 +55,7 @@
    {
       datum _sortIndex
       {
-         value = "27";
+         value = "28";
          type = "int";
       }
    }
@@ -76,7 +76,7 @@
    {
       datum _sortIndex
       {
-         value = "31";
+         value = "32";
          type = "int";
       }
    }
@@ -97,7 +97,7 @@
    {
       datum _sortIndex
       {
-         value = "30";
+         value = "31";
          type = "int";
       }
    }
@@ -118,7 +118,7 @@
    {
       datum _sortIndex
       {
-         value = "26";
+         value = "27";
          type = "int";
       }
    }
@@ -139,7 +139,7 @@
    {
       datum _sortIndex
       {
-         value = "28";
+         value = "29";
          type = "int";
       }
    }
@@ -160,7 +160,7 @@
    {
       datum _sortIndex
       {
-         value = "29";
+         value = "30";
          type = "int";
       }
    }
@@ -181,7 +181,7 @@
    {
       datum _sortIndex
       {
-         value = "22";
+         value = "23";
          type = "int";
       }
    }
@@ -191,6 +191,27 @@
       {
          value = "0";
          type = "int";
+      }
+   }
+   element core_usb_0
+   {
+      datum _sortIndex
+      {
+         value = "21";
+         type = "int";
+      }
+   }
+   element core_usb_0.axi_s
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "144896";
+         type = "String";
       }
    }
    element hw_crc32_0
@@ -331,7 +352,7 @@
    {
       datum _sortIndex
       {
-         value = "23";
+         value = "24";
          type = "int";
       }
    }
@@ -570,7 +591,7 @@
    {
       datum _sortIndex
       {
-         value = "21";
+         value = "22";
          type = "int";
       }
    }
@@ -578,7 +599,7 @@
    {
       datum _sortIndex
       {
-         value = "24";
+         value = "25";
          type = "int";
       }
    }
@@ -682,6 +703,11 @@
    type="conduit"
    dir="end" />
  <interface name="clk" internal="clk_27.clk_in" type="clock" dir="end" />
+ <interface
+   name="core_usb_0_usb"
+   internal="core_usb_0.usb"
+   type="conduit"
+   dir="end" />
  <interface
    name="emif_bridge_0"
    internal="avalon_bridge_mod_0.external_interface"
@@ -949,7 +975,7 @@
   <parameter name="BITS_PER_SYMBOL" value="8" />
   <parameter name="COLOR_PLANES_ARE_IN_PARALLEL" value="1" />
   <parameter name="CTRL_OVERRIDE" value="1" />
-  <parameter name="EXTRA_PIPELINING" value="0" />
+  <parameter name="EXTRA_PIPELINING" value="1" />
   <parameter name="INTERLACE_PASSTHROUGH" value="0" />
   <parameter name="LIMITED_READBACK" value="1" />
   <parameter name="MAX_HEIGHT" value="2160" />
@@ -1095,6 +1121,7 @@
   <parameter name="inputClockFrequency" value="0" />
   <parameter name="resetSynchronousEdges" value="DEASSERT" />
  </module>
+ <module name="core_usb_0" kind="core_usb" version="1.0" enabled="1" />
  <module name="hw_crc32_0" kind="hw_crc32" version="1.0" enabled="1" />
  <module
    name="i2c_opencores_0"
@@ -1105,7 +1132,7 @@
  </module>
  <module name="ibex_0" kind="ibex" version="1.0" enabled="1">
   <parameter name="AUTO_EXTERNAL_IRQ_INTERRUPTS_USED" value="0" />
-  <parameter name="AUTO_FAST_IRQ_INTERRUPTS_USED" value="255" />
+  <parameter name="AUTO_FAST_IRQ_INTERRUPTS_USED" value="511" />
   <parameter name="AUTO_NOT_MASKABLE_IRQ_INTERRUPTS_USED" value="0" />
   <parameter name="AUTO_SOFTWARE_IRQ_INTERRUPTS_USED" value="0" />
   <parameter name="AUTO_TIMER_IRQ_INTERRUPTS_USED" value="1" />
@@ -1734,10 +1761,10 @@
   <parameter name="gui_fractional_cout" value="32" />
   <parameter name="gui_mif_generate" value="false" />
   <parameter name="gui_multiply_factor" value="1" />
-  <parameter name="gui_number_of_clocks" value="2" />
+  <parameter name="gui_number_of_clocks" value="3" />
   <parameter name="gui_operation_mode" value="direct" />
   <parameter name="gui_output_clock_frequency0" value="108.0" />
-  <parameter name="gui_output_clock_frequency1" value="148.5" />
+  <parameter name="gui_output_clock_frequency1" value="48.0" />
   <parameter name="gui_output_clock_frequency10" value="100.0" />
   <parameter name="gui_output_clock_frequency11" value="100.0" />
   <parameter name="gui_output_clock_frequency12" value="100.0" />
@@ -1746,7 +1773,7 @@
   <parameter name="gui_output_clock_frequency15" value="100.0" />
   <parameter name="gui_output_clock_frequency16" value="100.0" />
   <parameter name="gui_output_clock_frequency17" value="100.0" />
-  <parameter name="gui_output_clock_frequency2" value="100.0" />
+  <parameter name="gui_output_clock_frequency2" value="148.5" />
   <parameter name="gui_output_clock_frequency3" value="100.0" />
   <parameter name="gui_output_clock_frequency4" value="100.0" />
   <parameter name="gui_output_clock_frequency5" value="100.0" />
@@ -1974,6 +2001,15 @@
    end="remote_update_0.avl_csr">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00023400" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="24.1"
+   start="ibex_0.avalon_master_bus_data"
+   end="core_usb_0.axi_s">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x00023600" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -2483,47 +2519,52 @@
    kind="clock"
    version="24.1"
    start="pll_0.outclk1"
+   end="core_usb_0.clock_sink" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk2"
    end="alt_vip_cl_dil_0.av_st_clock" />
  <connection
    kind="clock"
    version="24.1"
-   start="pll_0.outclk1"
+   start="pll_0.outclk2"
    end="mm_clock_crossing_bridge_2.m0_clk" />
  <connection
    kind="clock"
    version="24.1"
-   start="pll_0.outclk1"
-   end="alt_vip_cl_cvi_0.main_clock" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="pll_0.outclk1"
-   end="alt_vip_cl_scl_0.main_clock" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="pll_0.outclk1"
-   end="alt_vip_cl_vfb_0.main_clock" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="pll_0.outclk1"
+   start="pll_0.outclk2"
    end="alt_vip_cl_cvo_0.main_clock" />
  <connection
    kind="clock"
    version="24.1"
-   start="pll_0.outclk1"
+   start="pll_0.outclk2"
    end="alt_vip_cl_interlacer_0.main_clock" />
  <connection
    kind="clock"
    version="24.1"
-   start="pll_0.outclk1"
+   start="pll_0.outclk2"
+   end="alt_vip_cl_scl_0.main_clock" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk2"
+   end="alt_vip_cl_vfb_0.main_clock" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk2"
+   end="alt_vip_cl_swi_1.main_clock" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk2"
    end="alt_vip_cl_swi_0.main_clock" />
  <connection
    kind="clock"
    version="24.1"
-   start="pll_0.outclk1"
-   end="alt_vip_cl_swi_1.main_clock" />
+   start="pll_0.outclk2"
+   end="alt_vip_cl_cvi_0.main_clock" />
  <connection
    kind="interrupt"
    version="24.1"
@@ -2537,6 +2578,13 @@
    start="ibex_0.fast_irq"
    end="sdc_controller_0.int_data">
   <parameter name="irqNumber" value="2" />
+ </connection>
+ <connection
+   kind="interrupt"
+   version="24.1"
+   start="ibex_0.fast_irq"
+   end="core_usb_0.int_sender">
+  <parameter name="irqNumber" value="8" />
  </connection>
  <connection
    kind="interrupt"
@@ -2672,6 +2720,11 @@
    version="24.1"
    start="clk_27.clk_reset"
    end="ibex_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="clk_27.clk_reset"
+   end="core_usb_0.reset_sink" />
  <connection
    kind="reset"
    version="24.1"

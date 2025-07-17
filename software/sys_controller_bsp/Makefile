@@ -136,7 +136,7 @@ BSP_CFLAGS_OPTIMIZATION = -Os
 
 # C/C++ compiler warning level. "-Wall" is commonly used.This setting defines
 # the value of BSP_CFLAGS_WARNINGS in Makefile.
-BSP_CFLAGS_WARNINGS = -Wall
+BSP_CFLAGS_WARNINGS = -Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function
 
 # C compiler command.
 CC = riscv64-unknown-elf-gcc -xc
@@ -271,6 +271,12 @@ sdc_controller_SRCS := \
 	$(sdc_controller_SRCS_ROOT)/src/mmc.c \
 	$(sdc_controller_SRCS_ROOT)/src/ocsdc.c
 
+# core_usb
+core_usb_SRCS_ROOT := drivers
+core_usb_SRCS := \
+	$(core_usb_SRCS_ROOT)/src/usb_core.c \
+	$(core_usb_SRCS_ROOT)/src/usb_hw.c
+
 
 # Assemble all component C source files
 COMPONENT_C_LIB_SRCS += \
@@ -280,7 +286,8 @@ COMPONENT_C_LIB_SRCS += \
 	$(hal_C_LIB_SRCS) \
 	$(i2c_opencores_driver_C_LIB_SRCS) \
 	$(nios2_hw_crc32_driver_C_LIB_SRCS) \
-	$(sdc_controller_SRCS)
+	$(sdc_controller_SRCS) \
+	$(core_usb_SRCS)
 
 # Assemble all component assembly source files
 COMPONENT_ASM_LIB_SRCS += \

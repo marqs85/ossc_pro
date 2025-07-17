@@ -806,6 +806,8 @@ sys sys_inst (
     .osd_generator_0_osd_if_ypos            (ypos_sc),
     .osd_generator_0_osd_if_osd_enable      (osd_enable),
     .osd_generator_0_osd_if_osd_color       (osd_color),
+    .core_usb_0_usb_usb_dp_io               (USB_DP_io),
+    .core_usb_0_usb_usb_dn_io               (USB_DN_io), 
     .emif_bridge_0_clk_o                    (emif_br_clk),
     .emif_bridge_0_reset_o                  (emif_br_reset),
     .emif_bridge_0_wr_address               (emif_wr_addr),
