@@ -176,7 +176,7 @@ int load_profile() {
         profile_sel = profile_sel_menu;
 
         // enforce custom EDID update
-        if (tc.hdmirx_cfg.edid_sel == 3)
+        if (tc.hdmirx_cfg.edid_sel == 4)
             set_custom_edid_reload();
 
         // Change the input if the new profile demands it.

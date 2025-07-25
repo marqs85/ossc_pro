@@ -103,7 +103,7 @@ const settings_t ts_default = {
 };
 
 c_edid_t c_edid;
-const edid_t* edid_list[] = {&pro_edid_default, &pro_edid_2ch, &pro_edid_dc10b, &c_edid.edid};
+const edid_t* edid_list[] = {&pro_edid_default, &pro_edid_2ch, &pro_edid_dc10b, &pro_edid_720p, &c_edid.edid};
 
 #define ISL_XTAL_FREQ       27000000LU
 #define ISL_XTAL_FREQ_EXT   26000000LU
@@ -1372,7 +1372,7 @@ int load_edid(char *dirname, char *filename) {
     sniprintf(c_edid.name, sizeof(c_edid.name), "C: %s", filename);
 
     // Enfoce custom edid update
-    if (advrx_dev.cfg.edid_sel == 3)
+    if (advrx_dev.cfg.edid_sel == 4)
         set_custom_edid_reload();
 
     return 0;

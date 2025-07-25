@@ -162,7 +162,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(77, 75, tc.hdmitx_cfg),
 #endif
 #ifdef INC_ADV761X
-    UDE_ITEM(78, 77, tc.hdmirx_cfg),
+    UDE_ITEM(78, 79, tc.hdmirx_cfg),
 #endif
 #ifdef INC_PCM186X
     UDE_ITEM(79, 58, tc.pcm_cfg),
