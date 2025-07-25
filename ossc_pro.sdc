@@ -28,7 +28,7 @@ create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].g
 
 create_generated_clock -name sd_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q]
 
-create_generated_clock -name flash_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sys_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|sys_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|flash_clk_reg|q]
+create_generated_clock -name flash_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sys_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|sys_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|flash_clk_reg|q]
 
 # output clocks
 #set pclk_out_port [get_ports HDMITX_PCLK_o]
@@ -73,8 +73,8 @@ derive_clock_uncertainty
 
 set_clock_groups -asynchronous -group \
                             {clk27} \
-                            {clk48} \
-                            {clk108 sd_clk sd_clk_out flash_clk} \
+                            {clk48 flash_clk} \
+                            {clk108 sd_clk sd_clk_out} \
                             {clk148p5} \
                             {pclk_isl pclk_isl_postmux} \
                             {pclk_isl_postmux_div2} \
@@ -182,8 +182,7 @@ set_false_path -to [get_ports {USB_D*}]
 # Misc
 set_false_path -from [get_ports {BTN_i* IR_RX_i SCL_io SDA_io SI_INT_N_i SPDIF_EXT_i SD_DETECT_i}]
 set_false_path -to [get_ports {LED_o* AUDMUX_o SCL_io SDA_io FPGA_PCLK1x_o FAN_PWM_o LS_DIR_o*}]
-set_false_path -from {emif_hwreset_n_sync2_reg emif_swreset_n_sync2_reg}
-set_false_path -to {emif_hwreset_n_sync1_reg emif_swreset_n_sync1_reg}
+set_false_path -from {sys:sys_inst|sys_pio_0:pio_0|data_out[3] sys:sys_inst|sys_pio_0:pio_0|data_out[4]}
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[0]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[1]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[2]

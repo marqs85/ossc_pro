@@ -302,7 +302,7 @@
       }
       datum baseAddress
       {
-         value = "16777216";
+         value = "50331648";
          type = "String";
       }
    }
@@ -315,7 +315,7 @@
       }
       datum baseAddress
       {
-         value = "0";
+         value = "33554432";
          type = "String";
       }
    }
@@ -558,14 +558,6 @@
          type = "int";
       }
    }
-   element po_reset_bridge_0
-   {
-      datum _sortIndex
-      {
-         value = "1";
-         type = "int";
-      }
-   }
    element remote_update_0
    {
       datum _sortIndex
@@ -643,6 +635,14 @@
       {
          value = "131584";
          type = "String";
+      }
+   }
+   element sys_reset_bridge_0
+   {
+      datum _sortIndex
+      {
+         value = "1";
+         type = "int";
       }
    }
    element timer_0
@@ -795,14 +795,10 @@
    type="conduit"
    dir="end" />
  <interface name="pll_0_locked" internal="pll_0.locked" type="conduit" dir="end" />
- <interface
-   name="reset_po"
-   internal="po_reset_bridge_0.in_reset"
-   type="reset"
-   dir="end" />
+ <interface name="reset_po" internal="clk_27.clk_in_reset" type="reset" dir="end" />
  <interface
    name="reset_sys"
-   internal="clk_27.clk_in_reset"
+   internal="sys_reset_bridge_0.in_reset"
    type="reset"
    dir="end" />
  <interface
@@ -1177,7 +1173,7 @@
    enabled="1">
   <parameter name="allowMultipleConnections" value="false" />
   <parameter name="avalonSpec" value="2.0" />
-  <parameter name="clkFreq" value="27000000" />
+  <parameter name="clkFreq" value="48000000" />
   <parameter name="hubInstanceID" value="0" />
   <parameter name="printingMethod" value="false" />
   <parameter name="readBufferDepth" value="64" />
@@ -1522,7 +1518,7 @@
    name="mm_clock_crossing_bridge_0"
    kind="altera_avalon_mm_clock_crossing_bridge"
    version="24.1"
-   enabled="1">
+   enabled="0">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
   <parameter name="COMMAND_FIFO_DEPTH" value="64" />
@@ -1606,7 +1602,7 @@
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
   <parameter name="captureEdge" value="false" />
-  <parameter name="clockRate" value="27000000" />
+  <parameter name="clockRate" value="48000000" />
   <parameter name="direction" value="Output" />
   <parameter name="edgeType" value="RISING" />
   <parameter name="generateIRQ" value="false" />
@@ -1620,7 +1616,7 @@
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
   <parameter name="captureEdge" value="false" />
-  <parameter name="clockRate" value="27000000" />
+  <parameter name="clockRate" value="48000000" />
   <parameter name="direction" value="Input" />
   <parameter name="edgeType" value="RISING" />
   <parameter name="generateIRQ" value="false" />
@@ -1634,7 +1630,7 @@
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
   <parameter name="captureEdge" value="false" />
-  <parameter name="clockRate" value="27000000" />
+  <parameter name="clockRate" value="48000000" />
   <parameter name="direction" value="Input" />
   <parameter name="edgeType" value="RISING" />
   <parameter name="generateIRQ" value="false" />
@@ -1848,17 +1844,6 @@
   <parameter name="gui_use_locked" value="true" />
  </module>
  <module
-   name="po_reset_bridge_0"
-   kind="altera_reset_bridge"
-   version="24.1"
-   enabled="1">
-  <parameter name="ACTIVE_LOW_RESET" value="1" />
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="27000000" />
-  <parameter name="NUM_RESET_OUTPUTS" value="1" />
-  <parameter name="SYNCHRONOUS_EDGES" value="deassert" />
-  <parameter name="USE_RESET_REQUEST" value="0" />
- </module>
- <module
    name="remote_update_0"
    kind="altera_remote_update"
    version="24.1"
@@ -1901,6 +1886,17 @@
    kind="sdc_controller"
    version="1.0"
    enabled="1" />
+ <module
+   name="sys_reset_bridge_0"
+   kind="altera_reset_bridge"
+   version="24.1"
+   enabled="1">
+  <parameter name="ACTIVE_LOW_RESET" value="1" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="-1" />
+  <parameter name="NUM_RESET_OUTPUTS" value="1" />
+  <parameter name="SYNCHRONOUS_EDGES" value="none" />
+  <parameter name="USE_RESET_REQUEST" value="0" />
+ </module>
  <module name="timer_0" kind="altera_avalon_timer" version="24.1" enabled="1">
   <parameter name="alwaysRun" value="false" />
   <parameter name="counterSize" value="64" />
@@ -1909,7 +1905,7 @@
   <parameter name="periodUnits" value="USEC" />
   <parameter name="resetOutput" value="false" />
   <parameter name="snapshot" value="true" />
-  <parameter name="systemFrequency" value="27000000" />
+  <parameter name="systemFrequency" value="48000000" />
   <parameter name="timeoutPulseOutput" value="false" />
   <parameter name="watchdogPulse" value="2" />
  </module>
@@ -2007,6 +2003,24 @@
    kind="avalon"
    version="24.1"
    start="ibex_0.avalon_master_bus_data"
+   end="intel_generic_serial_flash_interface_top_0.avl_csr">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x03000000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="24.1"
+   start="ibex_0.avalon_master_bus_data"
+   end="intel_generic_serial_flash_interface_top_0.avl_mem">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x02000000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="24.1"
+   start="ibex_0.avalon_master_bus_data"
    end="core_usb_0.axi_s">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00023600" />
@@ -2097,7 +2111,7 @@
    kind="avalon"
    version="24.1"
    start="ibex_0.avalon_master_bus_instr"
-   end="mm_clock_crossing_bridge_0.s0">
+   end="intel_generic_serial_flash_interface_top_0.avl_mem">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x02000000" />
   <parameter name="defaultConnection" value="false" />
@@ -2109,6 +2123,15 @@
    end="mm_clock_crossing_bridge_1.s0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x10000000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="24.1"
+   start="ibex_0.avalon_master_bus_instr"
+   end="mm_clock_crossing_bridge_0.s0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x02000000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -2268,6 +2291,24 @@
    kind="avalon"
    version="24.1"
    start="master_0.master"
+   end="intel_generic_serial_flash_interface_top_0.avl_csr">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x03000000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="24.1"
+   start="master_0.master"
+   end="intel_generic_serial_flash_interface_top_0.avl_mem">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x02000000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="24.1"
+   start="master_0.master"
    end="mm_clock_crossing_bridge_0.s0">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x02000000" />
@@ -2367,53 +2408,6 @@
    version="24.1"
    start="alt_vip_cl_swi_0.dout_1"
    end="alt_vip_cl_dil_0.din" />
- <connection kind="clock" version="24.1" start="clk_27.clk" end="jtag_uart_0.clk" />
- <connection kind="clock" version="24.1" start="clk_27.clk" end="pio_0.clk" />
- <connection kind="clock" version="24.1" start="clk_27.clk" end="pio_1.clk" />
- <connection kind="clock" version="24.1" start="clk_27.clk" end="timer_0.clk" />
- <connection kind="clock" version="24.1" start="clk_27.clk" end="master_0.clk" />
- <connection kind="clock" version="24.1" start="clk_27.clk" end="pio_2.clk" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="clk_27.clk"
-   end="po_reset_bridge_0.clk" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="clk_27.clk"
-   end="onchip_memory2_0.clk1" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="clk_27.clk"
-   end="hw_crc32_0.clk_sink" />
- <connection kind="clock" version="24.1" start="clk_27.clk" end="ibex_0.clk_sink" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="clk_27.clk"
-   end="i2c_opencores_0.clock" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="clk_27.clk"
-   end="remote_update_0.clock" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="clk_27.clk"
-   end="sc_config_0.clock_sink" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="clk_27.clk"
-   end="osd_generator_0.clock_sink" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="clk_27.clk"
-   end="sdc_controller_0.clock_sink" />
  <connection
    kind="clock"
    version="24.1"
@@ -2428,23 +2422,8 @@
  <connection
    kind="clock"
    version="24.1"
-   start="clk_27.clk"
-   end="mm_clock_crossing_bridge_1.s0_clk" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="clk_27.clk"
-   end="mm_clock_crossing_bridge_2.s0_clk" />
- <connection
-   kind="clock"
-   version="24.1"
    start="pll_0.outclk0"
    end="alt_vip_cl_dil_0.av_mm_clock" />
- <connection
-   kind="clock"
-   version="24.1"
-   start="pll_0.outclk0"
-   end="intel_generic_serial_flash_interface_top_0.clk" />
  <connection
    kind="clock"
    version="24.1"
@@ -2454,12 +2433,12 @@
    kind="clock"
    version="24.1"
    start="pll_0.outclk0"
-   end="mm_clock_crossing_bridge_0.m0_clk" />
+   end="mm_clock_crossing_bridge_1.m0_clk" />
  <connection
    kind="clock"
    version="24.1"
    start="pll_0.outclk0"
-   end="mm_clock_crossing_bridge_1.m0_clk" />
+   end="mm_clock_crossing_bridge_0.m0_clk" />
  <connection
    kind="clock"
    version="24.1"
@@ -2519,7 +2498,72 @@
    kind="clock"
    version="24.1"
    start="pll_0.outclk1"
+   end="intel_generic_serial_flash_interface_top_0.clk" />
+ <connection kind="clock" version="24.1" start="pll_0.outclk1" end="master_0.clk" />
+ <connection kind="clock" version="24.1" start="pll_0.outclk1" end="timer_0.clk" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="jtag_uart_0.clk" />
+ <connection kind="clock" version="24.1" start="pll_0.outclk1" end="pio_0.clk" />
+ <connection kind="clock" version="24.1" start="pll_0.outclk1" end="pio_1.clk" />
+ <connection kind="clock" version="24.1" start="pll_0.outclk1" end="pio_2.clk" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="onchip_memory2_0.clk1" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="ibex_0.clk_sink" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="hw_crc32_0.clk_sink" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="i2c_opencores_0.clock" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="remote_update_0.clock" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
    end="core_usb_0.clock_sink" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="sdc_controller_0.clock_sink" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="sc_config_0.clock_sink" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="osd_generator_0.clock_sink" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="mm_clock_crossing_bridge_1.s0_clk" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="pll_0.outclk1"
+   end="mm_clock_crossing_bridge_2.s0_clk" />
  <connection
    kind="clock"
    version="24.1"
@@ -2639,7 +2683,7 @@
    kind="reset"
    version="24.1"
    start="clk_27.clk_reset"
-   end="i2c_opencores_0.clock_reset" />
+   end="master_0.clk_reset" />
  <connection
    kind="reset"
    version="24.1"
@@ -2649,97 +2693,17 @@
    kind="reset"
    version="24.1"
    start="clk_27.clk_reset"
-   end="mm_clock_crossing_bridge_1.m0_reset" />
+   end="ibex_0.po_reset_sink" />
  <connection
    kind="reset"
    version="24.1"
    start="clk_27.clk_reset"
-   end="mm_clock_crossing_bridge_2.m0_reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="jtag_uart_0.reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="pio_0.reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="pio_1.reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="timer_0.reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="pio_2.reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="intel_generic_serial_flash_interface_top_0.reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="remote_update_0.reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="onchip_memory2_0.reset1" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="hw_crc32_0.reset_sink" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="sc_config_0.reset_sink" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="osd_generator_0.reset_sink" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="sdc_controller_0.reset_sink" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="ibex_0.reset_sink" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="core_usb_0.reset_sink" />
+   end="pll_0.reset" />
  <connection
    kind="reset"
    version="24.1"
    start="clk_27.clk_reset"
    end="mm_clock_crossing_bridge_0.s0_reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="mm_clock_crossing_bridge_1.s0_reset" />
- <connection
-   kind="reset"
-   version="24.1"
-   start="clk_27.clk_reset"
-   end="mm_clock_crossing_bridge_2.s0_reset" />
  <connection
    kind="reset"
    version="24.1"
@@ -2753,8 +2717,18 @@
  <connection
    kind="reset"
    version="24.1"
-   start="po_reset_bridge_0.out_reset"
-   end="master_0.clk_reset" />
+   start="sys_reset_bridge_0.out_reset"
+   end="i2c_opencores_0.clock_reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="mm_clock_crossing_bridge_1.m0_reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="mm_clock_crossing_bridge_2.m0_reset" />
  <connection
    kind="reset"
    version="24.1"
@@ -2843,18 +2817,88 @@
  <connection
    kind="reset"
    version="24.1"
-   start="po_reset_bridge_0.out_reset"
-   end="ibex_0.po_reset_sink" />
- <connection
-   kind="reset"
-   version="24.1"
    start="reset_bridge_0.out_reset"
    end="avalon_bridge_mod_0.reset" />
  <connection
    kind="reset"
    version="24.1"
-   start="po_reset_bridge_0.out_reset"
-   end="pll_0.reset" />
+   start="sys_reset_bridge_0.out_reset"
+   end="timer_0.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="jtag_uart_0.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="pio_0.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="pio_1.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="pio_2.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="remote_update_0.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="intel_generic_serial_flash_interface_top_0.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="onchip_memory2_0.reset1" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="ibex_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="sdc_controller_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="hw_crc32_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="sc_config_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="osd_generator_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="core_usb_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="mm_clock_crossing_bridge_1.s0_reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="mm_clock_crossing_bridge_2.s0_reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="false" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
