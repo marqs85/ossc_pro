@@ -156,7 +156,7 @@ const ude_item_map ude_profile_items[] = {
 #endif
     UDE_ITEM(75, 58, tc.isl_cfg),
 #ifdef INC_ADV7513
-    UDE_ITEM(76, 58, tc.hdmitx_cfg),
+    UDE_ITEM(76, 79, tc.hdmitx_cfg),
 #endif
 #ifdef INC_SII1136
     UDE_ITEM(77, 75, tc.hdmitx_cfg),
@@ -314,6 +314,11 @@ int read_userdata(uint8_t entry, int dry_run) {
             }
         }
         bytes_read += item_hdr.data_size;
+
+        if (bytes_read >= FLASH_SECTOR_SIZE) {
+            printf("userdata entry %u corrupted\n", entry);
+            return -1;
+        }
     }
 
     if (hdr.type == UDE_PROFILE)

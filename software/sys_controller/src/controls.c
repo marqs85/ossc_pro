@@ -84,6 +84,7 @@ int setup_rc()
 {
     int i, confirm, retval=0;
     uint32_t remote_code_raw_prev;
+    uint16_t rc_keymap_tmp[REMOTE_MAX_KEYS];
 
     remote_code_raw_prev = (IORD_ALTERA_AVALON_PIO_DATA(PIO_1_BASE) & CONTROLS_RC_MASK) >> CONTROLS_RC_OFFS;
 
@@ -100,13 +101,13 @@ int setup_rc()
 
             if (remote_code_raw && (remote_code_raw != remote_code_raw_prev)) {
                 if (confirm == 0) {
-                    rc_keymap[i] = remote_code_raw;
+                    rc_keymap_tmp[i] = remote_code_raw;
                     sniprintf(menu_row1, US2066_ROW_LEN+1, "Confirm 0x%.4x", remote_code_raw);
                     sniprintf(menu_row2, US2066_ROW_LEN+1, "by pressing again");
                     ui_disp_menu(1);
                     confirm = 1;
                 } else {
-                    if (remote_code_raw == rc_keymap[i]) {
+                    if (remote_code_raw == rc_keymap_tmp[i]) {
                         confirm = 2;
                     } else {
                         sniprintf(menu_row1, US2066_ROW_LEN+1, "Mismatch, retry");
@@ -155,7 +156,10 @@ int setup_rc()
             set_func_ret_msg("Default map set");
         } else {
             set_func_ret_msg("Cancelled");
+            return retval;
         }
+    } else {
+        memcpy(rc_keymap, rc_keymap_tmp, sizeof(rc_keymap));
     }
 
 #ifdef DE10N

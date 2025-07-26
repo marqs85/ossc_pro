@@ -878,11 +878,12 @@ sys sys_inst (
 `endif
 );
 
-// These do not work in current Quartus version (23.1) and a patch file (scripts/qsys.patch) must be used after Qsys generation instead
+// These do not work in current Quartus version (24.1) and a patch file (scripts/qsys.patch) must be used after Qsys generation instead
 defparam
     sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_1_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
     sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_2_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
-    sys_inst.mm_interconnect_1.mem_if_lpddr2_emif_0_avl_0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1;
+    sys_inst.mm_interconnect_1.mem_if_lpddr2_emif_0_avl_0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.master_0.fifo.FIFO_DEPTH = 1024;
 
 scanconverter #(
     .EMIF_ENABLE(1),
