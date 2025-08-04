@@ -469,7 +469,7 @@ assign HDMITX_PCLK_o = ~pclk_out;
 
 
 // VIP / LB
-wire vip_select = misc_config[15];
+wire vip_select = misc_config2[3];
 wire lb_enable = sys_poweron & ~testpattern_enable & ~vip_select;
 
 always @(posedge pclk_capture) begin

@@ -307,11 +307,11 @@ void parse_control()
                 if (r_code == RC_SCL_FL)
                     enter_cstm(&menu_scaler_items[3], 1);
                 if (r_code == RC_SCL_SCL_ALG)
-                    enter_cstm(&menu_scaler_items[5], 1);
+                    enter_cstm(&menu_scaler_items[6], 1);
                 if (r_code == RC_SCL_DIL_ALG)
-                    enter_cstm(&menu_scaler_items[8], 1);
+                    enter_cstm(&menu_scaler_items[9], 1);
                 if (r_code == RC_SCL_AR)
-                    enter_cstm(&menu_scaler_items[4], 1);
+                    enter_cstm(&menu_scaler_items[5], 1);
                 /*if (r_code == RC_SCL_ROT)
                     TODO*/
             }

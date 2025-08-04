@@ -82,13 +82,12 @@ typedef enum {
 
 typedef enum {
     SCL_FL_ON           = 0,
-    SCL_FL_ON_2X        = 1,
-    SCL_FL_OFF_CLOSEST  = 2,
-    SCL_FL_OFF_PRESET   = 3,
-    SCL_FL_OFF_50HZ     = 4,
-    SCL_FL_OFF_60HZ     = 5,
-    SCL_FL_OFF_100HZ    = 6,
-    SCL_FL_OFF_120HZ    = 7,
+    SCL_FL_OFF_CLOSEST  = 1,
+    SCL_FL_OFF_PRESET   = 2,
+    SCL_FL_OFF_50HZ     = 3,
+    SCL_FL_OFF_60HZ     = 4,
+    SCL_FL_OFF_100HZ    = 5,
+    SCL_FL_OFF_120HZ    = 6,
 } scl_fl_mode_t;
 
 typedef struct {
@@ -132,6 +131,7 @@ typedef struct {
     uint8_t scl_crt_out_mode;
     uint8_t scl_out_type;
     uint8_t scl_framelock;
+    uint8_t scl_framelock_mult;
     uint8_t scl_aspect;
     uint8_t scl_alg;
     uint8_t scl_gen_sr;

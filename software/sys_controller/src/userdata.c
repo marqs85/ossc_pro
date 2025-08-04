@@ -121,7 +121,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(46, 58, tc.v_mask),
     UDE_ITEM(47, 58, tc.mask_br),
     UDE_ITEM(48, 58, tc.mask_color),
-    UDE_ITEM(49, 58, tc.bfi_enable),
+    UDE_ITEM(49, 79, tc.bfi_enable),
     UDE_ITEM(50, 58, tc.bfi_str),
     UDE_ITEM(51, 58, tc.s480p_mode),
     UDE_ITEM(52, 58, tc.s400p_mode),
@@ -133,7 +133,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(58, 58, tc.audio_fmt),
 #ifdef VIP
     UDE_ITEM(59, 68, tc.scl_out_mode),
-    UDE_ITEM(60, 75, tc.scl_framelock),
+    UDE_ITEM(60, 79, tc.scl_framelock),
     UDE_ITEM(61, 62, tc.scl_aspect),
     UDE_ITEM(62, 76, tc.scl_alg),
     UDE_ITEM(63, 58, tc.scl_edge_thold),
@@ -195,6 +195,9 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(100, 79, tc.sirf_cfg),
 #endif
     UDE_ITEM(101, 79, tc.lumacode_pal),
+#ifdef VIP
+    UDE_ITEM(102, 79, tc.scl_framelock_mult),
+#endif
 };
 
 int write_userdata(uint8_t entry) {

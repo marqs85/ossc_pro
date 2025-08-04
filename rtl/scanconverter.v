@@ -154,18 +154,18 @@ wire [3:0] MISC_MASK_BR = misc_config[3:0];
 wire [2:0] MISC_MASK_COLOR = misc_config[6:4];
 wire MISC_LM_DEINT_MODE = misc_config[12];
 wire MISC_NIR_EVEN_OFFSET = misc_config[13];
-wire [3:0] MISC_BFI_STR = misc_config[19:16];
-wire MISC_BFI_ENABLE = misc_config[20];
-wire MISC_SHMASK_ENABLE = misc_config[21];
-wire [3:0] MISC_SHMASK_IV_X = misc_config[25:22];
-wire [3:0] MISC_SHMASK_IV_Y = misc_config[29:26];
+wire [3:0] MISC_BFI_STR = misc_config[18:15];
+wire [3:0] MISC_BFI_THOLD = misc_config[22:19];
+wire MISC_SHMASK_ENABLE = misc_config[23];
+wire [3:0] MISC_SHMASK_IV_X = misc_config[27:24];
+wire [3:0] MISC_SHMASK_IV_Y = misc_config[31:28];
 
 wire [7:0] MASK_R = MISC_MASK_COLOR[2] ? {2{MISC_MASK_BR}} : 8'h00;
 wire [7:0] MASK_G = MISC_MASK_COLOR[1] ? {2{MISC_MASK_BR}} : 8'h00;
 wire [7:0] MASK_B = MISC_MASK_COLOR[0] ? {2{MISC_MASK_BR}} : 8'h00;
 
 
-reg frame_change_sync1_reg, frame_change_sync2_reg, frame_change_prev, frame_change_resync;
+reg frame_change_sync1_reg, frame_change_sync2_reg, frame_change_prev, frame_change_resync, frame_change_det;
 wire frame_change = frame_change_sync2_reg;
 
 reg [11:0] h_cnt;
@@ -185,7 +185,7 @@ reg sl_method;
 reg [3:0] sl_str;
 reg [7:0] sl_str_thold, Y_sl_str, R_sl_str, G_sl_str, B_sl_str;
 wire [7:0] R_sl_mult, G_sl_mult, B_sl_mult;
-wire bfi_frame;
+reg [3:0] bfi_frame_ctr;
 
 reg [8:0] Y_rb_tmp;
 reg [9:0] Y;
@@ -369,12 +369,13 @@ always @(posedge PCLK_OUT_i) begin
     if (ext_sync_mode & ext_frame_change_i) begin
         h_cnt <= PP_SRCSEL_START+1; // compensate pipeline delays
         v_cnt <= 0;
-        bfi_frame <= bfi_frame ^ 1'b1;
+        bfi_frame_ctr <= frame_change_det ? 0 : bfi_frame_ctr + 1'b1;
+        frame_change_det <= 1'b0;
         resync_strobe <= ~((v_cnt == 0) & (h_cnt == PP_SRCSEL_START));
     end else if (~ext_sync_mode & frame_change_resync) begin
         h_cnt <= 0;
         v_cnt <= V_STARTLINE;
-        bfi_frame <= 0;
+        bfi_frame_ctr <= 0;
         src_fid <= (~interlaced_in_i | (V_STARTLINE < (V_TOTAL/2))) ? FID_ODD : FID_EVEN;
         dst_fid <= (~V_INTERLACED | (V_STARTLINE < (V_TOTAL/2))) ? FID_ODD : FID_EVEN;
         resync_strobe <= 1'b1;
@@ -399,6 +400,9 @@ always @(posedge PCLK_OUT_i) begin
             h_cnt <= h_cnt + 1'b1;
             h_avidstart <= (h_cnt == H_SYNCLEN+H_BACKPORCH-1'b1);
         end
+
+        if (~frame_change_prev & frame_change)
+            frame_change_det <= 1'b1;
     end
 end
 
@@ -567,7 +571,7 @@ always @(posedge PCLK_OUT_i) begin
     B_pp[PP_SHMASK_END] <= MISC_SHMASK_ENABLE ? (B_shmask_mult[8] ? 8'hff : B_shmask_mult[7:0]) : B_pp[PP_SHMASK_START+2];
 
     /* ---------- Scanline generation (5 cycles) ---------- */
-    if (MISC_BFI_ENABLE & bfi_frame) begin
+    if (bfi_frame_ctr > MISC_BFI_THOLD) begin
         sl_str <= MISC_BFI_STR;
         sl_method <= 1'b1;
         draw_sl_pp[PP_SLGEN_START+1] <= 1'b1;
