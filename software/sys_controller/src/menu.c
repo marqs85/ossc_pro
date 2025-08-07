@@ -49,7 +49,7 @@ extern adv7280a_dev advsdp_dev;
 extern si2177_dev sirf_dev;
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
-extern mode_data_t video_modes[];
+extern mode_data_t video_modes[], video_modes_default[];
 extern mode_data_t vmode_in;
 extern smp_preset_t smp_presets[], smp_presets_default[];
 extern sync_timings_t hdmi_timings[];
@@ -471,6 +471,7 @@ MENU(menu_output, P99_PROTECT({
     { "2160p60 preset",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_2160p60,   OPT_WRAP, SETTING_ITEM_LIST(timing_2160p60_desc) } } },
 #endif
     { "Adv. disp timing",                      OPT_SUBMENU,            { .sub = { &menu_advtiming_out, &vm_out_arg_info, vm_out_select } } },
+    { "Reset disp preset",                     OPT_FUNC_CALL,          { .fun =  { vm_out_reset, NULL } } },
 }))
 
 MENU(menu_scanlines, P99_PROTECT({
@@ -1837,6 +1838,15 @@ static void vm_out_tweak(uint16_t *v) {
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%.2u", (video_modes[vm_out_edit].timings.v_hz_x100/100), (video_modes[vm_out_edit].timings.v_hz_x100%100));
     else
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", *v);
+}
+
+static int vm_out_reset() {
+    memcpy(&video_modes[vm_out_sel], &video_modes_default[vm_out_sel], sizeof(mode_data_t));
+
+    if (vm_out_sel == vm_out_cur)
+        update_cur_vm = 1;
+
+    return 0;
 }
 
 static void smp_select() {
