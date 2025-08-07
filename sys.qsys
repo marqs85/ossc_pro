@@ -2902,4 +2902,12 @@
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="false" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
+ <interconnectRequirement
+   for="mm_interconnect_2|mm_clock_crossing_bridge_2_m0_limiter.cmd_src/cmd_demux.sink"
+   name="qsys_mm.postTransform.pipelineCount"
+   value="1" />
+ <interconnectRequirement
+   for="mm_interconnect_2|rsp_mux.src/mm_clock_crossing_bridge_2_m0_limiter.rsp_sink"
+   name="qsys_mm.postTransform.pipelineCount"
+   value="1" />
 </system>

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2019-2023  Markus Hiienkari <mhiienka@niksula.hut.fi>
+// Copyright (C) 2019-2025  Markus Hiienkari <mhiienka@niksula.hut.fi>
 //
 // This file is part of Open Source Scan Converter project.
 //
@@ -103,8 +103,8 @@ localparam PP_SHMASK_END        = PP_SHMASK_START + PP_SHMASK_LENGTH;
 localparam PP_Y_CALC_START      = PP_SRCSEL_END;
 localparam PP_Y_CALC_LENGTH     = 2;
 localparam PP_Y_CALC_END        = PP_Y_CALC_START + PP_Y_CALC_LENGTH;
-localparam PP_SLGEN_START       = PP_Y_CALC_END;
-localparam PP_SLGEN_LENGTH      = 5;
+localparam PP_SLGEN_START       = PP_Y_CALC_END-1;
+localparam PP_SLGEN_LENGTH      = 6;
 localparam PP_SLGEN_END         = PP_SLGEN_START + PP_SLGEN_LENGTH;
 localparam PP_TP_START          = PP_SLGEN_END;
 localparam PP_TP_LENGTH         = 1;
@@ -182,7 +182,7 @@ reg line_id;
 reg ypos_pp_init, ypos_lb_repeatfirst;
 
 reg sl_method;
-reg [3:0] sl_str;
+reg [3:0] sl_str, sl_str_q;
 reg [7:0] sl_str_thold, Y_sl_str, R_sl_str, G_sl_str, B_sl_str;
 wire [7:0] R_sl_mult, G_sl_mult, B_sl_mult;
 reg [3:0] bfi_frame_ctr;
@@ -214,6 +214,7 @@ reg [3:0] y_ctr_sl_pp[PP_PL_START:PP_SLGEN_START] /* synthesis ramstyle = "logic
 assign PCLK_o = PCLK_OUT_i;
 
 
+// SLGEN cycle 2
 lpm_mult_8x5_9 Y_sl_hybr_ref_pre_u
 (
     .clock(PCLK_OUT_i),
@@ -224,76 +225,79 @@ lpm_mult_8x5_9 Y_sl_hybr_ref_pre_u
 lpm_mult_8x5_9 R_sl_hybr_ref_pre_u
 (
     .clock(PCLK_OUT_i),
-    .dataa(R_pp[PP_SLGEN_START]),
+    .dataa(R_pp[PP_SLGEN_START+1]),
     .datab(SL_HYBRSTR),
     .result(R_sl_hybr_ref_pre)
 );
 lpm_mult_8x5_9 G_sl_hybr_ref_pre_u
 (
     .clock(PCLK_OUT_i),
-    .dataa(G_pp[PP_SLGEN_START]),
+    .dataa(G_pp[PP_SLGEN_START+1]),
     .datab(SL_HYBRSTR),
     .result(G_sl_hybr_ref_pre)
 );
 lpm_mult_8x5_9 B_sl_hybr_ref_pre_u
 (
     .clock(PCLK_OUT_i),
-    .dataa(B_pp[PP_SLGEN_START]),
+    .dataa(B_pp[PP_SLGEN_START+1]),
     .datab(SL_HYBRSTR),
     .result(B_sl_hybr_ref_pre)
 );
 
+// SLGEN cycle 3
 lpm_mult_8x5_9 Y_sl_hybr_ref_u
 (
     .clock(PCLK_OUT_i),
     .dataa(Y_sl_hybr_ref_pre[8:1]),
-    .datab({sl_str, 1'b0}),
+    .datab({sl_str_q, 1'b0}),
     .result(Y_sl_hybr_ref)
 );
 lpm_mult_8x5_9 R_sl_hybr_ref_u
 (
     .clock(PCLK_OUT_i),
     .dataa(R_sl_hybr_ref_pre[8:1]),
-    .datab({sl_str, 1'b0}),
+    .datab({sl_str_q, 1'b0}),
     .result(R_sl_hybr_ref)
 );
 lpm_mult_8x5_9 G_sl_hybr_ref_u
 (
     .clock(PCLK_OUT_i),
     .dataa(G_sl_hybr_ref_pre[8:1]),
-    .datab({sl_str, 1'b0}),
+    .datab({sl_str_q, 1'b0}),
     .result(G_sl_hybr_ref)
 );
 lpm_mult_8x5_9 B_sl_hybr_ref_u
 (
     .clock(PCLK_OUT_i),
     .dataa(B_sl_hybr_ref_pre[8:1]),
-    .datab({sl_str, 1'b0}),
+    .datab({sl_str_q, 1'b0}),
     .result(B_sl_hybr_ref)
 );
 
+// SLGEN cycle 5
 lpm_mult_sl R_sl_mult_u
 (
     .clock(PCLK_OUT_i),
-    .dataa(R_pp[PP_SLGEN_START+3]),
+    .dataa(R_pp[PP_SLGEN_START+4]),
     .datab(~Y_sl_str),
     .result(R_sl_mult)
 );
 lpm_mult_sl G_sl_mult_u
 (
     .clock(PCLK_OUT_i),
-    .dataa(G_pp[PP_SLGEN_START+3]),
+    .dataa(G_pp[PP_SLGEN_START+4]),
     .datab(~Y_sl_str),
     .result(G_sl_mult)
 );
 lpm_mult_sl B_sl_mult_u
 (
     .clock(PCLK_OUT_i),
-    .dataa(B_pp[PP_SLGEN_START+3]),
+    .dataa(B_pp[PP_SLGEN_START+4]),
     .datab(~Y_sl_str),
     .result(B_sl_mult)
 );
 
+// SHMASK cycle 2
 lpm_mult_8x5_9 R_shmask_mult_u
 (
     .clock(PCLK_OUT_i),
@@ -416,7 +420,7 @@ end
 // |          |          |         | SRCSEL  |         |         |         |         |         |         |         |         |
 // |          | SHM_BUF  | SHM_BUF | SHMASK  | SHMASK  | SHMASK  |         |         |         |         |         |         |
 // |          |          |         |         |    Y    |    Y    |         |         |         |         |         |         |
-// |          |          |         |         |         |         |  SLGEN  |  SLGEN  |  SLGEN  |  SLGEN  |  SLGEN  |         |
+// |          |          |         |         |         |  SLGEN  |  SLGEN  |  SLGEN  |  SLGEN  |  SLGEN  |  SLGEN  |         |
 // |          |          |         |         |         |         |         |         |         |         |         |    TP   |
 
 
@@ -570,7 +574,7 @@ always @(posedge PCLK_OUT_i) begin
     G_pp[PP_SHMASK_END] <= MISC_SHMASK_ENABLE ? (G_shmask_mult[8] ? 8'hff : G_shmask_mult[7:0]) : G_pp[PP_SHMASK_START+2];
     B_pp[PP_SHMASK_END] <= MISC_SHMASK_ENABLE ? (B_shmask_mult[8] ? 8'hff : B_shmask_mult[7:0]) : B_pp[PP_SHMASK_START+2];
 
-    /* ---------- Scanline generation (5 cycles) ---------- */
+    /* ---------- Scanline generation (6 cycles) ---------- */
     if (bfi_frame_ctr > MISC_BFI_THOLD) begin
         sl_str <= MISC_BFI_STR;
         sl_method <= 1'b1;
@@ -591,24 +595,28 @@ always @(posedge PCLK_OUT_i) begin
     end
 
     // Cycle 2
-    sl_str_thold <= ((sl_str+8'h01)<<4)-1'b1;
+    // register inferred in DSP block (sl_hybr_ref), avoid critical timing path due to routing delays
+    sl_str_q <= sl_str;
 
     // Cycle 3
+    sl_str_thold <= ((sl_str_q+8'h01)<<4)-1'b1;
+
+    // Cycle 4
     Y_sl_str <= ({1'b0, sl_str_thold} < Y_sl_hybr_ref) ? 8'h0 : sl_str_thold - Y_sl_hybr_ref[7:0];
     R_sl_str <= ({1'b0, sl_str_thold} < R_sl_hybr_ref) ? 8'h0 : sl_str_thold - R_sl_hybr_ref[7:0];
     G_sl_str <= ({1'b0, sl_str_thold} < G_sl_hybr_ref) ? 8'h0 : sl_str_thold - G_sl_hybr_ref[7:0];
     B_sl_str <= ({1'b0, sl_str_thold} < B_sl_hybr_ref) ? 8'h0 : sl_str_thold - B_sl_hybr_ref[7:0];
 
-    // Cycle 4
-    // store subtraction based scanlined RGB into pipeline registers
-    R_pp[PP_SLGEN_START+4] <= draw_sl_pp[PP_SLGEN_START+3] ? ((R_pp[PP_SLGEN_START+3] > R_sl_str) ? (R_pp[PP_SLGEN_START+3] - R_sl_str) : 8'h00) : R_pp[PP_SLGEN_START+3];
-    G_pp[PP_SLGEN_START+4] <= draw_sl_pp[PP_SLGEN_START+3] ? ((G_pp[PP_SLGEN_START+3] > G_sl_str) ? (G_pp[PP_SLGEN_START+3] - G_sl_str) : 8'h00) : G_pp[PP_SLGEN_START+3];
-    B_pp[PP_SLGEN_START+4] <= draw_sl_pp[PP_SLGEN_START+3] ? ((B_pp[PP_SLGEN_START+3] > B_sl_str) ? (B_pp[PP_SLGEN_START+3] - B_sl_str) : 8'h00) : B_pp[PP_SLGEN_START+3];
-
     // Cycle 5
-    R_pp[PP_SLGEN_END] <= (draw_sl_pp[PP_SLGEN_START+4] & sl_method) ? R_sl_mult : R_pp[PP_SLGEN_START+4];
-    G_pp[PP_SLGEN_END] <= (draw_sl_pp[PP_SLGEN_START+4] & sl_method) ? G_sl_mult : G_pp[PP_SLGEN_START+4];
-    B_pp[PP_SLGEN_END] <= (draw_sl_pp[PP_SLGEN_START+4] & sl_method) ? B_sl_mult : B_pp[PP_SLGEN_START+4];
+    // store subtraction based scanlined RGB into pipeline registers
+    R_pp[PP_SLGEN_START+5] <= draw_sl_pp[PP_SLGEN_START+4] ? ((R_pp[PP_SLGEN_START+4] > R_sl_str) ? (R_pp[PP_SLGEN_START+4] - R_sl_str) : 8'h00) : R_pp[PP_SLGEN_START+4];
+    G_pp[PP_SLGEN_START+5] <= draw_sl_pp[PP_SLGEN_START+4] ? ((G_pp[PP_SLGEN_START+4] > G_sl_str) ? (G_pp[PP_SLGEN_START+4] - G_sl_str) : 8'h00) : G_pp[PP_SLGEN_START+4];
+    B_pp[PP_SLGEN_START+5] <= draw_sl_pp[PP_SLGEN_START+4] ? ((B_pp[PP_SLGEN_START+4] > B_sl_str) ? (B_pp[PP_SLGEN_START+4] - B_sl_str) : 8'h00) : B_pp[PP_SLGEN_START+4];
+
+    // Cycle 6
+    R_pp[PP_SLGEN_END] <= (draw_sl_pp[PP_SLGEN_START+5] & sl_method) ? R_sl_mult : R_pp[PP_SLGEN_START+5];
+    G_pp[PP_SLGEN_END] <= (draw_sl_pp[PP_SLGEN_START+5] & sl_method) ? G_sl_mult : G_pp[PP_SLGEN_START+5];
+    B_pp[PP_SLGEN_END] <= (draw_sl_pp[PP_SLGEN_START+5] & sl_method) ? B_sl_mult : B_pp[PP_SLGEN_START+5];
 
     /* ---------- Testpattern / mask generation ---------- */
     R_pp[PP_TP_END] <= testpattern_enable ? (xpos_pp[PP_TP_START] ^ ypos_pp[PP_TP_START]) : (mask_enable_pp[PP_TP_START] ? MASK_R : R_pp[PP_TP_START]);

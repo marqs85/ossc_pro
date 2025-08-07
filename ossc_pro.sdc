@@ -186,7 +186,7 @@ set_false_path -from {sys:sys_inst|sys_pio_0:pio_0|data_out[3] sys:sys_inst|sys_
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[0]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[1]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[2]
-set_false_path -setup -to [get_registers sys:sys_inst|sys_alt_vip_cl_cvo_0:alt_vip_cl_cvo_0|alt_vip_cvo_core:cvo_core|alt_vip_cvo_sync_conditioner:pixel_channel_sync_conditioner|alt_vip_common_sync_generation:sync_generation_generate.sync_generation|sof*]
+set_max_delay 12 -to [get_registers sys:sys_inst|sys_alt_vip_cl_cvo_0:alt_vip_cl_cvo_0|alt_vip_cvo_core:cvo_core|alt_vip_cvo_sync_conditioner:pixel_channel_sync_conditioner|alt_vip_common_sync_generation:sync_generation_generate.sync_generation|sof*]
 
 
 ### JTAG Signal Constraints ###
