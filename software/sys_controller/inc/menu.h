@@ -162,6 +162,7 @@ static void vm_select();
 static void vm_out_select();
 static void vm_tweak(uint16_t *v);
 static void vm_out_tweak(uint16_t *v);
+static int vm_out_reset();
 static void smp_select();
 static int smp_is_active();
 static int smp_reset();

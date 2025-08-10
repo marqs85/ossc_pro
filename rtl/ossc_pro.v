@@ -127,7 +127,8 @@ localparam EXTRA_OUT_RGBCS_RGBS = 1;
 localparam EXTRA_OUT_RGsB = 2;
 localparam EXTRA_OUT_YPbPr = 3;
 
-wire jtagm_reset_req;
+wire jtagm_reset_req, ndmreset_req;
+reg ndmreset_ack, ndmreset_pulse;
 
 wire [31:0] sys_ctrl;
 wire sys_poweron = sys_ctrl[0];
@@ -171,7 +172,7 @@ wire pll_locked, emif_pll_locked;
 `ifdef SIMULATION
 wire sys_reset_n = (po_reset_n & pll_locked);
 `else
-wire sys_reset_n = (po_reset_n & ~jtagm_reset_req & pll_locked);
+wire sys_reset_n = (po_reset_n & ~jtagm_reset_req & ~ndmreset_pulse & pll_locked);
 `endif
 
 wire emif_status_init_done, emif_status_cal_success, emif_status_cal_fail, emif_status_powerdn_ack;
@@ -191,7 +192,7 @@ wire cvi_overflow, cvo_underflow, cvo_sof;
 reg [2:0] cvo_resync_ctr;
 wire cvo_resync = (cvo_resync_ctr == '1);
 
-wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code};
+wire [31:0] controls = {2'h0, btn_sync2_reg, ir_code_cnt, ir_code}; // TODO: sync to CPU clock
 wire [31:0] sys_status = {cvi_overflow, cvo_underflow, cvo_resync, 23'h0, sd_detect, emif_pll_locked, emif_status_powerdn_ack, emif_status_cal_fail, emif_status_cal_success, emif_status_init_done};
 
 wire [31:0] hv_in_config, hv_in_config2, hv_in_config3, hv_out_config, hv_out_config2, hv_out_config3, xy_out_config, xy_out_config2, xy_out_config3;
@@ -221,8 +222,6 @@ wire [10:0] shmask_data;
 assign ISL_RESET_N_o = isl_reset_n;
 assign HDMIRX_RESET_N_o = hdmirx_reset_n;
 
-reg emif_hwreset_n_sync1_reg, emif_hwreset_n_sync2_reg, emif_swreset_n_sync1_reg, emif_swreset_n_sync2_reg;
-
 assign HDMITX_5V_EN_o = sys_poweron;
 
 wire sd_cmd_oe_o, sd_cmd_out_o, sd_dat_oe_o;
@@ -232,6 +231,10 @@ assign SD_CMD_io = sd_cmd_oe_o ? sd_cmd_out_o : 1'bz;
 assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
 
 assign FPGA_PCLK1x_o = pclk_capture;
+
+wire [31:0] lumacode_data;
+wire [8:0] lumacode_addr;
+wire lumacode_rden;
 
 // ISL51002 RGB digitizer
 reg [7:0] ISL_R, ISL_G, ISL_B;
@@ -265,7 +268,7 @@ wire [10:0] ISL_fe_vtotal, ISL_fe_xpos, ISL_fe_ypos;
 isl51002_frontend u_isl_frontend ( 
     .PCLK_i(ISL_PCLK_i),
     .CLK_MEAS_i(CLK27_i),
-    .reset_n(sys_reset_n),
+    .reset_n(1'b1),  //not used atm
     .R_i(ISL_R),
     .G_i(ISL_G),
     .B_i(ISL_B),
@@ -285,6 +288,7 @@ isl51002_frontend u_isl_frontend (
     .hv_in_config3(hv_in_config3),
     .misc_config(misc_config),
     .misc_config2(misc_config2),
+    .lumacode_data(lumacode_data),
     .R_o(ISL_R_post),
     .G_o(ISL_G_post),
     .B_o(ISL_B_post),
@@ -299,7 +303,9 @@ isl51002_frontend u_isl_frontend (
     .vtotal(ISL_fe_vtotal),
     .frame_change(ISL_fe_frame_change),
     .sof_scaler(ISL_sof_scaler),
-    .pcnt_field(ISL_fe_pcnt_field)
+    .pcnt_field(ISL_fe_pcnt_field),
+    .lumacode_addr(lumacode_addr),
+    .lumacode_rden(lumacode_rden)
 );
 
 // ADV7611 HDMI RX
@@ -336,7 +342,7 @@ wire HDMIRX_fe_interlace, HDMIRX_fe_frame_change, HDMIRX_sof_scaler;
 wire [10:0] HDMIRX_fe_xpos, HDMIRX_fe_ypos;
 adv7611_frontend u_hdmirx_frontend ( 
     .PCLK_i(HDMIRX_PCLK_i),
-    .reset_n(sys_reset_n),
+    .reset_n(1'b1),  //not used atm
     .R_i(HDMIRX_R),
     .G_i(HDMIRX_G),
     .B_i(HDMIRX_B),
@@ -391,7 +397,7 @@ wire [10:0] SDP_fe_vtotal, SDP_fe_xpos, SDP_fe_ypos;
 adv7280a_frontend u_sdp_frontend ( 
     .PCLK_i(SDP_PCLK_i),
     .CLK_MEAS_i(CLK27_i),
-    .reset_n(sys_reset_n),
+    .reset_n(1'b1),  //not used atm
     .P_DATA_i(SDP_P_DATA),
     .HS_i(SDP_HS),
     .VS_i(SDP_VS),
@@ -463,7 +469,7 @@ assign HDMITX_PCLK_o = ~pclk_out;
 
 
 // VIP / LB
-wire vip_select = misc_config[15];
+wire vip_select = misc_config2[3];
 wire lb_enable = sys_poweron & ~testpattern_enable & ~vip_select;
 
 always @(posedge pclk_capture) begin
@@ -688,6 +694,13 @@ begin
         po_reset_ctr <= po_reset_ctr + 1'b1;
 end
 
+// ndmreset pulse & ack for RISC-V DM (TODO: sync to CPU clock)
+always @(posedge CLK27_i)
+begin
+    ndmreset_pulse <= !ndmreset_ack & ndmreset_req;
+    ndmreset_ack <= ndmreset_req;
+end
+
 always @(posedge CLK27_i) begin
     if (sys_poweron) begin
         if (~resync_strobe_prev & resync_strobe) begin
@@ -708,7 +721,7 @@ always @(posedge CLK27_i) begin
     resync_strobe_prev <= resync_strobe_sync2_reg;
 end
 
-// Insert synchronizers to async inputs (synchronize to CPU clock)
+// Insert synchronizers to async inputs (synchronize to 27MHz clock)
 always @(posedge CLK27_i or negedge po_reset_n) begin
     if (!po_reset_n) begin
         btn_sync1_reg <= 2'b11;
@@ -723,31 +736,17 @@ always @(posedge CLK27_i or negedge po_reset_n) begin
     end
 end
 
-always @(posedge CLK27_i or negedge po_reset_n) begin
-    if (!po_reset_n) begin
-        emif_hwreset_n_sync1_reg <= 1'b0;
-        emif_hwreset_n_sync2_reg <= 1'b0;
-        emif_swreset_n_sync1_reg <= 1'b0;
-        emif_swreset_n_sync2_reg <= 1'b0;
-    end else begin
-        emif_hwreset_n_sync1_reg <= emif_hwreset_n;
-        emif_hwreset_n_sync2_reg <= emif_hwreset_n_sync1_reg;
-        emif_swreset_n_sync1_reg <= emif_swreset_n;
-        emif_swreset_n_sync2_reg <= emif_swreset_n_sync1_reg;
-    end
-end
-
 
 // Qsys system
 sys sys_inst (
     .clk_clk                                (CLK27_i),
-    .reset_reset_n                          (sys_reset_n),
-    .pll_0_reset_reset                      (~po_reset_n),
+    .reset_po_reset_n                       (po_reset_n),
+    .reset_sys_reset_n                      (sys_reset_n),
     .pll_0_locked_export                    (pll_locked),
-    .pulpino_0_config_testmode_i            (1'b0),
-    .pulpino_0_config_fetch_enable_i        (1'b1),
-    .pulpino_0_config_clock_gating_i        (1'b0),
-    .pulpino_0_config_boot_addr_i           (32'h02A00000),
+    .ibex_0_ndm_ndmreset_o                  (ndmreset_req),
+    .ibex_0_ndm_ndmreset_ack_i              (ndmreset_ack),
+    .ibex_0_config_boot_addr_i              (32'h02410000),
+    .ibex_0_config_core_sleep_o             (),
     .master_0_master_reset_reset            (jtagm_reset_req),
     .sdc_controller_0_sd_sd_cmd_dat_i       (SD_CMD_io),
     .sdc_controller_0_sd_sd_cmd_out_o       (sd_cmd_out_o),
@@ -782,11 +781,17 @@ sys sys_inst (
     .sc_config_0_shmask_if_shmask_xpos      (x_ctr_shmask),
     .sc_config_0_shmask_if_shmask_ypos      (y_ctr_shmask),
     .sc_config_0_shmask_if_shmask_data      (shmask_data),
+    .sc_config_0_lc_ram_if_lumacode_clk_i   (ISL_PCLK_i),
+    .sc_config_0_lc_ram_if_lumacode_addr_i  (lumacode_addr),
+    .sc_config_0_lc_ram_if_lumacode_rden_i  (lumacode_rden),
+    .sc_config_0_lc_ram_if_lumacode_data_o  (lumacode_data),
     .osd_generator_0_osd_if_vclk            (PCLK_sc),
     .osd_generator_0_osd_if_xpos            (xpos_sc),
     .osd_generator_0_osd_if_ypos            (ypos_sc),
     .osd_generator_0_osd_if_osd_enable      (osd_enable),
     .osd_generator_0_osd_if_osd_color       (osd_color),
+    .core_usb_0_usb_usb_dp_io               (USB_DP_io),
+    .core_usb_0_usb_usb_dn_io               (USB_DN_io), 
     .emif_bridge_0_clk_o                    (emif_br_clk),
     .emif_bridge_0_reset_o                  (emif_br_reset),
     .emif_bridge_0_wr_address               (emif_wr_addr),
@@ -800,8 +805,8 @@ sys sys_inst (
     .emif_bridge_0_rd_waitrequest           (emif_rd_waitrequest),
     .emif_bridge_0_rd_readdatavalid         (emif_rd_readdatavalid),
     .emif_bridge_0_rd_burstcount            (emif_rd_burstcount),
-    .mem_if_lpddr2_emif_0_global_reset_reset_n     (emif_hwreset_n_sync2_reg),
-    .mem_if_lpddr2_emif_0_soft_reset_reset_n       (emif_swreset_n_sync2_reg),
+    .mem_if_lpddr2_emif_0_global_reset_reset_n     (emif_hwreset_n),
+    .mem_if_lpddr2_emif_0_soft_reset_reset_n       (emif_swreset_n),
     .mem_if_lpddr2_emif_0_status_local_init_done   (emif_status_init_done),
     .mem_if_lpddr2_emif_0_status_local_cal_success (emif_status_cal_success),
     .mem_if_lpddr2_emif_0_status_local_cal_fail    (emif_status_cal_fail),
@@ -873,12 +878,12 @@ sys sys_inst (
 `endif
 );
 
-// These do not work in current Quartus version (23.1) and a patch file (scripts/qsys.patch) must be used after Qsys generation instead
+// These do not work in current Quartus version (24.1) and a patch file (scripts/qsys.patch) must be used after Qsys generation instead
 defparam
     sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_1_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
-    sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_0_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
     sys_inst.mm_interconnect_0.mm_clock_crossing_bridge_2_s0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
-    sys_inst.mm_interconnect_1.mem_if_lpddr2_emif_0_avl_0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1;
+    sys_inst.mm_interconnect_1.mem_if_lpddr2_emif_0_avl_0_agent_rsp_fifo.USE_MEMORY_BLOCKS = 1,
+    sys_inst.master_0.fifo.FIFO_DEPTH = 1024;
 
 scanconverter #(
     .EMIF_ENABLE(1),
@@ -886,7 +891,7 @@ scanconverter #(
   ) scanconverter_inst (
     .PCLK_CAP_i(pclk_capture),
     .PCLK_OUT_i(SI_PCLK_i),
-    .reset_n(sys_reset_n),  //TODO: sync to pclk_capture
+    .reset_n(1'b1),  //not used atm
     .R_i(R_capt),
     .G_i(G_capt),
     .B_i(B_capt),

@@ -43,6 +43,7 @@
     <File Name="src/scl_pp_coeffs.c"/>
     <File Name="src/shmask_arrays.c"/>
     <File Name="src/edid_presets.c"/>
+    <File Name="src/lumacode_palettes.c"/>
     <File Name="src/file.c"/>
     <File Name="src/video_modes_list.c"/>
     <File Name="src/video_modes.c"/>

@@ -49,7 +49,7 @@ extern adv7280a_dev advsdp_dev;
 extern si2177_dev sirf_dev;
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
-extern mode_data_t video_modes[];
+extern mode_data_t video_modes[], video_modes_default[];
 extern mode_data_t vmode_in;
 extern smp_preset_t smp_presets[], smp_presets_default[];
 extern sync_timings_t hdmi_timings[];
@@ -142,14 +142,15 @@ static const char* const rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
 static const char* const auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char* const mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
 static const char* const shmask_mode_desc[] = { "Off", "A-Grille", "TV", "PVM", "PVM-2530", "XC-3315C", "C-1084", "JVC", "VGA", c_shmask.name };
-static const char* const lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "NES" };
+static const char* const lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "NES", "Atari GTIA", "Atari VCS" };
+static const char* const lumacode_pal_desc[] = { "PAL" };
 static const char* const adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char* const oper_mode_desc[] = { "Line multiplier", "Scaler" };
 static const char* const lm_mode_desc[] = { "Pure", "Adaptive" };
-static const char* const scl_out_mode_desc[] = { "720x480 (60Hz)", "720x480 WS (60Hz)", "720x576 (50Hz)", "720x576 WS (50Hz)", "1280x720 (50-120Hz)", "1280x1024 (60Hz)", "1920x1080i (50-120Hz)", "1920x1080 (50-120Hz)", "1600x1200 (60Hz)", "1920x1200 (50-60Hz)", "1920x1440 (50-60Hz)", "2560x1440 (50-60Hz)", "2880x2160 (50-60Hz)" };
-static const char* const scl_crt_out_mode_desc[] = { "240p (60-120Hz)", "240p WS (60-120Hz)", "288p (50-100Hz)", "288p WS (50-100Hz)", "480i (60Hz)", "480i WS (60Hz)", "576i (50Hz)", "576i WS (50Hz)", "480p (60-120Hz)", "540p (50-60Hz)", "1024x768 (60-120Hz)", "1280x960 (60-120Hz)", "2048x1536 (60Hz)" };
+static const char* const scl_out_mode_desc[] = { "720x480 (60Hz)", "720x480 WS (60Hz)", "720x576 (50Hz)", "720x576 WS (50Hz)", "1280x720 (24-240Hz)", "1280x1024 (24-150Hz)", "1920x1080i (24-120Hz)", "1920x1080 (24-120Hz)", "1600x1200 (24-100Hz)", "1920x1200 (24-100Hz)", "1920x1440 (24-90Hz)", "2560x1440 (24-72Hz)", "2880x2160 (24-60Hz)" };
+static const char* const scl_crt_out_mode_desc[] = { "240p (24-240Hz)", "240p WS (24-240Hz)", "288p (24-250Hz)", "288p WS (24-250Hz)", "480i (24-180Hz)", "480i WS (24-180Hz)", "576i (24-150Hz)", "576i WS (24-150Hz)", "480p (24-170Hz)", "540p (24-180Hz)", "1024x768 (24-240Hz)", "1280x960 (24-160Hz)", "2048x1536 (24-60Hz)" };
 static const char* const scl_out_type_desc[] = { "DFP", "CRT" };
-static const char* const scl_framelock_desc[] = { "On", "On (2x source Hz)", "Off (source Hz)", "Off (preset Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
+static const char* const scl_framelock_desc[] = { "On", "Off (source Hz)", "Off (preset Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
 static const char* const scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
 static const char* const scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "GS medium", "GS soft", c_pp_coeffs.name };
 static const char* const scl_gen_sr_desc[] = { "Auto", "Lowest", "Highest" };
@@ -167,7 +168,7 @@ static const char* const sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640
 static const char* const sm_scl_576p_desc[] = { "Generic", "DTV 576p", "GC 640col" };
 static const char* const timing_1080p120_desc[] = { "CVT-RB", "Min. blank", "CEA-861", "CEA-861 PR2x" };
 static const char* const timing_2160p60_desc[] = { "CVT-RB PR2x", "Min. blank PR2x" };
-static const char* const edid_sel_desc[] = { "Default", "2ch audio", "10bpc RGB+HDR", c_edid.name };
+static const char* const edid_sel_desc[] = { "Default", "2ch audio", "10bpc RGB+HDR", "720p max.", c_edid.name };
 static const char* const exp_sel_desc[] = { "Auto", "Off", "Extra AV out", "Legacy AV in", "UVC bridge" };
 static const char* const extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB", "YPbPr" };
 static const char* const hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
@@ -179,7 +180,8 @@ static const char* const comb_ctapsp_desc[] = { "5->3 (2-tap)", "5->3 (3-tap)", 
 static const char* const comb_mode_desc[] = { "Adaptive", "Off", "Fixed (top)", "Fixed (all)", "Fixed (bottom)" };
 static const char* const cti_ab_desc[] = { "Sharpest", "Sharp", "Smooth", "Smoothest" };
 static const char* const if_comp_desc[] = { "Off", "NTSC -3dB", "NTSC -6dB", "NTSC -10dB", "PAL -2dB", "PAL -5dB", "PAL -7dB" };
-static const char* const audio_demod_mode_desc[] = { "SIF", "AM", "FM1", "FM2" };
+static const char* const rf_cvbs_gain_sel[] = { "Normal", "EXT-75ohm" };
+static const char* const audio_demod_mode_desc[] = { "AM", "FM1", "FM2" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -209,6 +211,7 @@ static void sd_profile_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, 
 static void rfscan_sys_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", tv_std_name_arr[v]); }
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
+static void mult_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%ux", v+1); }
 
 static void smp_display_name(uint8_t v) {
 #ifndef DExx_FW
@@ -234,6 +237,13 @@ static void sampler_phase_disp(char *dst, int max_len, uint8_t v, int active_mod
             sniprintf(dst, max_len, "Auto");
         }
     }
+}
+
+static void bfi_enable_disp(uint8_t v) {
+    if (v)
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "After %u src frames", v);
+    else
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Off");
 }
 
 #ifndef DExx_FW
@@ -287,7 +297,7 @@ MENU(menu_advtiming_out, P99_PROTECT({
     { LNG("V. synclen","V. ﾄﾞｳｷﾅｶﾞｻ"),         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_synclen,  V_SYNCLEN_MIN, V_SYNCLEN_MAX, vm_out_tweak } } },
     { LNG("V. backporch","V. ﾊﾞｯｸﾎﾟｰﾁ"),       OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_bporch,    V_BPORCH_MIN, V_BPORCH_MAX, vm_out_tweak } } },
     { LNG("V. active","V. ｱｸﾃｨﾌﾞ"),            OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_active,    V_ACTIVE_MIN, V_ACTIVE_MAX, vm_out_tweak } } },
-    { "Def rfr rate",                         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_hz,        40, 144, vm_out_tweak } } },
+    { "Def rfr rate",                         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_hz,        23, 255, vm_out_tweak } } },
     { "Def rfr rate frac",                    OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_hz_frac,   0, 99, vm_out_tweak } } },
     { "Display AR H",                         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_h_mask,    1, 255, vm_out_tweak } } },
     { "Display AR V",                         OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc_v_mask,    1, 255, vm_out_tweak } } },
@@ -344,6 +354,7 @@ MENU(menu_isl_video_opt, P99_PROTECT({
     { "ALC V filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_v_filter,  OPT_NOWRAP, 0, ALC_V_FILTER_MAX, alc_v_filter_disp } } },
     { "ALC H filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_h_filter,  OPT_NOWRAP, 0, ALC_H_FILTER_MAX, alc_h_filter_disp } } },
     { "Lumacode",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_mode,         OPT_WRAP,   SETTING_ITEM(lumacode_mode_desc) } } },
+    { "Lumacode palette set",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_pal,          OPT_WRAP,   SETTING_ITEM(lumacode_pal_desc) } } },
 }))
 
 MENU(menu_isl_sync_opt, P99_PROTECT({
@@ -421,6 +432,7 @@ MENU(menu_scaler, P99_PROTECT({
     { "CRT output mode",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_crt_out_mode,OPT_WRAP, SETTING_ITEM_LIST(scl_crt_out_mode_desc) } } },
     { "Output type",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_out_type,    OPT_WRAP, SETTING_ITEM_LIST(scl_out_type_desc) } } },
     { "Framelock",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_framelock,   OPT_WRAP, SETTING_ITEM_LIST(scl_framelock_desc) } } },
+    { "Framelock mult.",                        OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.scl_framelock_mult, OPT_NOWRAP, 0, 9, mult_disp } } },
     { "Aspect ratio",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_aspect,      OPT_WRAP, SETTING_ITEM_LIST(scl_aspect_desc) } } },
     { "Scaling algorithm",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_alg,         OPT_WRAP, SETTING_ITEM_LIST(scl_alg_desc) } } },
     { "Custom SCL alg",                         OPT_CUSTOMMENU,         { .cstm = { &cstm_scl_alg_load } } },
@@ -454,10 +466,12 @@ MENU(menu_output, P99_PROTECT({
     { "HDMI VRR flag",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.vrr,      OPT_WRAP, SETTING_ITEM(hdmi_vrr_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 #ifndef DExx_FW
+    { LNG("Full TX setup","ﾌﾙTXｾｯﾄｱｯﾌﾟ"),       OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.full_tx_setup, OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
     { "1080p120 preset",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_1080p120,  OPT_WRAP, SETTING_ITEM_LIST(timing_1080p120_desc) } } },
     { "2160p60 preset",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_2160p60,   OPT_WRAP, SETTING_ITEM_LIST(timing_2160p60_desc) } } },
 #endif
     { "Adv. disp timing",                      OPT_SUBMENU,            { .sub = { &menu_advtiming_out, &vm_out_arg_info, vm_out_select } } },
+    { "Reset disp preset",                     OPT_FUNC_CALL,          { .fun =  { vm_out_reset, NULL } } },
 }))
 
 MENU(menu_scanlines, P99_PROTECT({
@@ -477,7 +491,7 @@ MENU(menu_postproc, P99_PROTECT({
     { "Shadow mask",                             OPT_AVCONFIG_SELECTION, { .sel = { &tc.shmask_mode, OPT_WRAP,   SETTING_ITEM_LIST(shmask_mode_desc) } } },
     { "Custom shadow mask",                      OPT_CUSTOMMENU,         { .cstm = { &cstm_shmask_load } } },
     { "Sh. mask strength",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.shmask_str,  OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
-    { "BFI for 2x Hz",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.bfi_enable,  OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
+    { "BFI for dupl. frames",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.bfi_enable,  OPT_NOWRAP, 0, 9, bfi_enable_disp } } },
     { "BFI strength",                            OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.bfi_str,     OPT_NOWRAP, 0, SCANLINESTR_MAX, sl_str_disp } } },
     //{ LNG("DIY lat. test","DIYﾁｴﾝﾃｽﾄ"),         OPT_FUNC_CALL,          { .fun = { latency_test, &lt_arg_info } } },
 }))
@@ -519,6 +533,7 @@ MENU(menu_sdp, P99_PROTECT({
     { "CTI alpha blend",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.cti_ab,          OPT_NOWRAP, SETTING_ITEM(cti_ab_desc) } } },
     { "CTI chroma thold",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.cti_c_th,        OPT_NOWRAP, 0, 0xff, value_disp } } },
     { "RF SAW compensation",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.if_comp,         OPT_NOWRAP, SETTING_ITEM(if_comp_desc) } } },
+    { "RF cvbs gain",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.cvbs_gain_sel,  OPT_NOWRAP, SETTING_ITEM(rf_cvbs_gain_sel) } } },
     { "RF audio demod",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.audio_demod_mode, OPT_NOWRAP, SETTING_ITEM(audio_demod_mode_desc) } } },
     { "RF manual tune",                         OPT_CUSTOMMENU,         { .cstm = { &cstm_rf_tune } } },
     { "RF chscan (2min)",                       OPT_FUNC_CALL,          { .fun = { rf_chscan, &rfscan_arg_info } } },
@@ -1192,20 +1207,21 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
 }
 
 void cstm_rf_tune(menucode_id code, int setup_disp) {
-    uint32_t row_mask[2] = {0x7f, 0x70};
-    int i, adj=0;
+    uint32_t row_mask[2] = {0xff, 0xf0};
+    int i, adj=0, adj_ft=0;
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       +1MHz");
         sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
-        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "-.1MHz < \x85 > +.1MHz");
+        sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, " FINE- < \x85 > FINE+");
         sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
         sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       -1MHz");
         sniprintf((char*)osd->osd_array.data[5][1], OSD_CHAR_COLS, "--------------------");
 
         sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "\x85 TV system");
+        sniprintf((char*)osd->osd_array.data[7][0], OSD_CHAR_COLS, "Fine tune offset");
 
         osd->osd_sec_enable[0].mask = row_mask[0];
         osd->osd_sec_enable[1].mask = row_mask[1];
@@ -1220,7 +1236,7 @@ void cstm_rf_tune(menucode_id code, int setup_disp) {
         break;
     case VAL_MINUS:
     case VAL_PLUS:
-        adj = (code == VAL_PLUS) ? 100000 : -100000;
+        adj_ft = (code == VAL_PLUS) ? 20 : -20;
         break;
     case OPT_SELECT:
         for (i=0; i<3; i++) {
@@ -1237,24 +1253,32 @@ void cstm_rf_tune(menucode_id code, int setup_disp) {
     if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq + adj < 40000000)
         adj = 40000000 - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq;
     else if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq + adj > 854000000)
-        adj = tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq - 854000000;
+        adj = 854000000 - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq;
 
-    if (adj != 0) {
+    if (adj != 0)
         tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq += adj;
-        si2177_tune(&sirf_dev, &tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx]);
-    }
+
+    if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset + adj_ft < Si2177_FINE_TUNE_CMD_OFFSET_500HZ_MIN)
+        adj_ft = Si2177_FINE_TUNE_CMD_OFFSET_500HZ_MIN - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset;
+    else if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset + adj_ft > Si2177_FINE_TUNE_CMD_OFFSET_500HZ_MAX)
+        adj_ft = Si2177_FINE_TUNE_CMD_OFFSET_500HZ_MAX - tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset;
+
+    if (adj_ft != 0)
+        tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset += adj_ft;
 
     // clear rows
     strncpy((char*)osd->osd_array.data[4][1], "", OSD_CHAR_COLS);
     strncpy((char*)osd->osd_array.data[6][1], "", OSD_CHAR_COLS);
 
-    sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "CH%d: %lu.%luMHz", tc.sirf_cfg.ch_idx+1, tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/1000000, (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/100000)%10);
+    sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "CH%d: %lu.%luMHz", tc.sirf_cfg.ch_idx+1, tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/1000000,
+              (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/100000)%10);
     for (i=0; i<3; i++) {
         if (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].tv_system == tv_std_id_arr[i]) {
             sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%s", tv_std_name_arr[i]);
             break;
         }
     }
+    sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%dkHz", tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].ft_offset/2);
 
     ui_disp_menu(0);
 }
@@ -1814,6 +1838,15 @@ static void vm_out_tweak(uint16_t *v) {
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%.2u", (video_modes[vm_out_edit].timings.v_hz_x100/100), (video_modes[vm_out_edit].timings.v_hz_x100%100));
     else
         sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", *v);
+}
+
+static int vm_out_reset() {
+    memcpy(&video_modes[vm_out_sel], &video_modes_default[vm_out_sel], sizeof(mode_data_t));
+
+    if (vm_out_sel == vm_out_cur)
+        update_cur_vm = 1;
+
+    return 0;
 }
 
 static void smp_select() {

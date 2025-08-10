@@ -190,7 +190,7 @@ CREATE_ELF_DERIVED_FILES := 0
 CREATE_LINKER_MAP := 1
 
 # Common arguments for ALT_CFLAGSs
-APP_CFLAGS_DEFINED_SYMBOLS :=
+APP_CFLAGS_DEFINED_SYMBOLS := -DPICOLIBC_INTEGER_PRINTF_SCANF
 ifeq ($(OSDLANG),JP)
 APP_CFLAGS_DEFINED_SYMBOLS += -DOSDLANG_JP
 endif
@@ -213,6 +213,7 @@ SYS_LIB :=
 BSP_ROOT_DIR := ../sys_controller_bsp/
 
 # List of application specific include directories, library directories and library names
+APP_INCLUDE_DIRS += /usr/lib/picolibc/riscv64-unknown-elf/include
 APP_INCLUDE_DIRS += config
 APP_INCLUDE_DIRS += inc
 APP_INCLUDE_DIRS += ic_drivers/common
@@ -402,7 +403,7 @@ APP_ASFLAGS := $(APP_ASM_INC_DIRS) \
                $(ASFLAGS)
 
 # Arguments only for the linker.
-APP_LDFLAGS := $(APP_LDFLAGS_USER) --specs=nano.specs -nostartfiles
+APP_LDFLAGS := $(APP_LDFLAGS_USER) --specs=picolibc.specs -nostartfiles
 
 ifneq ($(LINKER_SCRIPT),)
 APP_LDFLAGS += -T'$(LINKER_SCRIPT)'
@@ -663,11 +664,11 @@ build_post_process :
 # included makefile fragment.
 #
 ifeq ($(DEFAULT_CROSS_COMPILE),)
-DEFAULT_CROSS_COMPILE := riscv32-unknown-elf-
+DEFAULT_CROSS_COMPILE := riscv64-unknown-elf-
 endif
 
 ifeq ($(DEFAULT_STACKREPORT),)
-DEFAULT_STACKREPORT := riscv32-unknown-elf-size
+DEFAULT_STACKREPORT := riscv64-unknown-elf-size
 endif
 
 ifeq ($(DEFAULT_DOWNLOAD),)
@@ -721,7 +722,7 @@ AR := $(CROSS_COMPILE)ar
 endif
 
 ifeq ($(origin LD),default)
-LD := $(CROSS_COMPILE)g++
+LD := $(CROSS_COMPILE)gcc
 endif
 
 ifeq ($(origin RM),default)
@@ -765,8 +766,6 @@ endif
 ifeq ($(MKDIR),)
 MKDIR := $(DEFAULT_MKDIR)
 endif
-
-RV_OBJCOPY = riscv32-unknown-elf-objcopy
 
 #------------------------------------------------------------------------------
 #                     PATTERN RULES TO BUILD OBJECTS
@@ -1142,11 +1141,11 @@ ossc/menu_sjis.c: ossc/menu.c
 	iconv -f UTF-8 -t SHIFT-JIS ossc/menu.c > ossc/menu_sjis.c
 
 mem_init/flash.hex: sys_controller.elf
-	$(RV_OBJCOPY) --change-addresses -0x02A00000 -O binary --gap-fill 0 $< mem_init/flash.bin
-	$(RV_OBJCOPY) --change-addresses -0x02A00000 -O ihex --gap-fill 0 $< mem_init/flash.hex
+	$(OBJCOPY) --change-addresses -0x02410000 -O binary --gap-fill 0 $< mem_init/flash.bin
+	$(OBJCOPY) --change-addresses -0x02410000 -O ihex --gap-fill 0 $< mem_init/flash.hex
 	mkdir -p mem_init/chunks
 	rm -f mem_init/chunks/*
-	split -d -b 64 -a 4 mem_init/flash.bin mem_init/chunks/flash.
+	split -d -b 1024 -a 4 mem_init/flash.bin mem_init/chunks/flash.
 
 .PHONY: mem_init_generate_new
 mem_init_generate_new: mem_init/flash.hex
@@ -1166,3 +1165,7 @@ rv-bt:
 rv-reboot:
 	jtagconfig
 	system-console -cli --script ../../scripts/rv-reboot.tcl
+
+rv-ndmreset:
+	jtagconfig
+	system-console -cli --script ../../scripts/rv-ndmreset.tcl

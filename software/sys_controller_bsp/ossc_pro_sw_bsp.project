@@ -41,6 +41,8 @@
   </Reconciliation>
   <VirtualDirectory Name="drivers">
     <VirtualDirectory Name="src">
+      <File Name="drivers/src/usb_hw.c"/>
+      <File Name="drivers/src/usb_core.c"/>
       <File Name="drivers/src/ocsdc.c"/>
       <File Name="drivers/src/mmc.c"/>
       <File Name="drivers/src/altera_avalon_jtag_uart_fd.c"/>
@@ -54,6 +56,9 @@
       <File Name="drivers/src/altera_avalon_jtag_uart_read.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="inc">
+      <File Name="drivers/inc/usb_hw.h"/>
+      <File Name="drivers/inc/usb_defs.h"/>
+      <File Name="drivers/inc/usb_core.h"/>
       <File Name="drivers/inc/osd_generator_regs.h"/>
       <File Name="drivers/inc/mmc.h"/>
       <File Name="drivers/inc/altera_avalon_timer_regs.h"/>
@@ -233,7 +238,7 @@
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
         <CleanCommand>make clean</CleanCommand>
-        <BuildCommand>make BSP_CFLAGS_DEBUG="-DOCSDC_DEBUG -DMMC_DEBUG"</BuildCommand>
+        <BuildCommand>make BSP_CFLAGS_DEBUG="-DOCSDC_DEBUG -DMMC_DEBUG -DUSB_DEBUG"</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>

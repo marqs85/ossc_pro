@@ -20,6 +20,7 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <stdint.h>
 #include "sysconfig.h"
 
 #define PRINTF_BUFSIZE 512

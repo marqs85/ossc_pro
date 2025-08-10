@@ -1,6 +1,6 @@
 # flash details
 set flash_base                  0x02000000
-set flash_imem_offset           0x00A00000
+set flash_imem_offset           0x00410000
 set flash_imem_base             [format 0x%.8x [expr $flash_base + $flash_imem_offset]]
 set flash_secsize               65536
 
@@ -38,7 +38,8 @@ set master_service_path [lindex $service_paths 0]
 set claim_path [claim_service master $master_service_path mylib]
 
 puts "Halting CPU"
-master_write_32 $claim_path 0x0 0x10000
+master_write_32 $claim_path 0x40 0x00000001
+master_write_32 $claim_path 0x40 0x80000001
 
 #write enable
 master_write_32 $claim_path $flash_cmd_setting 0x00000006
@@ -63,28 +64,29 @@ for {set i 0} {$i<$num_sectors} {incr i} {
 }
 
 puts "Writing flash"
-# writes garbage and occasionally hangs when mm clk crossing FIFO starts backpressure
+# JTAG to Avalon master does not support sink backpressure
 #master_write_from_file $claim_path mem_init/flash.bin $flash_imem_base
 
-# work around the issue by writing into small chunks so that FIFO does not fill up
+# work around lack of backpressure support by writing chunks of master FIFO size
 set chunks [llength [glob mem_init/chunks/*]]
 puts "Programming $chunks chunks"
 set addr $flash_imem_base
 for {set i 0} {$i<$chunks} {incr i} {
     set file [format "flash.%04d" $i]
     master_write_from_file $claim_path mem_init/chunks/$file $addr
-    set addr [expr $addr + 64]
+    set addr [expr $addr + 1024]
 }
 #master_read_to_file $claim_path mem_init/flash_readback.bin $flash_imem_base $bin_size
 #master_read_to_file $claim_path mem_init/ram_readback.bin 0x010000 65536
 
-close_service master $claim_path
+# flush flashctrl cmd fifo to ensure writes have finished
+master_read_32 $claim_path $flash_base 1
 
-
-set jtag_debug_list [get_service_paths jtag_debug]
-set jd [ lindex $jtag_debug_list 0 ]
-open_service jtag_debug $jd
 puts "Resetting system"
-jtag_debug_reset_system $jd
-close_service jtag_debug $jd
+master_write_32 $claim_path 0x40 0x00000003
+after 1
+master_write_32 $claim_path 0x40 0x00000001
+master_write_32 $claim_path 0x40 0x00000000
+
+close_service master $claim_path
 puts "Done"

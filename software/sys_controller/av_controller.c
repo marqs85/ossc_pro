@@ -28,6 +28,8 @@
 #include "sys/alt_timestamp.h"
 #include "i2c_opencores.h"
 #include "av_controller.h"
+#include "usb_hw.h"
+#include "usb_core.h"
 #include "avconfig.h"
 #include "isl51002.h"
 #include "ths7353.h"
@@ -52,9 +54,10 @@
 #include "src/edid_presets.c"
 #include "src/shmask_arrays.c"
 #include "src/scl_pp_coeffs.c"
+#include "src/lumacode_palettes.c"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 78
+#define FW_VER_MINOR 79
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -100,7 +103,7 @@ const settings_t ts_default = {
 };
 
 c_edid_t c_edid;
-const edid_t* edid_list[] = {&pro_edid_default, &pro_edid_2ch, &pro_edid_dc10b, &c_edid.edid};
+const edid_t* edid_list[] = {&pro_edid_default, &pro_edid_2ch, &pro_edid_dc10b, &pro_edid_720p, &c_edid.edid};
 
 #define ISL_XTAL_FREQ       27000000LU
 #define ISL_XTAL_FREQ_EXT   26000000LU
@@ -164,6 +167,8 @@ flash_ctrl_dev flashctrl_dev = {.regs = (volatile gen_flash_if_regs*)INTEL_GENER
 
 rem_update_dev rem_reconfig_dev = {.regs = (volatile rem_update_regs*)0x00023400};
 
+struct usb_device usbdev;
+
 volatile sc_regs *sc = (volatile sc_regs*)SC_CONFIG_0_BASE;
 volatile osd_regs *osd = (volatile osd_regs*)OSD_GENERATOR_0_BASE;
 
@@ -178,6 +183,7 @@ uint32_t sys_status;
 int sys_powered_on = -1;
 
 uint8_t sd_det, sd_det_prev;
+uint8_t usb_det, usb_det_prev;
 uint8_t sl_def_iv_x, sl_def_iv_y;
 
 uint8_t exp_det, pcm_out_dev_avail, advsdp_dev_avail, sirf_dev_avail;
@@ -207,6 +213,9 @@ const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_
 int shmask_loaded_array = 0;
 int shmask_loaded_str = -1;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
+
+const lc_palette_set* lc_palette_set_list[] = {&lc_palette_pal};
+int loaded_lc_palette = -1;
 
 #ifdef VIP
 alt_timestamp_type vip_resync_ts;
@@ -418,6 +427,12 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         shmask_data_arr_ptr = shmask_loaded_array ? (shmask_data_arr*)shmask_data_arr_list[shmask_loaded_array] : (shmask_data_arr*)shmask_data_arr_list[1];
     }
 
+    if (avconfig->lumacode_mode && (avconfig->lumacode_pal != loaded_lc_palette)) {
+        for (i=0; i<(sizeof(lc_palette_set)/4); i++)
+            sc->lumacode_pal_ram.data[i] = lc_palette_set_list[avconfig->lumacode_pal]->data[i];
+        loaded_lc_palette = avconfig->lumacode_pal;
+    }
+
     // Set input params
     hv_in_config.h_total = vm_in->timings.h_total;
     hv_in_config.h_active = vm_in->timings.h_active;
@@ -457,13 +472,13 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     misc_config.lm_deint_mode = avconfig->lm_deint_mode;
     misc_config.nir_even_offset = avconfig->nir_even_offset;
     misc_config.ypbpr_cs = (avconfig->ypbpr_cs == 0) ? ((vm_in->type & VIDEO_HDTV) ? 1 : 0) : avconfig->ypbpr_cs-1;
-    misc_config.vip_enable = vip_enable;
-    misc_config.bfi_enable = avconfig->bfi_enable & ((uint32_t)vm_out->timings.v_hz_x100*5 >= (uint32_t)vm_in->timings.v_hz_x100*9);
+    misc_config.bfi_enable = avconfig->bfi_enable ? avconfig->bfi_enable-1 : 0xf;
     misc_config.bfi_str = avconfig->bfi_str;
     misc_config.shmask_enable = (avconfig->shmask_mode != 0);
     misc_config.shmask_iv_x = shmask_data_arr_ptr->iv_x;
     misc_config.shmask_iv_y = shmask_data_arr_ptr->iv_y;
     misc_config2.lumacode_mode = avconfig->lumacode_mode;
+    misc_config2.vip_enable = vip_enable;
 
     // set default/custom scanline interval
     sl_def_iv_y = (vm_conf->y_rpt > 0) ? vm_conf->y_rpt : 1;
@@ -843,6 +858,26 @@ int check_sdcard() {
     return ret;
 }
 
+int check_usb() {
+    int ret = 0;
+
+    usb_det = usbhw_hub_device_detected();
+
+    if (usb_det != usb_det_prev) {
+        if (usb_det) {
+            printf("USB device inserted\n");
+            usbhw_setup_device();
+            ret = usb_configure_device(&usbdev, 0x04);
+        } else {
+            printf("USB device ejected\n");
+        }
+    }
+
+    usb_det_prev = usb_det;
+
+    return ret;
+}
+
 int init_hw()
 {
     int ret;
@@ -946,6 +981,10 @@ int init_hw()
         return ret;
     }
 #endif
+
+    usbhw_init(CORE_USB_0_BASE);
+    usbhw_reset();
+    usb_det = usb_det_prev = 0;
 
     set_default_profile(1);
     set_default_settings();
@@ -1333,7 +1372,7 @@ int load_edid(char *dirname, char *filename) {
     sniprintf(c_edid.name, sizeof(c_edid.name), "C: %s", filename);
 
     // Enfoce custom edid update
-    if (advrx_dev.cfg.edid_sel == 3)
+    if (advrx_dev.cfg.edid_sel == 4)
         set_custom_edid_reload();
 
     return 0;
@@ -1952,6 +1991,7 @@ void mainloop()
 #endif
 
         check_sdcard();
+        check_usb();
 
         while (alt_timestamp() < start_ts + MAINLOOP_INTERVAL_US*(TIMER_0_FREQ/1000000)) {}
     }
