@@ -16,10 +16,10 @@ module  pll_sdp_0002(
 
 	altera_pll #(
 		.fractional_vco_multiplier("false"),
-		.reference_clock_frequency("28.636 MHz"),
+		.reference_clock_frequency("27.0 MHz"),
 		.operation_mode("direct"),
 		.number_of_clocks(1),
-		.output_clock_frequency0("28.636000 MHz"),
+		.output_clock_frequency0("27.000000 MHz"),
 		.phase_shift0("0 ps"),
 		.duty_cycle0(50),
 		.output_clock_frequency1("0 MHz"),

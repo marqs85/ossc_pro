@@ -28,6 +28,12 @@
 
 #define LINECNT_MAX_TOLERANCE   30
 
+// Limited by VIP clock frequency and maximum stable pclk_si
+#define MAX_PCLK_FPGA       300000000UL
+
+// Limited by HDMITX maximum
+#define MAX_PCLK_TX         410000000UL
+
 #define VM_OUT_YMULT        (vm_conf->y_rpt+1)
 #define VM_OUT_XMULT        (vm_conf->x_rpt+1)
 #define VM_OUT_PCLKMULT     (((vm_conf->x_rpt+1)*(vm_conf->y_rpt+1))/(vm_conf->h_skip+1))
@@ -309,8 +315,10 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
 #ifdef VIP
 int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf)
 {
-    int i, mode_hz_index, gen_width_target=0, allow_x_inc, allow_y_inc, int_scl_x=1, int_scl_y=1, src_crop;
+    int i, mode_hz_index, gen_width_target=0, allow_x_inc, allow_y_inc, int_scl_x=1, int_scl_y=1, src_crop, diff_v_hz_x100, mindiff_v_hz_x100=100000;
     int32_t error_cur, error_x_inc, error_y_inc;
+    uint32_t pclk_int_hz, pclk_o_hz;
+    uint16_t tgt_v_hz_x100;
     mode_data_t *mode_preset = NULL;
     gen_width_mode_t gen_width_mode = (cc->scl_alg == 2) ? GEN_WIDTH_CLOSEST_PREFER_OVER : GEN_WIDTH_CLOSEST_PREFER_UNDER;
     memset(vm_out, 0, sizeof(mode_data_t));
@@ -319,34 +327,34 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     const stdmode_t timings_1080p120[] = {STDMODE_1080p_120, STDMODE_1080p_120_MB, STDMODE_1080p_120_CEA, STDMODE_1080p_120_CEA_PR2};
     const stdmode_t timings_2160p60[] = {STDMODE_2880x2160_60, STDMODE_2880x2160_60_MB};
 
-    // {50Hz, 60Hz, 100Hz, 120Hz} id array for each output resolution
-    const stdmode_t pm_scl_map_dfp[][4] = {{-1, STDMODE_480p, -1, -1},
-                                         {-1, STDMODE_480p_WS, -1, -1},
-                                         {STDMODE_576p, -1, -1, -1},
-                                         {STDMODE_576p_WS, -1, -1, -1},
-                                         {STDMODE_720p_50, STDMODE_720p_60, STDMODE_720p_100, STDMODE_720p_120},
-                                         {-1, STDMODE_1280x1024_60, -1, -1},
-                                         {STDMODE_1080i_50, STDMODE_1080i_60, STDMODE_1080i_50, STDMODE_1080i_60},
-                                         {STDMODE_1080p_50, STDMODE_1080p_60, STDMODE_1080p_100, timings_1080p120[cc->timing_1080p120]},
-                                         {-1, STDMODE_1600x1200_60, -1, -1},
-                                         {STDMODE_1920x1200_50, STDMODE_1920x1200_60, -1, -1},
-                                         {STDMODE_1920x1440_50, STDMODE_1920x1440_60, -1, -1},
-                                         {STDMODE_2560x1440_50, STDMODE_2560x1440_60, -1, -1},
-                                         {STDMODE_2880x2160_50, timings_2160p60[cc->timing_2160p60], -1, -1}};
+    // {MINMODE, MAXMODE} id array for each output resolution
+    const stdmode_t pm_scl_map_dfp[][2] = {{STDMODE_480p, STDMODE_480p},
+                                         {STDMODE_480p_WS, STDMODE_480p_WS},
+                                         {STDMODE_576p, STDMODE_576p},
+                                         {STDMODE_576p_WS, STDMODE_576p_WS},
+                                         {STDMODE_720p_50, STDMODE_720p_120},
+                                         {STDMODE_1280x1024_60, STDMODE_1280x1024_60},
+                                         {STDMODE_1080i_50, STDMODE_1080i_60},
+                                         {STDMODE_1080p_50, timings_1080p120[cc->timing_1080p120]},
+                                         {STDMODE_1600x1200_60, STDMODE_1600x1200_60},
+                                         {STDMODE_1920x1200_50, STDMODE_1920x1200_60},
+                                         {STDMODE_1920x1440_50, STDMODE_1920x1440_60},
+                                         {STDMODE_2560x1440_50, STDMODE_2560x1440_60},
+                                         {STDMODE_2880x2160_50, timings_2160p60[cc->timing_2160p60]}};
 
-    const stdmode_t pm_scl_map_crt[][4] = {{-1, STDMODE_240p_CRT, STDMODE_240p_CRT, STDMODE_240p_CRT},
-                                         {-1, STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT},
-                                         {STDMODE_288p_CRT, STDMODE_288p_CRT, STDMODE_288p_CRT, -1},
-                                         {STDMODE_288p_WS_CRT, STDMODE_288p_WS_CRT, STDMODE_288p_WS_CRT, -1},
-                                         {-1, STDMODE_480i_CRT, -1, -1},
-                                         {-1, STDMODE_480i_WS_CRT, -1, -1},
-                                         {STDMODE_576i_CRT, -1, -1, -1},
-                                         {STDMODE_576i_WS_CRT, -1, -1, -1},
-                                         {-1, STDMODE_480p_60_CRT, STDMODE_480p_100_CRT, STDMODE_480p_120_CRT},
-                                         {STDMODE_540p_50_CRT, STDMODE_540p_60_CRT, -1, -1},
-                                         {-1, STDMODE_1024x768_60, STDMODE_1024x768_60, STDMODE_1024x768_60},
-                                         {-1, STDMODE_1280x960_60, STDMODE_1280x960_60, STDMODE_1280x960_60},
-                                         {-1, STDMODE_2048x1536_60, -1, -1}};
+    const stdmode_t pm_scl_map_crt[][2] = {{STDMODE_240p_CRT, STDMODE_240p_CRT},
+                                         {STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT},
+                                         {STDMODE_288p_CRT, STDMODE_288p_CRT},
+                                         {STDMODE_288p_WS_CRT, STDMODE_288p_WS_CRT},
+                                         {STDMODE_480i_CRT, STDMODE_480i_CRT},
+                                         {STDMODE_480i_WS_CRT, STDMODE_480i_WS_CRT},
+                                         {STDMODE_576i_CRT, STDMODE_576i_CRT},
+                                         {STDMODE_576i_WS_CRT, STDMODE_576i_WS_CRT},
+                                         {STDMODE_480p_60_CRT, STDMODE_480p_120_CRT},
+                                         {STDMODE_540p_50_CRT, STDMODE_540p_60_CRT},
+                                         {STDMODE_1024x768_60, STDMODE_1024x768_60},
+                                         {STDMODE_1280x960_60, STDMODE_1280x960_60},
+                                         {STDMODE_2048x1536_60, STDMODE_2048x1536_60}};
 
     const stdmode_t *pm_scl_map = cc->scl_out_type ? pm_scl_map_crt[cc->scl_crt_out_mode] : pm_scl_map_dfp[cc->scl_out_mode];
 
@@ -382,24 +390,56 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                 {0, 0},
                                 {0, 0}};
 
-    if (vm_in->timings.v_hz_x100 < 5500)
-        mode_hz_index = 0;
-    else if (vm_in->timings.v_hz_x100 < 7500)
-        mode_hz_index = 1;
-    else if (vm_in->timings.v_hz_x100 < 11000)
-        mode_hz_index = 2;
-    else
-        mode_hz_index = 3;
-
-    if ((cc->scl_framelock == SCL_FL_ON_2X) && (mode_hz_index < 2) && (pm_scl_map[mode_hz_index+2] != (stdmode_t)-1)) {
-        mode_hz_index += 2;
-        vm_conf->framelock = 2;
-    } else if ((cc->scl_framelock <= SCL_FL_ON_2X) && (pm_scl_map[mode_hz_index] != (stdmode_t)-1)) {
-        vm_conf->framelock = 1;
-    } else if ((cc->scl_framelock >= SCL_FL_OFF_50HZ) && (pm_scl_map[cc->scl_framelock-SCL_FL_OFF_50HZ] != (stdmode_t)-1)) {
-        mode_hz_index = cc->scl_framelock-SCL_FL_OFF_50HZ;
+    // Set initial target refresh rate
+    switch (cc->scl_framelock) {
+        case SCL_FL_ON:
+            vm_conf->framelock = 1+cc->scl_framelock_mult;
+            tgt_v_hz_x100 = vm_conf->framelock*vm_in->timings.v_hz_x100;
+            break;
+        case SCL_FL_OFF_CLOSEST:
+        case SCL_FL_OFF_PRESET:
+            tgt_v_hz_x100 = vm_in->timings.v_hz_x100;
+            break;
+        case SCL_FL_OFF_50HZ:
+            tgt_v_hz_x100 = 5000;
+            break;
+        case SCL_FL_OFF_60HZ:
+            tgt_v_hz_x100 = 6000;
+            break;
+        case SCL_FL_OFF_100HZ:
+            tgt_v_hz_x100 = 10000;
+            break;
+        default: //case SCL_FL_OFF_120HZ:
+            tgt_v_hz_x100 = 12000;
+            break;
     }
 
+    // Get target output mode preset with closest refresh rate
+    for (i=pm_scl_map[0]; i<=pm_scl_map[1]; i++) {
+        diff_v_hz_x100 = abs(tgt_v_hz_x100 - video_modes_default[i].timings.v_hz_x100);
+
+        if (diff_v_hz_x100 > mindiff_v_hz_x100)
+            break;
+
+        mindiff_v_hz_x100 = diff_v_hz_x100;
+    }
+    mode_preset = (mode_data_t*)&video_modes[i-1];
+    vm_out_cur = vm_out_sel = i-1;
+
+    if (cc->scl_framelock == SCL_FL_OFF_PRESET)
+        tgt_v_hz_x100 = mode_preset->timings.v_hz_x100;
+
+    // Force largest generic width for CRT output modes
+    if (mode_preset->flags & MODE_CRT)
+        gen_width_mode = GEN_WIDTH_LARGEST;
+
+    // Check that we're at pixel clock limits of FPGA and HDMI TX. Fall back to highest mode preset with framelock disabled
+    pclk_int_hz = mode_preset->timings.h_total*(mode_preset->timings.v_total*tgt_v_hz_x100/100);
+    pclk_o_hz = pclk_int_hz*(mode_preset->tx_pixelrep+1);
+    if ((pclk_int_hz > MAX_PCLK_FPGA) || (pclk_o_hz > MAX_PCLK_TX)) {
+        vm_conf->framelock = 0;
+        tgt_v_hz_x100 = mode_preset->timings.v_hz_x100;
+    }
 
     smp_mode_t target_sm_list[] = { SM_OPT_PC_HDTV,                         // GROUP_NONE
                                     sm_240p_288p_map[cc->sm_scl_240p_288p], // GROUP_240P
@@ -412,24 +452,6 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                     SM_OPT_PC_HDTV,                         // GROUP_720P
                                     SM_OPT_PC_HDTV,                         // GROUP_1080I
                                     SM_OPT_PC_HDTV};                        // GROUP_1080P
-
-
-    // Use lowest available vertical frequency if preferred is not available
-    if (pm_scl_map[mode_hz_index] == (stdmode_t)-1) {
-        for (i=0; i<4; i++) {
-            if (pm_scl_map[i] != (stdmode_t)-1) {
-                mode_hz_index = i;
-                break;
-            }
-        }
-    }
-
-    mode_preset = (mode_data_t*)&video_modes[pm_scl_map[mode_hz_index]];
-    vm_out_cur = vm_out_sel = pm_scl_map[mode_hz_index];
-
-    // Force largest generic width for CRT output modes
-    if (mode_preset->flags & MODE_CRT)
-        gen_width_mode = GEN_WIDTH_LARGEST;
 
     // Enable preferred generic for non-integer scale modes
     if ((cc->scl_gen_sr != 0) && (cc->scl_alg != 1) && (cc->scl_alg != 2))
@@ -449,9 +471,9 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
 
     memcpy(vm_out, mode_preset, sizeof(mode_data_t));
 
-    if (vm_conf->framelock) {
-        vm_out->timings.v_hz_x100 = vm_conf->framelock*vm_in->timings.v_hz_x100;
 
+    vm_out->timings.v_hz_x100 = tgt_v_hz_x100;
+    if (vm_conf->framelock) {
         // Integer mult / div if input and output H/V total match
         if ((vm_in->timings.v_total == vm_out->timings.v_total) && (vm_in->timings.h_total == vm_out->timings.h_total)) {
             if (vm_in->timings.interlaced && !vm_out->timings.interlaced) {
@@ -462,19 +484,6 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                 vm_conf->si_pclk_mult = vm_conf->framelock;
             }
         }
-    } else {
-        if (cc->scl_framelock == SCL_FL_OFF_CLOSEST)
-            vm_out->timings.v_hz_x100 = vm_in->timings.v_hz_x100;
-        else if (cc->scl_framelock == SCL_FL_OFF_PRESET)
-            ;
-        else if (mode_hz_index == 0)
-            vm_out->timings.v_hz_x100 = 5000;
-        else if (mode_hz_index == 1)
-            vm_out->timings.v_hz_x100 = 6000;
-        else if (mode_hz_index == 2)
-            vm_out->timings.v_hz_x100 = 10000;
-        else
-            vm_out->timings.v_hz_x100 = 12000;
     }
 
     // Fill in source AR values for Auto and 1:1 PAR

@@ -1,6 +1,7 @@
 --- sys/synthesis/submodules/sys_mm_interconnect_0.v	2023-10-29 17:53:11.806522733 +0200
 +++ sys/synthesis/submodules/sys_mm_interconnect_0.v	2023-10-29 18:04:50.827992821 +0200
-@@ -3105,7 +3105,7 @@
+@@ -3564,9 +3564,9 @@
+ 		.ERROR_WIDTH         (0),
  		.USE_PACKETS         (1),
  		.USE_FILL_LEVEL      (0),
  		.EMPTY_LATENCY       (1),
@@ -9,7 +10,9 @@
  		.USE_STORE_FORWARD   (0),
  		.USE_ALMOST_FULL_IF  (0),
  		.USE_ALMOST_EMPTY_IF (0)
-@@ -4271,7 +4271,7 @@
+ 	) mm_clock_crossing_bridge_1_s0_agent_rsp_fifo (
+@@ -5105,9 +5105,9 @@
+ 		.ERROR_WIDTH         (0),
  		.USE_PACKETS         (1),
  		.USE_FILL_LEVEL      (0),
  		.EMPTY_LATENCY       (1),
@@ -18,18 +21,11 @@
  		.USE_STORE_FORWARD   (0),
  		.USE_ALMOST_FULL_IF  (0),
  		.USE_ALMOST_EMPTY_IF (0)
-@@ -4437,7 +4437,7 @@
- 		.USE_PACKETS         (1),
- 		.USE_FILL_LEVEL      (0),
- 		.EMPTY_LATENCY       (1),
--		.USE_MEMORY_BLOCKS   (0),
-+		.USE_MEMORY_BLOCKS   (1),
- 		.USE_STORE_FORWARD   (0),
- 		.USE_ALMOST_FULL_IF  (0),
- 		.USE_ALMOST_EMPTY_IF (0)
+ 	) mm_clock_crossing_bridge_2_s0_agent_rsp_fifo (
 --- sys/synthesis/submodules/sys_mm_interconnect_1.v	2023-10-29 17:53:12.338526762 +0200
 +++ sys/synthesis/submodules/sys_mm_interconnect_1.v	2023-10-29 18:05:17.996198049 +0200
-@@ -2112,7 +2112,7 @@
+@@ -2111,9 +2111,9 @@
+ 		.ERROR_WIDTH         (0),
  		.USE_PACKETS         (1),
  		.USE_FILL_LEVEL      (0),
  		.EMPTY_LATENCY       (1),
@@ -38,3 +34,17 @@
  		.USE_STORE_FORWARD   (0),
  		.USE_ALMOST_FULL_IF  (0),
  		.USE_ALMOST_EMPTY_IF (0)
+ 	) mem_if_lpddr2_emif_0_avl_0_agent_rsp_fifo (
+--- sys/synthesis/submodules/sys_master_0.v	2025-07-25 10:15:46.708247405 +0300
++++ sys/synthesis/submodules/sys_master_0.v	2025-07-25 10:15:54.937804924 +0300
+@@ -156,9 +156,9 @@
+ 
+ 	altera_avalon_sc_fifo #(
+ 		.SYMBOLS_PER_BEAT    (1),
+ 		.BITS_PER_SYMBOL     (8),
+-		.FIFO_DEPTH          (64),
++		.FIFO_DEPTH          (1024),
+ 		.CHANNEL_WIDTH       (0),
+ 		.ERROR_WIDTH         (0),
+ 		.USE_PACKETS         (0),
+ 		.USE_FILL_LEVEL      (0),

@@ -18,16 +18,17 @@ if {$legacy_av_in} {
     create_clock -period 24.576MHz -name bck_extpcm [get_ports EXT_IO_B_io[12]]
 }
 
-create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 88 -duty_cycle 50.00 -name pll_0_vco {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
-create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 11 -duty_cycle 50.00 -name clk108 {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
-create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 8 -duty_cycle 50.00 -name clk148p5 {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk}
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 32 -duty_cycle 50.00 -name pll_0_vco {sys_inst|pll_0|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 4 -duty_cycle 50.00 -name clk108 {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 9 -duty_cycle 50.00 -name clk48 {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk}
+create_generated_clock -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 3 -duty_cycle 50.00 -name clk148p5 {sys_inst|pll_0|altera_pll_i|general[2].gpll~PLL_OUTPUT_COUNTER|divclk}
 
-create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 22 -duty_cycle 50.00 -name pll_sdp_vco {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
-create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 11 -duty_cycle 50.00 -name pclk_sdp_postpll {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
+create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|refclkin} -divide_by 2 -multiply_by 24 -duty_cycle 50.00 -name pll_sdp_vco {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]}
+create_generated_clock -source {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|vco0ph[0]} -divide_by 12 -duty_cycle 50.00 -name pclk_sdp_postpll {u_pll_sdp|pll_sdp_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
 
 create_generated_clock -name sd_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sdc_controller_top:sdc_controller_0|sdc_controller:sdc0|sd_clock_divider:clock_divider0|SD_CLK_O|q]
 
-create_generated_clock -name flash_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sys_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|sys_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|flash_clk_reg|q]
+create_generated_clock -name flash_clk -divide_by 2 -source {sys_inst|pll_0|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins sys:sys_inst|sys_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|sys_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|flash_clk_reg|q]
 
 # output clocks
 #set pclk_out_port [get_ports HDMITX_PCLK_o]
@@ -72,7 +73,8 @@ derive_clock_uncertainty
 
 set_clock_groups -asynchronous -group \
                             {clk27} \
-                            {clk108 sd_clk sd_clk_out flash_clk} \
+                            {clk48 flash_clk} \
+                            {clk108 sd_clk sd_clk_out} \
                             {clk148p5} \
                             {pclk_isl pclk_isl_postmux} \
                             {pclk_isl_postmux_div2} \
@@ -124,7 +126,7 @@ set_false_path -to [get_ports {HDMIRX_RESET_N_o}]
 #}
 
 # SiI1136
-set hdmitx_dmin -0.45
+set hdmitx_dmin -0.25
 set hdmitx_dmax 1.36
 set hdmitx_data_outputs [get_ports {HDMITX_R_o* HDMITX_G_o* HDMITX_B_o* HDMITX_HSYNC_o HDMITX_VSYNC_o HDMITX_DE_o}]
 foreach_in_collection c [get_clocks pclk_*_out] {
@@ -143,7 +145,7 @@ set_false_path -to [get_ports {HDMITX_SPDIF_o HDMITX_5V_EN_o}]
 # extra_av_out
 if {$extra_av_out} {
     # ADV7125
-    set vga_dmin -1.5
+    set vga_dmin -1.3
     set vga_dmax 0.2
     set vga_data_outputs [get_ports {EXT_IO_B_io[6] EXT_IO_B_io[7] EXT_IO_B_io[4] EXT_IO_B_io[5] EXT_IO_B_io[2] EXT_IO_B_io[3] EXT_IO_B_io[0] EXT_IO_B_io[1]
                                      EXT_IO_B_io[14] EXT_IO_B_io[15] EXT_IO_B_io[12] EXT_IO_B_io[13] EXT_IO_B_io[10] EXT_IO_B_io[11] EXT_IO_B_io[8] EXT_IO_B_io[9]
@@ -173,15 +175,18 @@ if {$legacy_av_in} {
 # PCM1862
 set_input_delay 0 -clock bck_pcm -clock_fall [get_ports {PCM_I2S_WS_i PCM_I2S_DATA_i}]
 
+# USB TODO
+set_false_path -from [get_ports {USB_D*}]
+set_false_path -to [get_ports {USB_D*}]
+
 # Misc
 set_false_path -from [get_ports {BTN_i* IR_RX_i SCL_io SDA_io SI_INT_N_i SPDIF_EXT_i SD_DETECT_i}]
 set_false_path -to [get_ports {LED_o* AUDMUX_o SCL_io SDA_io FPGA_PCLK1x_o FAN_PWM_o LS_DIR_o*}]
-set_false_path -from {emif_hwreset_n_sync2_reg emif_swreset_n_sync2_reg}
-set_false_path -to {emif_hwreset_n_sync1_reg emif_swreset_n_sync1_reg}
+set_false_path -from {sys:sys_inst|sys_pio_0:pio_0|data_out[3] sys:sys_inst|sys_pio_0:pio_0|data_out[4]}
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[0]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[1]
 set_false_path -to sys:sys_inst|sys_pio_1:pio_2|readdata[2]
-set_false_path -setup -to [get_registers sys:sys_inst|sys_alt_vip_cl_cvo_0:alt_vip_cl_cvo_0|alt_vip_cvo_core:cvo_core|alt_vip_cvo_sync_conditioner:pixel_channel_sync_conditioner|alt_vip_common_sync_generation:sync_generation_generate.sync_generation|sof*]
+set_max_delay 12 -to [get_registers sys:sys_inst|sys_alt_vip_cl_cvo_0:alt_vip_cl_cvo_0|alt_vip_cvo_core:cvo_core|alt_vip_cvo_sync_conditioner:pixel_channel_sync_conditioner|alt_vip_common_sync_generation:sync_generation_generate.sync_generation|sof*]
 
 
 ### JTAG Signal Constraints ###

@@ -30,7 +30,8 @@ set master_service_path [lindex $service_paths 0]
 set claim_path [claim_service master $master_service_path mylib]
 
 puts "Halting CPU"
-master_write_32 $claim_path 0x0 0x10000
+master_write_32 $claim_path 0x40 0x00000001
+master_write_32 $claim_path 0x40 0x80000001
 
 #read status reg
 master_write_32 $claim_path $flash_cmd_setting 0x00001805
@@ -67,4 +68,4 @@ master_write_32 $claim_path $flash_cmd_setting 0x00000050
 master_write_32 $claim_path $flash_cmd_ctrl 0x1
 
 puts "\nResume CPU"
-master_write_32 $claim_path 0x0 0x00000
+master_write_32 $claim_path 0x40 0x40000000

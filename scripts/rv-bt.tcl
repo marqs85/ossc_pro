@@ -16,17 +16,21 @@ set master_service_path [lindex $service_paths 0]
 set claim_path [claim_service master $master_service_path mylib]
 
 puts "Halting CPU"
-master_write_32 $claim_path 0x0 0x10000
+master_write_32 $claim_path 0x40 0x00000001
+master_write_32 $claim_path 0x40 0x80000001
 
-puts "Next PC: [master_read_32 $claim_path 0x2000 1]"
-puts "Prev PC: [master_read_32 $claim_path 0x2004 1]"
-puts "MEPC:    [master_read_32 $claim_path 0x4d04 1]"
-puts "MCAUSE:  [master_read_32 $claim_path 0x4d08 1]"
+master_write_32 $claim_path 0x5c [expr 0x2207b1]
+puts "DPC:     [master_read_32 $claim_path 0x10 1]"
+master_write_32 $claim_path 0x5c [expr 0x220341]
+puts "MEPC:    [master_read_32 $claim_path 0x10 1]"
+master_write_32 $claim_path 0x5c [expr 0x220342]
+puts "MCAUSE:  [master_read_32 $claim_path 0x10 1]"
 
-set offset 0x404
+set offset 0x1001
 foreach i {ra sp gp tp t0 t1 t2 s0 s1 a0 a1 a2 a3 a4 a5} {
-    puts "$i: [master_read_32 $claim_path [format 0x%x $offset] 1]"
-    set offset [expr $offset + 4]
+    master_write_32 $claim_path 0x5c [expr 0x220000 + $offset]
+    puts "$i: [master_read_32 $claim_path 0x10 1]"
+    set offset [expr $offset + 1]
 }
 
-master_write_32 $claim_path 0x0 0x00000
+master_write_32 $claim_path 0x40 0x40000000

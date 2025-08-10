@@ -20,6 +20,7 @@
 #ifndef FIRMWARE_H_
 #define FIRMWARE_H_
 
+#include <stdint.h>
 #include "sysconfig.h"
 
 #define FW_KEY_SIZE 8

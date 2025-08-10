@@ -1,6 +1,3 @@
-[submodule "ip/pulpino_qsys"]
-	path = ip/pulpino_qsys
-	url = https://github.com/marqs85/pulpino_qsys.git
 [submodule "ip/sdc_controller/SD-card-controller"]
 	path = ip/sdc_controller/SD-card-controller
 	url = https://github.com/mczerski/SD-card-controller.git
@@ -10,9 +7,9 @@
 [submodule "rtl/ic_frontends"]
 	path = rtl/ic_frontends
 	url = https://github.com/marqs85/ic_frontends.git
-[submodule "ip/core_usb_fs_phy"]
-	path = ip/core_usb/core_usb_fs_phy
-	url = https://github.com/ultraembedded/core_usb_fs_phy
-[submodule "ip/core_usb_host"]
-	path = ip/core_usb/core_usb_host
-	url = https://github.com/ultraembedded/core_usb_host
+[submodule "ip/ibex_qsys"]
+	path = ip/ibex_qsys
+	url = git@github.com:marqs85/ibex_qsys.git
+[submodule "ip/core_usb_qsys"]
+	path = ip/core_usb_qsys
+	url = git@github.com:marqs85/core_usb_qsys.git
