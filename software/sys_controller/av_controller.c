@@ -217,9 +217,11 @@ int shmask_loaded_str = -1;
 const lc_palette_set* lc_palette_set_list[] = {&lc_palette_pal};
 int loaded_lc_palette = -1;
 
+c_pp_coeffs_t c_pp_coeffs;
+
 #ifdef VIP
 alt_timestamp_type vip_resync_ts;
-c_pp_coeffs_t c_pp_coeffs;
+
 const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
                                             {{&pp_coeff_lanczos3, NULL}, {&pp_coeff_lanczos3, NULL}},
                                             {{&pp_coeff_lanczos3_13, NULL}, {&pp_coeff_lanczos3_13, NULL}},
@@ -981,10 +983,11 @@ int init_hw()
         return ret;
     }
 #endif
-
+#ifdef INC_USB
     usbhw_init(CORE_USB_0_BASE);
     usbhw_reset();
     usb_det = usb_det_prev = 0;
+#endif
 
     set_default_profile(1);
     set_default_settings();
@@ -1203,11 +1206,6 @@ void set_default_settings() {
     set_default_keymap();
 }
 
-void set_default_c_pp_coeffs() {
-    memset(&c_pp_coeffs, 0, sizeof(c_pp_coeffs));
-    strncpy(c_pp_coeffs.name, "Custom: <none>", 19);
-}
-
 void set_default_c_shmask() {
     memset(&c_shmask, 0, sizeof(c_shmask));
     strncpy(c_shmask.name, "Custom: <none>", 20);
@@ -1216,6 +1214,12 @@ void set_default_c_shmask() {
 void set_default_c_edid() {
     memset(&c_edid, 0, sizeof(c_shmask));
     strncpy(c_edid.name, "Custom: <none>", 20);
+}
+
+#ifdef VIP
+void set_default_c_pp_coeffs() {
+    memset(&c_pp_coeffs, 0, sizeof(c_pp_coeffs));
+    strncpy(c_pp_coeffs.name, "Custom: <none>", 19);
 }
 
 int load_scl_coeffs(char *dirname, char *filename) {
@@ -1290,6 +1294,7 @@ int load_scl_coeffs(char *dirname, char *filename) {
         return -1;
     }
 }
+#endif
 
 int load_shmask(char *dirname, char *filename) {
     FIL f_shmask;
@@ -1991,7 +1996,9 @@ void mainloop()
 #endif
 
         check_sdcard();
+#ifdef INC_USB
         check_usb();
+#endif
 
         while (alt_timestamp() < start_ts + MAINLOOP_INTERVAL_US*(TIMER_0_FREQ/1000000)) {}
     }

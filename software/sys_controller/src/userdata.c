@@ -71,7 +71,9 @@ const ude_item_map ude_profile_items[] = {
     {{2, 78, sizeof(smp_presets_default)}, smp_presets},
     UDE_ITEM(86, 72, hdmi_timings),
     UDE_ITEM(91, 75, sdp_timings),
+#ifdef VIP
     UDE_ITEM(95, 76, c_pp_coeffs),
+#endif
     UDE_ITEM(96, 76, c_shmask),
     UDE_ITEM(97, 77, c_edid),
     // avconfig_t
