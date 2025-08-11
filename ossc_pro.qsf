@@ -629,7 +629,7 @@ set_global_assignment -name UNIPHY_SEQUENCER_DQS_CONFIG_ENABLE ON
 
 set_global_assignment -name SMART_RECOMPILE ON
 
-set_global_assignment -name SEED 1
+set_global_assignment -name SEED 2
 
 set_global_assignment -name STRATIXIII_UPDATE_MODE REMOTE
 
