@@ -67,8 +67,8 @@ const ude_item_map ude_initcfg_items[] = {
 
 const ude_item_map ude_profile_items[] = {
     {{0, 72, sizeof(video_modes_plm_default)}, video_modes_plm},
-    {{1, 78, sizeof(video_modes_default)}, video_modes},
-    {{2, 78, sizeof(smp_presets_default)}, smp_presets},
+    {{1, 80, sizeof(video_modes_default)}, video_modes},
+    {{2, 80, sizeof(smp_presets_default)}, smp_presets},
     UDE_ITEM(86, 72, hdmi_timings),
     UDE_ITEM(91, 75, sdp_timings),
 #ifdef VIP
@@ -108,14 +108,14 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(31, 64, tc.pm_ad_576p),
     UDE_ITEM(32, 76, tc.pm_ad_720p),
     UDE_ITEM(33, 58, tc.pm_ad_1080i),
-    UDE_ITEM(34, 76, tc.sm_ad_240p_288p),
+    UDE_ITEM(34, 80, tc.sm_ad_240p_288p),
     UDE_ITEM(35, 58, tc.sm_ad_384p),
-    UDE_ITEM(36, 58, tc.sm_ad_480i_576i),
+    UDE_ITEM(36, 80, tc.sm_ad_480i_576i),
     UDE_ITEM(37, 74, tc.sm_ad_480p),
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
-    UDE_ITEM(41, 77, tc.tp_mode),
+    UDE_ITEM(41, 80, tc.tp_mode),
     UDE_ITEM(42, 58, tc.lm_deint_mode),
     UDE_ITEM(43, 58, tc.nir_even_offset),
     UDE_ITEM(44, 58, tc.ar_256col),
@@ -147,9 +147,9 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(67, 58, tc.scl_dil_cadence_detect_enable),
     UDE_ITEM(68, 58, tc.scl_dil_visualize_motion),
 #endif
-    UDE_ITEM(69, 76, tc.sm_scl_240p_288p),
+    UDE_ITEM(69, 80, tc.sm_scl_240p_288p),
     UDE_ITEM(70, 58, tc.sm_scl_384p),
-    UDE_ITEM(71, 58, tc.sm_scl_480i_576i),
+    UDE_ITEM(71, 80, tc.sm_scl_480i_576i),
     UDE_ITEM(72, 74, tc.sm_scl_480p),
     UDE_ITEM(73, 74, tc.sm_scl_576p),
 #endif
@@ -170,7 +170,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(79, 58, tc.pcm_cfg),
 #endif
 #ifdef VIP
-    UDE_ITEM(80, 78, tc.scl_crt_out_mode),
+    UDE_ITEM(80, 80, tc.scl_crt_out_mode),
     UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
     UDE_ITEM(82, 77, tc.pm_ad_1080p),

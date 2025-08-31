@@ -57,7 +57,7 @@
 #include "src/lumacode_palettes.c"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 79
+#define FW_VER_MINOR 80
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72

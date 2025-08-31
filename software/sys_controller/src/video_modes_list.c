@@ -98,6 +98,8 @@ const mode_data_t video_modes_default[] = {
     /* 576i CRT modes */
     { "2560x576i",     HDMI_Unknown,     {2560,  288,   5000,  3120, 0,  625,  340, 19,  144, 3,  1},  0,  {{ 4,  3}},  VIDEO_SDTV,               GROUP_576I,   MODE_CRT,  TX_1X, TX_1X },
     { "2560x576i ws",  HDMI_Unknown,     {2560,  288,   5000,  3120, 0,  625,  340, 19,  144, 3,  1},  0,  {{16,  9}},  VIDEO_SDTV,               GROUP_576I,   MODE_CRT,  TX_1X, TX_1X },
+    /* 384p for 24kHz CRT */
+    { "2480x384",      HDMI_Unknown,     {2480,  384,   5500,  3280, 0,  423,  310, 27,  250, 3,  0},  0,  {{ 4,  3}},  VIDEO_EDTV,               GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
     /* 640x480 VESA/GTF modes with 4x horizontal for CRT */
     { "2560x480_60",   HDMI_Unknown,     {2560,  480,   6000,  3200, 0,  525,  324, 33,  252, 2,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
     { "2560x480_100",  HDMI_Unknown,     {2560,  480,  10000,  3392, 0,  509,  420, 25,  252, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_480P,   MODE_CRT,  TX_1X, TX_1X },
@@ -119,10 +121,16 @@ const mode_data_t video_modes_default[] = {
     /* CEA 720p 100/120Hz */
     { "720p_100",      HDMI_Unknown,     {1280,  720,  10000,  1980, 0,  750,  220, 20,   40, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_720P,   0,         TX_1X, TX_1X },
     { "720p_120",      HDMI_Unknown,     {1280,  720,  12000,  1650, 0,  750,  220, 20,   40, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_720P,   0,         TX_1X, TX_1X },
-    /* VESA XGA, 1280x960 and SXGA modes */
+    /* 720p 240Hz (CVT-RB) */
+    { "720p_240",      HDMI_Unknown,     {1280,  720,  24000,  1440, 0,  810,   80, 82,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_720P,   0,         TX_1X, TX_1X },
+    /* Industry standard 1024x768_87i */
+    { "1024x768_87i",  HDMI_Unknown,     {1024,  384,   8700,  1264, 0,  817,   56, 20,  176, 4,  1},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
+    /* VESA XGA, 1280x960 and SXGA modes, and 1024x1024_120 (CVT-RB) */
     { "1024x768_60",   HDMI_Unknown,     {1024,  768,   6000,  1344, 0,  806,  160, 29,  136, 6,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     { "1280x960_60",   HDMI_Unknown,     {1280,  960,   6000,  1800, 0, 1000,  312, 36,  112, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     { "1280x1024_60",  HDMI_Unknown,     {1280, 1024,   6002,  1688, 0, 1066,  248, 38,  112, 3,  0},  0,  {{ 5,  4}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
+    { "1280x1024_85",  HDMI_Unknown,     {1280, 1024,   8500,  1728, 0, 1072,  224, 44,  160, 3,  0},  0,  {{ 5,  4}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
+    { "1280x1024_120", HDMI_Unknown,     {1280, 1024,  12000,  1440, 0, 1084,   80, 50,   32, 7,  0},  0,  {{ 5,  4}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     /* CEA 1080i/p modes */
     { "1080i_50",      HDMI_1080i50,     {1920,  540,   5000,  2640, 0, 1125,  148, 15,   44, 5,  1},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  0,         TX_1X, TX_1X },
     { "1080i_60",      HDMI_1080i60,     {1920,  540,   6000,  2200, 0, 1125,  148, 15,   44, 5,  1},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  0,         TX_1X, TX_1X },
@@ -135,8 +143,10 @@ const mode_data_t video_modes_default[] = {
     { "1080p_120_MB",  HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1086,   40,  1,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_CEA", HDMI_Unknown,     {1920, 1080,  12000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_PR2", HDMI_Unknown,     { 960, 1080,  12000,  1100, 0, 1125,   74, 36,   22, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_2X, TX_1X },
-    /* VESA UXGA mode */
+    /* VESA UXGA modes, and 1600x1200_120 (CVT-RB) */
     { "1600x1200_60",  HDMI_Unknown,     {1600, 1200,   6000,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
+    { "1600x1200_85",  HDMI_Unknown,     {1600, 1200,   8500,  2160, 0, 1250,  304, 46,  192, 3,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
+    { "1600x1200_120", HDMI_Unknown,     {1600, 1200,  12000,  1760, 0, 1271,   80, 64,   32, 4,  0},  0,  {{ 4,  3}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     /* CVT 1920x1200 modes (60Hz with reduced blanking) */
     { "1920x1200_50",  HDMI_Unknown,     {1920, 1200,   5000,  2560, 0, 1238,  320, 29,  200, 6,  0},  0,  {{16, 10}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
     { "1920x1200_60",  HDMI_Unknown,     {1920, 1200,   6000,  2080, 0, 1235,   80, 26,   32, 6,  0},  0,  {{16, 10}},  VIDEO_PC,                 GROUP_NONE,   0,         TX_1X, TX_1X },
@@ -301,6 +311,8 @@ const smp_preset_t smp_presets_default[] = {
     /* PSP */
     { "PSP 480x272",    SM_OPT_PSP_480COL, { 480,  272,      0,   858, 0,  525,  177,134,   62, 6,  0},  0,  0,  {16,  9},  VIDEO_EDTV,  GROUP_480P },
     /* DC/PS2/GC 640col AR-correct modes */
+    { "DC 640x240",     SM_OPT_DC_640COL,  { 640,  240,      0,   858, 0,  262,   95, 15,   62, 3,  0},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_240P },
+    { "DC 640x288",     SM_OPT_DC_640COL,  { 640,  288,      0,   864, 0,  312,  107, 18,   62, 3,  0},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
     { "DC 640x480i",    SM_OPT_DC_640COL,  { 640,  240,      0,   858, 0,  525,   95, 15,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_480I },
     { "DC 640x480",     SM_OPT_DC_640COL,  { 640,  480,      0,   858, 0,  525,   95, 30,   62, 6,  0},  0,  0,  {56, 45},  VIDEO_EDTV,  GROUP_480P },
     { "DC 640x576i",    SM_OPT_DC_640COL,  { 640,  288,      0,   864, 0,  625,  107, 18,   62, 3,  1},  0,  0,  {56, 45},  VIDEO_SDTV,  GROUP_576I },
@@ -326,6 +338,9 @@ const smp_preset_t smp_presets_default[] = {
     { "MSX1 256x240 P", SM_OPT_MSX_256COL, { 256,  240,      0,   342, 0,  313,   37, 40,   26, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
 
     { "ZX81/82 352x288", SM_OPT_ZX8X_352COL, { 352,  288,     0,   448, 0,  312,   43, 13,   34, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+
+    { "Atari 8bit",   SM_OPT_ATARI8B_320COL, { 320,  240,     0,   456, 0,  262,   49, 14,   31, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
+    { "Atari 8bit P", SM_OPT_ATARI8B_320COL, { 320,  240,     0,   456, 0,  312,   49, 38,   31, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
 };
 
 #ifdef VM_STATIC_INCLUDE

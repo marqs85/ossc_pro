@@ -110,9 +110,11 @@ static const char* const pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x576i (
 static const char* const pm_ad_720p_desc[] = { "1280x720 (Passthru)", "240p_CRT (Line drop)", "480i_CRT (Line drop)", "2560x1440 (Line2x)" };
 static const char* const pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint@L2x)" };
 static const char* const pm_ad_1080p_desc[] = { "1920x1080 (Passthru)", "1920x1080i (Line drop)", "540p_CRT (Line drop)", "240p_CRT (Line drop)" };
-static const char* const sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol", "MSX 256col", "Spectrum 352col" };
+static const char* const sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
+                                                    "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol",
+                                                    "MSX 256col", "Spectrum 352col", "Atari 8bit 320col" };
 static const char* const sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
-static const char* const sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
+static const char* const sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 256col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "PS2 512col", "DC/PS2/GC 640col" };
 static const char* const sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
 static const char* const sm_ad_576p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 576p 4:3", "DTV 576p 16:9" };
 static const char* const lm_deint_mode_desc[] = { "Bob", "Noninterlace restore" };
@@ -147,8 +149,10 @@ static const char* const lumacode_pal_desc[] = { "PAL" };
 static const char* const adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char* const oper_mode_desc[] = { "Line multiplier", "Scaler" };
 static const char* const lm_mode_desc[] = { "Pure", "Adaptive" };
-static const char* const scl_out_mode_desc[] = { "720x480 (60Hz)", "720x480 WS (60Hz)", "720x576 (50Hz)", "720x576 WS (50Hz)", "1280x720 (24-240Hz)", "1280x1024 (24-150Hz)", "1920x1080i (24-120Hz)", "1920x1080 (24-120Hz)", "1600x1200 (24-100Hz)", "1920x1200 (24-100Hz)", "1920x1440 (24-90Hz)", "2560x1440 (24-72Hz)", "2880x2160 (24-60Hz)" };
-static const char* const scl_crt_out_mode_desc[] = { "240p (24-240Hz)", "240p WS (24-240Hz)", "288p (24-250Hz)", "288p WS (24-250Hz)", "480i (24-180Hz)", "480i WS (24-180Hz)", "576i (24-150Hz)", "576i WS (24-150Hz)", "480p (24-170Hz)", "540p (24-180Hz)", "1024x768 (24-240Hz)", "1280x960 (24-160Hz)", "2048x1536 (24-60Hz)" };
+static const char* const scl_out_mode_desc[] = { "720x480 (60Hz)", "720x480 WS (60Hz)", "720x576 (50Hz)", "720x576 WS (50Hz)", "1280x720 (24-240Hz)", "1280x1024 (24-150Hz)", "1920x1080i (24-120Hz)", "1920x1080 (24-120Hz)", "1600x1200 (24-100Hz)", "1920x1200 (24-100Hz)",
+                                                 "1920x1440 (24-90Hz)", "2560x1440 (24-72Hz)", "2880x2160 (24-60Hz)" };
+static const char* const scl_crt_out_mode_desc[] = { "240p (24-240Hz)", "240p WS (24-240Hz)", "288p (24-250Hz)", "288p WS (24-250Hz)", "480i (24-180Hz)", "480i WS (24-180Hz)", "576i (24-150Hz)", "576i WS (24-150Hz)", "384p (24-180Hz)", "480p (24-170Hz)",
+                                                     "540p (24-180Hz)", "1024x768i (24-240Hz)", "1024x768 (24-240Hz)", "1280x960 (24-160Hz)", "2048x1536 (24-60Hz)" };
 static const char* const scl_out_type_desc[] = { "DFP", "CRT" };
 static const char* const scl_framelock_desc[] = { "On", "Off (source Hz)", "Off (preset Hz)", "Off (50Hz)", "Off (60Hz)", "Off (100Hz)", "Off (120Hz)" };
 static const char* const scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
@@ -161,9 +165,11 @@ static const char* const scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive
 static const char* const scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive" };
 #endif
 #endif
-static const char* const sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col", "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol", "MSX 256col", "Spectrum 352col" };
+static const char* const sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
+                                                     "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol",
+                                                     "MSX 256col", "Spectrum 352col", "Atari 8bit 320col" };
 static const char* const sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
-static const char* const sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "DC/PS2/GC 640col" };
+static const char* const sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 256col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "PS2 512col", "DC/PS2/GC 640col" };
 static const char* const sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
 static const char* const sm_scl_576p_desc[] = { "Generic", "DTV 576p", "GC 640col" };
 static const char* const timing_1080p120_desc[] = { "CVT-RB", "Min. blank", "CEA-861", "CEA-861 PR2x" };
