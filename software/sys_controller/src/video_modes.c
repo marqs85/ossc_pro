@@ -207,8 +207,8 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
         // Calculate generic width target for A-LM modes
         if (!vm_in->timings.h_total && ad_mode_list && (smp_preset->group != GROUP_NONE) && (smp_preset->sm <= SM_GEN_16_9)) {
             mode_preset = (mode_data_t*)&video_modes[ad_mode_list[smp_preset->group].stdmode_id];
-            v_active_ref = (ad_mode_list[smp_preset->group].y_rpt < 0) ? ((smp_preset->timings_i.v_active*(mode_preset->timings.interlaced+1)) / (-1*ad_mode_list[smp_preset->group].y_rpt+1)) :
-                                                                         smp_preset->timings_i.v_active*(mode_preset->timings.interlaced+1) * (ad_mode_list[smp_preset->group].y_rpt+1);
+            v_active_ref = (ad_mode_list[smp_preset->group].y_rpt < 0) ? ((smp_preset_default->timings_i.v_active*(mode_preset->timings.interlaced+1)) / (-1*ad_mode_list[smp_preset->group].y_rpt+1)) :
+                                                                         smp_preset_default->timings_i.v_active*(mode_preset->timings.interlaced+1) * (ad_mode_list[smp_preset->group].y_rpt+1);
             gen_ar_target.h = (target_sm_list[smp_preset->group] == SM_GEN_16_9) ? 16 : 4;
             gen_ar_target.v = (target_sm_list[smp_preset->group] == SM_GEN_16_9) ? 9 : 3;
 
@@ -332,11 +332,11 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_480p_WS, STDMODE_480p_WS},
                                          {STDMODE_576p, STDMODE_576p},
                                          {STDMODE_576p_WS, STDMODE_576p_WS},
-                                         {STDMODE_720p_50, STDMODE_720p_120},
-                                         {STDMODE_1280x1024_60, STDMODE_1280x1024_60},
+                                         {STDMODE_720p_50, STDMODE_720p_240},
+                                         {STDMODE_1280x1024_60, STDMODE_1280x1024_120},
                                          {STDMODE_1080i_50, STDMODE_1080i_60},
                                          {STDMODE_1080p_50, timings_1080p120[cc->timing_1080p120]},
-                                         {STDMODE_1600x1200_60, STDMODE_1600x1200_60},
+                                         {STDMODE_1600x1200_60, STDMODE_1600x1200_120},
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60},
                                          {STDMODE_1920x1440_50, STDMODE_1920x1440_60},
                                          {STDMODE_2560x1440_50, STDMODE_2560x1440_60},
@@ -350,8 +350,10 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_480i_WS_CRT, STDMODE_480i_WS_CRT},
                                          {STDMODE_576i_CRT, STDMODE_576i_CRT},
                                          {STDMODE_576i_WS_CRT, STDMODE_576i_WS_CRT},
+                                         {STDMODE_384p_CRT, STDMODE_384p_CRT},
                                          {STDMODE_480p_60_CRT, STDMODE_480p_120_CRT},
                                          {STDMODE_540p_50_CRT, STDMODE_540p_60_CRT},
+                                         {STDMODE_1024x768_87i, STDMODE_1024x768_87i},
                                          {STDMODE_1024x768_60, STDMODE_1024x768_60},
                                          {STDMODE_1280x960_60, STDMODE_1280x960_60},
                                          {STDMODE_2048x1536_60, STDMODE_2048x1536_60}};
@@ -364,21 +366,26 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                           SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                           SM_OPT_N64_320COL, SM_OPT_N64_640COL,
-                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL};
+                                          SM_OPT_DC_640COL,
+                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL};
     const smp_mode_t sm_384p_map[] = {SM_GEN_4_3, SM_OPT_VGA_640x350, SM_OPT_VGA_720x350, SM_OPT_VGA_640x400, SM_OPT_VGA_720x400, SM_OPT_GBI_240COL, SM_OPT_PC98_640COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_OPT_DTV480I,
                                      SM_OPT_SNES_512COL,
+                                     SM_OPT_MD_256COL,
                                      SM_OPT_MD_320COL,
                                      SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                      SM_OPT_N64_640COL,
+                                     SM_OPT_PS2_512COL,
                                      SM_OPT_DC_640COL};
     const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_OPT_DTV576I,
                                      SM_OPT_SNES_512COL,
+                                     SM_OPT_MD_256COL,
                                      SM_OPT_MD_320COL,
                                      SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                      SM_OPT_N64_640COL,
+                                     SM_OPT_PS2_512COL,
                                      SM_OPT_DC_640COL};
     const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_OPT_DTV480P, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_PSP_480COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_OPT_DTV576P, SM_OPT_DC_640COL};
@@ -615,21 +622,26 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
                                           SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                           SM_OPT_N64_320COL, SM_OPT_N64_640COL,
-                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL};
+                                          SM_OPT_DC_640COL,
+                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL};
     const smp_mode_t sm_384p_map[] = {SM_GEN_4_3, SM_OPT_VGA_640x350, SM_OPT_VGA_720x350, SM_OPT_VGA_640x400, SM_OPT_VGA_720x400, SM_OPT_GBI_240COL, SM_OPT_PC98_640COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480I, SM_OPT_DTV480I_WS,
                                      SM_OPT_SNES_512COL,
+                                     SM_OPT_MD_256COL,
                                      SM_OPT_MD_320COL,
                                      SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                      SM_OPT_N64_640COL,
+                                     SM_OPT_PS2_512COL,
                                      SM_OPT_DC_640COL};
     const smp_mode_t sm_576i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV576I, SM_OPT_DTV576I_WS,
                                      SM_OPT_SNES_512COL,
+                                     SM_OPT_MD_256COL,
                                      SM_OPT_MD_320COL,
                                      SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                      SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                      SM_OPT_N64_640COL,
+                                     SM_OPT_PS2_512COL,
                                      SM_OPT_DC_640COL};
     const smp_mode_t sm_480p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480P, SM_OPT_DTV480P_WS, SM_OPT_VESA_640x480, SM_OPT_DC_640COL, SM_OPT_PS2_512COL, SM_OPT_PSP_480COL, SM_OPT_X68K_512COL, SM_OPT_X68K_768COL};
     const smp_mode_t sm_576p_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV576P, SM_OPT_DTV576P_WS};
