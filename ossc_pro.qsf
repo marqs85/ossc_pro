@@ -154,6 +154,12 @@ set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[28]
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[29]
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[30]
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to EXT_IO_B_io[31]
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to USB_DP_io
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to USB_DN_io
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to USB_DP_io
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to USB_DN_io
+set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to USB_DP_io
+set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to USB_DN_io
 set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCQ128
 set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 3.3V
 set_global_assignment -name ENABLE_SIGNALTAP OFF
