@@ -28,7 +28,7 @@
 #include "us2066.h"
 #include "file.h"
 
-#define MAX_MENU_DEPTH 3
+#define MAX_MENU_DEPTH 4
 
 #define OPT_NOWRAP  0
 #define OPT_WRAP    1
@@ -262,13 +262,24 @@ static void hdmi_pixeldecim_mode_disp(uint8_t v) {
 
 static void sh_filt_y_disp(uint8_t v) {
     if (v < 2)
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "Auto%s/wide", v ? "narrow" : "wide");
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Auto%sNotch/Y2", v ? "Narrow" : "Wide");
     else if (v < 20)
         sniprintf(menu_row2, US2066_ROW_LEN+1, "SVHS %u", v-1);
+    else if (v < 23)
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "PAL NN%u", v-19);
     else if (v < 25)
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "PAL %u", v-19);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "PAL WN%u", v-22);
+    else if (v < 28)
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "NTSC NN%u", v-24);
     else
-        sniprintf(menu_row2, US2066_ROW_LEN+1, "NTSC %u", v-24);
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "NTSC WN%u", v-27);
+}
+
+static void sh_filt_y2_disp(uint8_t v) {
+    if (v < 2)
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "AutoWide");
+    else
+        sh_filt_y_disp(v);
 }
 #endif
 
@@ -521,12 +532,9 @@ MENU(menu_audio, P99_PROTECT({
 }))
 
 #ifndef DExx_FW
-MENU(menu_sdp, P99_PROTECT({
-    { "NTSC pedestal",                          OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.ntsc_pedestal, OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
-    { "Brightness",                             OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.brightness,    OPT_NOWRAP, 0, 0xff, signed_disp } } },
-    { "Contrast",                               OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.contrast,      OPT_NOWRAP, 0, 0xff, value_disp } } },
-    { "Hue",                                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.hue,           OPT_NOWRAP, 0, 0xff, signed_disp } } },
+MENU(menu_sdp_filter, P99_PROTECT({
     { "Shaping filter Y",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.sh_filt_y,     OPT_NOWRAP, 0, 30, sh_filt_y_disp } } },
+    { "Shaping filter Y2",                      OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.sh_filt_y2,    OPT_NOWRAP, 1, 19, sh_filt_y2_disp } } },
     { "Shaping filter C",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.sh_filt_c,     OPT_NOWRAP, SETTING_ITEM(sh_filt_c_desc) } } },
     { "PAL Comb str",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_str_pal,  OPT_NOWRAP, SETTING_ITEM(comb_str_desc) } } },
     { "PAL Comb C taps",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_ctaps_pal, OPT_NOWRAP, SETTING_ITEM(comb_ctapsp_desc) } } },
@@ -536,8 +544,21 @@ MENU(menu_sdp, P99_PROTECT({
     { "NTSC Comb C taps",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_ctaps_ntsc, OPT_NOWRAP, SETTING_ITEM(comb_ctapsn_desc) } } },
     { "NTSC Comb C mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_cmode_ntsc, OPT_NOWRAP, SETTING_ITEM(comb_mode_desc) } } },
     { "NTSC Comb Y mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.comb_ymode_ntsc, OPT_NOWRAP, SETTING_ITEM(comb_mode_desc) } } },
+    { "CTI enable",                             OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.cti_en,          OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
     { "CTI alpha blend",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.cti_ab,          OPT_NOWRAP, SETTING_ITEM(cti_ab_desc) } } },
     { "CTI chroma thold",                       OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.cti_c_th,        OPT_NOWRAP, 0, 0xff, value_disp } } },
+    { "DNR enable",                             OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.dnr_en,          OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
+    { "DNR thold",                              OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.dnr1_th,         OPT_NOWRAP, 0, 0xff, value_disp } } },
+}))
+
+MENU(menu_sdp, P99_PROTECT({
+    { "NTSC pedestal",                          OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.ntsc_pedestal, OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
+    { "Brightness",                             OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.brightness,    OPT_NOWRAP, 0, 0xff, signed_disp } } },
+    { "Contrast",                               OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.contrast,      OPT_NOWRAP, 0, 0xff, value_disp } } },
+    { "Hue",                                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.hue,           OPT_NOWRAP, 0, 0xff, signed_disp } } },
+    { "Y gain",                                 OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.y_gain,        OPT_NOWRAP, 0, 0xff, signed_disp } } },
+    { "C gain",                                 OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.c_gain,        OPT_NOWRAP, 0, 0xff, signed_disp } } },
+    { "Filtering opt.",                         OPT_SUBMENU,            { .sub = { &menu_sdp_filter, NULL, NULL } } },
     { "RF SAW compensation",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.if_comp,         OPT_NOWRAP, SETTING_ITEM(if_comp_desc) } } },
     { "RF cvbs gain",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.cvbs_gain_sel,  OPT_NOWRAP, SETTING_ITEM(rf_cvbs_gain_sel) } } },
     { "RF audio demod",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.audio_demod_mode, OPT_NOWRAP, SETTING_ITEM(audio_demod_mode_desc) } } },
@@ -914,8 +935,8 @@ void cstm_size(menucode_id code, int setup_disp) {
         else if ((int)st->v_active+adj > V_ACTIVE_MAX)
             adj = V_ACTIVE_MAX - st->v_active;
 
-        if ((int)st->v_backporch+(adj/2)+st->v_synclen+st->v_active > st->v_total)
-            adj = 2*(st->v_total-(int)st->v_backporch-st->v_synclen-st->v_active);
+        if ((int)st->v_backporch+(adj/2)+st->v_synclen+st->v_active > (st->v_total>>st->interlaced))
+            adj = 2*((st->v_total>>st->interlaced)-(int)st->v_backporch-st->v_synclen-st->v_active);
 
         if ((adj == -1) || (adj == 1)) {
             if (((int)st->v_backporch - adj >= V_BPORCH_MIN) && ((int)st->v_backporch - adj <= V_BPORCH_MAX))
@@ -1045,8 +1066,8 @@ void cstm_position(menucode_id code, int setup_disp) {
         else if ((int)st->v_backporch+adj > V_BPORCH_MAX)
             adj = V_BPORCH_MAX - st->v_backporch;
 
-        if ((int)st->v_backporch+adj+st->v_synclen+st->v_active > st->v_total)
-            adj = st->v_total - st->v_backporch - st->v_synclen - st->v_active;
+        if ((int)st->v_backporch+adj+st->v_synclen+st->v_active > (st->v_total>>st->interlaced))
+            adj = (st->v_total>>st->interlaced) - st->v_backporch - st->v_synclen - st->v_active;
 
         st->v_backporch += adj;
         break;

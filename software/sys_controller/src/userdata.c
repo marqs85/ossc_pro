@@ -186,7 +186,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(90, 75, tc.extra_av_out_mode),
     // 91 reserved for sdp_timings
 #ifndef DExx_FW
-    UDE_ITEM(92, 77, tc.sdp_cfg),
+    UDE_ITEM(92, 80, tc.sdp_cfg),
 #endif
     UDE_ITEM(93, 79, tc.lumacode_mode),
     UDE_ITEM(94, 76, tc.shmask_str),
