@@ -41,7 +41,8 @@
 #include "si2177.h"
 #endif
 
-#define SIGNED_NUMVAL_ZERO  128
+#define SIGNED_NUMVAL_ZERO    128
+#define SIGNED16_NUMVAL_ZERO  32768
 
 #define SCANLINESTR_MAX     15
 #define SL_HYBRIDSTR_MAX    28

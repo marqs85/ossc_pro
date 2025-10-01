@@ -185,6 +185,8 @@ static const char* const comb_ctapsn_desc[] = { "3->2", "5->3", "5->4" };
 static const char* const comb_ctapsp_desc[] = { "5->3 (2-tap)", "5->3 (3-tap)", "5->4 (4-tap)" };
 static const char* const comb_mode_desc[] = { "Adaptive", "Off", "Fixed (top)", "Fixed (all)", "Fixed (bottom)" };
 static const char* const cti_ab_desc[] = { "Sharpest", "Sharp", "Smooth", "Smoothest" };
+static const char* const y_gain_mode_desc[] = { "Manual", "Auto w/o peak white", "Auto w/ peak white" };
+static const char* const c_gain_mode_desc[] = { "Manual", "As luma", "Auto" };
 static const char* const if_comp_desc[] = { "Off", "NTSC -3dB", "NTSC -6dB", "NTSC -10dB", "PAL -2dB", "PAL -5dB", "PAL -7dB" };
 static const char* const rf_cvbs_gain_sel[] = { "Normal", "EXT-75ohm" };
 static const char* const audio_demod_mode_desc[] = { "AM", "FM1", "FM2" };
@@ -203,6 +205,7 @@ static void pixels_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG(
 static void value_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", v); }
 static void value16_disp(uint16_t *v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u", *v); }
 static void signed_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d", (int8_t)(v-SIGNED_NUMVAL_ZERO)); }
+static void signed16_disp(uint16_t *v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d", (int16_t)(*v-SIGNED16_NUMVAL_ZERO)); }
 static void pct_x10_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u.%u%%", (v/10), (v%10) ); }
 #ifdef INC_PCM186X
 static void aud_db_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%d dB", ((int8_t)v-PCM_GAIN_0DB)); }
@@ -556,8 +559,10 @@ MENU(menu_sdp, P99_PROTECT({
     { "Brightness",                             OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.brightness,    OPT_NOWRAP, 0, 0xff, signed_disp } } },
     { "Contrast",                               OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.contrast,      OPT_NOWRAP, 0, 0xff, value_disp } } },
     { "Hue",                                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.hue,           OPT_NOWRAP, 0, 0xff, signed_disp } } },
-    { "Y gain",                                 OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.y_gain,        OPT_NOWRAP, 0, 0xff, signed_disp } } },
-    { "C gain",                                 OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.c_gain,        OPT_NOWRAP, 0, 0xff, signed_disp } } },
+    { "Y gain mode",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.y_gain_mode,   OPT_WRAP,   SETTING_ITEM(y_gain_mode_desc) } } },
+    { "C gain mode",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.c_gain_mode,   OPT_WRAP,   SETTING_ITEM(c_gain_mode_desc) } } },
+    { "Y gain",                                 OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc.sdp_cfg.y_gain,    (0x8000-241), (0x8000+1024), signed16_disp } } },
+    { "C gain",                                 OPT_AVCONFIG_NUMVAL_U16,{ .num_u16 = { &tc.sdp_cfg.c_gain,    (0x8000-512), (0x8000+1024), signed16_disp } } },
     { "Filtering opt.",                         OPT_SUBMENU,            { .sub = { &menu_sdp_filter, NULL, NULL } } },
     { "RF SAW compensation",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.if_comp,         OPT_NOWRAP, SETTING_ITEM(if_comp_desc) } } },
     { "RF cvbs gain",                           OPT_AVCONFIG_SELECTION, { .sel = { &tc.sirf_cfg.cvbs_gain_sel,  OPT_NOWRAP, SETTING_ITEM(rf_cvbs_gain_sel) } } },
