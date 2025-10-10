@@ -95,9 +95,9 @@
 
 //`include "timescale.v"
 
-`define VENDOR_FPGA
+//`define VENDOR_FPGA
 //`define VENDOR_XILINX
-//`define VENDOR_ALTERA
+`define VENDOR_ALTERA
 
 module generic_dpram(
 	// Generic synchronous dual-port RAM interface
@@ -194,26 +194,52 @@ module generic_dpram(
 	//
 	// Instantiation of FPGA memory:
 	//
-	// Altera FLEX/APEX EABs
+	// Altera Cyclone
 	//
-	altera_ram_dp altera_ram(
-		// read port
-		.rdclock(rclk),
-		.rdclocken(rce),
-		.rdaddress(raddr),
-		.q(dout),
-
-		// write port
-		.wrclock(wclk),
-		.wrclocken(wce),
-		.wren(we),
-		.wraddress(waddr),
-		.data(di)
-	);
-
+	altsyncram altsyncram_component (
+				.address_a (waddr),
+				.address_b (raddr),
+				.clock0 (wclk),
+				.clock1 (rclk),
+				.clocken0 (wce),
+				.clocken1 (rce),
+				.data_a (di),
+				.wren_a (we),
+				.q_b (dout),
+				.aclr0 (1'b0),
+				.aclr1 (1'b0),
+				.addressstall_a (1'b0),
+				.addressstall_b (1'b0),
+				.byteena_a (1'b1),
+				.byteena_b (1'b1),
+				.clocken2 (1'b1),
+				.clocken3 (1'b1),
+				.data_b ({dw{1'b0}}),
+				.eccstatus (),
+				.q_a (),
+				.rden_a (1'b1),
+				.rden_b (1'b1),
+				.wren_b (1'b0));
 	defparam
-		altera_ram.dwidth = dw,
-		altera_ram.awidth = aw;
+		altsyncram_component.address_aclr_b = "NONE",
+		altsyncram_component.address_reg_b = "CLOCK1",
+		altsyncram_component.clock_enable_input_a = "NORMAL",
+		altsyncram_component.clock_enable_input_b = "NORMAL",
+		altsyncram_component.clock_enable_output_b = "NORMAL",
+		altsyncram_component.intended_device_family = "Cyclone V",
+		altsyncram_component.lpm_type = "altsyncram",
+		altsyncram_component.numwords_a = (8192/dw),
+		altsyncram_component.numwords_b = (8192/dw),
+		altsyncram_component.operation_mode = "DUAL_PORT",
+		altsyncram_component.outdata_aclr_b = "NONE",
+		altsyncram_component.outdata_reg_b = "UNREGISTERED",
+		altsyncram_component.power_up_uninitialized = "FALSE",
+        altsyncram_component.rdcontrol_reg_b = "CLOCK1",
+		altsyncram_component.widthad_a = aw,
+		altsyncram_component.widthad_b = aw,
+		altsyncram_component.width_a = dw,
+		altsyncram_component.width_b = dw,
+		altsyncram_component.width_byteena_a = 1;
 
 `else
 
