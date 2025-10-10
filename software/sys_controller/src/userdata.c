@@ -140,11 +140,13 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(62, 76, tc.scl_alg),
     UDE_ITEM(63, 58, tc.scl_edge_thold),
     UDE_ITEM(64, 58, tc.scl_dil_motion_shift),
-#ifndef VIP_DIL_B
+#ifndef VIP_DIL_CADENCE_VOFILM
     UDE_ITEM(65, 58, tc.scl_dil_alg),
 #else
     UDE_ITEM(66, 58, tc.scl_dil_motion_scale),
     UDE_ITEM(67, 58, tc.scl_dil_cadence_detect_enable),
+#endif
+#ifdef DEBUG
     UDE_ITEM(68, 58, tc.scl_dil_visualize_motion),
 #endif
     UDE_ITEM(69, 80, tc.sm_scl_240p_288p),
@@ -199,6 +201,14 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(101, 79, tc.lumacode_pal),
 #ifdef VIP
     UDE_ITEM(102, 79, tc.scl_framelock_mult),
+#if defined(VIP_DIL_CADENCE_BASIC) || defined(VIP_DIL_CADENCE_VOFILM)
+    UDE_ITEM(103, 80, tc.scl_dil_cadence32_lock_thold),
+    UDE_ITEM(104, 80, tc.scl_dil_cadence32_unlock_thold),
+    UDE_ITEM(105, 80, tc.scl_dil_cadence32_diff_thold),
+    UDE_ITEM(106, 80, tc.scl_dil_cadence22_lock_thold),
+    UDE_ITEM(107, 80, tc.scl_dil_cadence22_unlock_thold),
+    UDE_ITEM(108, 80, tc.scl_dil_cadence22_comb_thold),
+#endif
 #endif
 };
 

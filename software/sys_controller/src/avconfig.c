@@ -58,11 +58,21 @@ const avconfig_t tc_default = {
     .scl_out_mode = 7,
     .scl_edge_thold = 7,
     .scl_dil_motion_shift = 3,
-#ifndef VIP_DIL_B
+#ifndef VIP_DIL_CADENCE_VOFILM
     .scl_dil_alg = 2,
 #else
     .scl_dil_motion_scale = 125,
     .scl_dil_cadence_detect_enable = 0,
+#endif
+#if defined(VIP_DIL_CADENCE_BASIC) || defined(VIP_DIL_CADENCE_VOFILM)
+    .scl_dil_cadence32_lock_thold = 6,
+    .scl_dil_cadence32_unlock_thold = 4,
+    .scl_dil_cadence32_diff_thold = 16,
+    .scl_dil_cadence22_lock_thold = 6,
+    .scl_dil_cadence22_unlock_thold = 4,
+    .scl_dil_cadence22_comb_thold = 16,
+#endif
+#ifdef DEBUG
     .scl_dil_visualize_motion = 0,
 #endif
 #endif

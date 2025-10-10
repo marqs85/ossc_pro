@@ -29,6 +29,8 @@
 #define INC_PCM186X
 #define INC_USB
 #define VIP
+//#define VIP_DIL_CADENCE_BASIC
+//#define VIP_DIL_CADENCE_VOFILM
 #define LM_EMIF_EXTRA_DELAY
 #define OSSC_PRO_FINAL_CFG
 
@@ -48,6 +50,10 @@
 // use reduced printf
 //#define printf alt_printf
 #define printf dd_printf
+#endif
+
+#ifdef VIP_DIL_CADENCE_VOFILM
+#define VIP_DIL_B
 #endif
 
 #define sniprintf snprintf

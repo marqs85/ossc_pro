@@ -305,10 +305,34 @@ typedef struct {
     uint32_t ctrl;
     uint32_t status;
     uint32_t rsv;
-    uint32_t unused[11];
-    uint32_t motion_shift;
+#ifndef VIP_DIL_B
+    uint32_t unused;
+    uint32_t cadence32_diff_cnt;
+    uint32_t cadence32_lock_thold;
+    uint32_t cadence32_unlock_thold;
+    uint32_t cadence32_diff_thold;
+    uint32_t cadence32_diff_lines_ratio;
+    uint32_t cadence32_diff_noise_supp;
+    uint32_t cadence22_lock_thold;
+    uint32_t cadence22_unlock_thold;
+    uint32_t cadence22_comb_thold;
     uint32_t unused2;
+    uint32_t motion_shift;
+    uint32_t unused3;
     uint32_t mode;
+#else
+    uint32_t unused[9];
+    uint32_t cadence_opt;
+    uint32_t cadence_vid_thold;
+    uint32_t cadence_film_lock_thold;
+    uint32_t cadence_film_unlock_thold;
+    uint32_t unused2[9];
+    uint32_t motion_shift;
+    uint32_t unused3;
+    uint32_t mode;
+    uint32_t rsv2[2];
+    uint32_t motion_scale;
+#endif
 } vip_dil_ii_regs;
 
 typedef struct {
@@ -388,7 +412,7 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
 void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf, avconfig_t *avconfig)
 {
     int vip_enable, scl_target_pp_coeff, scl_ea, i, p, t;
-    uint32_t h_blank, v_blank, h_frontporch, v_frontporch;
+    uint32_t h_blank, v_blank, h_frontporch, v_frontporch, dil_visualize_motion;
     shmask_data_arr *shmask_data_arr_ptr;
 
     hv_config_reg hv_in_config = {.data=0x00000000};
@@ -409,6 +433,12 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
 #ifdef VIP
     vip_enable = !enable_tp && (avconfig->oper_mode == 1);
+
+#ifdef DEBUG
+    dil_visualize_motion = avconfig->scl_dil_visualize_motion;
+#else
+    dil_visualize_motion = 0;
+#endif
 #else
     vip_enable = 0;
 #endif
@@ -585,15 +615,32 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         return;
     }
 
-    if (avconfig->scl_dil_alg == 0) {
+    if (dil_visualize_motion) {
+        vip_dil->mode = (1<<0);
+#ifndef VIP_DIL_CADENCE_VOFILM
+    } else if (avconfig->scl_dil_alg == 0) {
         vip_dil->mode = (1<<1);
     } else if (avconfig->scl_dil_alg == 1) {
         vip_dil->mode = (1<<2);
-    } else if (avconfig->scl_dil_alg == 3) {
-        vip_dil->mode = (1<<0);
+#endif
     } else {
         vip_dil->mode = 0;
     }
+
+#ifdef VIP_DIL_CADENCE_BASIC
+    vip_dil->cadence32_lock_thold = avconfig->scl_dil_cadence32_lock_thold;
+    vip_dil->cadence32_unlock_thold = avconfig->scl_dil_cadence32_unlock_thold;
+    vip_dil->cadence32_diff_thold = avconfig->scl_dil_cadence32_diff_thold;
+    vip_dil->cadence22_lock_thold = avconfig->scl_dil_cadence22_lock_thold;
+    vip_dil->cadence22_unlock_thold = avconfig->scl_dil_cadence22_unlock_thold;
+    vip_dil->cadence22_comb_thold = avconfig->scl_dil_cadence22_comb_thold;
+#endif
+#ifdef VIP_DIL_CADENCE_VOFILM
+    vip_dil->motion_scale = avconfig->scl_dil_motion_scale;
+    vip_dil->cadence_opt = avconfig->scl_dil_cadence_detect_enable;
+    vip_dil->cadence_film_lock_thold = (scl_dil_cadence22_comb_thold<<16)|(scl_dil_cadence22_lock_thold<<8)|scl_dil_cadence32_lock_thold;
+    vip_dil->cadence_film_unlock_thold = (scl_dil_cadence32_diff_thold<<16)|(scl_dil_cadence22_unlock_thold<<8)|scl_dil_cadence32_unlock_thold;
+#endif
 
     vip_dil->motion_shift = avconfig->scl_dil_motion_shift;
 

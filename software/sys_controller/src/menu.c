@@ -158,13 +158,7 @@ static const char* const scl_framelock_desc[] = { "On", "Off (source Hz)", "Off 
 static const char* const scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:1 source PAR", "Full" };
 static const char* const scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "GS medium", "GS soft", c_pp_coeffs.name };
 static const char* const scl_gen_sr_desc[] = { "Auto", "Lowest", "Highest" };
-#ifndef VIP_DIL_B
-#ifdef DEBUG
-static const char* const scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive", "Visualize motion" };
-#else
 static const char* const scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive" };
-#endif
-#endif
 static const char* const sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
                                                      "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol",
                                                      "MSX 256col", "Spectrum 352col", "Atari 8bit 320col" };
@@ -447,6 +441,17 @@ MENU(menu_lm, P99_PROTECT({
 }))
 
 #ifdef VIP
+#if defined(VIP_DIL_CADENCE_BASIC) || defined(VIP_DIL_CADENCE_VOFILM)
+MENU(menu_scl_cadence_opt, P99_PROTECT({
+    { "3:2 lock threshold",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.scl_dil_cadence32_lock_thold, OPT_NOWRAP, 3, 7, value_disp } } },
+    { "3:2 unlock threshold",                  OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.scl_dil_cadence32_unlock_thold, OPT_NOWRAP, 0, 5, value_disp } } },
+    { "3:2 diff threshold",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.scl_dil_cadence32_diff_thold, OPT_NOWRAP, 4, 255, value_disp } } },
+    { "2:2 lock threshold",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.scl_dil_cadence22_lock_thold, OPT_NOWRAP, 3, 7, value_disp } } },
+    { "2:2 unlock threshold",                  OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.scl_dil_cadence22_unlock_thold, OPT_NOWRAP, 0, 5, value_disp } } },
+    { "2:2 comb threshold",                    OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.scl_dil_cadence22_comb_thold, OPT_NOWRAP, 4, 255, value_disp } } },
+}))
+#endif
+
 MENU(menu_scaler, P99_PROTECT({
     { "DFP output mode",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_out_mode,    OPT_WRAP, SETTING_ITEM_LIST(scl_out_mode_desc) } } },
     { "CRT output mode",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_crt_out_mode,OPT_WRAP, SETTING_ITEM_LIST(scl_crt_out_mode_desc) } } },
@@ -457,16 +462,19 @@ MENU(menu_scaler, P99_PROTECT({
     { "Scaling algorithm",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_alg,         OPT_WRAP, SETTING_ITEM_LIST(scl_alg_desc) } } },
     { "Custom SCL alg",                         OPT_CUSTOMMENU,         { .cstm = { &cstm_scl_alg_load } } },
     { "Edge threshold",                         OPT_AVCONFIG_NUMVALUE, { .num = { &tc.scl_edge_thold,  OPT_NOWRAP, 0, 255, value_disp } } },
-#ifndef VIP_DIL_B
+#ifndef VIP_DIL_CADENCE_VOFILM
     { "Deinterlace mode",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_dil_alg,     OPT_WRAP, SETTING_ITEM_LIST(scl_dil_alg_desc) } } },
 #endif
     { "Motion shift",                           OPT_AVCONFIG_NUMVALUE, { .num = { &tc.scl_dil_motion_shift,     OPT_NOWRAP, 0, 7, value_disp } } },
-#ifdef VIP_DIL_B
+#ifdef VIP_DIL_CADENCE_VOFILM
     { "Motion scale",                           OPT_AVCONFIG_NUMVALUE, { .num = { &tc.scl_dil_motion_scale,     OPT_NOWRAP, 0, 255, value_disp } } },
     { "Cadence detection",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_dil_cadence_detect_enable,     OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
+#endif
+#if defined(VIP_DIL_CADENCE_BASIC) || defined(VIP_DIL_CADENCE_VOFILM)
+    { "Cadence opt.",                           OPT_SUBMENU,            { .sub = { &menu_scl_cadence_opt, NULL, NULL } } },
+#endif
 #ifdef DEBUG
     { "Visualize motion",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_dil_visualize_motion,     OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
-#endif
 #endif
     { "Gen. samplerate",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.scl_gen_sr,       OPT_WRAP, SETTING_ITEM_LIST(scl_gen_sr_desc) } } },
     { LNG("240p/288p mode","240p/288pﾓｰﾄﾞ"),    OPT_AVCONFIG_SELECTION, { .sel = { &tc.sm_scl_240p_288p, OPT_WRAP, SETTING_ITEM_LIST(sm_scl_240p_288p_desc) } } },
@@ -1301,6 +1309,7 @@ void cstm_rf_tune(menucode_id code, int setup_disp) {
     // clear rows
     strncpy((char*)osd->osd_array.data[4][1], "", OSD_CHAR_COLS);
     strncpy((char*)osd->osd_array.data[6][1], "", OSD_CHAR_COLS);
+    strncpy((char*)osd->osd_array.data[7][1], "", OSD_CHAR_COLS);
 
     sniprintf((char*)osd->osd_array.data[4][1], OSD_CHAR_COLS, "CH%d: %lu.%luMHz", tc.sirf_cfg.ch_idx+1, tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/1000000,
               (tc.sirf_cfg.chlist[tc.sirf_cfg.ch_idx].freq/100000)%10);
