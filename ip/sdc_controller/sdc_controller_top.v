@@ -1,4 +1,5 @@
-`define LAUNCH_FALL_EDGE
+//`define LAUNCH_CAP_FALL_EDGE
+//`define LAUNCH_FALL_EDGE
 
 module sdc_controller_top(
     // common
@@ -50,6 +51,8 @@ module sdc_controller_top(
     wire sd_dat_oe_o_r;
     wire [3:0] sd_dat_out_o_r;
 
+    wire sd_clk_o_pad_pre;
+
 `ifdef LAUNCH_FALL_EDGE
     reg sd_cmd_oe_o_f;
     reg sd_cmd_out_o_f;
@@ -80,6 +83,12 @@ module sdc_controller_top(
     assign sd_cmd_out_o = sd_cmd_out_o_r;
     assign sd_dat_oe_o = sd_dat_oe_o_r;
     assign sd_dat_out_o = sd_dat_out_o_r;
+`endif
+
+`ifdef LAUNCH_CAP_FALL_EDGE
+    assign sd_clk_o_pad = ~sd_clk_o_pad_pre;
+`else
+    assign sd_clk_o_pad = sd_clk_o_pad_pre;
 `endif
 
 sdc_controller sdc0(
@@ -114,7 +123,7 @@ sdc_controller sdc0(
     .sd_dat_dat_i(sd_dat_dat_i),
     .sd_dat_out_o(sd_dat_out_o_r),
     .sd_dat_oe_o(sd_dat_oe_o_r),
-    .sd_clk_o_pad(sd_clk_o_pad),
+    .sd_clk_o_pad(sd_clk_o_pad_pre),
     .sd_clk_i_pad(sd_clk_i_pad),
     .int_cmd(int_cmd),
     .int_data(int_data)

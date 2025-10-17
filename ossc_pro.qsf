@@ -160,21 +160,21 @@ set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to USB_DP_io
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to USB_DN_io
 set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to USB_DP_io
 set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to USB_DN_io
-set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_CMD_io
-set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_DATA_io[3]
-set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_DATA_io[2]
-set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_DATA_io[1]
-set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_DATA_io[0]
-set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_CMD_io
-set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_DATA_io[3]
-set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_DATA_io[2]
-set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_DATA_io[1]
-set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_DATA_io[0]
-set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_CMD_io
-set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_DATA_io[3]
-set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_DATA_io[2]
-set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_DATA_io[1]
-set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_DATA_io[0]
+#set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_CMD_io
+#set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_DATA_io[3]
+#set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_DATA_io[2]
+#set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_DATA_io[1]
+#set_instance_assignment -name FAST_INPUT_REGISTER ON -to SD_DATA_io[0]
+#set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_CMD_io
+#set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_DATA_io[3]
+#set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_DATA_io[2]
+#set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_DATA_io[1]
+#set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SD_DATA_io[0]
+#set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_CMD_io
+#set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_DATA_io[3]
+#set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_DATA_io[2]
+#set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_DATA_io[1]
+#set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SD_DATA_io[0]
 set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCQ128
 set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 3.3V
 set_global_assignment -name ENABLE_SIGNALTAP OFF
@@ -431,6 +431,12 @@ set_location_assignment PIN_J13 -to DDR_DQS_io_n[1]
 set_location_assignment PIN_H11 -to DDR_DQS_io_p[0]
 set_location_assignment PIN_G12 -to DDR_DQS_io_n[0]
 
+set_instance_assignment -name BOARD_MODEL_FAR_C 10P -to SD_CLK_o
+set_instance_assignment -name BOARD_MODEL_FAR_C 10P -to SD_CMD_io
+set_instance_assignment -name BOARD_MODEL_FAR_C 10P -to SD_DATA_io[3]
+set_instance_assignment -name BOARD_MODEL_FAR_C 10P -to SD_DATA_io[2]
+set_instance_assignment -name BOARD_MODEL_FAR_C 10P -to SD_DATA_io[1]
+set_instance_assignment -name BOARD_MODEL_FAR_C 10P -to SD_DATA_io[0]
 
 set_instance_assignment -name IO_STANDARD "1.2-V HSUL" -to DDR_DQ_io[0] -tag __sys_mem_if_lpddr2_emif_0_p0
 set_instance_assignment -name OUTPUT_TERMINATION "SERIES 34 OHM WITH CALIBRATION" -to DDR_DQ_io[0] -tag __sys_mem_if_lpddr2_emif_0_p0
