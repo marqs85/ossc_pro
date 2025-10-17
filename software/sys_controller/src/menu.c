@@ -66,6 +66,7 @@ extern const char* const tv_std_name_arr[];
 
 extern c_pp_coeffs_t c_pp_coeffs;
 extern c_shmask_t c_shmask;
+extern c_lc_palette_set_t c_lc_palette_set;
 extern c_edid_t c_edid;
 
 char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1], func_ret_status[US2066_ROW_LEN+1];
@@ -144,8 +145,8 @@ static const char* const rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
 static const char* const auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char* const mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
 static const char* const shmask_mode_desc[] = { "Off", "A-Grille", "TV", "PVM", "PVM-2530", "XC-3315C", "C-1084", "JVC", "VGA", c_shmask.name };
-static const char* const lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "NES", "Atari GTIA", "Atari VCS" };
-static const char* const lumacode_pal_desc[] = { "PAL" };
+static const char* const lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "Intellivision", "NES", "Atari GTIA", "Atari VCS" };
+static const char* const lumacode_pal_desc[] = { "PAL", c_lc_palette_set.name };
 static const char* const adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char* const oper_mode_desc[] = { "Line multiplier", "Scaler" };
 static const char* const lm_mode_desc[] = { "Pure", "Adaptive" };
@@ -369,6 +370,7 @@ MENU(menu_isl_video_opt, P99_PROTECT({
     { "ALC H filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_h_filter,  OPT_NOWRAP, 0, ALC_H_FILTER_MAX, alc_h_filter_disp } } },
     { "Lumacode",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_mode,         OPT_WRAP,   SETTING_ITEM(lumacode_mode_desc) } } },
     { "Lumacode palette set",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_pal,          OPT_WRAP,   SETTING_ITEM(lumacode_pal_desc) } } },
+    { "Custom lc palset",                       OPT_CUSTOMMENU,         { .cstm = { &cstm_lc_palette_set_load } } },
 }))
 
 MENU(menu_isl_sync_opt, P99_PROTECT({
@@ -1448,6 +1450,10 @@ void cstm_scl_alg_load(menucode_id code, int setup_disp) {
 
 void cstm_shmask_load(menucode_id code, int setup_disp) {
     cstm_file_load(code, setup_disp, "shmask", "*.txt", load_shmask);
+}
+
+void cstm_lc_palette_set_load(menucode_id code, int setup_disp) {
+    cstm_file_load(code, setup_disp, "lumacode", "*.txt", load_lc_palette_set);
 }
 
 void cstm_edid_load(menucode_id code, int setup_disp) {

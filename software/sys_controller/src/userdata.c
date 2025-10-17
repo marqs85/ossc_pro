@@ -47,6 +47,7 @@ extern sync_timings_t sdp_timings[NUM_VIDEO_GROUPS];
 extern uint8_t update_cur_vm;
 extern c_pp_coeffs_t c_pp_coeffs;
 extern c_shmask_t c_shmask;
+extern c_lc_palette_set_t c_lc_palette_set;
 extern c_edid_t c_edid;
 
 char target_profile_name[USERDATA_NAME_LEN+1], cur_profile_name[USERDATA_NAME_LEN+1];
@@ -76,6 +77,7 @@ const ude_item_map ude_profile_items[] = {
 #endif
     UDE_ITEM(96, 76, c_shmask),
     UDE_ITEM(97, 77, c_edid),
+    UDE_ITEM(110, 81, c_lc_palette_set),
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -190,7 +192,7 @@ const ude_item_map ude_profile_items[] = {
 #ifndef DExx_FW
     UDE_ITEM(92, 80, tc.sdp_cfg),
 #endif
-    UDE_ITEM(93, 79, tc.lumacode_mode),
+    UDE_ITEM(93, 81, tc.lumacode_mode),
     UDE_ITEM(94, 76, tc.shmask_str),
     // 95-97 reserved
     UDE_ITEM(98, 77, tc.hdmi_pixeldecim_mode),
@@ -211,6 +213,7 @@ const ude_item_map ude_profile_items[] = {
 #endif
 #endif
     UDE_ITEM(109, 80, tc.hdmi_csync),
+    // 110 reserved
 };
 
 int write_userdata(uint8_t entry) {

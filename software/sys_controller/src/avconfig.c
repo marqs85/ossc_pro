@@ -168,6 +168,7 @@ int set_default_profile(int update_cc)
     set_default_c_pp_coeffs();
 #endif
     set_default_c_shmask();
+    set_default_c_lc_palette_set();
     set_default_c_edid();
     set_default_vm_table();
 

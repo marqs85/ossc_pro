@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <unistd.h>
 #include "system.h"
 #include "string.h"
@@ -57,7 +58,7 @@
 #include "src/lumacode_palettes.c"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 80
+#define FW_VER_MINOR 81
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -214,7 +215,8 @@ int shmask_loaded_array = 0;
 int shmask_loaded_str = -1;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
 
-const lc_palette_set* lc_palette_set_list[] = {&lc_palette_pal};
+c_lc_palette_set_t c_lc_palette_set;
+const lc_palette_set* lc_palette_set_list[] = {&lc_palette_pal, &c_lc_palette_set.pal};
 int loaded_lc_palette = -1;
 
 c_pp_coeffs_t c_pp_coeffs;
@@ -1259,6 +1261,11 @@ void set_default_c_shmask() {
     strncpy(c_shmask.name, "Custom: <none>", 20);
 }
 
+void set_default_c_lc_palette_set() {
+    memset(&c_lc_palette_set, 0, sizeof(c_lc_palette_set));
+    strncpy(c_lc_palette_set.name, "Custom: <none>", 20);
+}
+
 void set_default_c_edid() {
     memset(&c_edid, 0, sizeof(c_shmask));
     strncpy(c_edid.name, "Custom: <none>", 20);
@@ -1399,6 +1406,84 @@ int load_shmask(char *dirname, char *filename) {
 
     sniprintf(c_shmask.name, sizeof(c_shmask.name), "C: %s", filename);
     shmask_loaded_array = -1;
+    update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
+    return 0;
+}
+
+int load_lc_palette_set(char *dirname, char *filename) {
+    FIL f_lc_palset;
+    char dirname_root[10];
+    int entries_remaining=0;
+    int offset;
+
+    if (!sd_det)
+        return -1;
+
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
+
+    if (!file_open(&f_lc_palset, filename)) {
+        while (file_get_string(&f_lc_palset, char_buff, sizeof(char_buff))) {
+            // strip CR / CRLF
+            char_buff[strcspn(char_buff, "\r\n")] = 0;
+
+            // Skip empty / comment lines
+            if ((char_buff[0] == 0) || (char_buff[0] == '#'))
+                continue;
+
+            if (!entries_remaining) {
+                if (strncmp(char_buff, "c64_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, c64_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(char_buff, "zx_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, zx_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(char_buff, "msx_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, msx_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(char_buff, "intv_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, intv_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(char_buff, "nes_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, nes_pal)/4;
+                    entries_remaining = 64;
+                } else if (strncmp(char_buff, "tia_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, tia_pal)/4;
+                    entries_remaining = 128;
+                } else if (strncmp(char_buff, "gtia_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, gtia_pal)/4;
+                    entries_remaining = 128;
+                }
+            } else if (sscanf(char_buff, "%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx", &c_lc_palette_set.pal.data[offset],
+                                                                                                            &c_lc_palette_set.pal.data[offset+1],
+                                                                                                            &c_lc_palette_set.pal.data[offset+2],
+                                                                                                            &c_lc_palette_set.pal.data[offset+3],
+                                                                                                            &c_lc_palette_set.pal.data[offset+4],
+                                                                                                            &c_lc_palette_set.pal.data[offset+5],
+                                                                                                            &c_lc_palette_set.pal.data[offset+6],
+                                                                                                            &c_lc_palette_set.pal.data[offset+7],
+                                                                                                            &c_lc_palette_set.pal.data[offset+8],
+                                                                                                            &c_lc_palette_set.pal.data[offset+9],
+                                                                                                            &c_lc_palette_set.pal.data[offset+10],
+                                                                                                            &c_lc_palette_set.pal.data[offset+11],
+                                                                                                            &c_lc_palette_set.pal.data[offset+12],
+                                                                                                            &c_lc_palette_set.pal.data[offset+13],
+                                                                                                            &c_lc_palette_set.pal.data[offset+14],
+                                                                                                            &c_lc_palette_set.pal.data[offset+15]) == 16) {
+
+
+                offset += 16;
+                entries_remaining -= 16;
+            }
+        }
+
+        file_close(&f_lc_palset);
+    }
+
+    f_chdir("/");
+
+    sniprintf(c_lc_palette_set.name, sizeof(c_lc_palette_set.name), "C: %s", filename);
+    loaded_lc_palette = -1;
     update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
     return 0;
 }

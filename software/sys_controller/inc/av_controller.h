@@ -154,12 +154,18 @@ typedef union {
         uint32_t c64_pal[16];
         uint32_t zx_pal[16];
         uint32_t msx_pal[16];
+        uint32_t intv_pal[16];
         uint32_t nes_pal[64];
         uint32_t tia_pal[128];
         uint32_t gtia_pal[256];
     } __attribute__((packed, __may_alias__));
-    uint32_t data[496];
+    uint32_t data[512];
 } lc_palette_set;
+
+typedef struct {
+    char name[20];
+    lc_palette_set pal;
+} c_lc_palette_set_t;
 
 typedef int (*load_func)(char*, char*);
 
@@ -196,6 +202,9 @@ int load_scl_coeffs(char *dirname, char *filename);
 
 void set_default_c_shmask();
 int load_shmask(char *dirname, char *filename);
+
+void set_default_c_lc_palette_set();
+int load_lc_palette_set(char *dirname, char *filename);
 
 void set_default_c_edid();
 int load_edid(char *dirname, char *filename);
