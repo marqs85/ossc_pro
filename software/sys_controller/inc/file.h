@@ -4,6 +4,7 @@
 #include "ff.h"
 
 FRESULT file_mount();
+FRESULT file_unmount();
 FRESULT file_open(FIL* fil, char* path);
 FRESULT file_close(FIL* fil);
 TCHAR* file_get_string(FIL* fil, char* buff, int len);

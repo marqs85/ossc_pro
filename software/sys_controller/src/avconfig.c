@@ -164,9 +164,7 @@ int set_default_profile(int update_cc)
     if (update_cc)
         memcpy(&cc, &tc, sizeof(avconfig_t));
 
-#ifdef VIP
     set_default_c_pp_coeffs();
-#endif
     set_default_c_shmask();
     set_default_c_lc_palette_set();
     set_default_c_edid();

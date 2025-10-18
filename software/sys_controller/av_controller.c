@@ -204,8 +204,6 @@ extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
 extern const char *avinput_str[];
 
-char char_buff[256];
-
 const si5351_ms_config_t legacyav_sdp_conf =      {3682, 38, 125, 3442, 451014, 715909, 0, 0, 0};
 const si5351_ms_config_t legacyav_aadc_48k_conf = {3682, 38, 125, 72, 0, 0, 0, 0, 0};
 
@@ -221,7 +219,6 @@ int loaded_lc_palette = -1;
 
 c_pp_coeffs_t c_pp_coeffs;
 
-#ifdef VIP
 alt_timestamp_type vip_resync_ts;
 
 const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_coeff_nearest, NULL}},
@@ -235,10 +232,9 @@ const pp_coeff* scl_pp_coeff_list[][2][2] = {{{&pp_coeff_nearest, NULL}, {&pp_co
                                             {{&c_pp_coeffs.coeffs[0], &c_pp_coeffs.coeffs[2]}, {&c_pp_coeffs.coeffs[1], &c_pp_coeffs.coeffs[3]}}};
 int scl_loaded_pp_coeff = -1;
 #define PP_COEFF_SIZE  (sizeof(scl_pp_coeff_list) / sizeof((scl_pp_coeff_list)[0]))
-#define PP_TAPS 4
-#define PP_PHASES 64
 #define SCL_ALG_COEFF_START 3
 
+#ifdef VIP
 typedef struct {
     uint32_t ctrl;
     uint32_t status;
@@ -411,11 +407,15 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
     }
 }
 
-void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t *vm_conf, avconfig_t *avconfig)
+void update_sc_config()
 {
     int vip_enable, scl_target_pp_coeff, scl_ea, i, p, t;
     uint32_t h_blank, v_blank, h_frontporch, v_frontporch, dil_visualize_motion;
     shmask_data_arr *shmask_data_arr_ptr;
+
+    mode_data_t *vm_in = &vmode_in;
+    mode_data_t *vm_out = &vmode_out;
+    avconfig_t *avconfig = get_current_avconfig();
 
     hv_config_reg hv_in_config = {.data=0x00000000};
     hv_config2_reg hv_in_config2 = {.data=0x00000000};
@@ -476,8 +476,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_in_config3.v_synclen = vm_in->timings.v_synclen;
     hv_in_config2.v_backporch = vm_in->timings.v_backporch;
     hv_in_config2.interlaced = vm_in->timings.interlaced;
-    hv_in_config2.h_skip = vm_conf->h_skip;
-    hv_in_config2.h_sample_sel = vm_conf->h_sample_sel;
+    hv_in_config2.h_skip = vm_conf.h_skip;
+    hv_in_config2.h_sample_sel = vm_conf.h_sample_sel;
 
     // Set output params
     hv_out_config.h_total = vm_out->timings.h_total;
@@ -489,16 +489,16 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     hv_out_config3.v_synclen = vm_out->timings.v_synclen;
     hv_out_config2.v_backporch = vm_out->timings.v_backporch;
     hv_out_config2.interlaced = vm_out->timings.interlaced;
-    hv_out_config3.v_startline = vm_conf->framesync_line;
+    hv_out_config3.v_startline = vm_conf.framesync_line;
 
-    xy_out_config.x_size = vm_conf->x_size;
-    xy_out_config.y_size = vm_conf->y_size;
-    xy_out_config2.y_offset = vm_conf->y_offset;
-    xy_out_config2.x_offset = vm_conf->x_offset;
-    xy_out_config3.x_start_lb = vm_conf->x_start_lb;
-    xy_out_config3.y_start_lb = vm_conf->y_start_lb;
-    xy_out_config.x_rpt = vm_conf->x_rpt;
-    xy_out_config.y_rpt = vm_conf->y_rpt;
+    xy_out_config.x_size = vm_conf.x_size;
+    xy_out_config.y_size = vm_conf.y_size;
+    xy_out_config2.y_offset = vm_conf.y_offset;
+    xy_out_config2.x_offset = vm_conf.x_offset;
+    xy_out_config3.x_start_lb = vm_conf.x_start_lb;
+    xy_out_config3.y_start_lb = vm_conf.y_start_lb;
+    xy_out_config.x_rpt = vm_conf.x_rpt;
+    xy_out_config.y_rpt = vm_conf.y_rpt;
 
     misc_config.mask_br = avconfig->mask_br;
     misc_config.mask_color = avconfig->mask_color;
@@ -516,8 +516,8 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     misc_config2.hdmi_csync = avconfig->hdmi_csync;
 
     // set default/custom scanline interval
-    sl_def_iv_y = (vm_conf->y_rpt > 0) ? vm_conf->y_rpt : 1;
-    sl_def_iv_x = (vm_conf->x_rpt > 0) ? vm_conf->x_rpt : sl_def_iv_y;
+    sl_def_iv_y = (vm_conf.y_rpt > 0) ? vm_conf.y_rpt : 1;
+    sl_def_iv_x = (vm_conf.x_rpt > 0) ? vm_conf.x_rpt : sl_def_iv_y;
     sl_config4.sl_iv_x = ((avconfig->sl_type == 3) && (avconfig->sl_cust_iv_x)) ? avconfig->sl_cust_iv_x : sl_def_iv_x;
     sl_config2.sl_iv_y = ((avconfig->sl_type == 3) && (avconfig->sl_cust_iv_y)) ? avconfig->sl_cust_iv_y : sl_def_iv_y;
 
@@ -564,15 +564,15 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     sl_config2.sl_hybr_str = avconfig->sl_hybr_str;
 
     // disable scanlines if configured so
-    if (((avconfig->sl_mode == 1) && (!vm_conf->y_rpt)) || (avconfig->sl_mode == 0)) {
+    if (((avconfig->sl_mode == 1) && (!vm_conf.y_rpt)) || (avconfig->sl_mode == 0)) {
         sl_config2.sl_l_overlay = 0;
         sl_config4.sl_c_overlay = 0;
     }
 
-    h_blank = vm_out->timings.h_total-vm_conf->x_size;
-    v_blank = (vm_out->timings.v_total>>vm_out->timings.interlaced)-vm_conf->y_size;
-    h_frontporch = h_blank-vm_conf->x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
-    v_frontporch = v_blank-vm_conf->y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
+    h_blank = vm_out->timings.h_total-vm_conf.x_size;
+    v_blank = (vm_out->timings.v_total>>vm_out->timings.interlaced)-vm_conf.y_size;
+    h_frontporch = h_blank-vm_conf.x_offset-vm_out->timings.h_backporch-vm_out->timings.h_synclen;
+    v_frontporch = v_blank-vm_conf.y_offset-vm_out->timings.v_backporch-vm_out->timings.v_synclen;
 
     // VIP frame reader swaps buffers at the end of read frame (~10 lines before VCO outputs last active line) while writer does it just before first active line written
     // SOF needs to be offset accordingly to minimize FB latency
@@ -690,16 +690,16 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
 
     vip_scl_pp->edge_thold = avconfig->scl_edge_thold;
 
-    vip_scl_pp->width = vm_conf->x_size;
-    vip_scl_pp->height = vm_conf->y_size<<vm_out->timings.interlaced;
+    vip_scl_pp->width = vm_conf.x_size;
+    vip_scl_pp->height = vm_conf.y_size<<vm_out->timings.interlaced;
 
     vip_fb->input_rate = vm_in->timings.v_hz_x100;
     vip_fb->output_rate = vm_out->timings.v_hz_x100;
-    //vip_fb->locked = vm_conf->framelock;  // causes cvo fifo underflows
+    //vip_fb->locked = vm_conf.framelock;  // causes cvo fifo underflows
     vip_fb->locked = 0;
 
-    if ((vip_cvo->h_active != vm_conf->x_size) ||
-        (vip_cvo->v_active != vm_conf->y_size) ||
+    if ((vip_cvo->h_active != vm_conf.x_size) ||
+        (vip_cvo->v_active != vm_conf.y_size) ||
         (vip_cvo->h_synclen != vm_out->timings.h_synclen) ||
         (vip_cvo->v_synclen != vm_out->timings.v_synclen) ||
         (vip_cvo->h_frontporch != h_frontporch) ||
@@ -711,9 +711,9 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         vip_cvo->banksel = 0;
         vip_cvo->valid = 0;
         vip_cvo->mode_ctrl = vm_out->timings.interlaced;
-        vip_cvo->h_active = vm_conf->x_size;
-        vip_cvo->v_active = vm_conf->y_size;
-        vip_cvo->v_active_f1 = vm_conf->y_size;
+        vip_cvo->h_active = vm_conf.x_size;
+        vip_cvo->v_active = vm_conf.y_size;
+        vip_cvo->v_active_f1 = vm_conf.y_size;
         vip_cvo->h_synclen = vm_out->timings.h_synclen;
         vip_cvo->v_synclen = vm_out->timings.v_synclen;
         vip_cvo->v_synclen_f0 = vm_out->timings.v_synclen;
@@ -724,16 +724,16 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
         vip_cvo->v_blank = v_blank;
         vip_cvo->v_blank_f0 = v_blank+1;
         vip_cvo->active_start = 0;
-        vip_cvo->v_blank_start = vm_conf->y_size;
-        vip_cvo->fid_r = vm_conf->y_size + v_frontporch;
-        vip_cvo->fid_f = 2*vm_conf->y_size + vip_cvo->v_blank_f0 + vip_cvo->v_frontporch_f0;
+        vip_cvo->v_blank_start = vm_conf.y_size;
+        vip_cvo->fid_r = vm_conf.y_size + v_frontporch;
+        vip_cvo->fid_f = 2*vm_conf.y_size + vip_cvo->v_blank_f0 + vip_cvo->v_frontporch_f0;
         vip_cvo->h_polarity = 0;
         vip_cvo->v_polarity = 0;
-        vip_cvo->sof_line = vm_out->timings.v_synclen + vm_out->timings.v_backporch + vm_conf->y_offset + vm_conf->y_size - 10; // final active pixel gets written to FB around here
+        vip_cvo->sof_line = vm_out->timings.v_synclen + vm_out->timings.v_backporch + vm_conf.y_offset + vm_conf.y_size - 10; // final active pixel gets written to FB around here
         vip_cvo->valid = 1;
     }
 
-    if (vm_conf->framelock) {
+    if (vm_conf.framelock) {
         vip_cvo->ctrl |= (1<<4);
         vip_resync_ts = alt_timestamp();
     }
@@ -901,6 +901,7 @@ int check_sdcard() {
             ret = init_sdcard();
         } else {
             printf("SD card ejected\n");
+            file_unmount();
             mmc_dev->has_init = 0;
         }
     }
@@ -977,10 +978,6 @@ int init_hw()
 
     // Init ocsdc driver
     mmc_dev = ocsdc_mmc_init(SDC_CONTROLLER_QSYS_0_BASE, SDC_FREQ, SDC_HOST_CAPS);
-
-    // Reset MMC/SD status as entering standby
-    mmc_dev->has_init = 0;
-    sd_det = sd_det_prev = 0;
 
     // Init PCM1863
     ret = pcm186x_init(&pcm_dev);
@@ -1211,6 +1208,19 @@ void print_vm_stats(int menu_mode) {
     osd->osd_sec_enable[1].mask = (1<<(row+1))-1;
 }
 
+int get_scl_pp_coeff_preset(pp_coeff *dst, char* name) {
+    int i;
+
+    for (i=0; i<PP_COEFF_SIZE-1; i++) {
+        if (strncmp(name, scl_pp_coeff_list[i][0][0]->name, 14) == 0) {
+            memcpy(dst, scl_pp_coeff_list[i][0][0], sizeof(pp_coeff));
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 uint16_t get_sampler_phase() {
     uint32_t sample_rng_x1000;
     uint32_t isl_phase_x1000 = isl_get_sampler_phase(&isl_dev)*5625;
@@ -1246,7 +1256,7 @@ int set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_
         retval = isl_set_sampler_phase(&isl_dev, isl_phase);
 
     if (update_sc)
-        update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
+        update_sc_config();
 
     return retval;
 }
@@ -1271,249 +1281,9 @@ void set_default_c_edid() {
     strncpy(c_edid.name, "Custom: <none>", 20);
 }
 
-#ifdef VIP
 void set_default_c_pp_coeffs() {
     memset(&c_pp_coeffs, 0, sizeof(c_pp_coeffs));
     strncpy(c_pp_coeffs.name, "Custom: <none>", 19);
-}
-
-int load_scl_coeffs(char *dirname, char *filename) {
-    FIL file;
-    FIL f_coeff;
-    char dirname_root[10];
-    int i, p, n, pp_bits, lines=0;
-
-    if (!sd_det)
-        return -1;
-
-    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
-    f_chdir(dirname_root);
-
-    if (!file_open(&file, filename)) {
-        while ((lines < 4) && file_get_string(&file, char_buff, sizeof(char_buff))) {
-            // strip CR / CRLF
-            char_buff[strcspn(char_buff, "\r\n")] = 0;
-
-            // Break on empty line
-            if (char_buff[0] == 0)
-                break;
-
-            // Check if matching preset name is found
-            for (i=0; i<PP_COEFF_SIZE-1; i++) {
-                if (strncmp(char_buff, scl_pp_coeff_list[i][0][0]->name, 14) == 0) {
-                    memcpy(&c_pp_coeffs.coeffs[lines], scl_pp_coeff_list[i][0][0], sizeof(pp_coeff));
-                    break;
-                }
-            }
-
-            // If no matching preset found, use string as file name pointer
-            if (i == PP_COEFF_SIZE-1) {
-                if (!file_open(&f_coeff, char_buff)) {
-                    p = 0;
-                    pp_bits = 9;
-                    while (file_get_string(&f_coeff, char_buff, sizeof(char_buff))) {
-                        // strip CR / CRLF
-                        char_buff[strcspn(char_buff, "\r\n")] = 0;
-                        if ((p==0) && (strncmp(char_buff, "10bit", 5) == 0)) {
-                            pp_bits = 10;
-                            continue;
-                        }
-                        n = sscanf(char_buff, "%hd,%hd,%hd,%hd", &c_pp_coeffs.coeffs[lines].v[p][0], &c_pp_coeffs.coeffs[lines].v[p][1], &c_pp_coeffs.coeffs[lines].v[p][2], &c_pp_coeffs.coeffs[lines].v[p][3]);
-                        if (n == PP_TAPS) {
-                            if (++p == PP_PHASES)
-                                break;
-                        }
-                    }
-                    c_pp_coeffs.coeffs[lines].bits = pp_bits;
-
-                    file_close(&f_coeff);
-                } else {
-                    break;
-                }
-            }
-            lines++;
-        }
-
-        file_close(&file);
-    }
-
-    f_chdir("/");
-
-    if ((lines == 2) || (lines == 4)) {
-        c_pp_coeffs.ea = (lines == 4);
-        sniprintf(c_pp_coeffs.name, sizeof(c_pp_coeffs.name), "C: %s", filename);
-        scl_loaded_pp_coeff = -1;
-        update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
-        return 0;
-    } else {
-        return -1;
-    }
-}
-#endif
-
-int load_shmask(char *dirname, char *filename) {
-    FIL f_shmask;
-    char dirname_root[10];
-    int arr_size_loaded=0;
-    int v0=0,v1=0;
-    int p;
-
-    if (!sd_det)
-        return -1;
-
-    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
-    f_chdir(dirname_root);
-
-    if (!file_open(&f_shmask, filename)) {
-        while (file_get_string(&f_shmask, char_buff, sizeof(char_buff))) {
-            // strip CR / CRLF
-            char_buff[strcspn(char_buff, "\r\n")] = 0;
-
-            // Skip empty / comment lines
-            if ((char_buff[0] == 0) || (char_buff[0] == '#'))
-                continue;
-
-            if (!arr_size_loaded && (sscanf(char_buff, "%d,%d", &v0, &v1) == 2)) {
-                c_shmask.arr.iv_x = v0-1;
-                c_shmask.arr.iv_y = v1-1;
-                arr_size_loaded = 1;
-            } else if (arr_size_loaded && (v1 > 0)) {
-                p = c_shmask.arr.iv_y+1-v1;
-                if (sscanf(char_buff, "%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx", &c_shmask.arr.v[p][0],
-                                                                                                         &c_shmask.arr.v[p][1],
-                                                                                                         &c_shmask.arr.v[p][2],
-                                                                                                         &c_shmask.arr.v[p][3],
-                                                                                                         &c_shmask.arr.v[p][4],
-                                                                                                         &c_shmask.arr.v[p][5],
-                                                                                                         &c_shmask.arr.v[p][6],
-                                                                                                         &c_shmask.arr.v[p][7],
-                                                                                                         &c_shmask.arr.v[p][8],
-                                                                                                         &c_shmask.arr.v[p][9],
-                                                                                                         &c_shmask.arr.v[p][10],
-                                                                                                         &c_shmask.arr.v[p][11],
-                                                                                                         &c_shmask.arr.v[p][12],
-                                                                                                         &c_shmask.arr.v[p][13],
-                                                                                                         &c_shmask.arr.v[p][14],
-                                                                                                         &c_shmask.arr.v[p][15]) == v0)
-                    v1--;
-            }
-        }
-
-        file_close(&f_shmask);
-    }
-
-    f_chdir("/");
-
-    sniprintf(c_shmask.name, sizeof(c_shmask.name), "C: %s", filename);
-    shmask_loaded_array = -1;
-    update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
-    return 0;
-}
-
-int load_lc_palette_set(char *dirname, char *filename) {
-    FIL f_lc_palset;
-    char dirname_root[10];
-    int entries_remaining=0;
-    int offset;
-
-    if (!sd_det)
-        return -1;
-
-    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
-    f_chdir(dirname_root);
-
-    if (!file_open(&f_lc_palset, filename)) {
-        while (file_get_string(&f_lc_palset, char_buff, sizeof(char_buff))) {
-            // strip CR / CRLF
-            char_buff[strcspn(char_buff, "\r\n")] = 0;
-
-            // Skip empty / comment lines
-            if ((char_buff[0] == 0) || (char_buff[0] == '#'))
-                continue;
-
-            if (!entries_remaining) {
-                if (strncmp(char_buff, "c64_pal", 10) == 0) {
-                    offset = offsetof(lc_palette_set, c64_pal)/4;
-                    entries_remaining = 16;
-                } else if (strncmp(char_buff, "zx_pal", 10) == 0) {
-                    offset = offsetof(lc_palette_set, zx_pal)/4;
-                    entries_remaining = 16;
-                } else if (strncmp(char_buff, "msx_pal", 10) == 0) {
-                    offset = offsetof(lc_palette_set, msx_pal)/4;
-                    entries_remaining = 16;
-                } else if (strncmp(char_buff, "intv_pal", 10) == 0) {
-                    offset = offsetof(lc_palette_set, intv_pal)/4;
-                    entries_remaining = 16;
-                } else if (strncmp(char_buff, "nes_pal", 10) == 0) {
-                    offset = offsetof(lc_palette_set, nes_pal)/4;
-                    entries_remaining = 64;
-                } else if (strncmp(char_buff, "tia_pal", 10) == 0) {
-                    offset = offsetof(lc_palette_set, tia_pal)/4;
-                    entries_remaining = 128;
-                } else if (strncmp(char_buff, "gtia_pal", 10) == 0) {
-                    offset = offsetof(lc_palette_set, gtia_pal)/4;
-                    entries_remaining = 128;
-                }
-            } else if (sscanf(char_buff, "%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx", &c_lc_palette_set.pal.data[offset],
-                                                                                                            &c_lc_palette_set.pal.data[offset+1],
-                                                                                                            &c_lc_palette_set.pal.data[offset+2],
-                                                                                                            &c_lc_palette_set.pal.data[offset+3],
-                                                                                                            &c_lc_palette_set.pal.data[offset+4],
-                                                                                                            &c_lc_palette_set.pal.data[offset+5],
-                                                                                                            &c_lc_palette_set.pal.data[offset+6],
-                                                                                                            &c_lc_palette_set.pal.data[offset+7],
-                                                                                                            &c_lc_palette_set.pal.data[offset+8],
-                                                                                                            &c_lc_palette_set.pal.data[offset+9],
-                                                                                                            &c_lc_palette_set.pal.data[offset+10],
-                                                                                                            &c_lc_palette_set.pal.data[offset+11],
-                                                                                                            &c_lc_palette_set.pal.data[offset+12],
-                                                                                                            &c_lc_palette_set.pal.data[offset+13],
-                                                                                                            &c_lc_palette_set.pal.data[offset+14],
-                                                                                                            &c_lc_palette_set.pal.data[offset+15]) == 16) {
-
-
-                offset += 16;
-                entries_remaining -= 16;
-            }
-        }
-
-        file_close(&f_lc_palset);
-    }
-
-    f_chdir("/");
-
-    sniprintf(c_lc_palette_set.name, sizeof(c_lc_palette_set.name), "C: %s", filename);
-    loaded_lc_palette = -1;
-    update_sc_config(&vmode_in, &vmode_out, &vm_conf, get_current_avconfig());
-    return 0;
-}
-
-int load_edid(char *dirname, char *filename) {
-    FIL f_edid;
-    char dirname_root[10];
-    unsigned bytes_read;
-
-    if (!sd_det)
-        return -1;
-
-    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
-    f_chdir(dirname_root);
-
-    if (!file_open(&f_edid, filename) && (f_size(&f_edid) <= EDID_MAX_SIZE)) {
-        f_read(&f_edid, c_edid.edid.data, f_size(&f_edid), &bytes_read);
-        file_close(&f_edid);
-    }
-
-    f_chdir("/");
-
-    c_edid.edid.len = bytes_read;
-    sniprintf(c_edid.name, sizeof(c_edid.name), "C: %s", filename);
-
-    // Enfoce custom edid update
-    if (advrx_dev.cfg.edid_sel == 4)
-        set_custom_edid_reload();
-
-    return 0;
 }
 
 void set_custom_edid_reload() {
@@ -1736,7 +1506,7 @@ void mainloop()
                     si5351_set_integer_mult(&si_dev, SI_PLLA, SI_PCLK_PIN, SI_XTAL, 0, (vm_conf.si_pclk_mult > 0) ? vm_conf.si_pclk_mult : 1, (vm_conf.si_pclk_mult < 0) ? (-1)*vm_conf.si_pclk_mult : 0);
 
                 update_osd_size(&vmode_out);
-                update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+                update_sc_config();
 #ifdef INC_ADV7513
                 adv7513_set_pixelrep_vic(&advtx_dev, vmode_out.tx_pixelrep, vmode_out.hdmitx_pixr_ifr, vmode_out.vic);
 #endif
@@ -1870,7 +1640,7 @@ void mainloop()
                         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
                         update_osd_size(&vmode_out);
-                        update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+                        update_sc_config();
 
                         // Setup VIC and pixel repetition
 #ifdef INC_ADV7513
@@ -1883,7 +1653,7 @@ void mainloop()
                 } else if (isl_padj_in_prog) {
                     isl_padj_in_prog = set_sampler_phase(vmode_in.sampler_phase, 1, 0);
                 } else if (status & SC_CONFIG_CHANGE) {
-                    update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+                    update_sc_config();
                 }
             } else {
 
@@ -1983,7 +1753,7 @@ void mainloop()
                         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
                         update_osd_size(&vmode_out);
-                        update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+                        update_sc_config();
 
                         // Setup RX input color space
                         adv761x_set_input_cs(&advrx_dev);
@@ -1997,7 +1767,7 @@ void mainloop()
 #endif
                     }
                 } else if (status & SC_CONFIG_CHANGE) {
-                    update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+                    update_sc_config();
                 }
             } else {
                 advrx_dev.pclk_hz = 0;
@@ -2091,7 +1861,7 @@ void mainloop()
                         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 
                         update_osd_size(&vmode_out);
-                        update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+                        update_sc_config();
 
                         // Setup VIC and pixel repetition
 #ifdef INC_ADV7513
@@ -2102,7 +1872,7 @@ void mainloop()
 #endif
                     }
                 } else if (status & SC_CONFIG_CHANGE) {
-                    update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+                    update_sc_config();
                 }
             } else {
                 advrx_dev.pclk_hz = 0;
@@ -2125,7 +1895,7 @@ void mainloop()
 #ifdef VIP
         // Monitor if VIP DIL gets stuck or CVO fails framelocking
         if (((enable_isl && isl_dev.sync_active) || (enable_hdmirx && advrx_dev.sync_active) || (enable_sdp && advsdp_dev.sync_active)) && (oper_mode == OPERMODE_SCALER) && vip_wdog_update(vm_conf.framelock))
-            update_sc_config(&vmode_in, &vmode_out, &vm_conf, cur_avconfig);
+            update_sc_config();
 #endif
 
         check_sdcard();
@@ -2213,5 +1983,10 @@ int main()
         vip_cvo->ctrl = 0;
         scl_loaded_pp_coeff = -1;
 #endif
+
+        // Reset MMC/SD status as entering standby
+        file_unmount();
+        mmc_dev->has_init = 0;
+        sd_det = sd_det_prev = 0;
     }
 }

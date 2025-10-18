@@ -68,6 +68,10 @@
 #define SCTRL_CAPTURE_SEL_HDMIRX    1
 #define SCTRL_CAPTURE_SEL_SDP       2
 
+// SCL defs
+#define PP_TAPS 4
+#define PP_PHASES 64
+
 typedef enum {
     AV_TESTPAT      = 0,
     AV1_RGBS,
@@ -118,7 +122,7 @@ typedef struct {
 typedef struct {
     char name[13];
     uint8_t bits;
-    int16_t v[64][4];
+    int16_t v[PP_PHASES][PP_TAPS];
 } pp_coeff;
 
 typedef struct {
@@ -192,22 +196,18 @@ void sys_toggle_power();
 
 void print_vm_stats(int menu_mode);
 
+int get_scl_pp_coeff_preset(pp_coeff *dst, char* name);
+
 uint16_t get_sampler_phase();
 int set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_sc);
 void set_default_settings();
 void update_settings(int init_setup);
+void update_sc_config();
 
 void set_default_c_pp_coeffs();
-int load_scl_coeffs(char *dirname, char *filename);
-
 void set_default_c_shmask();
-int load_shmask(char *dirname, char *filename);
-
 void set_default_c_lc_palette_set();
-int load_lc_palette_set(char *dirname, char *filename);
-
 void set_default_c_edid();
-int load_edid(char *dirname, char *filename);
 void set_custom_edid_reload();
 
 #endif

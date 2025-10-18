@@ -18,6 +18,7 @@
 //
 
 #include <string.h>
+#include <stddef.h>
 #include <sys/param.h>
 #include "menu.h"
 #include "av_controller.h"
@@ -69,6 +70,10 @@ extern c_shmask_t c_shmask;
 extern c_lc_palette_set_t c_lc_palette_set;
 extern c_edid_t c_edid;
 
+extern int shmask_loaded_array;
+extern int loaded_lc_palette;
+extern int scl_loaded_pp_coeff;
+
 char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1], func_ret_status[US2066_ROW_LEN+1];
 extern char target_profile_name[USERDATA_NAME_LEN+1];
 
@@ -78,6 +83,8 @@ uint8_t vm_cur, vm_sel, vm_edit, vm_out_cur, vm_out_sel, vm_out_edit, smp_cur, s
 
 menunavi navi[MAX_MENU_DEPTH];
 uint8_t navlvl;
+
+char tmpbuf[512];
 
 // Pointer to custom menu display function
 void (*cstm_f)(menucode_id, int);
@@ -774,6 +781,439 @@ void render_osd_menu() {
     osd->osd_sec_enable[1].mask = row_mask[1];
 }
 
+void display_menu(rc_code_t rcode, btn_code_t bcode)
+{
+    menucode_id code = NO_ACTION;
+    const menuitem_t *item;
+    uint8_t *val, val_wrap, val_min, val_max;
+    uint16_t *val_u16, val_u16_min, val_u16_max;
+    int i, func_called = 0, retval = 0, forcedisp=0;
+
+    if ((rcode == RC_MENU) || (!menu_active && (bcode == BC_PRESS))) {
+        menu_active ^= 1;
+        osd->osd_config.menu_active = menu_active;
+        if (menu_active)
+            render_osd_menu();
+    } else if ((rcode >= RC_OK) && (rcode < RC_INFO)) {
+        code = OPT_SELECT+(rcode-RC_OK);
+    } else if (rcode <= RC_BTN0) {
+        code = MENU_BTN1+rcode;
+    } else if (bcode != (btn_code_t)-1) {
+        code = OPT_SELECT+(bcode-BC_OK);
+    }
+
+    if (!menu_active) {
+        cstm_f = NULL;
+        ui_disp_status(0);
+        return;
+    }
+
+    // Custom menu function
+    if ((cstm_f != NULL) && (code != PREV_MENU)) {
+        cstm_f(code, 0);
+
+        return;
+    }
+
+    item = &navi[navlvl].m->items[navi[navlvl].mp];
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+    case NEXT_PAGE:
+        if ((item->type == OPT_FUNC_CALL) || (item->type == OPT_SUBMENU) || (item->type == OPT_CUSTOMMENU))
+            osd->osd_sec_enable[1].mask &= ~(1<<navi[navlvl].mp);
+
+        if (code == PREV_PAGE)
+            navi[navlvl].mp = (navi[navlvl].mp == 0) ? navi[navlvl].m->num_items-1 : (navi[navlvl].mp-1);
+        else
+            navi[navlvl].mp = (navi[navlvl].mp+1) % navi[navlvl].m->num_items;
+        break;
+    case PREV_MENU:
+        if (navlvl > 0) {
+            if (cstm_f != NULL)
+                cstm_f = NULL;
+            else
+                navlvl--;
+            render_osd_menu();
+        } else {
+            menu_active = 0;
+            osd->osd_config.menu_active = 0;
+            cstm_f = NULL;
+            ui_disp_status(0);
+            return;
+        }
+        break;
+    case OPT_SELECT:
+        switch (item->type) {
+            case OPT_SUBMENU:
+                if (item->sub.arg_f)
+                    item->sub.arg_f();
+
+                if (navi[navlvl+1].m != item->sub.menu)
+                    navi[navlvl+1].mp = 0;
+                navi[navlvl+1].m = item->sub.menu;
+                navlvl++;
+                render_osd_menu();
+
+                break;
+            case OPT_CUSTOMMENU:
+                enter_cstm(item, 0);
+                return;
+                break;
+            case OPT_AVCONFIG_SELECTION:
+                if (item->sel.list_view) {
+                    enter_cstm(item, 0);
+                    return;
+                }
+                break;
+            case OPT_FUNC_CALL:
+                retval = item->fun.f();
+                func_called = 1;
+                break;
+            default:
+                break;
+        }
+        break;
+    case VAL_MINUS:
+    case VAL_PLUS:
+        switch (item->type) {
+            case OPT_AVCONFIG_SELECTION:
+            case OPT_AVCONFIG_NUMVALUE:
+                val = item->sel.data;
+                val_wrap = item->sel.wrap_cfg;
+                val_min = item->sel.min;
+                val_max = item->sel.max;
+
+                if ((item->type != OPT_AVCONFIG_SELECTION) || (item->sel.list_view < 2)) {
+                    if (code == VAL_MINUS)
+                        *val = (*val > val_min) ? (*val-1) : (val_wrap ? val_max : val_min);
+                    else
+                        *val = (*val < val_max) ? (*val+1) : (val_wrap ? val_min : val_max);
+                }
+                break;
+            case OPT_AVCONFIG_NUMVAL_U16:
+                val_u16 = item->num_u16.data;
+                val_u16_min = item->num_u16.min;
+                val_u16_max = item->num_u16.max;
+                val_wrap = (val_u16_min == 0);
+                if (code == VAL_MINUS)
+                    *val_u16 = (*val_u16 > val_u16_min) ? (*val_u16-1) : (val_wrap ? val_u16_max : val_u16_min);
+                else
+                    *val_u16 = (*val_u16 < val_u16_max) ? (*val_u16+1) : (val_wrap ? val_u16_min : val_u16_max);
+                break;
+            case OPT_SUBMENU:
+                val = item->sub.arg_info->data;
+                val_max = item->sub.arg_info->max;
+
+                if (item->sub.arg_info) {
+                    if (code == VAL_MINUS)
+                        *val = (*val > 0) ? (*val-1) : 0;
+                    else
+                        *val = (*val < val_max) ? (*val+1) : val_max;
+                }
+                break;
+            case OPT_FUNC_CALL:
+                val = item->fun.arg_info->data;
+                val_max = item->fun.arg_info->max;
+
+                if (item->fun.arg_info) {
+                    if (code == VAL_MINUS)
+                        *val = (*val > 0) ? (*val-1) : 0;
+                    else
+                        *val = (*val < val_max) ? (*val+1) : val_max;
+                }
+                break;
+            default:
+                break;
+        }
+        break;
+    default:
+        break;
+    }
+
+    // Generate menu text
+    if (func_called)
+        render_osd_menu();
+    item = &navi[navlvl].m->items[navi[navlvl].mp];
+    write_option_name(item);
+    write_option_value(item, func_called, retval);
+    strncpy((char*)osd->osd_array.data[navi[navlvl].mp][1], menu_row2, OSD_CHAR_COLS);
+    osd->osd_row_color.mask = (1<<navi[navlvl].mp);
+    if (func_called || ((item->type == OPT_FUNC_CALL) && item->fun.arg_info != NULL) || ((item->type == OPT_SUBMENU) && item->sub.arg_info != NULL))
+        osd->osd_sec_enable[1].mask |= (1<<navi[navlvl].mp);
+
+    ui_disp_menu(0);
+}
+
+void set_func_ret_msg(char *msg) {
+    strlcpy(func_ret_status, msg, US2066_ROW_LEN+1);
+}
+
+void update_osd_size(mode_data_t *vm_out) {
+    uint8_t osd_size = vm_out->timings.v_active / 700;
+    uint8_t par_x4 = (((400*vm_out->timings.h_active*vm_out->ar.v)/((vm_out->timings.v_active<<vm_out->timings.interlaced)*vm_out->ar.h))+50)/100;
+    int8_t xadj_log2 = -2;
+
+    while (par_x4 > 1) {
+        par_x4 >>= 1;
+        xadj_log2++;
+    }
+
+    osd->osd_config.x_size = ((osd_size + vm_out->timings.interlaced + xadj_log2) >= 0) ? (osd_size + vm_out->timings.interlaced + xadj_log2) : 0;
+    osd->osd_config.y_size = osd_size;
+}
+
+void refresh_osd() {
+    if (menu_active && (cstm_f == NULL)) {
+        render_osd_menu();
+        display_menu((rc_code_t)-1, (btn_code_t)-1);
+    }
+}
+
+void osd_array_fname_fill(FILINFO *fno) {
+    // Buffer has space for up to 21 strings
+    if (osd_list_iter < (sizeof(tmpbuf)/24) ) {
+        sniprintf(&tmpbuf[osd_list_iter*24], 24, "%s", fno->fname);
+        strncpy((char*)osd->osd_array.data[osd_list_iter+2][0], &tmpbuf[osd_list_iter*24], OSD_CHAR_COLS);
+    }
+
+    osd_list_iter++;
+}
+
+int load_scl_coeffs(char *dirname, char *filename) {
+    FIL file;
+    FIL f_coeff;
+    char dirname_root[10];
+    int i, p, n, pp_bits, name_match, lines=0;
+
+    if (!sd_det)
+        return -1;
+
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
+
+    if (!file_open(&file, filename)) {
+        while ((lines < 4) && file_get_string(&file, tmpbuf, sizeof(tmpbuf))) {
+            // strip CR / CRLF
+            tmpbuf[strcspn(tmpbuf, "\r\n")] = 0;
+
+            // Break on empty line
+            if (tmpbuf[0] == 0)
+                break;
+
+            // Check if matching preset name is found
+            name_match = get_scl_pp_coeff_preset(&c_pp_coeffs.coeffs[lines], tmpbuf);
+
+            // If no matching preset found, use string as file name pointer
+            if (!name_match) {
+                if (!file_open(&f_coeff, tmpbuf)) {
+                    p = 0;
+                    pp_bits = 9;
+                    while (file_get_string(&f_coeff, tmpbuf, sizeof(tmpbuf))) {
+                        // strip CR / CRLF
+                        tmpbuf[strcspn(tmpbuf, "\r\n")] = 0;
+                        if ((p==0) && (strncmp(tmpbuf, "10bit", 5) == 0)) {
+                            pp_bits = 10;
+                            continue;
+                        }
+                        n = sscanf(tmpbuf, "%hd,%hd,%hd,%hd", &c_pp_coeffs.coeffs[lines].v[p][0], &c_pp_coeffs.coeffs[lines].v[p][1], &c_pp_coeffs.coeffs[lines].v[p][2], &c_pp_coeffs.coeffs[lines].v[p][3]);
+                        if (n == PP_TAPS) {
+                            if (++p == PP_PHASES)
+                                break;
+                        }
+                    }
+                    c_pp_coeffs.coeffs[lines].bits = pp_bits;
+
+                    file_close(&f_coeff);
+                } else {
+                    break;
+                }
+            }
+            lines++;
+        }
+
+        file_close(&file);
+    }
+
+    f_chdir("/");
+
+    if ((lines == 2) || (lines == 4)) {
+        c_pp_coeffs.ea = (lines == 4);
+        sniprintf(c_pp_coeffs.name, sizeof(c_pp_coeffs.name), "C: %s", filename);
+        scl_loaded_pp_coeff = -1;
+        update_sc_config();
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+int load_shmask(char *dirname, char *filename) {
+    FIL f_shmask;
+    char dirname_root[10];
+    int arr_size_loaded=0;
+    int v0=0,v1=0;
+    int p;
+
+    if (!sd_det)
+        return -1;
+
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
+
+    if (!file_open(&f_shmask, filename)) {
+        while (file_get_string(&f_shmask, tmpbuf, sizeof(tmpbuf))) {
+            // strip CR / CRLF
+            tmpbuf[strcspn(tmpbuf, "\r\n")] = 0;
+
+            // Skip empty / comment lines
+            if ((tmpbuf[0] == 0) || (tmpbuf[0] == '#'))
+                continue;
+
+            if (!arr_size_loaded && (sscanf(tmpbuf, "%d,%d", &v0, &v1) == 2)) {
+                c_shmask.arr.iv_x = v0-1;
+                c_shmask.arr.iv_y = v1-1;
+                arr_size_loaded = 1;
+            } else if (arr_size_loaded && (v1 > 0)) {
+                p = c_shmask.arr.iv_y+1-v1;
+                if (sscanf(tmpbuf, "%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx,%hx",    &c_shmask.arr.v[p][0],
+                                                                                                         &c_shmask.arr.v[p][1],
+                                                                                                         &c_shmask.arr.v[p][2],
+                                                                                                         &c_shmask.arr.v[p][3],
+                                                                                                         &c_shmask.arr.v[p][4],
+                                                                                                         &c_shmask.arr.v[p][5],
+                                                                                                         &c_shmask.arr.v[p][6],
+                                                                                                         &c_shmask.arr.v[p][7],
+                                                                                                         &c_shmask.arr.v[p][8],
+                                                                                                         &c_shmask.arr.v[p][9],
+                                                                                                         &c_shmask.arr.v[p][10],
+                                                                                                         &c_shmask.arr.v[p][11],
+                                                                                                         &c_shmask.arr.v[p][12],
+                                                                                                         &c_shmask.arr.v[p][13],
+                                                                                                         &c_shmask.arr.v[p][14],
+                                                                                                         &c_shmask.arr.v[p][15]) == v0)
+                    v1--;
+            }
+        }
+
+        file_close(&f_shmask);
+    }
+
+    f_chdir("/");
+
+    sniprintf(c_shmask.name, sizeof(c_shmask.name), "C: %s", filename);
+    shmask_loaded_array = -1;
+    update_sc_config();
+    return 0;
+}
+
+int load_lc_palette_set(char *dirname, char *filename) {
+    FIL f_lc_palset;
+    char dirname_root[10];
+    int entries_remaining=0;
+    int offset;
+
+    if (!sd_det)
+        return -1;
+
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
+
+    if (!file_open(&f_lc_palset, filename)) {
+        while (file_get_string(&f_lc_palset, tmpbuf, sizeof(tmpbuf))) {
+            // strip CR / CRLF
+            tmpbuf[strcspn(tmpbuf, "\r\n")] = 0;
+
+            // Skip empty / comment lines
+            if ((tmpbuf[0] == 0) || (tmpbuf[0] == '#'))
+                continue;
+
+            if (!entries_remaining) {
+                if (strncmp(tmpbuf, "c64_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, c64_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(tmpbuf, "zx_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, zx_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(tmpbuf, "msx_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, msx_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(tmpbuf, "intv_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, intv_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(tmpbuf, "nes_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, nes_pal)/4;
+                    entries_remaining = 64;
+                } else if (strncmp(tmpbuf, "tia_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, tia_pal)/4;
+                    entries_remaining = 128;
+                } else if (strncmp(tmpbuf, "gtia_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, gtia_pal)/4;
+                    entries_remaining = 128;
+                }
+            } else if (sscanf(tmpbuf, "%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx",    &c_lc_palette_set.pal.data[offset],
+                                                                                                            &c_lc_palette_set.pal.data[offset+1],
+                                                                                                            &c_lc_palette_set.pal.data[offset+2],
+                                                                                                            &c_lc_palette_set.pal.data[offset+3],
+                                                                                                            &c_lc_palette_set.pal.data[offset+4],
+                                                                                                            &c_lc_palette_set.pal.data[offset+5],
+                                                                                                            &c_lc_palette_set.pal.data[offset+6],
+                                                                                                            &c_lc_palette_set.pal.data[offset+7],
+                                                                                                            &c_lc_palette_set.pal.data[offset+8],
+                                                                                                            &c_lc_palette_set.pal.data[offset+9],
+                                                                                                            &c_lc_palette_set.pal.data[offset+10],
+                                                                                                            &c_lc_palette_set.pal.data[offset+11],
+                                                                                                            &c_lc_palette_set.pal.data[offset+12],
+                                                                                                            &c_lc_palette_set.pal.data[offset+13],
+                                                                                                            &c_lc_palette_set.pal.data[offset+14],
+                                                                                                            &c_lc_palette_set.pal.data[offset+15]) == 16) {
+
+
+                offset += 16;
+                entries_remaining -= 16;
+            }
+        }
+
+        file_close(&f_lc_palset);
+    }
+
+    f_chdir("/");
+
+    sniprintf(c_lc_palette_set.name, sizeof(c_lc_palette_set.name), "C: %s", filename);
+    loaded_lc_palette = -1;
+    update_sc_config();
+    return 0;
+}
+
+int load_edid(char *dirname, char *filename) {
+    FIL f_edid;
+    char dirname_root[10];
+    unsigned bytes_read;
+
+    if (!sd_det)
+        return -1;
+
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
+
+    if (!file_open(&f_edid, filename) && (f_size(&f_edid) <= EDID_MAX_SIZE)) {
+        f_read(&f_edid, c_edid.edid.data, f_size(&f_edid), &bytes_read);
+        file_close(&f_edid);
+    }
+
+    f_chdir("/");
+
+    c_edid.edid.len = bytes_read;
+    sniprintf(c_edid.name, sizeof(c_edid.name), "C: %s", filename);
+
+    // Enfoce custom edid update
+    if (advrx_dev.cfg.edid_sel == 4)
+        set_custom_edid_reload();
+
+    return 0;
+}
+
 void cstm_clock_phase(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x3ff, 0x3f0};
     smp_preset_t *smp = &smp_presets[smp_edit];
@@ -1134,7 +1574,6 @@ void cstm_position(menucode_id code, int setup_disp) {
 void cstm_profile_load(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x03, 0x00};
     int i, retval, items_curpage;
-    char p_load_str[3];
     static int nav = 0;
     static int p_load = -1;
 #ifdef DE10N
@@ -1327,11 +1766,6 @@ void cstm_rf_tune(menucode_id code, int setup_disp) {
     ui_disp_menu(0);
 }
 
-void osd_array_fname_fill(FILINFO *fno) {
-    sniprintf((char*)osd->osd_array.data[osd_list_iter+2][0], OSD_CHAR_COLS, "%s", fno->fname);
-    osd_list_iter++;
-}
-
 void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, load_func load_f) {
     uint32_t row_mask[2] = {0x03, 0x00};
     int i, retval, items_curpage;
@@ -1439,7 +1873,8 @@ void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, 
 
     osd->osd_row_color.mask = (1<<(file_load_nav+2));
 
-    //sniprintf(menu_row2, US2066_ROW_LEN+1, "%u: %s", (page == 0) ? nav : (page-1)*20+nav, (retval != 0) ? "<empty>" : target_profile_name);
+    if (code != OPT_SELECT)
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", &tmpbuf[file_load_nav*24]);
 
     ui_disp_menu(0);
 }
@@ -1590,196 +2025,6 @@ void quick_adjust_phase(uint8_t dir) {
         osd->osd_row_color.mask = 0;
         osd->osd_sec_enable[0].mask = 3;
         osd->osd_sec_enable[1].mask = 0;
-    }
-}
-
-void display_menu(rc_code_t rcode, btn_code_t bcode)
-{
-    menucode_id code = NO_ACTION;
-    const menuitem_t *item;
-    uint8_t *val, val_wrap, val_min, val_max;
-    uint16_t *val_u16, val_u16_min, val_u16_max;
-    int i, func_called = 0, retval = 0, forcedisp=0;
-
-    if ((rcode == RC_MENU) || (!menu_active && (bcode == BC_PRESS))) {
-        menu_active ^= 1;
-        osd->osd_config.menu_active = menu_active;
-        if (menu_active)
-            render_osd_menu();
-    } else if ((rcode >= RC_OK) && (rcode < RC_INFO)) {
-        code = OPT_SELECT+(rcode-RC_OK);
-    } else if (rcode <= RC_BTN0) {
-        code = MENU_BTN1+rcode;
-    } else if (bcode != (btn_code_t)-1) {
-        code = OPT_SELECT+(bcode-BC_OK);
-    }
-
-    if (!menu_active) {
-        cstm_f = NULL;
-        ui_disp_status(0);
-        return;
-    }
-
-    // Custom menu function
-    if ((cstm_f != NULL) && (code != PREV_MENU)) {
-        cstm_f(code, 0);
-
-        return;
-    }
-
-    item = &navi[navlvl].m->items[navi[navlvl].mp];
-
-    // Parse menu control
-    switch (code) {
-    case PREV_PAGE:
-    case NEXT_PAGE:
-        if ((item->type == OPT_FUNC_CALL) || (item->type == OPT_SUBMENU) || (item->type == OPT_CUSTOMMENU))
-            osd->osd_sec_enable[1].mask &= ~(1<<navi[navlvl].mp);
-
-        if (code == PREV_PAGE)
-            navi[navlvl].mp = (navi[navlvl].mp == 0) ? navi[navlvl].m->num_items-1 : (navi[navlvl].mp-1);
-        else
-            navi[navlvl].mp = (navi[navlvl].mp+1) % navi[navlvl].m->num_items;
-        break;
-    case PREV_MENU:
-        if (navlvl > 0) {
-            if (cstm_f != NULL)
-                cstm_f = NULL;
-            else
-                navlvl--;
-            render_osd_menu();
-        } else {
-            menu_active = 0;
-            osd->osd_config.menu_active = 0;
-            cstm_f = NULL;
-            ui_disp_status(0);
-            return;
-        }
-        break;
-    case OPT_SELECT:
-        switch (item->type) {
-            case OPT_SUBMENU:
-                if (item->sub.arg_f)
-                    item->sub.arg_f();
-
-                if (navi[navlvl+1].m != item->sub.menu)
-                    navi[navlvl+1].mp = 0;
-                navi[navlvl+1].m = item->sub.menu;
-                navlvl++;
-                render_osd_menu();
-
-                break;
-            case OPT_CUSTOMMENU:
-                enter_cstm(item, 0);
-                return;
-                break;
-            case OPT_AVCONFIG_SELECTION:
-                if (item->sel.list_view) {
-                    enter_cstm(item, 0);
-                    return;
-                }
-                break;
-            case OPT_FUNC_CALL:
-                retval = item->fun.f();
-                func_called = 1;
-                break;
-            default:
-                break;
-        }
-        break;
-    case VAL_MINUS:
-    case VAL_PLUS:
-        switch (item->type) {
-            case OPT_AVCONFIG_SELECTION:
-            case OPT_AVCONFIG_NUMVALUE:
-                val = item->sel.data;
-                val_wrap = item->sel.wrap_cfg;
-                val_min = item->sel.min;
-                val_max = item->sel.max;
-
-                if ((item->type != OPT_AVCONFIG_SELECTION) || (item->sel.list_view < 2)) {
-                    if (code == VAL_MINUS)
-                        *val = (*val > val_min) ? (*val-1) : (val_wrap ? val_max : val_min);
-                    else
-                        *val = (*val < val_max) ? (*val+1) : (val_wrap ? val_min : val_max);
-                }
-                break;
-            case OPT_AVCONFIG_NUMVAL_U16:
-                val_u16 = item->num_u16.data;
-                val_u16_min = item->num_u16.min;
-                val_u16_max = item->num_u16.max;
-                val_wrap = (val_u16_min == 0);
-                if (code == VAL_MINUS)
-                    *val_u16 = (*val_u16 > val_u16_min) ? (*val_u16-1) : (val_wrap ? val_u16_max : val_u16_min);
-                else
-                    *val_u16 = (*val_u16 < val_u16_max) ? (*val_u16+1) : (val_wrap ? val_u16_min : val_u16_max);
-                break;
-            case OPT_SUBMENU:
-                val = item->sub.arg_info->data;
-                val_max = item->sub.arg_info->max;
-
-                if (item->sub.arg_info) {
-                    if (code == VAL_MINUS)
-                        *val = (*val > 0) ? (*val-1) : 0;
-                    else
-                        *val = (*val < val_max) ? (*val+1) : val_max;
-                }
-                break;
-            case OPT_FUNC_CALL:
-                val = item->fun.arg_info->data;
-                val_max = item->fun.arg_info->max;
-
-                if (item->fun.arg_info) {
-                    if (code == VAL_MINUS)
-                        *val = (*val > 0) ? (*val-1) : 0;
-                    else
-                        *val = (*val < val_max) ? (*val+1) : val_max;
-                }
-                break;
-            default:
-                break;
-        }
-        break;
-    default:
-        break;
-    }
-
-    // Generate menu text
-    if (func_called)
-        render_osd_menu();
-    item = &navi[navlvl].m->items[navi[navlvl].mp];
-    write_option_name(item);
-    write_option_value(item, func_called, retval);
-    strncpy((char*)osd->osd_array.data[navi[navlvl].mp][1], menu_row2, OSD_CHAR_COLS);
-    osd->osd_row_color.mask = (1<<navi[navlvl].mp);
-    if (func_called || ((item->type == OPT_FUNC_CALL) && item->fun.arg_info != NULL) || ((item->type == OPT_SUBMENU) && item->sub.arg_info != NULL))
-        osd->osd_sec_enable[1].mask |= (1<<navi[navlvl].mp);
-
-    ui_disp_menu(0);
-}
-
-void set_func_ret_msg(char *msg) {
-    strlcpy(func_ret_status, msg, US2066_ROW_LEN+1);
-}
-
-void update_osd_size(mode_data_t *vm_out) {
-    uint8_t osd_size = vm_out->timings.v_active / 700;
-    uint8_t par_x4 = (((400*vm_out->timings.h_active*vm_out->ar.v)/((vm_out->timings.v_active<<vm_out->timings.interlaced)*vm_out->ar.h))+50)/100;
-    int8_t xadj_log2 = -2;
-
-    while (par_x4 > 1) {
-        par_x4 >>= 1;
-        xadj_log2++;
-    }
-
-    osd->osd_config.x_size = ((osd_size + vm_out->timings.interlaced + xadj_log2) >= 0) ? (osd_size + vm_out->timings.interlaced + xadj_log2) : 0;
-    osd->osd_config.y_size = osd_size;
-}
-
-void refresh_osd() {
-    if (menu_active && (cstm_f == NULL)) {
-        render_osd_menu();
-        display_menu((rc_code_t)-1, (btn_code_t)-1);
     }
 }
 
