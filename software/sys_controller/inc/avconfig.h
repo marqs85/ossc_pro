@@ -173,6 +173,7 @@ typedef struct {
     uint8_t lumacode_mode;
     uint8_t lumacode_pal;
     uint8_t ypbpr_cs;
+    uint8_t hdmi_csync;
     /* Common LM settings */
     uint8_t lm_deint_mode;
     uint8_t nir_even_offset;

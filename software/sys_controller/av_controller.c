@@ -511,6 +511,7 @@ void update_sc_config(mode_data_t *vm_in, mode_data_t *vm_out, vm_proc_config_t 
     misc_config.shmask_iv_y = shmask_data_arr_ptr->iv_y;
     misc_config2.lumacode_mode = avconfig->lumacode_mode;
     misc_config2.vip_enable = vip_enable;
+    misc_config2.hdmi_csync = avconfig->hdmi_csync;
 
     // set default/custom scanline interval
     sl_def_iv_y = (vm_conf->y_rpt > 0) ? vm_conf->y_rpt : 1;

@@ -470,6 +470,7 @@ assign HDMITX_PCLK_o = ~pclk_out;
 
 // VIP / LB
 wire vip_select = misc_config2[3];
+wire hdmi_csync = misc_config2[4];
 wire lb_enable = sys_poweron & ~testpattern_enable & ~vip_select;
 
 always @(posedge pclk_capture) begin
@@ -610,7 +611,7 @@ always @(posedge pclk_out) begin
 `endif
     HDMITX_G_o <= G_out;
     HDMITX_B_o <= B_out;
-    HDMITX_HSYNC_o <= HSYNC_out;
+    HDMITX_HSYNC_o <= hdmi_csync ? ~(HSYNC_out ^ VSYNC_out) : HSYNC_out;
     HDMITX_VSYNC_o <= VSYNC_out;
     HDMITX_DE_o <= DE_out;
 end
