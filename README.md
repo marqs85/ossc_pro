@@ -13,6 +13,7 @@ Requirements for building and debugging firmware
 * Software
   * [Altera Quartus II + Cyclone V support](http://dl.altera.com/?edition=lite) (v 21.1 or higher - free Lite Edition suffices)
   * [RISC-V GNU Compiler Toolchain](https://github.com/riscv/riscv-gnu-toolchain)
+  * [Picolibc](https://github.com/picolibc/picolibc) for RISC-V
   * GCC (or another C compiler) for host architecture (for building a SD card image)
   * Make
 
@@ -24,12 +25,19 @@ TODO
 
 SW toolchain build procedure
 --------------------------
-1. Download, configure, build and install RISC-V toolchain with Newlib + RV32EMC support:
+1. Download, configure, build and install RISC-V toolchain (with RV32EMC support) and Picolibc.
+
+From sources:
 ~~~~
 git clone --recursive https://github.com/riscv/riscv-gnu-toolchain
+git clone --recursive https://github.com/picolibc/picolibc
 cd riscv-gnu-toolchain
 ./configure --prefix=/opt/riscv --with-arch=rv32emc --with-abi=ilp32e
 sudo make    # sudo needed if installing under default /opt/riscv location
+~~~~
+On Debian-style Linux distros:
+~~~~
+sudo apt install gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf picolibc-riscv64-unknown-elf
 ~~~~
 
 
@@ -69,7 +77,7 @@ It will spawn a bash prompt with Quartus Lite, the RISC-V toolchain installed.
 
 Here are the commands used for building the RTL without GUI:
 ~~~~
-# qsys-generate --synthesis=VERILOG sys.qsys 
+# qsys-generate --synthesis=VERILOG sys.qsys
 # patch -p0 < scripts/qsys.patch
 # touch software/sys_controller_bsp/bsp_timestamp
 # quartus_sh --flow compile ossc_pro.qpf
@@ -117,13 +125,13 @@ where
 * \<num_images\> is the number of separate images in the file which is typically 2 (FPGA bitstream + SW image)
 * \<imgX\> is path to the image file
 * \<offsetX\> is offset in the flash where the image will be placed
-* \<version\> is version string (e.g. 0.69)
+* \<version\> is version string (e.g. 0.79)
 
-The primary firmware has FPGA bitstream at offset 0x0 and SW image at 0xA00000 so the command is typically as follows:
+The primary firmware has FPGA bitstream at offset 0x0 and SW image at 0x2d0000 (0xA00000 before 0.79) so the command is typically as follows:
 ~~~~
-./create_fw_img 2 ../output_files/ossc_pro.rbf 0x0 ../software/sys_controller/mem_init/flash.bin 0xA00000 0.69
+./create_fw_img 2 ../output_files/ossc_pro.rbf 0x0 ../software/sys_controller/mem_init/flash.bin 0x2d0000 0.79
 ~~~~
-This creates ossc_pro_\<version\>.bin which can be copied to root of SD card as ossc_pro.bin.
+This creates ossc_pro_\<version\>.bin which can be copied to fw folder of SD card.
 
 Alternative firmware images and dynamic reconfiguration
 --------------------------
