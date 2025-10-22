@@ -210,6 +210,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(108, 80, tc.scl_dil_cadence22_comb_thold),
 #endif
 #endif
+    UDE_ITEM(109, 80, tc.hdmi_csync),
 };
 
 int write_userdata(uint8_t entry) {

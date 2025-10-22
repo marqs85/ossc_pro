@@ -492,6 +492,7 @@ MENU(menu_output, P99_PROTECT({
     { LNG("TX mode","TXﾓｰﾄﾞ"),                  OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.tx_mode,  OPT_WRAP, SETTING_ITEM_LIST(tx_mode_desc) } } },
     { "HDMI HDR flag",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.hdr,      OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
     { "HDMI VRR flag",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.vrr,      OPT_WRAP, SETTING_ITEM(hdmi_vrr_desc) } } },
+    { "HDMI combined sync",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_csync,          OPT_WRAP, SETTING_ITEM_LIST(off_on_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 #ifndef DExx_FW
     { LNG("Full TX setup","ﾌﾙTXｾｯﾄｱｯﾌﾟ"),       OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.full_tx_setup, OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
