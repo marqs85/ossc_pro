@@ -127,7 +127,8 @@ typedef union {
     struct {
         uint8_t lumacode_mode:3;
         uint8_t vip_enable:1;
-        uint32_t misc2_rsv:28;
+        uint8_t hdmi_csync:1;
+        uint32_t misc2_rsv:27;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } misc_config2_reg;
