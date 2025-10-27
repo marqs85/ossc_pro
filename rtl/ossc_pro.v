@@ -611,7 +611,7 @@ always @(posedge pclk_out) begin
 `endif
     HDMITX_G_o <= G_out;
     HDMITX_B_o <= B_out;
-    HDMITX_HSYNC_o <= hdmi_csync ? ~(HSYNC_out ^ VSYNC_out) : HSYNC_out;
+    HDMITX_HSYNC_o <= hdmi_csync ? HSYNC_out & VSYNC_out : HSYNC_out;
     HDMITX_VSYNC_o <= VSYNC_out;
     HDMITX_DE_o <= DE_out;
 end
@@ -657,10 +657,10 @@ always @(posedge pclk_out) begin
         VGA_R_pre <= VGA_CSC_R_out;
         VGA_G_pre <= VGA_CSC_G_out;
         VGA_B_pre <= VGA_CSC_B_out;
-        VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_HSYNC_out : ~(VGA_CSC_HSYNC_out ^ VGA_CSC_VSYNC_out);
+        VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_HSYNC_out : VGA_CSC_HSYNC_out & VGA_CSC_VSYNC_out;
         VGA_VS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_VSYNC_out : 1'b1;
         VGA_BLANK_N_pre <= (extra_out_mode == EXTRA_OUT_YPbPr) ? 1'b1 : VGA_CSC_DE_out;
-        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? ~(VGA_CSC_HSYNC_out ^ VGA_CSC_VSYNC_out) : 1'b0;
+        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? VGA_CSC_HSYNC_out & VGA_CSC_VSYNC_out : 1'b0;
 
         VGA_R <= VGA_R_pre;
         VGA_G <= VGA_G_pre;
