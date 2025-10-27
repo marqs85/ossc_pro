@@ -129,6 +129,7 @@ static const char* const lm_deint_mode_desc[] = { "Bob", "Noninterlace restore" 
 static const char* const ar_256col_desc[] = { "Pseudo 4:3 DAR", "1:1 PAR" };
 static const char* const tx_mode_desc[] = { "HDMI (RGB Full)", "HDMI (RGB Limited)", "HDMI (YCbCr444)", "DVI" };
 static const char* const hdmi_vrr_desc[] = { "Off", "Freesync" };
+static const char* const csync_combiner_desc[] = { "Type A (AND)", "Legacy (XNOR)" };
 static const char* const sl_mode_desc[] = { LNG("Off","ｵﾌ"), LNG("Auto","ｵｰﾄ"), LNG("On","ｵﾝ") };
 static const char* const sl_method_desc[] = { LNG("Multiplication","Multiplication"), LNG("Subtraction","Subtraction") };
 static const char* const sl_type_desc[] = { LNG("Horizontal","ﾖｺ"), LNG("Vertical","ﾀﾃ"), "Horiz. + Vert.", "Custom" };
@@ -502,6 +503,7 @@ MENU(menu_output, P99_PROTECT({
     { "HDMI HDR flag",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.hdr,      OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
     { "HDMI VRR flag",                         OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.vrr,      OPT_WRAP, SETTING_ITEM(hdmi_vrr_desc) } } },
     { "HDMI combined sync",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_csync,          OPT_WRAP, SETTING_ITEM_LIST(off_on_desc) } } },
+    { "CSync combiner",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.csync_combiner,      OPT_WRAP, SETTING_ITEM_LIST(csync_combiner_desc) } } },
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 #ifndef DExx_FW
     { LNG("Full TX setup","ﾌﾙTXｾｯﾄｱｯﾌﾟ"),       OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.full_tx_setup, OPT_WRAP, SETTING_ITEM(off_on_desc) } } },

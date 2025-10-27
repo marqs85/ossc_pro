@@ -471,6 +471,7 @@ assign HDMITX_PCLK_o = ~pclk_out;
 // VIP / LB
 wire vip_select = misc_config2[3];
 wire hdmi_csync = misc_config2[4];
+wire [1:0] csync_combiner = misc_config2[6:5];
 wire lb_enable = sys_poweron & ~testpattern_enable & ~vip_select;
 
 always @(posedge pclk_capture) begin
@@ -588,6 +589,7 @@ reg [7:0] R_out, G_out, B_out;
 reg HSYNC_out, VSYNC_out, DE_out;
 wire [7:0] R_sc, G_sc, B_sc;
 wire HSYNC_sc, VSYNC_sc, DE_sc;
+wire CSYNC_out = csync_combiner == 0 ? HSYNC_out & VSYNC_out : ~(HSYNC_out ^ VSYNC_out);
 
 always @(posedge pclk_out) begin
     if (osd_enable) begin
@@ -611,7 +613,7 @@ always @(posedge pclk_out) begin
 `endif
     HDMITX_G_o <= G_out;
     HDMITX_B_o <= B_out;
-    HDMITX_HSYNC_o <= hdmi_csync ? HSYNC_out & VSYNC_out : HSYNC_out;
+    HDMITX_HSYNC_o <= hdmi_csync ? CSYNC_out : HSYNC_out;
     HDMITX_VSYNC_o <= VSYNC_out;
     HDMITX_DE_o <= DE_out;
 end
@@ -652,15 +654,16 @@ output_csc csc_vga_inst (
 // VGA DAC
 reg [7:0] VGA_R, VGA_G, VGA_B, VGA_R_pre, VGA_G_pre, VGA_B_pre;
 reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N, VGA_HS_pre, VGA_VS_pre, VGA_SYNC_N_pre, VGA_BLANK_N_pre;
+wire VGA_CSC_CSYNC_out = csync_combiner == 0 ? VGA_CSC_HSYNC_out & VGA_CSC_VSYNC_out : ~(VGA_CSC_HSYNC_out ^ VGA_CSC_VSYNC_out);
 always @(posedge pclk_out) begin
     if (exp_sel == EXP_SEL_EXTRA_OUT) begin
         VGA_R_pre <= VGA_CSC_R_out;
         VGA_G_pre <= VGA_CSC_G_out;
         VGA_B_pre <= VGA_CSC_B_out;
-        VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_HSYNC_out : VGA_CSC_HSYNC_out & VGA_CSC_VSYNC_out;
+        VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_HSYNC_out : VGA_CSC_CSYNC_out;
         VGA_VS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_VSYNC_out : 1'b1;
         VGA_BLANK_N_pre <= (extra_out_mode == EXTRA_OUT_YPbPr) ? 1'b1 : VGA_CSC_DE_out;
-        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? VGA_CSC_HSYNC_out & VGA_CSC_VSYNC_out : 1'b0;
+        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? VGA_CSC_CSYNC_out : 1'b0;
 
         VGA_R <= VGA_R_pre;
         VGA_G <= VGA_G_pre;
