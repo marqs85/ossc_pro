@@ -41,7 +41,8 @@
 #include "si2177.h"
 #endif
 
-#define SIGNED_NUMVAL_ZERO  128
+#define SIGNED_NUMVAL_ZERO    128
+#define SIGNED16_NUMVAL_ZERO  32768
 
 #define SCANLINESTR_MAX     15
 #define SL_HYBRIDSTR_MAX    28
@@ -172,6 +173,8 @@ typedef struct {
     uint8_t lumacode_mode;
     uint8_t lumacode_pal;
     uint8_t ypbpr_cs;
+    uint8_t hdmi_csync;
+    uint8_t csync_combiner;
     /* Common LM settings */
     uint8_t lm_deint_mode;
     uint8_t nir_even_offset;
@@ -179,11 +182,21 @@ typedef struct {
 #ifdef VIP
     uint8_t scl_edge_thold;
     uint8_t scl_dil_motion_shift;
-#ifndef VIP_DIL_B
+#ifndef VIP_DIL_CADENCE_VOFILM
     uint8_t scl_dil_alg;
 #else
     uint8_t scl_dil_motion_scale;
     uint8_t scl_dil_cadence_detect_enable;
+#endif
+#if defined(VIP_DIL_CADENCE_BASIC) || defined(VIP_DIL_CADENCE_VOFILM)
+    uint8_t scl_dil_cadence32_lock_thold;
+    uint8_t scl_dil_cadence32_unlock_thold;
+    uint8_t scl_dil_cadence32_diff_thold;
+    uint8_t scl_dil_cadence22_lock_thold;
+    uint8_t scl_dil_cadence22_unlock_thold;
+    uint8_t scl_dil_cadence22_comb_thold;
+#endif
+#ifdef DEBUG
     uint8_t scl_dil_visualize_motion;
 #endif
 #endif

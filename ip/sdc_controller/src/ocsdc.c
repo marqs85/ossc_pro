@@ -52,8 +52,9 @@
 #define OCSDC_RESPONSE_2         0x0c
 #define OCSDC_RESPONSE_3         0x10
 #define OCSDC_RESPONSE_4         0x14
-#define OCSDC_CONTROL 			 0x1C
-#define OCSDC_TIMEOUT            0x20
+#define OCSDC_DAT_TIMEOUT        0x18
+#define OCSDC_CONTROL            0x1C
+#define OCSDC_CMD_TIMEOUT        0x20
 #define OCSDC_CLOCK_DIVIDER      0x24
 #define OCSDC_SOFTWARE_RESET     0x28
 #define OCSDC_POWER_CONTROL      0x2C
@@ -66,17 +67,12 @@
 #define OCSDC_BLOCK_COUNT        0x48
 #define OCSDC_DST_SRC_ADDR       0x60
 
-// OCSDC_CMD_INT_STATUS bits
-#define OCSDC_CMD_INT_STATUS_CC   0x0001
-#define OCSDC_CMD_INT_STATUS_EI   0x0002
-#define OCSDC_CMD_INT_STATUS_CTE  0x0004
-#define OCSDC_CMD_INT_STATUS_CCRC 0x0008
-#define OCSDC_CMD_INT_STATUS_CIE  0x0010
-
-// SDCMSC_DAT_INT_STATUS
-#define SDCMSC_DAT_INT_STATUS_TRS 0x01
-#define SDCMSC_DAT_INT_STATUS_CRC 0x02
-#define SDCMSC_DAT_INT_STATUS_OV  0x04
+// OCSDC_INT_STATUS bits
+#define OCSDC_INT_STATUS_CC   0x0001
+#define OCSDC_INT_STATUS_EI   0x0002
+#define OCSDC_INT_STATUS_CTE  0x0004
+#define OCSDC_INT_STATUS_CCRC 0x0008
+#define OCSDC_INT_STATUS_CIE  0x0010
 
 #ifndef OCSDC_DEBUG
 #define DBG_PRINTF(...)
@@ -140,14 +136,14 @@ static int ocsdc_finish(struct ocsdc * dev, struct mmc_cmd *cmd) {
 	while (1) {
 		int r2 = ocsdc_read(dev, OCSDC_CMD_INT_STATUS);
 		//DBG_PRINTF("ocsdc_finish: cmd %d, status %x\n", cmd->cmdidx, r2);
-		if (r2 & OCSDC_CMD_INT_STATUS_EI) {
+		if (r2 & OCSDC_INT_STATUS_EI) {
 			//clear interrupts
 			ocsdc_write(dev, OCSDC_CMD_INT_STATUS, 0);
 			DBG_PRINTF("ocsdc_finish: cmd %d, status %x\n\r", cmd->cmdidx, r2);
 			retval = -1;
 			break;
 		}
-		else if (r2 & OCSDC_CMD_INT_STATUS_CC) {
+		else if (r2 & OCSDC_INT_STATUS_CC) {
 			//clear interrupts
 			ocsdc_write(dev, OCSDC_CMD_INT_STATUS, 0);
 			//get response
@@ -175,7 +171,7 @@ static int ocsdc_data_finish(struct ocsdc * dev) {
     while ((status = ocsdc_read(dev, OCSDC_DAT_INT_STATUS)) == 0);
     ocsdc_write(dev, OCSDC_DAT_INT_STATUS, 0);
 
-    if (status & SDCMSC_DAT_INT_STATUS_TRS) {
+    if (status & OCSDC_INT_STATUS_CC) {
     	DBG_PRINTF("ocsdc_data_finish: ok\n\r");
     	return 0;
     }
@@ -248,7 +244,8 @@ static int ocsdc_init(struct mmc *mmc)
 	struct ocsdc * dev = mmc->priv;
 
 	//set timeout
-	ocsdc_write(dev, OCSDC_TIMEOUT, 0x7FFF);
+	ocsdc_write(dev, OCSDC_CMD_TIMEOUT, 0x7FFF);
+	ocsdc_write(dev, OCSDC_DAT_TIMEOUT, 0xFFFFFF);
 	//disable all interrupts
 	ocsdc_write(dev, OCSDC_CMD_INT_ENABLE, 0);
 	ocsdc_write(dev, OCSDC_DAT_INT_ENABLE, 0);

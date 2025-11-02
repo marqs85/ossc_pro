@@ -120,6 +120,7 @@ empty will place the FIFO in an undefined state.
 */
 
 `define ALTERA_M10K_FIFO_SIZE
+//`define ALTERA_DCFIFO
 
 
 module generic_fifo_dc_gray(	rd_clk, wr_clk, rst, clr, din, we,
@@ -147,6 +148,35 @@ localparam aw_r = $clog2(8192/dw);
 localparam aw_r = aw;
 `endif
 
+`ifdef ALTERA_DCFIFO
+dcfifo dcfifo_component (
+            .data (din),
+            .rdclk (rd_clk),
+            .rdreq (re),
+            .wrclk (wr_clk),
+            .wrreq (we),
+            .q (dout),
+            .rdempty (empty),
+            .rdusedw (),
+            .wrfull (full),
+            .aclr (rst),
+            .eccstatus (),
+            .rdfull (),
+            .wrempty (),
+            .wrusedw ());
+defparam
+    dcfifo_component.add_usedw_msb_bit = "ON",
+    dcfifo_component.intended_device_family = "Cyclone V",
+    dcfifo_component.lpm_numwords = (2**aw_r),
+    dcfifo_component.lpm_showahead = "ON",
+    dcfifo_component.lpm_type = "dcfifo",
+    dcfifo_component.lpm_width = dw,
+    dcfifo_component.overflow_checking = "ON",
+    dcfifo_component.rdsync_delaypipe = 4,
+    dcfifo_component.underflow_checking = "ON",
+    dcfifo_component.use_eab = "ON",
+    dcfifo_component.wrsync_delaypipe = 4;
+`else
 ////////////////////////////////////////////////////////////////////
 //
 // Local Wires
@@ -349,6 +379,7 @@ always @(posedge rd_clk)	d2 <= rp_bin[aw_r-1:0] + wp_bin_xr[aw_r-1:0];
 
 always @(posedge rd_clk)	full_rc <= full;
 always @(posedge rd_clk)	rd_level <= full_rc ? 2'h0 : {d2[aw_r-1] | empty, d2[aw_r-2] | empty};
+`endif
 
 ////////////////////////////////////////////////////////////////////
 //
