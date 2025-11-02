@@ -725,7 +725,7 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
     // Double existing vertical multiply for PSP
     if (target_sm_list[vm_in->group] == SM_OPT_PSP_480COL)
-        vm_conf->y_rpt = 2*(vm_conf->y_rpt+1)-1;
+        vm_conf->y_rpt = 2*(vm_conf->y_rpt+1)-1-(vm_conf->y_rpt==2);
 
     // Calculate x_rpt for optimal modes based on output mode, sampling preset and y_rpt
     switch (ad_mode_list[vm_in->group].stdmode_id) {
