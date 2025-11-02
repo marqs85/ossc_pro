@@ -209,5 +209,6 @@ void set_default_c_shmask();
 void set_default_c_lc_palette_set();
 void set_default_c_edid();
 void set_custom_edid_reload();
+void invalidate_loaded_arrays();
 
 #endif

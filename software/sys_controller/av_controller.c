@@ -1291,6 +1291,12 @@ void set_custom_edid_reload() {
     advrx_dev.cfg.edid_sel = 0;
 }
 
+void invalidate_loaded_arrays() {
+    shmask_loaded_array = -1;
+    loaded_lc_palette = -1;
+    scl_loaded_pp_coeff = -1;
+}
+
 void update_settings(int init_setup) {
     if (init_setup || (ts.osd_enable != cs.osd_enable) || (ts.osd_status_timeout != cs.osd_status_timeout) || (ts.osd_highlight_color != cs.osd_highlight_color)) {
         osd->osd_config.enable = !!ts.osd_enable;
@@ -1982,8 +1988,9 @@ int main()
         vip_scl_pp->ctrl = 0;
         vip_fb->ctrl = 0;
         vip_cvo->ctrl = 0;
-        scl_loaded_pp_coeff = -1;
 #endif
+
+        invalidate_loaded_arrays();
 
         // Reset MMC/SD status as entering standby
         file_unmount();
