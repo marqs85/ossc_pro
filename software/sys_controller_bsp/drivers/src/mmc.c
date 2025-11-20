@@ -1,1 +1,1 @@
-../../../../ip/sdc_controller/src/mmc.c
+../../../../ip/sdc_controller_qsys/src/mmc.c

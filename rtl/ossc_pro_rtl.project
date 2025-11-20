@@ -12,62 +12,59 @@
       <File Name="../ip/i2c_opencores/i2c_master_bit_ctrl.v"/>
       <File Name="../ip/i2c_opencores/i2c_master_defines.v"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="sdc_controller">
-      <File Name="../ip/sdc_controller/sdc_controller_top.v"/>
-      <VirtualDirectory Name="config">
-        <File Name="../ip/sdc_controller/config/generic_dpram.v"/>
-        <File Name="../ip/sdc_controller/config/generic_fifo_dc_gray.v"/>
-      </VirtualDirectory>
+    <VirtualDirectory Name="sdc_controller_qsys">
+      <File Name="../ip/sdc_controller_qsys/sdc_controller_top.v"/>
       <VirtualDirectory Name="SD-card-controller">
         <VirtualDirectory Name="syn">
           <VirtualDirectory Name="quartus">
             <VirtualDirectory Name="src">
-              <File Name="../ip/sdc_controller/SD-card-controller/syn/quartus/src/sdc_controller_top.v"/>
+              <File Name="../ip/sdc_controller_qsys/SD-card-controller/syn/quartus/src/sdc_controller_top.v"/>
             </VirtualDirectory>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="rtl">
           <VirtualDirectory Name="verilog">
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_data_serial_host.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_clock_divider.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/generic_dpram.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_crc_7.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_controller_wb.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_data_master.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_crc_16.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_cmd_master.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/monostable_domain_cross.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_cmd_serial_host.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_data_xfer_trig.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/edge_detect.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sdc_controller.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/bistable_domain_cross.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/byte_en_reg.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_fifo_filler.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/sd_wb_sel_ctrl.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/rtl/verilog/generic_fifo_dc_gray.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_data_serial_host.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_clock_divider.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/generic_dpram.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/generic_fifo_dc_gray.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_crc_7.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_controller_wb.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_data_master.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_crc_16.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_cmd_master.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/monostable_domain_cross.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_cmd_serial_host.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_data_xfer_trig.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/edge_detect.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sdc_controller.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/bistable_domain_cross.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/byte_en_reg.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_fifo_filler.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/sd_wb_sel_ctrl.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/rtl/verilog/generic_fifo_dc_gray.v"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="bench">
           <VirtualDirectory Name="verilog">
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_data_xfer_trig_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/wb_master32.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_data_master_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_data_serial_host_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/edge_detect_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/wb_master_behavioral.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/wb_bus_mon.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sdModel.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/bistable_domain_cross_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_controller_wb_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/wb_slave_behavioral.v"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_cmd_serial_host_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/byte_en_reg_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/monostable_domain_cross_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_cmd_master_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_wb_sel_ctrl_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_controller_top_tb.sv"/>
-            <File Name="../ip/sdc_controller/SD-card-controller/bench/verilog/sd_fifo_filler_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sd_data_xfer_trig_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/wb_master32.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sd_data_master_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sd_data_serial_host_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/edge_detect_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/wb_master_behavioral.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/wb_bus_mon.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sdModel.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/bistable_domain_cross_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sd_controller_wb_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/wb_slave_behavioral.v"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sd_cmd_serial_host_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/byte_en_reg_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/monostable_domain_cross_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sd_cmd_master_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sd_wb_sel_ctrl_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sd_controller_top_tb.sv"/>
+            <File Name="../ip/sdc_controller_qsys/SD-card-controller/bench/verilog/sd_fifo_filler_tb.sv"/>
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>

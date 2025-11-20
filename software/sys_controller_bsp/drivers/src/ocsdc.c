@@ -1,1 +1,1 @@
-../../../../ip/sdc_controller/src/ocsdc.c
+../../../../ip/sdc_controller_qsys/src/ocsdc.c
