@@ -186,6 +186,8 @@ wire [191:0] linebuf_wrdata = {emif_rd_rdata[23:0], emif_rd_rdata[55:32], emif_r
 wire [9:0] linebuf_wraddr = {blocks_copied + (line_id ? 0 : 320)};
 wire [19:0] emif_rd_block_addr = {ypos_lb_next, blocks_copied};
 reg line_id_brclk_sync1_reg, line_id_brclk_sync2_reg, line_id_brclk_sync3_reg;
+wire line_id_change = (line_id_brclk_sync2_reg != line_id_brclk_sync3_reg);
+reg [1:0] emif_rd_timeout;
 
 
 linebuf_double linebuf_rgb (
@@ -205,23 +207,29 @@ always @(posedge emif_br_clk or posedge emif_br_reset) begin
     if (emif_br_reset) begin
         emif_rd_read <= 1'b0;
         emif_rd_burstcount <= 1'b0;
+        emif_rd_timeout <= 2'h0;
     end else begin
         if (emif_rd_burstcount > 0) begin // always finish read first, make sure doesn't last longer than line length
             if (emif_rd_readdatavalid) begin
                 blocks_copied <= blocks_copied + 1'b1;
                 emif_rd_burstcount <= emif_rd_burstcount - 1'b1;
+            end else if (line_id_change) begin
+                emif_rd_timeout <= emif_rd_timeout + 1'b1;
+                if (emif_rd_timeout == 2'h3)
+                    emif_rd_burstcount <= 0;
             end
             if (!emif_rd_waitrequest)
                 emif_rd_read <= 1'b0;
 `ifdef DEBUG
-            emif_rd_line_missed <= (line_id_brclk_sync2_reg != line_id_brclk_sync3_reg);
+            emif_rd_line_missed <= line_id_change;
 `endif
-        end else if (line_id_brclk_sync2_reg != line_id_brclk_sync3_reg) begin
+        end else if (line_id_change) begin
             blocks_copied <= 0;
         end else if (lb_enable & (blocks_copied < blocks_per_line)) begin
             emif_rd_read <= 1'b1;
             emif_rd_burstcount <= ((blocks_per_line-blocks_copied) > EMIF_RD_MAXBURST) ? EMIF_RD_MAXBURST : (blocks_per_line-blocks_copied);
             emif_rd_addr <= {3'b001, emif_rd_block_addr, 5'h0};
+            emif_rd_timeout <= 2'h0;
         end
 
         line_id_brclk_sync1_reg <= line_id;
