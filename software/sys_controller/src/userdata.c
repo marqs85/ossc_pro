@@ -47,6 +47,7 @@ extern sync_timings_t sdp_timings[NUM_VIDEO_GROUPS];
 extern uint8_t update_cur_vm;
 extern c_pp_coeffs_t c_pp_coeffs;
 extern c_shmask_t c_shmask;
+extern c_lc_palette_set_t c_lc_palette_set;
 extern c_edid_t c_edid;
 
 char target_profile_name[USERDATA_NAME_LEN+1], cur_profile_name[USERDATA_NAME_LEN+1];
@@ -67,8 +68,8 @@ const ude_item_map ude_initcfg_items[] = {
 
 const ude_item_map ude_profile_items[] = {
     {{0, 72, sizeof(video_modes_plm_default)}, video_modes_plm},
-    {{1, 78, sizeof(video_modes_default)}, video_modes},
-    {{2, 78, sizeof(smp_presets_default)}, smp_presets},
+    {{1, 80, sizeof(video_modes_default)}, video_modes},
+    {{2, 80, sizeof(smp_presets_default)}, smp_presets},
     UDE_ITEM(86, 72, hdmi_timings),
     UDE_ITEM(91, 75, sdp_timings),
 #ifdef VIP
@@ -76,6 +77,7 @@ const ude_item_map ude_profile_items[] = {
 #endif
     UDE_ITEM(96, 76, c_shmask),
     UDE_ITEM(97, 77, c_edid),
+    UDE_ITEM(110, 81, c_lc_palette_set),
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -108,14 +110,14 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(31, 64, tc.pm_ad_576p),
     UDE_ITEM(32, 76, tc.pm_ad_720p),
     UDE_ITEM(33, 58, tc.pm_ad_1080i),
-    UDE_ITEM(34, 76, tc.sm_ad_240p_288p),
+    UDE_ITEM(34, 80, tc.sm_ad_240p_288p),
     UDE_ITEM(35, 58, tc.sm_ad_384p),
-    UDE_ITEM(36, 58, tc.sm_ad_480i_576i),
+    UDE_ITEM(36, 80, tc.sm_ad_480i_576i),
     UDE_ITEM(37, 74, tc.sm_ad_480p),
     UDE_ITEM(38, 58, tc.sm_ad_576p),
     UDE_ITEM(39, 58, tc.lm_mode),
     UDE_ITEM(40, 58, tc.oper_mode),
-    UDE_ITEM(41, 77, tc.tp_mode),
+    UDE_ITEM(41, 80, tc.tp_mode),
     UDE_ITEM(42, 58, tc.lm_deint_mode),
     UDE_ITEM(43, 58, tc.nir_even_offset),
     UDE_ITEM(44, 58, tc.ar_256col),
@@ -140,16 +142,18 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(62, 76, tc.scl_alg),
     UDE_ITEM(63, 58, tc.scl_edge_thold),
     UDE_ITEM(64, 58, tc.scl_dil_motion_shift),
-#ifndef VIP_DIL_B
+#ifndef VIP_DIL_CADENCE_VOFILM
     UDE_ITEM(65, 58, tc.scl_dil_alg),
 #else
     UDE_ITEM(66, 58, tc.scl_dil_motion_scale),
     UDE_ITEM(67, 58, tc.scl_dil_cadence_detect_enable),
+#endif
+#ifdef DEBUG
     UDE_ITEM(68, 58, tc.scl_dil_visualize_motion),
 #endif
-    UDE_ITEM(69, 76, tc.sm_scl_240p_288p),
+    UDE_ITEM(69, 80, tc.sm_scl_240p_288p),
     UDE_ITEM(70, 58, tc.sm_scl_384p),
-    UDE_ITEM(71, 58, tc.sm_scl_480i_576i),
+    UDE_ITEM(71, 80, tc.sm_scl_480i_576i),
     UDE_ITEM(72, 74, tc.sm_scl_480p),
     UDE_ITEM(73, 74, tc.sm_scl_576p),
 #endif
@@ -170,7 +174,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(79, 58, tc.pcm_cfg),
 #endif
 #ifdef VIP
-    UDE_ITEM(80, 78, tc.scl_crt_out_mode),
+    UDE_ITEM(80, 80, tc.scl_crt_out_mode),
     UDE_ITEM(81, 62, tc.scl_out_type),
 #endif
     UDE_ITEM(82, 77, tc.pm_ad_1080p),
@@ -186,9 +190,9 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(90, 75, tc.extra_av_out_mode),
     // 91 reserved for sdp_timings
 #ifndef DExx_FW
-    UDE_ITEM(92, 77, tc.sdp_cfg),
+    UDE_ITEM(92, 80, tc.sdp_cfg),
 #endif
-    UDE_ITEM(93, 79, tc.lumacode_mode),
+    UDE_ITEM(93, 81, tc.lumacode_mode),
     UDE_ITEM(94, 76, tc.shmask_str),
     // 95-97 reserved
     UDE_ITEM(98, 77, tc.hdmi_pixeldecim_mode),
@@ -199,7 +203,18 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(101, 79, tc.lumacode_pal),
 #ifdef VIP
     UDE_ITEM(102, 79, tc.scl_framelock_mult),
+#if defined(VIP_DIL_CADENCE_BASIC) || defined(VIP_DIL_CADENCE_VOFILM)
+    UDE_ITEM(103, 80, tc.scl_dil_cadence32_lock_thold),
+    UDE_ITEM(104, 80, tc.scl_dil_cadence32_unlock_thold),
+    UDE_ITEM(105, 80, tc.scl_dil_cadence32_diff_thold),
+    UDE_ITEM(106, 80, tc.scl_dil_cadence22_lock_thold),
+    UDE_ITEM(107, 80, tc.scl_dil_cadence22_unlock_thold),
+    UDE_ITEM(108, 80, tc.scl_dil_cadence22_comb_thold),
 #endif
+#endif
+    UDE_ITEM(109, 80, tc.hdmi_csync),
+    // 110 reserved
+    UDE_ITEM(111, 80, tc.csync_combiner),
 };
 
 int write_userdata(uint8_t entry) {
@@ -326,8 +341,10 @@ int read_userdata(uint8_t entry, int dry_run) {
         }
     }
 
-    if (hdr.type == UDE_PROFILE)
+    if (hdr.type == UDE_PROFILE) {
+        invalidate_loaded_arrays();
         update_cur_vm = 1;
+    }
 
     strlcpy(cur_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
     printf("%lu bytes read from userdata entry %u\n", bytes_read, entry);
@@ -488,8 +505,10 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
             f_lseek(&p_file, bytes_read_tot);
     }
 
-    if (hdr.type == UDE_PROFILE)
+    if (hdr.type == UDE_PROFILE) {
+        invalidate_loaded_arrays();
         update_cur_vm = 1;
+    }
 
     strlcpy(cur_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
     printf("%u bytes read from userdata entry %u\n", bytes_read_tot, entry);

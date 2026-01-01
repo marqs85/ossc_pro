@@ -147,6 +147,7 @@ void cstm_profile_load(menucode_id code, int setup_disp);
 void cstm_rf_tune(menucode_id code, int setup_disp);
 void cstm_scl_alg_load(menucode_id code, int setup_disp);
 void cstm_shmask_load(menucode_id code, int setup_disp);
+void cstm_lc_palette_set_load(menucode_id code, int setup_disp);
 void cstm_edid_load(menucode_id code, int setup_disp);
 void cstm_fw_update(menucode_id code, int setup_disp);
 void cstm_vm_stats(menucode_id code, int setup_disp);

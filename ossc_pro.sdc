@@ -176,8 +176,8 @@ if {$legacy_av_in} {
 set_input_delay 0 -clock bck_pcm -clock_fall [get_ports {PCM_I2S_WS_i PCM_I2S_DATA_i}]
 
 # USB TODO
-set_false_path -from [get_ports {USB_D*}]
-set_false_path -to [get_ports {USB_D*}]
+set_input_delay -clock clk48 10 [get_ports {USB_D*}] -add_delay
+set_output_delay -clock clk48 10 [get_ports {USB_D*}] -add_delay
 
 # Misc
 set_false_path -from [get_ports {BTN_i* IR_RX_i SCL_io SDA_io SI_INT_N_i SPDIF_EXT_i SD_DETECT_i}]
