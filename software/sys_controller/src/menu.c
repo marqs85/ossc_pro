@@ -18,6 +18,7 @@
 //
 
 #include <string.h>
+#include <unistd.h>
 #include <stddef.h>
 #include <sys/param.h>
 #include "menu.h"
@@ -45,6 +46,9 @@ extern settings_t ts;
 extern isl51002_dev isl_dev;
 #ifndef DExx_FW
 extern adv761x_dev advrx_dev;
+#endif
+#ifdef INC_SII1136
+extern sii1136_dev siitx_dev;
 #endif
 extern adv7280a_dev advsdp_dev;
 extern si2177_dev sirf_dev;
@@ -193,6 +197,7 @@ static const char* const c_gain_mode_desc[] = { "Manual", "As luma", "Auto" };
 static const char* const if_comp_desc[] = { "Off", "NTSC -3dB", "NTSC -6dB", "NTSC -10dB", "PAL -2dB", "PAL -5dB", "PAL -7dB" };
 static const char* const rf_cvbs_gain_sel[] = { "Normal", "EXT-75ohm" };
 static const char* const audio_demod_mode_desc[] = { "AM", "FM1", "FM2" };
+static const char* const chardisp_fade_desc[] = { "Off", "Fast", "Medium", "Slow", "Slowest" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -510,6 +515,9 @@ MENU(menu_output, P99_PROTECT({
     { "1080p120 preset",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_1080p120,  OPT_WRAP, SETTING_ITEM_LIST(timing_1080p120_desc) } } },
     { "2160p60 preset",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_2160p60,   OPT_WRAP, SETTING_ITEM_LIST(timing_2160p60_desc) } } },
 #endif
+#ifdef INC_SII1136
+    { "Get monitor EDID",                      OPT_FUNC_CALL,          { .fun =  { get_edid, NULL } } },
+#endif
     { "Adv. disp timing",                      OPT_SUBMENU,            { .sub = { &menu_advtiming_out, &vm_out_arg_info, vm_out_select } } },
     { "Reset disp preset",                     OPT_FUNC_CALL,          { .fun =  { vm_out_reset, NULL } } },
 }))
@@ -617,6 +625,8 @@ MENU(menu_settings, P99_PROTECT({
     { "Fan PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.fan_pwm,   OPT_NOWRAP, 0, 10,  pwm_disp } } },
     { "Led PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.led_pwm,   OPT_NOWRAP, 1, 10,  pwm_disp } } },
 #endif
+    { "Chardisp contrast",                      OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.chardisp_cfg.contrast,   OPT_NOWRAP, 0, 127,  value_disp } } },
+    { "Chardisp fade out",                      OPT_AVCONFIG_SELECTION, { .sel = { &ts.chardisp_cfg.fade,       OPT_NOWRAP,   SETTING_ITEM_LIST(chardisp_fade_desc) } } },
     { "Bind IR remote",                         OPT_FUNC_CALL,          { .fun = { setup_rc, NULL } } },
 #ifndef DE10N
     { LNG("Load profile","ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ"),        OPT_FUNC_CALL,          { .fun = { load_profile, &profile_arg_info } } },
@@ -2209,3 +2219,30 @@ int rf_chscan() {
     set_func_ret_msg(ch_str);
     return 1;
 }
+
+#ifdef INC_SII1136
+int get_edid() {
+    edid_t mon_edid;
+    FIL e_file;
+    int ret;
+    unsigned bytes_written;
+
+    ret = sii1136_get_edid(&siitx_dev, &mon_edid);
+    if (ret != 0)
+        return ret;
+
+    if (f_open(&e_file, "mon_edid.bin", FA_WRITE|FA_CREATE_ALWAYS) != F_OK) {
+        return -3;
+    }
+
+    // Write edid to file
+    if ((f_write(&e_file, &mon_edid.data, mon_edid.len, &bytes_written) != F_OK) || (bytes_written != mon_edid.len))
+        ret = -4;
+    else
+        ret = 0;
+
+    file_close(&e_file);
+
+    return ret;
+}
+#endif

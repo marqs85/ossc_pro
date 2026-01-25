@@ -23,6 +23,7 @@
 #include "sysconfig.h"
 #include "controls.h"
 #include "hdmi.h"
+#include "us2066.h"
 #include "osd_generator_regs.h"
 
 // sys_ctrl
@@ -117,6 +118,7 @@ typedef struct {
     uint8_t fan_pwm;
     uint8_t led_pwm;
 #endif
+    us2066_config chardisp_cfg __attribute__ ((aligned (4)));
 } settings_t;
 
 typedef struct {

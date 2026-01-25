@@ -168,5 +168,6 @@ static void smp_select();
 static int smp_is_active();
 static int smp_reset();
 int rf_chscan();
+int get_edid();
 
 #endif
