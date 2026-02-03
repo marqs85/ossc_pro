@@ -76,7 +76,17 @@ typedef enum {
     RC_BLUE,
     RC_OSD,
     RC_SCRSHOT,
-    RC_PROF_HOTKEY
+    RC_PROF_HOTKEY,
+    /* Extra keys */
+    RC_P1,
+    RC_P2,
+    RC_P3,
+    RC_P4,
+    RC_P5,
+    RC_P6,
+    RC_P7,
+    RC_P8,
+    RC_P9,
 } rc_code_t;
 
 typedef enum {
@@ -99,6 +109,9 @@ typedef enum {
 } btn_vec_t;
 
 #define REMOTE_MAX_KEYS (RC_PROF_HOTKEY+1)
+
+// P1-9
+#define REMOTE_EXTRA_KEYS 9
 
 #define CONTROLS_RC_MASK                   0x0000ffff
 #define CONTROLS_RC_OFFS                   0

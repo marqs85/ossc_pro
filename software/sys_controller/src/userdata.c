@@ -65,6 +65,8 @@ const ude_item_map ude_initcfg_items[] = {
 #endif
     UDE_ITEM(8, 78, ts.osd_highlight_color),
     UDE_ITEM(9, 82, ts.chardisp_cfg),
+    UDE_ITEM(10, 82, ts.rc_p19_func),
+    UDE_ITEM(11, 82, ts.rc_rgyb_func),
 };
 
 const ude_item_map ude_profile_items[] = {

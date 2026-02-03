@@ -199,6 +199,8 @@ vm_proc_config_t vm_conf;
 
 settings_t cs, ts;
 
+int skip_next_osd_update;
+
 char row1[US2066_ROW_LEN+1], row2[US2066_ROW_LEN+1];
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
@@ -397,12 +399,15 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
         if (refresh_osd_timer)
             osd->osd_config.status_refresh = 1;
 
-        strncpy((char*)osd->osd_array.data[0][0], row1, OSD_CHAR_COLS);
-        strncpy((char*)osd->osd_array.data[1][0], row2, OSD_CHAR_COLS);
-        osd->osd_row_color.mask = 0;
-        osd->osd_sec_enable[0].mask = 3;
-        osd->osd_sec_enable[1].mask = 0;
+        if (!skip_next_osd_update) {
+            strncpy((char*)osd->osd_array.data[0][0], row1, OSD_CHAR_COLS);
+            strncpy((char*)osd->osd_array.data[1][0], row2, OSD_CHAR_COLS);
+            osd->osd_row_color.mask = 0;
+            osd->osd_sec_enable[0].mask = 3;
+            osd->osd_sec_enable[1].mask = 0;
+        }
 
+        skip_next_osd_update = 0;
         us2066_write(&chardisp_dev, (char*)&row1, (char*)&row2);
     }
 }
@@ -1156,8 +1161,11 @@ int sys_is_powered_on() {
     return sys_powered_on;
 }
 
-void sys_toggle_power() {
-    sys_powered_on ^= 1;
+void sys_set_power(int mode) {
+    if (mode == 2)
+        sys_powered_on ^= 1;
+    else
+        sys_powered_on = mode;
 }
 
 void print_vm_stats(int menu_mode) {

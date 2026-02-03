@@ -199,6 +199,8 @@ static const char* const rf_cvbs_gain_sel[] = { "Normal", "EXT-75ohm" };
 static const char* const audio_demod_mode_desc[] = { "AM", "FM1", "FM2" };
 static const char* const chardisp_fade_desc[] = { "Off", "Fast", "Medium", "Slow", "Slowest" };
 static const char* const palset_type_arr[] = { "Custom .txt", "NES .pal" };
+static const char* const rc_p19_func_desc[] = { "Disabled", "Load profile 1-9", "SD Load profile 1-9" };
+static const char* const rc_rgyb_func_desc[] = {  "Disabled", "Power off", "Power on", "Shadow mask mode-", "Shadow mask mode+", "Shadow mask int-", "Shadow mask int+", "Audio Pre-ADC gain-", "Audio Pre-ADC gain+", "Lumacode mode toggle", "HDR toggle", "VRR toggle" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -609,6 +611,14 @@ MENU(menu_exp, P99_PROTECT({
 }))
 #endif
 
+MENU(menu_remote_custom_keys, P99_PROTECT({
+    { "P1-9 function",                          OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_p19_func,  OPT_NOWRAP, SETTING_ITEM_LIST(rc_p19_func_desc) } } },
+    { "RED function",                           OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_rgyb_func[0],  OPT_NOWRAP, SETTING_ITEM_LIST(rc_rgyb_func_desc) } } },
+    { "GREEN function",                         OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_rgyb_func[1],  OPT_NOWRAP, SETTING_ITEM_LIST(rc_rgyb_func_desc) } } },
+    { "YELLOW function",                        OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_rgyb_func[2],  OPT_NOWRAP, SETTING_ITEM_LIST(rc_rgyb_func_desc) } } },
+    { "BLUE function",                          OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_rgyb_func[3],  OPT_NOWRAP, SETTING_ITEM_LIST(rc_rgyb_func_desc) } } },
+}))
+
 
 MENU(menu_settings, P99_PROTECT({
 #ifndef DExx_FW
@@ -630,6 +640,7 @@ MENU(menu_settings, P99_PROTECT({
 #endif
     { "Chardisp contrast",                      OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.chardisp_cfg.contrast,   OPT_NOWRAP, 0, 127,  value_disp } } },
     { "Chardisp fade out",                      OPT_AVCONFIG_SELECTION, { .sel = { &ts.chardisp_cfg.fade,       OPT_NOWRAP,   SETTING_ITEM_LIST(chardisp_fade_desc) } } },
+    { "Remote custom keys",                     OPT_SUBMENU,            { .sub = { &menu_remote_custom_keys, NULL, NULL } } },
     { "Bind IR remote",                         OPT_FUNC_CALL,          { .fun = { setup_rc, NULL } } },
 #ifndef DE10N
     { LNG("Load profile","ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ"),        OPT_FUNC_CALL,          { .fun = { load_profile, &profile_arg_info } } },

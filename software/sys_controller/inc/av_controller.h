@@ -119,6 +119,8 @@ typedef struct {
     uint8_t led_pwm;
 #endif
     us2066_config chardisp_cfg __attribute__ ((aligned (4)));
+    uint8_t rc_p19_func;
+    uint8_t rc_rgyb_func[4];
 } settings_t;
 
 typedef struct {
@@ -194,7 +196,7 @@ void set_dram_refresh(uint8_t enable);
 
 int sys_is_powered_on();
 
-void sys_toggle_power();
+void sys_set_power(int mode);
 
 void print_vm_stats(int menu_mode);
 

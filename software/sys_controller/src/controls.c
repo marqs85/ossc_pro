@@ -52,6 +52,8 @@ const uint16_t rc_keymap_default[REMOTE_MAX_KEYS] = {0x3E29, 0x3EA9, 0x3E69, 0x3
 #endif
 uint16_t rc_keymap[REMOTE_MAX_KEYS];
 
+const uint16_t rc_extra_keymap[REMOTE_EXTRA_KEYS] = {0x0a66, 0x0a16, 0x0af2, 0x0a56, 0x0ae6, 0x0a96, 0x0a86, 0x0ab2, 0x0a1a};
+
 uint32_t controls;
 uint16_t remote_code_raw;
 uint8_t remote_rpt, remote_rpt_prev;
@@ -61,13 +63,19 @@ rc_code_t r_code;
 btn_code_t b_code;
 
 extern int enable_tp, enable_isl;
+extern int skip_next_osd_update;
 extern uint8_t smp_cur, smp_edit, dtmg_cur, dtmg_edit;
 extern oper_mode_t oper_mode;
 extern mode_data_t vmode_in;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 extern settings_t ts;
+extern char target_profile_name[USERDATA_NAME_LEN+1];
+extern volatile osd_regs *osd;
 
+extern const menuitem_t menu_isl_video_opt_items[];
 extern const menuitem_t menu_scanlines_items[];
+extern const menuitem_t menu_postproc_items[];
+extern const menuitem_t menu_audio_items[];
 extern const menuitem_t menu_output_items[];
 extern const menuitem_t menu_settings_items[];
 extern const menuitem_t menu_advtiming_items[];
@@ -215,8 +223,8 @@ void read_controls() {
 
     remote_rpt_prev = remote_rpt;
 
-    for (r_code = RC_BTN1; r_code < REMOTE_MAX_KEYS; r_code++) {
-        if (remote_code_raw == rc_keymap[r_code])
+    for (r_code = RC_BTN1; r_code < REMOTE_MAX_KEYS+REMOTE_EXTRA_KEYS; r_code++) {
+        if (remote_code_raw == ((r_code < REMOTE_MAX_KEYS) ? rc_keymap[r_code] : rc_extra_keymap[r_code-REMOTE_MAX_KEYS]))
             break;
     }
 
@@ -263,7 +271,7 @@ void read_controls() {
 
 void parse_control()
 {
-    int prof_x10=0, ret=0, retval;
+    int prof_x10=0, ret=0, retval, i;
     int plm_group_proc_map[] = {-1, 0, 0, 1, 2, 2, 3, 3, -1, 4, -1};
 
     if (sys_is_powered_on()) {
@@ -303,7 +311,7 @@ void parse_control()
 #ifdef VIP
             if (oper_mode == OPERMODE_SCALER) {
                 if (r_code == RC_SCL_RES)
-                    enter_cstm(&menu_scaler_items[0], 1);
+                    get_current_avconfig()->scl_out_type ? enter_cstm(&menu_scaler_items[1], 1) : enter_cstm(&menu_scaler_items[0], 1);
                 if (r_code == RC_SCL_FL)
                     enter_cstm(&menu_scaler_items[3], 1);
                 if (r_code == RC_SCL_SCL_ALG)
@@ -341,6 +349,56 @@ void parse_control()
                 enter_cstm(&menu_settings_items[2], 1);
             if (r_code == RC_PROF_HOTKEY)
                 enter_cstm(&menu_profile_load, 1);
+            // Parse remote custom keys
+            for (i=0; i<4; i++) {
+                if (r_code == RC_RED+i) {
+                    // Power off/on
+                    if ((ts.rc_rgyb_func[i] == 1) || (ts.rc_rgyb_func[i] == 2))
+                        sys_set_power(ts.rc_rgyb_func[i]-1);
+                    // Shadow mask mode-/+
+                    if ((ts.rc_rgyb_func[i] == 3) || (ts.rc_rgyb_func[i] == 4))
+                        quick_adjust(&menu_postproc_items[2], (ts.rc_rgyb_func[i] == 4) ? 1 : -1, 1);
+                    // Shadow mask int -/+
+                    if ((ts.rc_rgyb_func[i] == 5) || (ts.rc_rgyb_func[i] == 6))
+                        quick_adjust(&menu_postproc_items[4], (ts.rc_rgyb_func[i] == 6) ? 1 : -1, 1);
+#ifdef INC_PCM186X
+                    // Audio Pre-ADC gain-/+
+                    if ((ts.rc_rgyb_func[i] == 7) || (ts.rc_rgyb_func[i] == 8))
+                        quick_adjust(&menu_audio_items[2], (ts.rc_rgyb_func[i] == 8) ? 1 : -1, 1);
+#endif
+                    // Lumacode toggle
+                    if (ts.rc_rgyb_func[i] == 9)
+                        quick_adjust(&menu_isl_video_opt_items[16], 1, 1);
+                    // HDR toggle
+                    if (ts.rc_rgyb_func[i] == 10)
+                        quick_adjust(&menu_output_items[3], 1, 1);
+                    // VRR toggle
+                    if (ts.rc_rgyb_func[i] == 11)
+                        quick_adjust(&menu_output_items[4], 1, 1);
+
+                    break;
+                }
+            }
+            // Parse remote extra keys
+            for (i=0; i<REMOTE_EXTRA_KEYS; i++) {
+                if (r_code == RC_P1+i) {
+                    if (ts.rc_p19_func > 0) {
+                        ret = ((ts.rc_p19_func == 1) ? read_userdata(i+1, 0) : read_userdata_sd(i+1, 0));
+
+                        if (ret == 0) {
+                            sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%u: %s", i+1, target_profile_name);
+                            sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "loaded");
+                            osd->osd_config.status_refresh = 1;
+                            osd->osd_row_color.mask = 0;
+                            osd->osd_sec_enable[0].mask = 3;
+                            osd->osd_sec_enable[1].mask = 0;
+                            skip_next_osd_update = 1;
+                        }
+                    }
+
+                    break;
+                }
+            }
         } else {
             if ((r_code <= RC_RIGHT) || ((b_code >= BC_OK) && (b_code <= BC_RIGHT)))
                 display_menu(r_code, b_code);
@@ -348,5 +406,5 @@ void parse_control()
     }
 
     if ((r_code == RC_STANDBY) || (b_code == BC_HOLD))
-        sys_toggle_power();
+        sys_set_power(2);
 }
