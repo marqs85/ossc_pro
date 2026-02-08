@@ -58,7 +58,7 @@
 #include "src/lumacode_palettes.c"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 81
+#define FW_VER_MINOR 82
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -198,6 +198,8 @@ mode_data_t vmode_in, vmode_out;
 vm_proc_config_t vm_conf;
 
 settings_t cs, ts;
+
+int skip_next_osd_update;
 
 char row1[US2066_ROW_LEN+1], row2[US2066_ROW_LEN+1];
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
@@ -397,12 +399,15 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
         if (refresh_osd_timer)
             osd->osd_config.status_refresh = 1;
 
-        strncpy((char*)osd->osd_array.data[0][0], row1, OSD_CHAR_COLS);
-        strncpy((char*)osd->osd_array.data[1][0], row2, OSD_CHAR_COLS);
-        osd->osd_row_color.mask = 0;
-        osd->osd_sec_enable[0].mask = 3;
-        osd->osd_sec_enable[1].mask = 0;
+        if (!skip_next_osd_update) {
+            strncpy((char*)osd->osd_array.data[0][0], row1, OSD_CHAR_COLS);
+            strncpy((char*)osd->osd_array.data[1][0], row2, OSD_CHAR_COLS);
+            osd->osd_row_color.mask = 0;
+            osd->osd_sec_enable[0].mask = 3;
+            osd->osd_sec_enable[1].mask = 0;
+        }
 
+        skip_next_osd_update = 0;
         us2066_write(&chardisp_dev, (char*)&row1, (char*)&row2);
     }
 }
@@ -1156,8 +1161,11 @@ int sys_is_powered_on() {
     return sys_powered_on;
 }
 
-void sys_toggle_power() {
-    sys_powered_on ^= 1;
+void sys_set_power(int mode) {
+    if (mode == 2)
+        sys_powered_on ^= 1;
+    else
+        sys_powered_on = mode;
 }
 
 void print_vm_stats(int menu_mode) {
@@ -1264,6 +1272,7 @@ int set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_
 
 void set_default_settings() {
     memcpy(&ts, &ts_default, sizeof(settings_t));
+    us2066_get_default_cfg(&ts.chardisp_cfg);
     set_default_keymap();
 }
 
@@ -1309,6 +1318,7 @@ void update_settings(int init_setup) {
         sys_ctrl |= (ts.fan_pwm << SCTRL_FAN_PWM_OFFS) | (ts.led_pwm << SCTRL_LED_PWM_OFFS);
         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     }
+    us2066_update_config(&chardisp_dev, &ts.chardisp_cfg);
     if (init_setup)
         target_avinput = ts.default_avinput;
 

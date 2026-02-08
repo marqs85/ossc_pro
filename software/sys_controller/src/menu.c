@@ -18,6 +18,7 @@
 //
 
 #include <string.h>
+#include <unistd.h>
 #include <stddef.h>
 #include <sys/param.h>
 #include "menu.h"
@@ -45,6 +46,9 @@ extern settings_t ts;
 extern isl51002_dev isl_dev;
 #ifndef DExx_FW
 extern adv761x_dev advrx_dev;
+#endif
+#ifdef INC_SII1136
+extern sii1136_dev siitx_dev;
 #endif
 extern adv7280a_dev advsdp_dev;
 extern si2177_dev sirf_dev;
@@ -79,7 +83,7 @@ extern char target_profile_name[USERDATA_NAME_LEN+1];
 
 uint16_t tc_h_samplerate, tc_h_samplerate_adj, tc_h_synclen, tc_h_bporch, tc_h_active, tc_v_synclen, tc_v_bporch, tc_v_active, tc_sampler_phase, tc_h_mask, tc_v_mask, tc_v_total, tc_v_hz, tc_v_hz_frac;
 uint8_t menu_active;
-uint8_t vm_cur, vm_sel, vm_edit, vm_out_cur, vm_out_sel, vm_out_edit, smp_cur, smp_sel, smp_edit, dtmg_cur, dtmg_edit, rfscan_sys_sel;
+uint8_t vm_cur, vm_sel, vm_edit, vm_out_cur, vm_out_sel, vm_out_edit, smp_cur, smp_sel, smp_edit, dtmg_cur, dtmg_edit, rfscan_sys_sel, palset_type_sel;
 
 menunavi navi[MAX_MENU_DEPTH];
 uint8_t navlvl;
@@ -109,7 +113,8 @@ static const char* const pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ")
 static const char* const pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x" };
 static const char* const pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (Deint)" };
 static const char* const pm_ad_240p_desc[] = { "240p_CRT (Passthru)", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)", "2560x1440 (Line6x)", "2880x2160 (Line9x)" };
-static const char* const pm_ad_288p_desc[] = { "288p_CRT (Passthru)", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1200 (Line4x)", "1920x1440 (Line5x)", "2560x1440 (Line5x)", "2880x2160 (Line7x)" };
+static const char* const pm_ad_288p_desc[] = { "288p_CRT (Passthru)", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line4x)", "1600x1200 (Line5x)", "1920x1200 (Line4x)", "1920x1200 (Line5x)", "1920x1440 (Line5x)",
+                                               "1920x1440 (Line6x)", "2560x1440 (Line5x)", "2560x1440 (Line6x)", "2880x2160 (Line7x)", "2880x2160 (Line9x)" };
 static const char* const pm_ad_384p_desc[] = { "1280x720 (Line2x)", "1024x768 (Line2x)", "1920x1080 (Line3x)", "1600x1200 (Line3x)", "1920x1200 (Line3x)", "1920x1440 (Line4x)", "2560x1440 (Line4x)", "2560x1920 (Line5x)" };
 static const char* const pm_ad_480i_desc[] = { "720x480i (Passthru)", "240p_CRT (NI rest)", "720x480 (Dint@L2x)", "1280x1024 (Dint@L4x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1440 (Dint@L6x)", "2560x1440 (Dint@L6x)" };
 static const char* const pm_ad_576i_desc[] = { "720x576i (Passthru)", "288p_CRT (NI rest)", "720x576 (Dint@L2x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1200 (Dint@L4x)" };
@@ -193,6 +198,10 @@ static const char* const c_gain_mode_desc[] = { "Manual", "As luma", "Auto" };
 static const char* const if_comp_desc[] = { "Off", "NTSC -3dB", "NTSC -6dB", "NTSC -10dB", "PAL -2dB", "PAL -5dB", "PAL -7dB" };
 static const char* const rf_cvbs_gain_sel[] = { "Normal", "EXT-75ohm" };
 static const char* const audio_demod_mode_desc[] = { "AM", "FM1", "FM2" };
+static const char* const chardisp_fade_desc[] = { "Off", "Fast", "Medium", "Slow", "Slowest" };
+static const char* const palset_type_arr[] = { "Custom .txt", "NES .pal" };
+static const char* const rc_p19_func_desc[] = { "Disabled", "Load profile 1-9", "SD Load profile 1-9" };
+static const char* const rc_rgyb_func_desc[] = {  "Disabled", "Power off", "Power on", "Shadow mask mode-", "Shadow mask mode+", "Shadow mask int-", "Shadow mask int+", "Audio Pre-ADC gain-", "Audio Pre-ADC gain+", "Lumacode mode toggle", "HDR toggle", "VRR toggle" };
 
 static void afe_bw_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s%uMHz%s", (v==0 ? "Auto (" : ""), isl_get_afe_bw(&isl_dev, v), (v==0 ? ")" : "")); }
 static void sog_vth_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%u mV", (v*20)); }
@@ -224,6 +233,7 @@ static void rfscan_sys_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, 
 static void alc_v_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u lines","%u ﾗｲﾝ"), (1<<(v+5))); }
 static void alc_h_filter_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, LNG("%u pixels","%u ﾄﾞｯﾄ"), (1<<(v+4))); }
 static void mult_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%ux", v+1); }
+static void palset_type_disp(uint8_t v) { sniprintf(menu_row2, US2066_ROW_LEN+1, "%s", palset_type_arr[v]); }
 
 static void smp_display_name(uint8_t v) {
 #ifndef DExx_FW
@@ -295,6 +305,7 @@ static arg_info_t smp_arg_info = {&smp_sel, 0, smp_display_name};
 static const arg_info_t profile_arg_info = {&profile_sel_menu, MAX_PROFILE, profile_disp};
 static const arg_info_t sd_profile_arg_info = {&sd_profile_sel_menu, MAX_SD_PROFILE, sd_profile_disp};
 static const arg_info_t rfscan_arg_info = {&rfscan_sys_sel, 2, rfscan_sys_disp};
+static const arg_info_t palset_arg_info = {&palset_type_sel, 1, palset_type_disp};
 
 
 MENU(menu_advtiming_plm, P99_PROTECT({
@@ -378,7 +389,7 @@ MENU(menu_isl_video_opt, P99_PROTECT({
     { "ALC H filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_h_filter,  OPT_NOWRAP, 0, ALC_H_FILTER_MAX, alc_h_filter_disp } } },
     { "Lumacode",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_mode,         OPT_WRAP,   SETTING_ITEM(lumacode_mode_desc) } } },
     { "Lumacode palette set",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_pal,          OPT_WRAP,   SETTING_ITEM(lumacode_pal_desc) } } },
-    { "Custom lc palset",                       OPT_CUSTOMMENU,         { .cstm = { &cstm_lc_palette_set_load } } },
+    { "Palette set load",                       OPT_CUSTOMMENU,         { .cstm = { &cstm_lc_palette_set_load, &palset_arg_info } } },
 }))
 
 MENU(menu_isl_sync_opt, P99_PROTECT({
@@ -510,6 +521,9 @@ MENU(menu_output, P99_PROTECT({
     { "1080p120 preset",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_1080p120,  OPT_WRAP, SETTING_ITEM_LIST(timing_1080p120_desc) } } },
     { "2160p60 preset",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_2160p60,   OPT_WRAP, SETTING_ITEM_LIST(timing_2160p60_desc) } } },
 #endif
+#ifdef INC_SII1136
+    { "Get monitor EDID",                      OPT_FUNC_CALL,          { .fun =  { get_edid, NULL } } },
+#endif
     { "Adv. disp timing",                      OPT_SUBMENU,            { .sub = { &menu_advtiming_out, &vm_out_arg_info, vm_out_select } } },
     { "Reset disp preset",                     OPT_FUNC_CALL,          { .fun =  { vm_out_reset, NULL } } },
 }))
@@ -598,6 +612,14 @@ MENU(menu_exp, P99_PROTECT({
 }))
 #endif
 
+MENU(menu_remote_custom_keys, P99_PROTECT({
+    { "P1-9 function",                          OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_p19_func,  OPT_NOWRAP, SETTING_ITEM_LIST(rc_p19_func_desc) } } },
+    { "RED function",                           OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_rgyb_func[0],  OPT_NOWRAP, SETTING_ITEM_LIST(rc_rgyb_func_desc) } } },
+    { "GREEN function",                         OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_rgyb_func[1],  OPT_NOWRAP, SETTING_ITEM_LIST(rc_rgyb_func_desc) } } },
+    { "YELLOW function",                        OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_rgyb_func[2],  OPT_NOWRAP, SETTING_ITEM_LIST(rc_rgyb_func_desc) } } },
+    { "BLUE function",                          OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_rgyb_func[3],  OPT_NOWRAP, SETTING_ITEM_LIST(rc_rgyb_func_desc) } } },
+}))
+
 
 MENU(menu_settings, P99_PROTECT({
 #ifndef DExx_FW
@@ -617,6 +639,9 @@ MENU(menu_settings, P99_PROTECT({
     { "Fan PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.fan_pwm,   OPT_NOWRAP, 0, 10,  pwm_disp } } },
     { "Led PWM",                                OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.led_pwm,   OPT_NOWRAP, 1, 10,  pwm_disp } } },
 #endif
+    { "Chardisp contrast",                      OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.chardisp_cfg.contrast,   OPT_NOWRAP, 0, 127,  value_disp } } },
+    { "Chardisp fade out",                      OPT_AVCONFIG_SELECTION, { .sel = { &ts.chardisp_cfg.fade,       OPT_NOWRAP,   SETTING_ITEM_LIST(chardisp_fade_desc) } } },
+    { "Remote custom keys",                     OPT_SUBMENU,            { .sub = { &menu_remote_custom_keys, NULL, NULL } } },
     { "Bind IR remote",                         OPT_FUNC_CALL,          { .fun = { setup_rc, NULL } } },
 #ifndef DE10N
     { LNG("Load profile","ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ"),        OPT_FUNC_CALL,          { .fun = { load_profile, &profile_arg_info } } },
@@ -688,7 +713,7 @@ void write_option_name(const menuitem_t *item)
 {
     int i, offset;
 
-    if ((item->type == OPT_FUNC_CALL) || ((item->type == OPT_SUBMENU) && item->sub.arg_info)) {
+    if ((item->type == OPT_FUNC_CALL) || (((item->type == OPT_SUBMENU) || (item->type == OPT_CUSTOMMENU)) && item->sub.arg_info)) {
         offset = (US2066_ROW_LEN-strlen(item->name))/2;
         if (offset < 2)
             offset = 2;
@@ -731,14 +756,7 @@ void write_option_value(const menuitem_t *item, int func_called, int retval)
             item->num_u16.df(item->num_u16.data);
             break;
         case OPT_SUBMENU:
-            if (item->sub.arg_info)
-                item->sub.arg_info->df(*item->sub.arg_info->data);
-            else
-                menu_row2[0] = 0;
-            break;
         case OPT_CUSTOMMENU:
-            menu_row2[0] = 0;
-            break;
         case OPT_FUNC_CALL:
             if (func_called) {
                 if (retval == 0)
@@ -905,21 +923,12 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
                     *val_u16 = (*val_u16 < val_u16_max) ? (*val_u16+1) : (val_wrap ? val_u16_min : val_u16_max);
                 break;
             case OPT_SUBMENU:
-                val = item->sub.arg_info->data;
-                val_max = item->sub.arg_info->max;
-
-                if (item->sub.arg_info) {
-                    if (code == VAL_MINUS)
-                        *val = (*val > 0) ? (*val-1) : 0;
-                    else
-                        *val = (*val < val_max) ? (*val+1) : val_max;
-                }
-                break;
+            case OPT_CUSTOMMENU:
             case OPT_FUNC_CALL:
-                val = item->fun.arg_info->data;
-                val_max = item->fun.arg_info->max;
+                if (item->sub.arg_info) {
+                    val = item->sub.arg_info->data;
+                    val_max = item->sub.arg_info->max;
 
-                if (item->fun.arg_info) {
                     if (code == VAL_MINUS)
                         *val = (*val > 0) ? (*val-1) : 0;
                     else
@@ -942,7 +951,7 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
     write_option_value(item, func_called, retval);
     strncpy((char*)osd->osd_array.data[navi[navlvl].mp][1], menu_row2, OSD_CHAR_COLS);
     osd->osd_row_color.mask = (1<<navi[navlvl].mp);
-    if (func_called || ((item->type == OPT_FUNC_CALL) && item->fun.arg_info != NULL) || ((item->type == OPT_SUBMENU) && item->sub.arg_info != NULL))
+    if (func_called || ((item->type >= OPT_SUBMENU) && (item->type <= OPT_FUNC_CALL) && item->fun.arg_info != NULL))
         osd->osd_sec_enable[1].mask |= (1<<navi[navlvl].mp);
 
     ui_disp_menu(0);
@@ -1178,6 +1187,41 @@ int load_lc_palette_set(char *dirname, char *filename) {
         }
 
         file_close(&f_lc_palset);
+    }
+
+    f_chdir("/");
+
+    sniprintf(c_lc_palette_set.name, sizeof(c_lc_palette_set.name), "C: %s", filename);
+    loaded_lc_palette = -1;
+    update_sc_config();
+    return 0;
+}
+
+int load_lc_nes_pal(char *dirname, char *filename) {
+    FIL f_nes_pal;
+    int i;
+    char dirname_root[10];
+    unsigned bytes_read;
+
+    if (!sd_det)
+        return -1;
+
+    sniprintf(dirname_root, sizeof(dirname_root), "/%s", dirname);
+    f_chdir(dirname_root);
+
+    if (!file_open(&f_nes_pal, filename)) {
+        if (f_read(&f_nes_pal, tmpbuf, 192, &bytes_read) == F_OK) {
+            memset(c_lc_palette_set.pal.nes_pal, 0x00, sizeof(c_lc_palette_set.pal.nes_pal));
+            for (i=0x00; i<=0x0C; i++)
+                c_lc_palette_set.pal.nes_pal[i+8] = (tmpbuf[3*i]<<16) | (tmpbuf[3*i+1]<<8) | tmpbuf[3*i+2];
+            for (i=0x10; i<=0x1C; i++)
+                c_lc_palette_set.pal.nes_pal[i+6] = (tmpbuf[3*i]<<16) | (tmpbuf[3*i+1]<<8) | tmpbuf[3*i+2];
+            for (i=0x20; i<=0x2D; i++)
+                c_lc_palette_set.pal.nes_pal[i+4] = (tmpbuf[3*i]<<16) | (tmpbuf[3*i+1]<<8) | tmpbuf[3*i+2];
+            for (i=0x30; i<=0x3D; i++)
+                c_lc_palette_set.pal.nes_pal[i+2] = (tmpbuf[3*i]<<16) | (tmpbuf[3*i+1]<<8) | tmpbuf[3*i+2];
+        }
+        file_close(&f_nes_pal);
     }
 
     f_chdir("/");
@@ -1890,7 +1934,15 @@ void cstm_shmask_load(menucode_id code, int setup_disp) {
 }
 
 void cstm_lc_palette_set_load(menucode_id code, int setup_disp) {
-    cstm_file_load(code, setup_disp, "lumacode", "*.txt", load_lc_palette_set);
+    switch (palset_type_sel) {
+        case 0:
+            cstm_file_load(code, setup_disp, "lumacode", "*.txt", load_lc_palette_set);
+            break;
+        case 1:
+        default:
+            cstm_file_load(code, setup_disp, "lumacode", "*.pal", load_lc_nes_pal);
+            break;
+    }
 }
 
 void cstm_edid_load(menucode_id code, int setup_disp) {
@@ -2209,3 +2261,30 @@ int rf_chscan() {
     set_func_ret_msg(ch_str);
     return 1;
 }
+
+#ifdef INC_SII1136
+int get_edid() {
+    edid_t mon_edid;
+    FIL e_file;
+    int ret;
+    unsigned bytes_written;
+
+    ret = sii1136_get_edid(&siitx_dev, &mon_edid);
+    if (ret != 0)
+        return ret;
+
+    if (f_open(&e_file, "mon_edid.bin", FA_WRITE|FA_CREATE_ALWAYS) != F_OK) {
+        return -3;
+    }
+
+    // Write edid to file
+    if ((f_write(&e_file, &mon_edid.data, mon_edid.len, &bytes_written) != F_OK) || (bytes_written != mon_edid.len))
+        ret = -4;
+    else
+        ret = 0;
+
+    file_close(&e_file);
+
+    return ret;
+}
+#endif

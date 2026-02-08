@@ -64,6 +64,9 @@ const ude_item_map ude_initcfg_items[] = {
     UDE_ITEM(7, 76, ts.power_up_state),
 #endif
     UDE_ITEM(8, 78, ts.osd_highlight_color),
+    UDE_ITEM(9, 82, ts.chardisp_cfg),
+    UDE_ITEM(10, 82, ts.rc_p19_func),
+    UDE_ITEM(11, 82, ts.rc_rgyb_func),
 };
 
 const ude_item_map ude_profile_items[] = {
@@ -102,7 +105,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(23, 58, tc.pm_480p),
     UDE_ITEM(24, 58, tc.pm_1080i),
     UDE_ITEM(25, 72, tc.pm_ad_240p),
-    UDE_ITEM(26, 72, tc.pm_ad_288p),
+    UDE_ITEM(26, 82, tc.pm_ad_288p),
     UDE_ITEM(27, 78, tc.pm_ad_384p),
     UDE_ITEM(28, 58, tc.pm_ad_480i),
     UDE_ITEM(29, 64, tc.pm_ad_576i),
@@ -190,7 +193,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(90, 75, tc.extra_av_out_mode),
     // 91 reserved for sdp_timings
 #ifndef DExx_FW
-    UDE_ITEM(92, 80, tc.sdp_cfg),
+    UDE_ITEM(92, 82, tc.sdp_cfg),
 #endif
     UDE_ITEM(93, 81, tc.lumacode_mode),
     UDE_ITEM(94, 76, tc.shmask_str),
