@@ -105,7 +105,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(23, 58, tc.pm_480p),
     UDE_ITEM(24, 58, tc.pm_1080i),
     UDE_ITEM(25, 72, tc.pm_ad_240p),
-    UDE_ITEM(26, 72, tc.pm_ad_288p),
+    UDE_ITEM(26, 82, tc.pm_ad_288p),
     UDE_ITEM(27, 78, tc.pm_ad_384p),
     UDE_ITEM(28, 58, tc.pm_ad_480i),
     UDE_ITEM(29, 64, tc.pm_ad_576i),

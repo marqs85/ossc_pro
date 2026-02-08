@@ -113,7 +113,8 @@ static const char* const pm_384p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ")
 static const char* const pm_480p_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x" };
 static const char* const pm_1080i_desc[] = { LNG("Passthru","ﾊﾟｽｽﾙｰ"), "Line2x (Deint)" };
 static const char* const pm_ad_240p_desc[] = { "240p_CRT (Passthru)", "720x480 (Line2x)", "1280x720 (Line3x)", "1280x1024 (Line4x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line5x)", "1920x1200 (Line5x)", "1920x1440 (Line6x)", "2560x1440 (Line6x)", "2880x2160 (Line9x)" };
-static const char* const pm_ad_288p_desc[] = { "288p_CRT (Passthru)", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1200 (Line4x)", "1920x1440 (Line5x)", "2560x1440 (Line5x)", "2880x2160 (Line7x)" };
+static const char* const pm_ad_288p_desc[] = { "288p_CRT (Passthru)", "720x576 (Line2x)", "1920x1080i (Line2x)", "1920x1080 (Line4x)", "1920x1080 (Line5x)", "1600x1200 (Line4x)", "1600x1200 (Line5x)", "1920x1200 (Line4x)", "1920x1200 (Line5x)", "1920x1440 (Line5x)",
+                                               "1920x1440 (Line6x)", "2560x1440 (Line5x)", "2560x1440 (Line6x)", "2880x2160 (Line7x)", "2880x2160 (Line9x)" };
 static const char* const pm_ad_384p_desc[] = { "1280x720 (Line2x)", "1024x768 (Line2x)", "1920x1080 (Line3x)", "1600x1200 (Line3x)", "1920x1200 (Line3x)", "1920x1440 (Line4x)", "2560x1440 (Line4x)", "2560x1920 (Line5x)" };
 static const char* const pm_ad_480i_desc[] = { "720x480i (Passthru)", "240p_CRT (NI rest)", "720x480 (Dint@L2x)", "1280x1024 (Dint@L4x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1440 (Dint@L6x)", "2560x1440 (Dint@L6x)" };
 static const char* const pm_ad_576i_desc[] = { "720x576i (Passthru)", "288p_CRT (NI rest)", "720x576 (Dint@L2x)", "1080i (NI rest@L2x)", "1920x1080 (Dint@L4x)", "1920x1200 (Dint@L4x)" };
