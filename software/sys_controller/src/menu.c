@@ -123,9 +123,9 @@ static const char* const pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x576i (
 static const char* const pm_ad_720p_desc[] = { "1280x720 (Passthru)", "240p_CRT (Line drop)", "480i_CRT (Line drop)", "2560x1440 (Line2x)" };
 static const char* const pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint@L2x)" };
 static const char* const pm_ad_1080p_desc[] = { "1920x1080 (Passthru)", "1920x1080i (Line drop)", "540p_CRT (Line drop)", "240p_CRT (Line drop)" };
-static const char* const sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
-                                                    "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol",
-                                                    "MSX 256col", "Spectrum 352col", "Atari 8bit 320col" };
+static const char* const sm_ad_240p_288p_desc[] = { "Generic 4:3", "NES/SNES 256col", "SNES 512col", "SMS 256col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
+                                                    "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "VIC20 400col", "C64 4XXcol",
+                                                    "MSX 256col", "Spectrum 352col", "Atari 8bit 320col", "Atari 7800 LC 320col", "Intellivision 320col", "G7000/MC6847 320col" };
 static const char* const sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char* const sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 256col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "PS2 512col", "DC/PS2/GC 640col" };
 static const char* const sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
@@ -158,8 +158,8 @@ static const char* const rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
 static const char* const auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char* const mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
 static const char* const shmask_mode_desc[] = { "Off", "A-Grille", "TV", "PVM", "PVM-2530", "XC-3315C", "C-1084", "JVC", "VGA", c_shmask.name };
-static const char* const lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "Intellivision", "NES", "Atari GTIA", "Atari VCS" };
-static const char* const lumacode_pal_desc[] = { "PAL", c_lc_palette_set.name };
+static const char* const lumacode_mode_desc[] = { "Off", "VIC20", "C64", "Spectrum", "Coleco/MSX", "Intellivision", "G7000", "MC6847", "Master System", "NES", "Atari GTIA", "Atari VCS", "Atari 7800" };
+static const char* const lumacode_pal_desc[] = { "PAL", "NTSC", c_lc_palette_set.name };
 static const char* const adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char* const oper_mode_desc[] = { "Line multiplier", "Scaler" };
 static const char* const lm_mode_desc[] = { "Pure", "Adaptive" };
@@ -173,9 +173,9 @@ static const char* const scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:
 static const char* const scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "GS medium", "GS soft", c_pp_coeffs.name };
 static const char* const scl_gen_sr_desc[] = { "Auto", "Lowest", "Highest" };
 static const char* const scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive" };
-static const char* const sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
-                                                     "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol",
-                                                     "MSX 256col", "Spectrum 352col", "Atari 8bit 320col" };
+static const char* const sm_scl_240p_288p_desc[] = { "Generic", "NES/SNES 256col", "SNES 512col", "SMS 256col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
+                                                     "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "VIC20 400col", "C64 4XXcol",
+                                                     "MSX 256col", "Spectrum 352col", "Atari 8bit 320col", "Atari 7800 LC 320col", "Intellivision 320col", "G7000/MC6847 320col" };
 static const char* const sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char* const sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 256col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "PS2 512col", "DC/PS2/GC 640col" };
 static const char* const sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
@@ -387,7 +387,7 @@ MENU(menu_isl_video_opt, P99_PROTECT({
     { "Auto level ctl (ALC)",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.isl_cfg.alc_enable,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "ALC V filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_v_filter,  OPT_NOWRAP, 0, ALC_V_FILTER_MAX, alc_v_filter_disp } } },
     { "ALC H filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_h_filter,  OPT_NOWRAP, 0, ALC_H_FILTER_MAX, alc_h_filter_disp } } },
-    { "Lumacode",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_mode,         OPT_WRAP,   SETTING_ITEM(lumacode_mode_desc) } } },
+    { "Lumacode",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_mode,         OPT_WRAP,   SETTING_ITEM_LIST(lumacode_mode_desc) } } },
     { "Lumacode palette set",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_pal,          OPT_WRAP,   SETTING_ITEM(lumacode_pal_desc) } } },
     { "Palette set load",                       OPT_CUSTOMMENU,         { .cstm = { &cstm_lc_palette_set_load, &palset_arg_info } } },
 }))
@@ -1161,7 +1161,22 @@ int load_lc_palette_set(char *dirname, char *filename) {
                     entries_remaining = 128;
                 } else if (strncmp(tmpbuf, "gtia_pal", 10) == 0) {
                     offset = offsetof(lc_palette_set, gtia_pal)/4;
-                    entries_remaining = 128;
+                    entries_remaining = 256;
+                } else if (strncmp(tmpbuf, "maria_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, maria_pal)/4;
+                    entries_remaining = 256;
+                } else if (strncmp(tmpbuf, "sms_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, sms_pal)/4;
+                    entries_remaining = 64;
+                } else if (strncmp(tmpbuf, "vic20_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, vic20_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(tmpbuf, "g7000_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, g7000_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(tmpbuf, "mc6847_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, mc6847_pal)/4;
+                    entries_remaining = 16;
                 }
             } else if (sscanf(tmpbuf, "%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx",    &c_lc_palette_set.pal.data[offset],
                                                                                                             &c_lc_palette_set.pal.data[offset+1],
@@ -1977,43 +1992,72 @@ void cstm_vm_stats(menucode_id code, int setup_disp) {
 
 void cstm_listview(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x03, 0x00};
-    int i;
+    int i, lw_page, items_curpage;
 
-    if (setup_disp) {
-        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+    if (setup_disp)
         lw_mp = *lw_item->sel.data;
-
-        sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%s", lw_item->name);
-        strlcpy(menu_row1, lw_item->name, US2066_ROW_LEN+1);
-        for (i=0; i<OSD_CHAR_COLS; i++)
-            osd->osd_array.data[1][0][i] = '-';
-
-        for (i=0; i<=lw_item->sel.max; i++) {
-            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%c%s", (i==lw_mp? '*' : ' '), lw_item->sel.setting_str[i]);
-            row_mask[0] |= (1<<(i+2));
-        }
-        osd->osd_sec_enable[0].mask = row_mask[0];
-        osd->osd_sec_enable[1].mask = row_mask[1];
-        osd->osd_row_color.mask = (1<<(lw_mp+2));
-    }
 
     // Parse menu control
     switch (code) {
     case PREV_PAGE:
+        if (lw_mp % 20 == 0)
+            setup_disp = (lw_item->sel.max >= 20);
         lw_mp = (lw_mp > 0) ? (lw_mp - 1) : lw_item->sel.max;
-        osd->osd_row_color.mask = (1<<(lw_mp+2));
+        osd->osd_row_color.mask = (1<<((lw_mp%20)+2));
         break;
     case NEXT_PAGE:
+        if ((lw_mp % 20 == 19) || (lw_mp == lw_item->sel.max))
+            setup_disp = (lw_item->sel.max >= 20);
         lw_mp = (lw_mp < lw_item->sel.max) ? (lw_mp + 1) : 0;
-        osd->osd_row_color.mask = (1<<(lw_mp+2));
+        osd->osd_row_color.mask = (1<<((lw_mp%20)+2));
+        break;
+    case VAL_MINUS:
+        if (lw_item->sel.max >= 20) {
+            lw_mp = (lw_mp-20 < 0) ? (lw_item->sel.max/20)*20 : lw_mp-20;
+            setup_disp = 1;
+        }
+        break;
+    case VAL_PLUS:
+        if (lw_item->sel.max >= 20) {
+            lw_mp = (lw_mp+20 > lw_item->sel.max) ? (lw_mp/20 == lw_item->sel.max/20 ? 0 : (lw_item->sel.max/20)*20) : lw_mp+20;
+            setup_disp = 1;
+        }
         break;
     case OPT_SELECT:
-        osd->osd_array.data[*lw_item->sel.data+2][0][0] = ' ';
+        osd->osd_array.data[(*lw_item->sel.data % 20)+2][0][0] = ' ';
         *lw_item->sel.data = lw_mp;
-        osd->osd_array.data[lw_mp+2][0][0] = '*';
+        osd->osd_array.data[(lw_mp%20)+2][0][0] = '*';
         break;
     default:
         break;
+    }
+
+    lw_page = lw_mp / 20;
+    items_curpage = (((lw_page+1)*20) > lw_item->sel.max) ? ((lw_item->sel.max+1)-(lw_page*20)) : 20;
+
+    if (setup_disp) {
+        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+
+        if (lw_item->sel.max >= 20)
+            sniprintf(menu_row1, US2066_ROW_LEN+1, "%s p%d/%d", lw_item->name, lw_page+1, (lw_item->sel.max/20)+1);
+        else
+            strlcpy(menu_row1, lw_item->name, US2066_ROW_LEN+1);
+        strncpy((char*)osd->osd_array.data[0][0], menu_row1, OSD_CHAR_COLS);
+        for (i=0; i<OSD_CHAR_COLS; i++)
+            osd->osd_array.data[1][0][i] = '-';
+
+        for (i=0; i<items_curpage; i++) {
+            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%c%s", ((i+lw_page*20)==*lw_item->sel.data? '*' : ' '), lw_item->sel.setting_str[i+lw_page*20]);
+            row_mask[0] |= (1<<(i+2));
+        }
+        if (lw_item->sel.max >= 20) {
+            row_mask[0] |= (1<<((i++)+2));
+            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "< Prev       Next >");
+            row_mask[0] |= (1<<(i+2));
+        }
+        osd->osd_sec_enable[0].mask = row_mask[0];
+        osd->osd_sec_enable[1].mask = row_mask[1];
+        osd->osd_row_color.mask = (1<<((lw_mp%20)+2));
     }
 
     sniprintf(menu_row2, US2066_ROW_LEN+1, "%c%s", (*lw_item->sel.data==lw_mp? '*' : ' '), lw_item->sel.setting_str[lw_mp]);

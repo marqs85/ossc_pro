@@ -260,6 +260,9 @@ const smp_preset_t smp_presets_default[] = {
     { "SNES 256x240 P", SM_OPT_SNES_256COL,{ 256,  240,      0,   341, 0,  312,   38, 40,   25, 3,  0},  5,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
     { "SNES 512x240 P", SM_OPT_SNES_512COL,{ 512,  240,      0,   682, 0,  312,   74, 40,   50, 3,  0},  2,  0,  {56, 45},  VIDEO_SDTV,  GROUP_288P },
     { "SNES 512x448i P",SM_OPT_SNES_512COL,{ 512,  224,      0,   682, 0,  625,   74, 40,   50, 3,  1},  2,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_576I },
+    /* SMS */
+    { "SMS 256x224",    SM_OPT_SMS_256COL, { 256,  224,      0,   342, 0,  262,   39, 24,   25, 3,  0},  2,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
+    { "SMS 256x240 PAL",SM_OPT_SMS_256COL, { 256,  240,      0,   342, 0,  313,   40, 43,   25, 3,  0},  2,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
     /* MD */
     { "MD 256x224",     SM_OPT_MD_256COL,  { 256,  224,      0,   342, 0,  262,   39, 24,   25, 3,  0},  4,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     { "MD 320x224",     SM_OPT_MD_320COL,  { 320,  224,      0,   427,10,  262,   52, 24,   31, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
@@ -324,6 +327,9 @@ const smp_preset_t smp_presets_default[] = {
     { "PS2 512x448",    SM_OPT_PS2_512COL, { 512,  448,      0,   858, 0,  525,  160, 46,   62, 6,  0},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_480P },
     { "PS2 640x960i",   SM_OPT_PC_HDTV,    { 640,  480,      0,   800, 0, 1050,   48, 33,   96, 2,  1},  0,  0,  { 4,  3},  VIDEO_EDTV,  GROUP_1080I},
 
+    { "VIC20 200x288",  SM_OPT_VIC20_200COL, { 400,  284, 5500,   568, 0,  312,   30, 12,   40, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+    { "VIC20 200x240",  SM_OPT_VIC20_200COL, { 400,  284,    0,   520, 0,  261,   40, 14,   40, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
+
     { "C64 403x284",    SM_OPT_C64_4XXCOL, { 403,  284,   5500,   504, 0,  312,   30, 12,   40, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
     { "C64 411x234",    SM_OPT_C64_4XXCOL, { 411,  234,      0,   512, 0,  262,   40, 14,   40, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     { "C64 418x235",    SM_OPT_C64_4XXCOL, { 418,  235,      0,   520, 0,  263,   40, 14,   40, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
@@ -341,6 +347,15 @@ const smp_preset_t smp_presets_default[] = {
 
     { "Atari 8bit",   SM_OPT_ATARI8B_320COL, { 320,  240,     0,   456, 0,  262,   49, 14,   31, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
     { "Atari 8bit P", SM_OPT_ATARI8B_320COL, { 320,  240,     0,   456, 0,  312,   49, 38,   31, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+
+    { "Atari 7800 LC",   SM_OPT_ATARI7800_320COL,{ 320,  240, 0,   340, 10,  262,   12, 14,    5, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
+    { "Atari 7800 LC P", SM_OPT_ATARI7800_320COL,{ 320,  240, 0,   340, 10,  313,   12, 40,    5, 3,  0},  3,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+
+    { "Intelliv 160x288",  SM_OPT_INTV_160COL, { 320,  288, 5500,   512, 0,  312,   30, 12,   40, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+    { "Intelliv 160x240",  SM_OPT_INTV_160COL, { 320,  240,    0,   456, 0,  262,   40, 14,   40, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
+
+    { "G7000/MC6847 P",  SM_OPT_G7000_320COL, { 320,  288, 5500,   456, 0,  312,   30, 12,   40, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_288P },
+    { "G7000/MC6847 N",  SM_OPT_G7000_320COL, { 320,  240,    0,   456, 0,  262,   40, 14,   40, 3,  0},  1,  0,  { 4,  3},  VIDEO_SDTV,  GROUP_240P },
 };
 
 #ifdef VM_STATIC_INCLUDE

@@ -233,7 +233,7 @@ assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
 assign FPGA_PCLK1x_o = pclk_capture;
 
 wire [31:0] lumacode_data;
-wire [8:0] lumacode_addr;
+wire [7:0] lumacode_addr;
 wire lumacode_rden;
 
 // ISL51002 RGB digitizer

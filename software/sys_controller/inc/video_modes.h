@@ -204,6 +204,11 @@ typedef enum {
     SM_OPT_MSX_256COL,
     SM_OPT_ZX8X_352COL,
     SM_OPT_ATARI8B_320COL,
+    SM_OPT_ATARI7800_320COL,
+    SM_OPT_VIC20_200COL,
+    SM_OPT_SMS_256COL,
+    SM_OPT_INTV_160COL,
+    SM_OPT_G7000_320COL,
 } smp_mode_t;
 
 typedef enum {

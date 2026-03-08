@@ -362,12 +362,12 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
 
     const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
                                           SM_OPT_SNES_256COL, SM_OPT_SNES_512COL,
-                                          SM_OPT_MD_256COL, SM_OPT_MD_320COL,
+                                          SM_OPT_SMS_256COL, SM_OPT_MD_256COL, SM_OPT_MD_320COL,
                                           SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                           SM_OPT_N64_320COL, SM_OPT_N64_640COL,
                                           SM_OPT_DC_640COL,
-                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL};
+                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_VIC20_200COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL, SM_OPT_ATARI7800_320COL, SM_OPT_INTV_160COL, SM_OPT_G7000_320COL};
     const smp_mode_t sm_384p_map[] = {SM_GEN_4_3, SM_OPT_VGA_640x350, SM_OPT_VGA_720x350, SM_OPT_VGA_640x400, SM_OPT_VGA_720x400, SM_OPT_GBI_240COL, SM_OPT_PC98_640COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_OPT_DTV480I,
                                      SM_OPT_SNES_512COL,
@@ -619,12 +619,12 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
     const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
                                           SM_OPT_SNES_256COL, SM_OPT_SNES_512COL,
-                                          SM_OPT_MD_256COL, SM_OPT_MD_320COL,
+                                          SM_OPT_SMS_256COL, SM_OPT_MD_256COL, SM_OPT_MD_320COL,
                                           SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                           SM_OPT_N64_320COL, SM_OPT_N64_640COL,
                                           SM_OPT_DC_640COL,
-                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL};
+                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_VIC20_200COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL, SM_OPT_ATARI7800_320COL, SM_OPT_INTV_160COL, SM_OPT_G7000_320COL};
     const smp_mode_t sm_384p_map[] = {SM_GEN_4_3, SM_OPT_VGA_640x350, SM_OPT_VGA_720x350, SM_OPT_VGA_640x400, SM_OPT_VGA_720x400, SM_OPT_GBI_240COL, SM_OPT_PC98_640COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480I, SM_OPT_DTV480I_WS,
                                      SM_OPT_SNES_512COL,
