@@ -165,8 +165,8 @@ wire [7:0] MASK_G = MISC_MASK_COLOR[1] ? {2{MISC_MASK_BR}} : 8'h00;
 wire [7:0] MASK_B = MISC_MASK_COLOR[0] ? {2{MISC_MASK_BR}} : 8'h00;
 
 
-reg frame_change_sync1_reg, frame_change_sync2_reg, frame_change_prev, frame_change_resync, frame_change_det;
-wire frame_change = frame_change_sync2_reg;
+reg frame_change_sync1_reg, frame_change_sync2_reg, frame_change_sync3_reg, frame_change_resync;
+reg VSYNC_sync1_reg, VSYNC_sync2_reg, VSYNC_sync3_reg, field_change_det;
 
 reg [11:0] h_cnt;
 reg [11:0] v_cnt;
@@ -363,9 +363,16 @@ linebuf_top #(
 always @(posedge PCLK_OUT_i) begin
     frame_change_sync1_reg <= frame_change_i;
     frame_change_sync2_reg <= frame_change_sync1_reg;
-    frame_change_prev <= frame_change_sync2_reg;
+    frame_change_sync3_reg <= frame_change_sync2_reg;
 
-    frame_change_resync <= ~frame_change_prev & frame_change & ((v_cnt != V_STARTLINE_PREV) & (v_cnt != V_STARTLINE));
+    frame_change_resync <= ~frame_change_sync3_reg & frame_change_sync2_reg & ((v_cnt != V_STARTLINE_PREV) & (v_cnt != V_STARTLINE));
+end
+
+// For field change detection
+always @(posedge PCLK_OUT_i) begin
+    VSYNC_sync1_reg <= VSYNC_i;
+    VSYNC_sync2_reg <= VSYNC_sync1_reg;
+    VSYNC_sync3_reg <= VSYNC_sync2_reg;
 end
 
 // H/V counters
@@ -373,8 +380,8 @@ always @(posedge PCLK_OUT_i) begin
     if (ext_sync_mode & ext_frame_change_i) begin
         h_cnt <= PP_SRCSEL_START+1; // compensate pipeline delays
         v_cnt <= 0;
-        bfi_frame_ctr <= frame_change_det ? 0 : bfi_frame_ctr + 1'b1;
-        frame_change_det <= 1'b0;
+        bfi_frame_ctr <= field_change_det ? 0 : bfi_frame_ctr + 1'b1;
+        field_change_det <= 1'b0;
         resync_strobe <= ~((v_cnt == 0) & (h_cnt == PP_SRCSEL_START));
     end else if (~ext_sync_mode & frame_change_resync) begin
         h_cnt <= 0;
@@ -405,8 +412,8 @@ always @(posedge PCLK_OUT_i) begin
             h_avidstart <= (h_cnt == H_SYNCLEN+H_BACKPORCH-1'b1);
         end
 
-        if (~frame_change_prev & frame_change)
-            frame_change_det <= 1'b1;
+        if (VSYNC_sync3_reg & ~VSYNC_sync2_reg)
+            field_change_det <= 1'b1;
     end
 end
 
