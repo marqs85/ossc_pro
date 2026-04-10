@@ -385,7 +385,7 @@ void parse_control()
                     if (ts.rc_p19_func > 0) {
                         ret = ((ts.rc_p19_func == 1) ? read_userdata(i+1, 0) : read_userdata_sd(i+1, 0));
 
-                        if (ret == 0) {
+                        if (ret >= 0) {
                             sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%u: %s", i+1, target_profile_name);
                             sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "loaded");
                             osd->osd_config.status_refresh = 1;

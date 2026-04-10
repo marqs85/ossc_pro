@@ -183,7 +183,7 @@ int load_profile() {
     int retval;
 
     retval = read_userdata(profile_sel_menu, 0);
-    if (retval == 0) {
+    if (retval >= 0) {
         profile_sel = profile_sel_menu;
 
         // enforce custom EDID update
@@ -217,7 +217,16 @@ int save_profile() {
 }
 
 int load_profile_sd() {
-    return read_userdata_sd(sd_profile_sel_menu, 0);
+    int retval;
+
+    retval = read_userdata_sd(sd_profile_sel_menu, 0);
+    if (retval >= 0) {
+        // enforce custom EDID update
+        if (tc.hdmirx_cfg.edid_sel == 4)
+            set_custom_edid_reload();
+    }
+
+    return retval;
 }
 
 int save_profile_sd() {
