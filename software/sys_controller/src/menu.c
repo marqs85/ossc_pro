@@ -554,6 +554,7 @@ MENU(menu_audio, P99_PROTECT({
     { "Sampling format",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.audio_fmt,  OPT_WRAP, SETTING_ITEM_LIST(audio_fmt_desc) } } },
     { "Quad stereo",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.i2s_stereo_cfg, OPT_WRAP, SETTING_ITEM_LIST(audio_sr_desc) } } },
 #ifdef INC_PCM186X
+    { "Mono ADC mode",                          OPT_AVCONFIG_SELECTION, { .sel = { &tc.pcm_cfg.mono,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "Pre-ADC gain",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.pcm_cfg.gain,    OPT_NOWRAP, PCM_GAIN_M12DB, PCM_GAIN_12DB, aud_db_disp } } },
 #endif
 #ifndef DExx_FW
