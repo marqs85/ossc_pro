@@ -123,6 +123,8 @@ status_t update_avconfig() {
         switch_audsrc(tc.audio_src_map, &tc.hdmitx_cfg.audio_fmt);
     if (tc.isl_ext_range != cc.isl_ext_range)
         restart_isl(tc.isl_ext_range);
+    if ((tc.hdmi_csync != cc.hdmi_csync) || (tc.csync_combiner != cc.csync_combiner))
+        set_csync_comb(tc.hdmi_csync, tc.csync_combiner);
 
     memcpy(&cc, &tc, sizeof(avconfig_t));
     update_cur_vm = 0;

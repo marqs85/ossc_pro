@@ -49,12 +49,18 @@
 #define SCTRL_LED_PWM_MASK      (0xf<<SCTRL_LED_PWM_OFFS)
 #define SCTRL_DRAM_RFR_ENA      (1<<24)
 #define SCTRL_VIP_DIL_RESET_N   (1<<25)
-#define SCTRL_EXTRA_AV_O_OFFS   26
-#define SCTRL_EXTRA_AV_O_MASK   (0x3<<SCTRL_EXTRA_AV_O_OFFS)
-#define SCTRL_EXP_SEL_OFFS      28
-#define SCTRL_EXP_SEL_MASK      (0x3<<SCTRL_EXP_SEL_OFFS)
-#define SCTRL_AUDMUX_SEL        (1<<30)
-#define SCTRL_RF_AUD_SEL        (1<<31)
+#define SCTRL_AUDMUX_SEL        (1<<26)
+
+// sys_ctrl_exp
+#define SCTRL_EXP_EXP_SEL_OFFS      0
+#define SCTRL_EXP_EXP_SEL_MASK      (0x3<<SCTRL_EXP_EXP_SEL_OFFS)
+#define SCTRL_EXP_EXTRA_AV_O_OFFS   2
+#define SCTRL_EXP_EXTRA_AV_O_MASK   (0x7<<SCTRL_EXP_EXTRA_AV_O_OFFS)
+#define SCTRL_EXP_RF_AUD_SEL        (1<<5)
+#define SCTRL_EXP_HDMI_CSYNC        (1<<6)
+#define SCTRL_EXP_CSYNC_COMB_OFFS   7
+#define SCTRL_EXP_CSYNC_COMB_MASK   (0x3<<SCTRL_EXP_CSYNC_COMB_OFFS)
+
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -121,6 +127,7 @@ typedef struct {
     us2066_config chardisp_cfg __attribute__ ((aligned (4)));
     uint8_t rc_p19_func;
     uint8_t rc_rgyb_func[4];
+    uint8_t rc_disable;
 } settings_t;
 
 typedef struct {
@@ -196,6 +203,8 @@ void switch_audmux(uint8_t audmux_sel);
 void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
 
 void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode);
+
+void set_csync_comb(uint8_t hdmi_csync, uint8_t csync_combiner);
 
 void set_dram_refresh(uint8_t enable);
 

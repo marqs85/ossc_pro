@@ -126,6 +126,8 @@ localparam EXTRA_OUT_RGBHV = 0;
 localparam EXTRA_OUT_RGBCS_RGBS = 1;
 localparam EXTRA_OUT_RGsB = 2;
 localparam EXTRA_OUT_YPbPr = 3;
+localparam EXTRA_OUT_SVID_CVBS_PAL = 4;
+localparam EXTRA_OUT_SVID_CVBS_NTSC = 5;
 
 wire jtagm_reset_req, ndmreset_req;
 reg ndmreset_ack, ndmreset_pulse;
@@ -150,10 +152,14 @@ wire [3:0] fan_duty = sys_ctrl[19:16];
 wire [3:0] led_duty = sys_ctrl[23:20];
 wire dram_refresh_enable = sys_ctrl[24];
 wire vip_dil_reset_n = sys_ctrl[25];
-wire [1:0] extra_out_mode = sys_ctrl[27:26];
-wire [1:0] exp_sel = sys_ctrl[29:28];
-wire audmux_sel = sys_ctrl[30];
-wire legacy_aud_sel = sys_ctrl[31];
+wire audmux_sel = sys_ctrl[26];
+
+wire [31:0] sys_ctrl_exp;
+wire [1:0] exp_sel = sys_ctrl_exp[1:0];
+wire [2:0] extra_out_mode = sys_ctrl_exp[4:2];
+wire legacy_aud_sel = sys_ctrl_exp[5];
+wire hdmi_csync = sys_ctrl_exp[6];
+wire [1:0] csync_combiner = sys_ctrl_exp[8:7];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -470,8 +476,6 @@ assign HDMITX_PCLK_o = ~pclk_out;
 
 // VIP / LB
 wire vip_select = misc_config2[3];
-wire hdmi_csync = misc_config2[4];
-wire [1:0] csync_combiner = misc_config2[6:5];
 wire lb_enable = sys_poweron & ~testpattern_enable & ~vip_select;
 
 always @(posedge pclk_capture) begin
@@ -663,7 +667,7 @@ always @(posedge pclk_out) begin
         VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_HSYNC_out : VGA_CSC_CSYNC_out;
         VGA_VS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_VSYNC_out : 1'b1;
         VGA_BLANK_N_pre <= (extra_out_mode == EXTRA_OUT_YPbPr) ? 1'b1 : VGA_CSC_DE_out;
-        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? VGA_CSC_CSYNC_out : 1'b0;
+        VGA_SYNC_N_pre <= ((extra_out_mode == EXTRA_OUT_RGsB) || (extra_out_mode == EXTRA_OUT_YPbPr)) ? VGA_CSC_CSYNC_out : 1'b0;
 
         VGA_R <= VGA_R_pre;
         VGA_G <= VGA_G_pre;
@@ -674,6 +678,8 @@ always @(posedge pclk_out) begin
         VGA_SYNC_N <= VGA_SYNC_N_pre;
     end
 end
+assign EXT_IO_A_io[2] = sys_poweron & (exp_sel == EXP_SEL_EXTRA_OUT) & (extra_out_mode >= EXTRA_OUT_SVID_CVBS_PAL); // AD_EN
+assign EXT_IO_A_io[3] = extra_out_mode[0]; // AD_STD
 assign EXT_IO_A_io[4] = sys_poweron; // VGA_PSAVE_N
 assign EXT_IO_A_io[5] = sys_poweron; // AUDIO_MUTE_N
 assign EXT_IO_B_io[27] = (exp_sel == EXP_SEL_EXTRA_OUT) ? ~pclk_out : 'z;
@@ -765,6 +771,7 @@ sys sys_inst (
     .pio_0_sys_ctrl_out_export              (sys_ctrl),
     .pio_1_controls_in_export               (controls),
     .pio_2_sys_status_in_export             (sys_status),
+    .pio_3_sys_ctrl2_out_export             (sys_ctrl_exp),
     .sc_config_0_sc_if_fe_status_i          (fe_status),
     .sc_config_0_sc_if_hv_in_config_o       (hv_in_config),
     .sc_config_0_sc_if_hv_in_config2_o      (hv_in_config2),

@@ -223,9 +223,13 @@ void read_controls() {
 
     remote_rpt_prev = remote_rpt;
 
-    for (r_code = RC_BTN1; r_code < REMOTE_MAX_KEYS+REMOTE_EXTRA_KEYS; r_code++) {
-        if (remote_code_raw == ((r_code < REMOTE_MAX_KEYS) ? rc_keymap[r_code] : rc_extra_keymap[r_code-REMOTE_MAX_KEYS]))
-            break;
+    if (ts.rc_disable) {
+        r_code = REMOTE_MAX_KEYS+REMOTE_EXTRA_KEYS;
+    } else {
+        for (r_code = RC_BTN1; r_code < REMOTE_MAX_KEYS+REMOTE_EXTRA_KEYS; r_code++) {
+            if (remote_code_raw == ((r_code < REMOTE_MAX_KEYS) ? rc_keymap[r_code] : rc_extra_keymap[r_code-REMOTE_MAX_KEYS]))
+                break;
+        }
     }
 
     if (btn_vec & PB_PRESS)
@@ -352,9 +356,9 @@ void parse_control()
             // Parse remote custom keys
             for (i=0; i<4; i++) {
                 if (r_code == RC_RED+i) {
-                    // Power off/on
-                    if ((ts.rc_rgyb_func[i] == 1) || (ts.rc_rgyb_func[i] == 2))
-                        sys_set_power(ts.rc_rgyb_func[i]-1);
+                    // Power off
+                    if ((ts.rc_rgyb_func[i] == 1))
+                        sys_set_power(0);
                     // Shadow mask mode-/+
                     if ((ts.rc_rgyb_func[i] == 3) || (ts.rc_rgyb_func[i] == 4))
                         quick_adjust(&menu_postproc_items[2], (ts.rc_rgyb_func[i] == 4) ? 1 : -1, 1);
@@ -402,6 +406,17 @@ void parse_control()
         } else {
             if ((r_code <= RC_RIGHT) || ((b_code >= BC_OK) && (b_code <= BC_RIGHT)))
                 display_menu(r_code, b_code);
+        }
+    } else {
+        // Parse remote custom keys
+        for (i=0; i<4; i++) {
+            if (r_code == RC_RED+i) {
+                // Power on
+                if ((ts.rc_rgyb_func[i] == 2))
+                    sys_set_power(1);
+
+                break;
+            }
         }
     }
 

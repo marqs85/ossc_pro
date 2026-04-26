@@ -184,7 +184,7 @@ static const char* const timing_1080p120_desc[] = { "CVT-RB", "Min. blank", "CEA
 static const char* const timing_2160p60_desc[] = { "CVT-RB PR2x", "Min. blank PR2x" };
 static const char* const edid_sel_desc[] = { "Default", "2ch audio", "10bpc RGB+HDR", "720p max.", c_edid.name };
 static const char* const exp_sel_desc[] = { "Auto", "Off", "Extra AV out", "Legacy AV in", "UVC bridge" };
-static const char* const extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB", "YPbPr" };
+static const char* const extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB", "YPbPr", "S-video+CVBS PAL", "S-video+CVBS NTSC" };
 static const char* const hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
 static const char* const sdp_timings_groups[] = { "-", "SDP 240p", "SDP 288p", "-", "SDP 480i", "SDP 576i", "-", "-", "-", "-", "-" };
 static const char* const sh_filt_c_desc[] = { "Auto 1.5MHz", "Auto 2.17MHz", "SH1", "SH2", "SH3", "SH4", "SH5", "Wideband" };
@@ -642,7 +642,8 @@ MENU(menu_settings, P99_PROTECT({
 #endif
     { "Chardisp contrast",                      OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.chardisp_cfg.contrast,   OPT_NOWRAP, 0, 127,  value_disp } } },
     { "Chardisp fade out",                      OPT_AVCONFIG_SELECTION, { .sel = { &ts.chardisp_cfg.fade,       OPT_NOWRAP,   SETTING_ITEM_LIST(chardisp_fade_desc) } } },
-    { "Remote custom keys",                     OPT_SUBMENU,            { .sub = { &menu_remote_custom_keys, NULL, NULL } } },
+    { "Disable IR remote",                      OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_disable, OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
+    { "Customize IR remote",                    OPT_SUBMENU,            { .sub = { &menu_remote_custom_keys, NULL, NULL } } },
     { "Bind IR remote",                         OPT_FUNC_CALL,          { .fun = { setup_rc, NULL } } },
 #ifndef DE10N
     { LNG("Load profile","ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ"),        OPT_FUNC_CALL,          { .fun = { load_profile, &profile_arg_info } } },
@@ -2311,6 +2312,7 @@ int rf_chscan() {
 int get_edid() {
     edid_t mon_edid;
     FIL e_file;
+    FRESULT f_res;
     int ret;
     unsigned bytes_written;
 
@@ -2318,13 +2320,18 @@ int get_edid() {
     if (ret != 0)
         return ret;
 
-    if (f_open(&e_file, "mon_edid.bin", FA_WRITE|FA_CREATE_ALWAYS) != F_OK) {
+    f_res = f_mkdir("edid");
+    if (!((f_res == FR_OK) || (f_res == FR_EXIST))) {
         return -3;
+    }
+
+    if (f_open(&e_file, "edid/mon_edid.bin", FA_WRITE|FA_CREATE_ALWAYS) != F_OK) {
+        return -4;
     }
 
     // Write edid to file
     if ((f_write(&e_file, &mon_edid.data, mon_edid.len, &bytes_written) != F_OK) || (bytes_written != mon_edid.len))
-        ret = -4;
+        ret = -5;
     else
         ret = 0;
 

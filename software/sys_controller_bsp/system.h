@@ -398,6 +398,33 @@
 
 
 /*
+ * pio_3 configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_pio_3 altera_avalon_pio
+#define PIO_3_BASE 0x210f0
+#define PIO_3_BIT_CLEARING_EDGE_REGISTER 0
+#define PIO_3_BIT_MODIFYING_OUTPUT_REGISTER 0
+#define PIO_3_CAPTURE 0
+#define PIO_3_DATA_WIDTH 32
+#define PIO_3_DO_TEST_BENCH_WIRING 0
+#define PIO_3_DRIVEN_SIM_VALUE 0
+#define PIO_3_EDGE_TYPE "NONE"
+#define PIO_3_FREQ 48000000
+#define PIO_3_HAS_IN 0
+#define PIO_3_HAS_OUT 1
+#define PIO_3_HAS_TRI 0
+#define PIO_3_IRQ -1
+#define PIO_3_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define PIO_3_IRQ_TYPE "NONE"
+#define PIO_3_NAME "/dev/pio_3"
+#define PIO_3_RESET_VALUE 0
+#define PIO_3_SPAN 16
+#define PIO_3_TYPE "altera_avalon_pio"
+
+
+/*
  * osd_generator_0 configuration
  *
  */

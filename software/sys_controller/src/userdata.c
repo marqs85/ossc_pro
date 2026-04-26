@@ -67,6 +67,7 @@ const ude_item_map ude_initcfg_items[] = {
     UDE_ITEM(9, 82, ts.chardisp_cfg),
     UDE_ITEM(10, 82, ts.rc_p19_func),
     UDE_ITEM(11, 82, ts.rc_rgyb_func),
+    UDE_ITEM(12, 82, ts.rc_disable),
 };
 
 const ude_item_map ude_profile_items[] = {
@@ -190,7 +191,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(88, 74, tc.scl_gen_sr),
 #endif
     UDE_ITEM(89, 74, tc.exp_sel),
-    UDE_ITEM(90, 75, tc.extra_av_out_mode),
+    UDE_ITEM(90, 82, tc.extra_av_out_mode),
     // 91 reserved for sdp_timings
 #ifndef DExx_FW
     UDE_ITEM(92, 82, tc.sdp_cfg),
