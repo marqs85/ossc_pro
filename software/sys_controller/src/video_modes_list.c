@@ -136,10 +136,13 @@ const mode_data_t video_modes_default[] = {
     { "1080i_60",      HDMI_1080i60,     {1920,  540,   6000,  2200, 0, 1125,  148, 15,   44, 5,  1},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080I,  0,         TX_1X, TX_1X },
     { "1080p_50",      HDMI_1080p50,     {1920, 1080,   5000,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_60",      HDMI_1080p60,     {1920, 1080,   6000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
-    /* 1080p 100/120Hz (CVT-RB) */
+    /* 1080p 100Hz (CVT-RB, MB, CEA and PR modes ) */
     { "1080p_100",     HDMI_Unknown,     {1920, 1080,  10000,  2080, 0, 1133,   80, 45,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_100_MB",  HDMI_Unknown,     {1920, 1080,  10000,  2000, 0, 1086,   40,  1,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_100_CEA", HDMI_Unknown,     {1920, 1080,  10000,  2640, 0, 1125,  148, 36,   44, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
+    { "1080p_100_PR2", HDMI_Unknown,     { 960, 1080,  10000,  1320, 0, 1125,   74, 36,   22, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_2X, TX_1X },
+    /* 1080p 120Hz (CVT-RB, MB, CEA and PR modes ) */
     { "1080p_120",     HDMI_Unknown,     {1920, 1080,  12000,  2080, 0, 1144,   80, 56,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
-    /* 1080p 120Hz alternative modes */
     { "1080p_120_MB",  HDMI_Unknown,     {1920, 1080,  12000,  2000, 0, 1086,   40,  1,   32, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_CEA", HDMI_Unknown,     {1920, 1080,  12000,  2200, 0, 1125,  148, 36,   44, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_1X, TX_1X },
     { "1080p_120_PR2", HDMI_Unknown,     { 960, 1080,  12000,  1100, 0, 1125,   74, 36,   22, 5,  0},  0,  {{16,  9}},  (VIDEO_HDTV | VIDEO_PC),  GROUP_1080P,  0,         TX_2X, TX_1X },
