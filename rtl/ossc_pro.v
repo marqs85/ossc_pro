@@ -590,10 +590,9 @@ end
 
 // output data assignment (2 stages and launch on negedge for timing closure)
 reg [7:0] R_out, G_out, B_out;
-reg HSYNC_out, VSYNC_out, DE_out;
+reg HSYNC_out, VSYNC_out, CSYNC_out, DE_out;
 wire [7:0] R_sc, G_sc, B_sc;
-wire HSYNC_sc, VSYNC_sc, DE_sc;
-wire CSYNC_out = csync_combiner == 0 ? HSYNC_out & VSYNC_out : ~(HSYNC_out ^ VSYNC_out);
+wire HSYNC_sc, VSYNC_sc, CSYNC_sc, DE_sc;
 
 always @(posedge pclk_out) begin
     if (osd_enable) begin
@@ -604,6 +603,7 @@ always @(posedge pclk_out) begin
 
     HSYNC_out <= HSYNC_sc;
     VSYNC_out <= VSYNC_sc;
+    CSYNC_out <= (csync_combiner == 0) ? HSYNC_out & VSYNC_out : CSYNC_sc;
     DE_out <= DE_sc;
 end
 
@@ -636,7 +636,7 @@ assign LS_DIR_o = (exp_sel == EXP_SEL_LEGAGY_IN) ? 2'b10 : 2'b11;
 `ifdef EXTRA_AV_OUT
 // CSC for YPbPr
 wire [7:0] VGA_CSC_R_out, VGA_CSC_G_out, VGA_CSC_B_out;
-wire VGA_CSC_HSYNC_out, VGA_CSC_VSYNC_out, VGA_CSC_DE_out;
+wire VGA_CSC_HSYNC_out, VGA_CSC_VSYNC_out, VGA_CSC_CSYNC_out, VGA_CSC_DE_out;
 output_csc csc_vga_inst (
     .PCLK_i(pclk_out),
     .reset_n(1'b1),
@@ -646,19 +646,20 @@ output_csc csc_vga_inst (
     .B_i(B_out),
     .HSYNC_i(HSYNC_out),
     .VSYNC_i(VSYNC_out),
+    .CSYNC_i(CSYNC_out),
     .DE_i(DE_out),
     .R_o(VGA_CSC_R_out),
     .G_o(VGA_CSC_G_out),
     .B_o(VGA_CSC_B_out),
     .HSYNC_o(VGA_CSC_HSYNC_out),
     .VSYNC_o(VGA_CSC_VSYNC_out),
+    .CSYNC_o(VGA_CSC_CSYNC_out),
     .DE_o(VGA_CSC_DE_out),
 );
 
 // VGA DAC
 reg [7:0] VGA_R, VGA_G, VGA_B, VGA_R_pre, VGA_G_pre, VGA_B_pre;
 reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N, VGA_HS_pre, VGA_VS_pre, VGA_SYNC_N_pre, VGA_BLANK_N_pre;
-wire VGA_CSC_CSYNC_out = csync_combiner == 0 ? VGA_CSC_HSYNC_out & VGA_CSC_VSYNC_out : ~(VGA_CSC_HSYNC_out ^ VGA_CSC_VSYNC_out);
 always @(posedge pclk_out) begin
     if (exp_sel == EXP_SEL_EXTRA_OUT) begin
         VGA_R_pre <= VGA_CSC_R_out;
@@ -940,6 +941,7 @@ scanconverter #(
     .B_o(B_sc),
     .HSYNC_o(HSYNC_sc),
     .VSYNC_o(VSYNC_sc),
+    .CSYNC_o(CSYNC_sc),
     .DE_o(DE_sc),
     .xpos_o(xpos_sc),
     .ypos_o(ypos_sc),

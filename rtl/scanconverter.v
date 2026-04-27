@@ -58,6 +58,7 @@ module scanconverter (
     output [7:0] B_o,
     output HSYNC_o,
     output VSYNC_o,
+    output CSYNC_o,
     output DE_o,
     output [11:0] xpos_o,
     output [11:0] ypos_o,
@@ -203,6 +204,7 @@ reg [7:0] G_pp[PP_SRCSEL_END:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg [7:0] B_pp[PP_SRCSEL_END:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg HSYNC_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg VSYNC_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
+reg CSYNC_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg DE_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg [11:0] xpos_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
 reg [11:0] ypos_pp[PP_PL_START:PP_PL_END] /* synthesis ramstyle = "logic" */;
@@ -434,6 +436,7 @@ end
 // Pipeline stage 1
 always @(posedge PCLK_OUT_i) begin
     HSYNC_pp[1] <= (h_cnt < H_SYNCLEN) ? 1'b0 : 1'b1;
+    CSYNC_pp[1] <= (h_cnt < H_TOTAL-H_SYNCLEN) ? 1'b0 : 1'b1; // Csync during VSYNC
     if (dst_fid == FID_ODD)
         VSYNC_pp[1] <= ((v_cnt < V_SYNCLEN) | ((v_cnt == V_TOTAL) & (h_cnt >= (H_TOTAL/2)))) ? 1'b0 : 1'b1;
     else
@@ -527,6 +530,7 @@ always @(posedge PCLK_OUT_i) begin
     for(pp_idx = PP_PL_START+1; pp_idx <= PP_PL_END; pp_idx = pp_idx+1) begin
         HSYNC_pp[pp_idx] <= HSYNC_pp[pp_idx-1];
         VSYNC_pp[pp_idx] <= VSYNC_pp[pp_idx-1];
+        CSYNC_pp[pp_idx] <= CSYNC_pp[pp_idx-1];
         DE_pp[pp_idx] <= DE_pp[pp_idx-1];
         xpos_pp[pp_idx] <= xpos_pp[pp_idx-1];
         ypos_pp[pp_idx] <= ypos_pp[pp_idx-1];
@@ -541,6 +545,8 @@ always @(posedge PCLK_OUT_i) begin
         G_pp[pp_idx] <= G_pp[pp_idx-1];
         B_pp[pp_idx] <= B_pp[pp_idx-1];
     end
+    // XOR-Csync generation with falling edge alignment
+    CSYNC_pp[2] <= VSYNC_pp[1] ? HSYNC_pp[1] : CSYNC_pp[1];
 
     /* ---------- Mask enable calculation (1 cycle) ---------- */
     if (($signed({1'b0, xpos_pp[PP_MASK_START]}) >= X_OFFSET) &
@@ -637,6 +643,7 @@ assign G_o = G_pp[PP_PL_END];
 assign B_o = B_pp[PP_PL_END];
 assign HSYNC_o = HSYNC_pp[PP_PL_END];
 assign VSYNC_o = VSYNC_pp[PP_PL_END];
+assign CSYNC_o = CSYNC_pp[PP_PL_END];
 assign DE_o = DE_pp[PP_PL_END];
 assign xpos_o = xpos_pp[PP_PL_END];
 assign ypos_o = ypos_pp[PP_PL_END];

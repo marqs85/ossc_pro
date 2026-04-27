@@ -85,6 +85,7 @@ const avconfig_t tc_default = {
     .audio_src_map = {AUD_AV1_ANALOG, 0, 0, 0, 0},
 #endif
     .extra_av_out_mode = 1,
+    .csync_combiner = 1,
 };
 
 const HDMI_i2s_fs_t audio_fmt_iec_map[] = {IEC60958_FS_48KHZ, IEC60958_FS_96KHZ, IEC60958_FS_192KHZ};

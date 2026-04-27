@@ -26,12 +26,14 @@ module output_csc (
     input [7:0] B_i,
     input HSYNC_i,
     input VSYNC_i,
+    input CSYNC_i,
     input DE_i,
     output reg [7:0] R_o,
     output reg [7:0] G_o,
     output reg [7:0] B_o,
     output reg HSYNC_o,
     output reg VSYNC_o,
+    output reg CSYNC_o,
     output reg DE_o
 );
 
@@ -46,6 +48,7 @@ localparam PP_PL_END        = PP_BIASMUX_END;
 
 reg HSYNC_pp[PP_PL_START:PP_CSC_END] /* synthesis ramstyle = "logic" */;
 reg VSYNC_pp[PP_PL_START:PP_CSC_END] /* synthesis ramstyle = "logic" */;
+reg CSYNC_pp[PP_PL_START:PP_CSC_END] /* synthesis ramstyle = "logic" */;
 reg DE_pp[PP_PL_START:PP_CSC_END] /* synthesis ramstyle = "logic" */;
 
 // RGB->YPbPr709 decimal values * 2^15
@@ -118,11 +121,13 @@ integer pp_idx;
 always @(posedge PCLK_i) begin
     HSYNC_pp[1] <= HSYNC_i;
     VSYNC_pp[1] <= VSYNC_i;
+    CSYNC_pp[1] <= CSYNC_i;
     DE_pp[1] <= DE_i;
 
     for(pp_idx = PP_PL_START+1; pp_idx <= PP_CSC_END; pp_idx = pp_idx+1) begin
         HSYNC_pp[pp_idx] <= HSYNC_pp[pp_idx-1];
         VSYNC_pp[pp_idx] <= VSYNC_pp[pp_idx-1];
+        CSYNC_pp[pp_idx] <= CSYNC_pp[pp_idx-1];
         DE_pp[pp_idx] <= DE_pp[pp_idx-1];
     end
 
@@ -131,6 +136,7 @@ always @(posedge PCLK_i) begin
     B_o <= enable ? (DE_pp[PP_CSC_END] ? Pb_csc : 8'h80) : B_i;
     HSYNC_o <= enable ? HSYNC_pp[PP_CSC_END] : HSYNC_i;
     VSYNC_o <= enable ? VSYNC_pp[PP_CSC_END] : VSYNC_i;
+    CSYNC_o <= enable ? CSYNC_pp[PP_CSC_END] : CSYNC_i;
     DE_o <= enable ? DE_pp[PP_CSC_END] : DE_i;
 end
 

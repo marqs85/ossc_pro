@@ -153,7 +153,7 @@ if {$extra_av_out} {
                                      EXT_IO_B_io[29] EXT_IO_B_io[30] EXT_IO_B_io[17] EXT_IO_B_io[16]}]
     set_output_delay -clock pclk_si_out_vga -min $vga_dmin $vga_data_outputs -add_delay
     set_output_delay -clock pclk_si_out_vga -max $vga_dmax $vga_data_outputs -add_delay
-    set_false_path -to [get_ports {EXT_IO_A_io[4] EXT_IO_A_io[5]}]
+    set_false_path -to [get_ports {EXT_IO_A_io[2] EXT_IO_A_io[3] EXT_IO_A_io[4] EXT_IO_A_io[5]}]
 } else {
     set_false_path -to [get_ports {EXT_IO_A_io* EXT_IO_B_io*}]
 }
