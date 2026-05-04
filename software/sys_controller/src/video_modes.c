@@ -262,10 +262,12 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     smp_sel = mindiff_id;
 
     vm_in->group = smp_preset->group;
-    if (smp_preset->sm <= SM_GEN_16_9)
-        vm_in->ar = gen_ar_target;
-    else
-        vm_in->ar = smp_preset->ar;
+    if (vm_in->ar.h == 0) {
+        if (smp_preset->sm <= SM_GEN_16_9)
+            vm_in->ar = gen_ar_target;
+        else
+            vm_in->ar = smp_preset->ar;
+    }
 
     // write vm_in timings for digital sources (just preserve v_hz)
     if (vm_in->timings.h_total) {

@@ -1746,6 +1746,10 @@ void mainloop()
                     vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen/(h_skip_prev+1) + !!(advrx_dev.ss.h_synclen % (h_skip_prev+1));
                     vmode_in.timings.v_synclen = advrx_dev.ss.v_synclen;
                     vmode_in.timings.interlaced = advrx_dev.ss.interlace_flag;
+                    if (advrx_dev.ar_idx > 0) {
+                        vmode_in.ar.h = (advrx_dev.ar_idx == 2) ? 16 : 4;
+                        vmode_in.ar.v = (advrx_dev.ar_idx == 2) ? 9 : 3;
+                    }
                     //TODO: VIC
 
                     oper_mode = get_operating_mode(cur_avconfig, &vmode_in, &vmode_out, &vm_conf);
