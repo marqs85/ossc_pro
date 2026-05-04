@@ -43,6 +43,7 @@ typedef enum {
     MENU_BTN8,
     MENU_BTN9,
     MENU_BTN0,
+    MENU_EXTRA,
 } menucode_id;
 
 typedef enum {

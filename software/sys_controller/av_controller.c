@@ -1970,7 +1970,7 @@ void wait_powerup() {
     }
 }
 
-int main()
+int main(int argc, char **argv, char **envp)
 {
     int ret;
 

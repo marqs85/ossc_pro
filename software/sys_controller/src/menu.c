@@ -820,6 +820,8 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
         code = OPT_SELECT+(rcode-RC_OK);
     } else if (rcode <= RC_BTN0) {
         code = MENU_BTN1+rcode;
+    } else if (rcode == RC_OSD) {
+        code = MENU_EXTRA;
     } else if (bcode != (btn_code_t)-1) {
         code = OPT_SELECT+(bcode-BC_OK);
     }
@@ -1396,36 +1398,140 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
 }
 
 void cstm_size(menucode_id code, int setup_disp) {
-    uint32_t row_mask[2] = {0xfff, 0xff0};
+    uint32_t row_mask[2] = {0x3fff, 0x3ff0};
     sync_timings_t *st;
+    aspect_ratio_t *ar;
+    const aspect_ratio_t ar_default = {4, 3};
     const char *mode_name;
-    int i, adj=0;
+    char ar_str[OSD_CHAR_COLS];
+    int i, ar_adj_en=0, adj=0;
     static int size_step_idx;
+    static uint8_t size_fn;
     static uint8_t size_step_arr[] = {1, 4, 10};
     int active_mode = smp_is_active();
-    char *func_name = tc.oper_mode ? "Zoom" : "Crop";
+    char func_name[5];
 
 #ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active) {
         st = active_mode ? &vmode_in.timings : &hdmi_timings[dtmg_edit];
+        ar = &vmode_in.ar;
         mode_name = hdmi_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
     } else if (advsdp_dev.powered_on && advsdp_dev.sync_active) {
         st = active_mode ? &vmode_in.timings : &sdp_timings[dtmg_edit];
+        ar = &vmode_in.ar;
         mode_name = sdp_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
     } else
 #endif
     {
         st = &smp_presets[smp_edit].timings_i;
+        ar = &smp_presets[smp_edit].ar;
         mode_name = smp_presets[smp_edit].name;
         if (active_mode)
             st->v_total = vmode_in.timings.v_total;
+        ar_adj_en = tc.oper_mode && (smp_presets[smp_edit].sm > SM_GEN_16_9);
     }
+
+    if (!ar_adj_en)
+        size_fn = 0;
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+    case NEXT_PAGE:
+        if (size_fn == 0) {
+            adj = (code == PREV_PAGE) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
+            if ((int)st->v_active+adj < V_ACTIVE_MIN)
+                adj = V_ACTIVE_MIN - st->v_active;
+            else if ((int)st->v_active+adj > V_ACTIVE_MAX)
+                adj = V_ACTIVE_MAX - st->v_active;
+
+            if ((int)st->v_backporch+(adj/2)+st->v_synclen+st->v_active > (st->v_total>>st->interlaced))
+                adj = 2*((st->v_total>>st->interlaced)-(int)st->v_backporch-st->v_synclen-st->v_active);
+
+            if ((adj == -1) || (adj == 1)) {
+                if (((int)st->v_backporch - adj >= V_BPORCH_MIN) && ((int)st->v_backporch - adj <= V_BPORCH_MAX))
+                    st->v_backporch -= !(st->v_active % 2) ? adj : 0;
+                else
+                    adj = 0;
+            } else {
+                if (((int)st->v_backporch - (adj/2) >= V_BPORCH_MIN) && ((int)st->v_backporch - (adj/2) <= V_BPORCH_MAX))
+                    st->v_backporch -= adj/2;
+                else
+                    adj = 0;
+            }
+
+            st->v_active += adj;
+        } else {
+            if ((ar->h == 0) || (ar->v == 0))
+                *ar = ar_default;
+            else if ((code == PREV_PAGE) && (ar->v < 255))
+                ar->v++;
+            else if ((code == NEXT_PAGE) && (ar->v > 1))
+                ar->v--;
+            adj = 1;
+        }
+        break;
+    case VAL_MINUS:
+    case VAL_PLUS:
+        if (size_fn == 0) {
+            adj = (code == VAL_PLUS) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
+            if ((int)st->h_active+adj < H_ACTIVE_MIN)
+                adj = H_ACTIVE_MIN - st->h_active;
+            else if ((int)st->h_active+adj > H_ACTIVE_SMP_MAX)
+                adj = H_ACTIVE_SMP_MAX - st->h_active;
+
+            if ((int)st->h_backporch+adj+st->h_synclen+st->h_active > st->h_total)
+                adj = 0;
+
+            if ((adj == -1) || (adj == 1)) {
+                if (((int)st->h_backporch - adj >= H_BPORCH_MIN) && ((int)st->h_backporch - adj <= H_BPORCH_MAX))
+                    st->h_backporch -= !(st->h_active % 2) ? adj : 0;
+                else
+                    adj = 0;
+            } else {
+                if (((int)st->h_backporch - (adj/2) >= H_BPORCH_MIN) && ((int)st->h_backporch - (adj/2) <= H_BPORCH_MAX))
+                    st->h_backporch -= adj/2;
+                else
+                    adj = 0;
+            }
+
+            st->h_active += adj;
+        } else {
+            if ((ar->h == 0) || (ar->v == 0))
+                *ar = ar_default;
+            else if ((code == VAL_PLUS) && (ar->h < 255))
+                ar->h++;
+            else if ((code == VAL_MINUS) && (ar->h > 1))
+                ar->h--;
+            adj = 1;
+        }
+        break;
+    case OPT_SELECT:
+        if (size_fn == 0) {
+            size_step_idx = (size_step_idx + 1) % (sizeof(size_step_arr)/sizeof(uint8_t));
+        } else {
+            ar->h = 0;
+            ar->v = 0;
+            adj = 1;
+        }
+        break;
+    case MENU_EXTRA:
+        if (ar_adj_en) {
+            size_fn ^= 1;
+            setup_disp = 1;
+        }
+        break;
+    default:
+        break;
+    }
+
+    sniprintf(func_name, 5, "%s", size_fn ? "Asp " : (tc.oper_mode ? "Zoom" : "Crop"));
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       %sY+", func_name);
-        sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
+        sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^ %c", ar_adj_en ? 0x84 : ' ');
         sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "%sX- < \x85 > %sX+", func_name, func_name);
         sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
         sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       %sY-", func_name);
@@ -1434,73 +1540,18 @@ void cstm_size(menucode_id code, int setup_disp) {
 
         sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "H. active");
         sniprintf((char*)osd->osd_array.data[7][0], OSD_CHAR_COLS, "V. active");
+        sniprintf((char*)osd->osd_array.data[8][0], OSD_CHAR_COLS, "(H. backporch)");
+        sniprintf((char*)osd->osd_array.data[9][0], OSD_CHAR_COLS, "(V. backporch)");
 
-        sniprintf((char*)osd->osd_array.data[9][0], OSD_CHAR_COLS, "\x85 Stepsize");
-        sniprintf((char*)osd->osd_array.data[10][0], OSD_CHAR_COLS, "(H. backporch)");
-        sniprintf((char*)osd->osd_array.data[11][0], OSD_CHAR_COLS, "(V. backporch)");
+        if (ar_adj_en) {
+            sniprintf((char*)osd->osd_array.data[10][0], OSD_CHAR_COLS, "Aspect ratio");
+            sniprintf((char*)osd->osd_array.data[12][0], OSD_CHAR_COLS, "\x84 Function");
+        }
+        sniprintf((char*)osd->osd_array.data[13][0], OSD_CHAR_COLS, "\x85 %s", size_fn ? "Set 1:1 PAR" : "Stepsize");
 
         osd->osd_sec_enable[0].mask = row_mask[0];
         osd->osd_sec_enable[1].mask = row_mask[1];
         osd->osd_row_color.mask = 0;
-    }
-
-    // Parse menu control
-    switch (code) {
-    case PREV_PAGE:
-    case NEXT_PAGE:
-        adj = (code == PREV_PAGE) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
-        if ((int)st->v_active+adj < V_ACTIVE_MIN)
-            adj = V_ACTIVE_MIN - st->v_active;
-        else if ((int)st->v_active+adj > V_ACTIVE_MAX)
-            adj = V_ACTIVE_MAX - st->v_active;
-
-        if ((int)st->v_backporch+(adj/2)+st->v_synclen+st->v_active > (st->v_total>>st->interlaced))
-            adj = 2*((st->v_total>>st->interlaced)-(int)st->v_backporch-st->v_synclen-st->v_active);
-
-        if ((adj == -1) || (adj == 1)) {
-            if (((int)st->v_backporch - adj >= V_BPORCH_MIN) && ((int)st->v_backporch - adj <= V_BPORCH_MAX))
-                st->v_backporch -= !(st->v_active % 2) ? adj : 0;
-            else
-                adj = 0;
-        } else {
-            if (((int)st->v_backporch - (adj/2) >= V_BPORCH_MIN) && ((int)st->v_backporch - (adj/2) <= V_BPORCH_MAX))
-                st->v_backporch -= adj/2;
-            else
-                adj = 0;
-        }
-
-        st->v_active += adj;
-        break;
-    case VAL_MINUS:
-    case VAL_PLUS:
-        adj = (code == VAL_PLUS) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
-        if ((int)st->h_active+adj < H_ACTIVE_MIN)
-            adj = H_ACTIVE_MIN - st->h_active;
-        else if ((int)st->h_active+adj > H_ACTIVE_SMP_MAX)
-            adj = H_ACTIVE_SMP_MAX - st->h_active;
-
-        if ((int)st->h_backporch+adj+st->h_synclen+st->h_active > st->h_total)
-            adj = 0;
-
-        if ((adj == -1) || (adj == 1)) {
-            if (((int)st->h_backporch - adj >= H_BPORCH_MIN) && ((int)st->h_backporch - adj <= H_BPORCH_MAX))
-                st->h_backporch -= !(st->h_active % 2) ? adj : 0;
-            else
-                adj = 0;
-        } else {
-            if (((int)st->h_backporch - (adj/2) >= H_BPORCH_MIN) && ((int)st->h_backporch - (adj/2) <= H_BPORCH_MAX))
-                st->h_backporch -= adj/2;
-            else
-                adj = 0;
-        }
-
-        st->h_active += adj;
-        break;
-    case OPT_SELECT:
-        size_step_idx = (size_step_idx + 1) % (sizeof(size_step_arr)/sizeof(uint8_t));
-        break;
-    default:
-        break;
     }
 
     if (active_mode && (adj != 0)) {
@@ -1514,16 +1565,30 @@ void cstm_size(menucode_id code, int setup_disp) {
     }
 
     // clear rows
-    for (i=6; i<=11; i++)
+    for (i=6; i<=13; i++)
         strncpy((char*)osd->osd_array.data[i][1], "", OSD_CHAR_COLS);
+
+    if ((ar->h == 0) && (ar->v == 0))
+        sniprintf(ar_str, OSD_CHAR_COLS, "1:1 PAR");
+    else
+        sniprintf(ar_str, OSD_CHAR_COLS, "%u:%u", ar->h, ar->v);
 
     sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", st->h_active);
     sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%u", st->v_active);
-    sniprintf((char*)osd->osd_array.data[9][1], OSD_CHAR_COLS, "%u", size_step_arr[size_step_idx]);
-    sniprintf((char*)osd->osd_array.data[10][1], OSD_CHAR_COLS, "%u", st->h_backporch);
-    sniprintf((char*)osd->osd_array.data[11][1], OSD_CHAR_COLS, "%u", st->v_backporch);
-    sniprintf(menu_row1, US2066_ROW_LEN+1, "H.bp: %u  V.bp: %u", st->h_backporch, st->v_backporch);
-    sniprintf(menu_row2, US2066_ROW_LEN+1, "Active: %ux%u", st->h_active, st->v_active);
+    sniprintf((char*)osd->osd_array.data[8][1], OSD_CHAR_COLS, "%u", st->h_backporch);
+    sniprintf((char*)osd->osd_array.data[9][1], OSD_CHAR_COLS, "%u", st->v_backporch);
+    if (ar_adj_en) {
+        sniprintf((char*)osd->osd_array.data[10][1], OSD_CHAR_COLS, "%s", ar_str);
+        sniprintf((char*)osd->osd_array.data[12][1], OSD_CHAR_COLS, "%s", func_name);
+    }
+    if (size_fn==0)
+        sniprintf((char*)osd->osd_array.data[13][1], OSD_CHAR_COLS, "%u", size_step_arr[size_step_idx]);
+
+    sniprintf(menu_row1, US2066_ROW_LEN+1, "Active: %ux%u", st->h_active, st->v_active);
+    if (ar_adj_en)
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Aspect: %s", ar_str);
+    else
+        sniprintf(menu_row2, US2066_ROW_LEN+1, " ");
 
     ui_disp_menu(0);
 }

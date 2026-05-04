@@ -195,7 +195,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     if (vm_in->timings.h_total) {
         gen_width_mode = GEN_WIDTH_SMALLEST;
 
-        for (i=1; i<=7; i++)
+        for (i=GROUP_240P; i<=GROUP_576P; i++)
             target_sm_list[i] = SM_GEN_4_3;
     }
 
@@ -495,8 +495,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     }
 
     // Fill in source AR values for Auto and 1:1 PAR
-    aspect_map[0][0] = vm_in->ar.h;
-    aspect_map[0][1] = vm_in->ar.v;
+    aspect_map[0][0] = vm_in->ar.h ? vm_in->ar.h : vm_in->timings.h_active;
+    aspect_map[0][1] = vm_in->ar.v ? vm_in->ar.v : vm_in->timings.v_active<<vm_in->timings.interlaced;
     aspect_map[4][0] = vm_in->timings.h_active;
     aspect_map[4][1] = vm_in->timings.v_active<<vm_in->timings.interlaced;
     aspect_map[5][0] = vm_out->ar.h;

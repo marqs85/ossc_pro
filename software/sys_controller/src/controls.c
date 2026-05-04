@@ -404,7 +404,7 @@ void parse_control()
                 }
             }
         } else {
-            if ((r_code <= RC_RIGHT) || ((b_code >= BC_OK) && (b_code <= BC_RIGHT)))
+            if ((r_code <= RC_RIGHT) || (r_code == RC_OSD) || ((b_code >= BC_OK) && (b_code <= BC_RIGHT)))
                 display_menu(r_code, b_code);
         }
     } else {
