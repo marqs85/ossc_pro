@@ -56,10 +56,12 @@
 #define SCTRL_EXP_EXP_SEL_MASK      (0x3<<SCTRL_EXP_EXP_SEL_OFFS)
 #define SCTRL_EXP_EXTRA_AV_O_OFFS   2
 #define SCTRL_EXP_EXTRA_AV_O_MASK   (0x7<<SCTRL_EXP_EXTRA_AV_O_OFFS)
-#define SCTRL_EXP_RF_AUD_SEL        (1<<5)
-#define SCTRL_EXP_HDMI_CSYNC        (1<<6)
-#define SCTRL_EXP_CSYNC_COMB_OFFS   7
+#define SCTRL_EXP_EXTRA_AV_STD_OFFS 5
+#define SCTRL_EXP_EXTRA_AV_STD_MASK (0x3<<SCTRL_EXP_EXTRA_AV_STD_OFFS)
+#define SCTRL_EXP_HDMI_CSYNC        (1<<7)
+#define SCTRL_EXP_CSYNC_COMB_OFFS   8
 #define SCTRL_EXP_CSYNC_COMB_MASK   (0x3<<SCTRL_EXP_CSYNC_COMB_OFFS)
+#define SCTRL_EXP_RF_AUD_SEL        (1<<10)
 
 
 // sys_status
@@ -202,7 +204,7 @@ void switch_audmux(uint8_t audmux_sel);
 
 void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
 
-void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode);
+void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode, uint8_t extra_av_out_sd_std);
 
 void set_csync_comb(uint8_t hdmi_csync, uint8_t csync_combiner);
 

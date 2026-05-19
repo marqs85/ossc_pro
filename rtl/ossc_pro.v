@@ -126,8 +126,8 @@ localparam EXTRA_OUT_RGBHV = 0;
 localparam EXTRA_OUT_RGBCS_RGBS = 1;
 localparam EXTRA_OUT_RGsB = 2;
 localparam EXTRA_OUT_YPbPr = 3;
-localparam EXTRA_OUT_SVID_CVBS_PAL = 4;
-localparam EXTRA_OUT_SVID_CVBS_NTSC = 5;
+localparam EXTRA_OUT_SVID_CVBS = 4;
+localparam EXTRA_OUT_SVID_CVBS_RGBS = 5;
 
 wire jtagm_reset_req, ndmreset_req;
 reg ndmreset_ack, ndmreset_pulse;
@@ -157,9 +157,10 @@ wire audmux_sel = sys_ctrl[26];
 wire [31:0] sys_ctrl_exp;
 wire [1:0] exp_sel = sys_ctrl_exp[1:0];
 wire [2:0] extra_out_mode = sys_ctrl_exp[4:2];
-wire legacy_aud_sel = sys_ctrl_exp[5];
-wire hdmi_csync = sys_ctrl_exp[6];
-wire [1:0] csync_combiner = sys_ctrl_exp[8:7];
+wire [1:0] extra_out_sd_std = sys_ctrl_exp[6:5];
+wire hdmi_csync = sys_ctrl_exp[7];
+wire [1:0] csync_combiner = sys_ctrl_exp[9:8];
+wire legacy_aud_sel = sys_ctrl_exp[10];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -679,8 +680,10 @@ always @(posedge pclk_out) begin
         VGA_SYNC_N <= VGA_SYNC_N_pre;
     end
 end
-assign EXT_IO_A_io[2] = sys_poweron & (exp_sel == EXP_SEL_EXTRA_OUT) & (extra_out_mode >= EXTRA_OUT_SVID_CVBS_PAL); // AD_EN
-assign EXT_IO_A_io[3] = extra_out_mode[0]; // AD_STD
+assign EXT_IO_A_io[0] = (exp_sel == EXP_SEL_EXTRA_OUT) ? (extra_out_sd_std == 2) : 'z; // AD_SA
+assign EXT_IO_A_io[1] = sys_poweron & (exp_sel == EXP_SEL_EXTRA_OUT) & (extra_out_mode == EXTRA_OUT_SVID_CVBS); // AD_TERM
+assign EXT_IO_A_io[2] = sys_poweron & (exp_sel == EXP_SEL_EXTRA_OUT) & (extra_out_mode >= EXTRA_OUT_SVID_CVBS); // AD_EN
+assign EXT_IO_A_io[3] = (extra_out_sd_std == 0); // AD_STD
 assign EXT_IO_A_io[4] = sys_poweron; // VGA_PSAVE_N
 assign EXT_IO_A_io[5] = sys_poweron; // AUDIO_MUTE_N
 assign EXT_IO_B_io[27] = (exp_sel == EXP_SEL_EXTRA_OUT) ? ~pclk_out : 'z;

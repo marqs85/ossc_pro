@@ -1030,7 +1030,7 @@ int init_hw()
         exp_det = 0;
 
     printf("Exp_det: %u\n", exp_det);
-    switch_expansion(0, 1);
+    switch_expansion(0, 1, 0);
 
     // Init ADV7610
     adv761x_init(&advrx_dev);
@@ -1146,20 +1146,22 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
     *aud_tx_fmt = (audsrc == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
 }
 
-void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode) {
-    sys_ctrl_exp &= ~(SCTRL_EXP_EXP_SEL_MASK|SCTRL_EXP_EXTRA_AV_O_MASK);
+void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode, uint8_t extra_av_out_sd_std) {
+    sys_ctrl_exp &= ~(SCTRL_EXP_EXP_SEL_MASK|SCTRL_EXP_EXTRA_AV_O_MASK|SCTRL_EXP_EXTRA_AV_STD_MASK);
 
     // Set expansion flags
     if (((exp_sel == 0) && (exp_det == 1)) || (exp_sel == 2)) {
         if (extra_av_out_mode) {
-            sys_ctrl_exp |= (1<<SCTRL_EXP_EXP_SEL_OFFS)|((extra_av_out_mode-1)<<SCTRL_EXP_EXTRA_AV_O_OFFS);
+            sys_ctrl_exp |= (1<<SCTRL_EXP_EXP_SEL_OFFS)|((extra_av_out_mode-1)<<SCTRL_EXP_EXTRA_AV_O_OFFS)|(extra_av_out_sd_std<<SCTRL_EXP_EXTRA_AV_STD_OFFS);
 
-            if (extra_av_out_mode == 5)
-                si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&extraav_cvbsenc_4p43m_x4);
-            else if (extra_av_out_mode == 6)
-                si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&extraav_cvbsenc_3p58m_x4);
-            else
+            if (extra_av_out_mode >= 5) {
+                if (extra_av_out_sd_std == 1)
+                    si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&extraav_cvbsenc_4p43m_x4);
+                else
+                    si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&extraav_cvbsenc_3p58m_x4);
+            } else {
                 si5351_disable_outputs(&si_dev, (1<<SI_CLK4));
+            }
         }
     } else if ((exp_sel == 0) && (exp_det > 1)) {
         sys_ctrl_exp |= exp_det<<SCTRL_EXP_EXP_SEL_OFFS;

@@ -113,8 +113,8 @@ status_t update_avconfig() {
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)
         switch_audmux(tc.audmux_sel);
-    if ((tc.exp_sel != cc.exp_sel) || (tc.extra_av_out_mode != cc.extra_av_out_mode))
-        switch_expansion(tc.exp_sel, tc.extra_av_out_mode);
+    if ((tc.exp_sel != cc.exp_sel) || (tc.extra_av_out_mode != cc.extra_av_out_mode) || (tc.extra_av_out_sd_std != cc.extra_av_out_sd_std))
+        switch_expansion(tc.exp_sel, tc.extra_av_out_mode, tc.extra_av_out_sd_std);
 #endif
 #ifdef INC_THS7353
     if (tc.syncmux_stc != cc.syncmux_stc)

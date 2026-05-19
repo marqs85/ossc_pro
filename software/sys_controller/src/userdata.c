@@ -219,6 +219,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(109, 80, tc.hdmi_csync),
     // 110 reserved
     UDE_ITEM(111, 82, tc.csync_combiner),
+    UDE_ITEM(112, 82, tc.extra_av_out_sd_std),
 };
 
 int write_userdata(uint8_t entry) {
