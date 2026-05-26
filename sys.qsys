@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "26";
+         value = "27";
          type = "int";
       }
    }
@@ -34,7 +34,7 @@
    {
       datum _sortIndex
       {
-         value = "33";
+         value = "34";
          type = "int";
       }
    }
@@ -55,7 +55,7 @@
    {
       datum _sortIndex
       {
-         value = "28";
+         value = "29";
          type = "int";
       }
    }
@@ -76,7 +76,7 @@
    {
       datum _sortIndex
       {
-         value = "32";
+         value = "33";
          type = "int";
       }
    }
@@ -97,7 +97,7 @@
    {
       datum _sortIndex
       {
-         value = "31";
+         value = "32";
          type = "int";
       }
    }
@@ -118,7 +118,7 @@
    {
       datum _sortIndex
       {
-         value = "27";
+         value = "28";
          type = "int";
       }
    }
@@ -139,7 +139,7 @@
    {
       datum _sortIndex
       {
-         value = "29";
+         value = "30";
          type = "int";
       }
    }
@@ -160,7 +160,7 @@
    {
       datum _sortIndex
       {
-         value = "30";
+         value = "31";
          type = "int";
       }
    }
@@ -181,7 +181,7 @@
    {
       datum _sortIndex
       {
-         value = "23";
+         value = "24";
          type = "int";
       }
    }
@@ -197,7 +197,7 @@
    {
       datum _sortIndex
       {
-         value = "21";
+         value = "22";
          type = "int";
       }
    }
@@ -352,7 +352,7 @@
    {
       datum _sortIndex
       {
-         value = "24";
+         value = "25";
          type = "int";
       }
    }
@@ -470,7 +470,7 @@
    {
       datum _sortIndex
       {
-         value = "19";
+         value = "20";
          type = "int";
       }
    }
@@ -550,6 +550,27 @@
          type = "String";
       }
    }
+   element pio_3
+   {
+      datum _sortIndex
+      {
+         value = "18";
+         type = "int";
+      }
+   }
+   element pio_3.s1
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "135408";
+         type = "String";
+      }
+   }
    element pll_0
    {
       datum _sortIndex
@@ -562,7 +583,7 @@
    {
       datum _sortIndex
       {
-         value = "20";
+         value = "21";
          type = "int";
       }
    }
@@ -583,7 +604,7 @@
    {
       datum _sortIndex
       {
-         value = "22";
+         value = "23";
          type = "int";
       }
    }
@@ -591,7 +612,7 @@
    {
       datum _sortIndex
       {
-         value = "25";
+         value = "26";
          type = "int";
       }
    }
@@ -599,7 +620,7 @@
    {
       datum _sortIndex
       {
-         value = "18";
+         value = "19";
          type = "int";
       }
    }
@@ -792,6 +813,11 @@
  <interface
    name="pio_2_sys_status_in"
    internal="pio_2.external_connection"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="pio_3_sys_ctrl2_out"
+   internal="pio_3.external_connection"
    type="conduit"
    dir="end" />
  <interface name="pll_0_locked" internal="pll_0.locked" type="conduit" dir="end" />
@@ -1640,6 +1666,20 @@
   <parameter name="simDrivenValue" value="0" />
   <parameter name="width" value="32" />
  </module>
+ <module name="pio_3" kind="altera_avalon_pio" version="24.1" enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="48000000" />
+  <parameter name="direction" value="Output" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="32" />
+ </module>
  <module name="pll_0" kind="altera_pll" version="24.1" enabled="1">
   <parameter name="debug_print_output" value="false" />
   <parameter name="debug_use_rbc_taf_method" value="false" />
@@ -2101,6 +2141,15 @@
  <connection
    kind="avalon"
    version="24.1"
+   start="ibex_0.avalon_master_bus_data"
+   end="pio_3.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x000210f0" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="24.1"
    start="ibex_0.avalon_master_bus_instr"
    end="ibex_0.avalon_slave_dm">
   <parameter name="arbitrationPriority" value="1" />
@@ -2509,6 +2558,7 @@
  <connection kind="clock" version="24.1" start="pll_0.outclk1" end="pio_0.clk" />
  <connection kind="clock" version="24.1" start="pll_0.outclk1" end="pio_1.clk" />
  <connection kind="clock" version="24.1" start="pll_0.outclk1" end="pio_2.clk" />
+ <connection kind="clock" version="24.1" start="pll_0.outclk1" end="pio_3.clk" />
  <connection
    kind="clock"
    version="24.1"
@@ -2854,6 +2904,11 @@
    version="24.1"
    start="sys_reset_bridge_0.out_reset"
    end="intel_generic_serial_flash_interface_top_0.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="sys_reset_bridge_0.out_reset"
+   end="pio_3.reset" />
  <connection
    kind="reset"
    version="24.1"

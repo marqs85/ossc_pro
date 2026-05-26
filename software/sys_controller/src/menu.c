@@ -123,9 +123,9 @@ static const char* const pm_ad_576p_desc[] = { "720x576 (Passthru)", "720x576i (
 static const char* const pm_ad_720p_desc[] = { "1280x720 (Passthru)", "240p_CRT (Line drop)", "480i_CRT (Line drop)", "2560x1440 (Line2x)" };
 static const char* const pm_ad_1080i_desc[] = { "1920x1080i (Passthru)", "1920x1080 (Dint@L2x)" };
 static const char* const pm_ad_1080p_desc[] = { "1920x1080 (Passthru)", "1920x1080i (Line drop)", "540p_CRT (Line drop)", "240p_CRT (Line drop)" };
-static const char* const sm_ad_240p_288p_desc[] = { "Generic 4:3", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
-                                                    "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol",
-                                                    "MSX 256col", "Spectrum 352col", "Atari 8bit 320col" };
+static const char* const sm_ad_240p_288p_desc[] = { "Generic 4:3", "NES/SNES 256col", "SNES 512col", "SMS 256col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
+                                                    "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "VIC20 400col", "C64 4XXcol",
+                                                    "MSX 256col", "Spectrum 352col", "Atari 8bit 320col", "Atari 7800 LC 320col", "Intellivision 320col", "G7000/MC6847 320col" };
 static const char* const sm_ad_384p_desc[] = { "Generic 4:3", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char* const sm_ad_480i_576i_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480i/576i 4:3", "DTV 480i/576i 16:9", "SNES 512col", "MD 256col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "PS2 512col", "DC/PS2/GC 640col" };
 static const char* const sm_ad_480p_desc[] = { "Generic 4:3", "Generic 16:9", "DTV 480p 4:3", "DTV 480p 16:9", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
@@ -134,7 +134,7 @@ static const char* const lm_deint_mode_desc[] = { "Bob", "Noninterlace restore" 
 static const char* const ar_256col_desc[] = { "Pseudo 4:3 DAR", "1:1 PAR" };
 static const char* const tx_mode_desc[] = { "HDMI (RGB Full)", "HDMI (RGB Limited)", "HDMI (YCbCr444)", "DVI" };
 static const char* const hdmi_vrr_desc[] = { "Off", "Freesync" };
-static const char* const csync_combiner_desc[] = { "Type A (AND)", "Legacy (XNOR)" };
+static const char* const csync_combiner_desc[] = { "Type A (AND)", "Type B (XNOR+)" };
 static const char* const sl_mode_desc[] = { LNG("Off","ｵﾌ"), LNG("Auto","ｵｰﾄ"), LNG("On","ｵﾝ") };
 static const char* const sl_method_desc[] = { LNG("Multiplication","Multiplication"), LNG("Subtraction","Subtraction") };
 static const char* const sl_type_desc[] = { LNG("Horizontal","ﾖｺ"), LNG("Vertical","ﾀﾃ"), "Horiz. + Vert.", "Custom" };
@@ -158,8 +158,8 @@ static const char* const rgsb_ypbpr_desc[] = { "RGsB", "YPbPr" };
 static const char* const auto_input_desc[] = { "Off", "Current input", "All inputs" };
 static const char* const mask_color_desc[] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
 static const char* const shmask_mode_desc[] = { "Off", "A-Grille", "TV", "PVM", "PVM-2530", "XC-3315C", "C-1084", "JVC", "VGA", c_shmask.name };
-static const char* const lumacode_mode_desc[] = { "Off", "C64", "Spectrum", "Coleco/MSX", "Intellivision", "NES", "Atari GTIA", "Atari VCS" };
-static const char* const lumacode_pal_desc[] = { "PAL", c_lc_palette_set.name };
+static const char* const lumacode_mode_desc[] = { "Off", "VIC20", "C64", "Spectrum", "Coleco/MSX", "Intellivision", "G7000", "MC6847", "Master System", "NES", "Atari GTIA", "Atari VCS", "Atari 7800" };
+static const char* const lumacode_pal_desc[] = { "PAL", "NTSC", c_lc_palette_set.name };
 static const char* const adv761x_rgb_range_desc[] = { "Limited", "Full" };
 static const char* const oper_mode_desc[] = { "Line multiplier", "Scaler" };
 static const char* const lm_mode_desc[] = { "Pure", "Adaptive" };
@@ -173,9 +173,9 @@ static const char* const scl_aspect_desc[] = { "Auto", "4:3", "16:9", "8:7", "1:
 static const char* const scl_alg_desc[] = { "Auto", "Integer (underscan)", "Integer (overscan)", "Nearest", "Lanczos3", "Lanczos3_sharp", "Lanczos3&3_sharp", "Lanczos4", "GS sharp", "GS medium", "GS soft", c_pp_coeffs.name };
 static const char* const scl_gen_sr_desc[] = { "Auto", "Lowest", "Highest" };
 static const char* const scl_dil_alg_desc[] = { "Bob", "Weave", "Motion adaptive" };
-static const char* const sm_scl_240p_288p_desc[] = { "Generic", "SNES 256col", "SNES 512col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
-                                                     "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "C64 4XXcol",
-                                                     "MSX 256col", "Spectrum 352col", "Atari 8bit 320col" };
+static const char* const sm_scl_240p_288p_desc[] = { "Generic", "NES/SNES 256col", "SNES 512col", "SMS 256col", "MD 256col", "MD 320col", "PSX 256col", "PSX 320col", "PSX 384col", "PSX 512col", "PSX 640col",
+                                                     "SAT 320col", "SAT 352col", "SAT 640col", "SAT 704col", "N64 320col", "N64 640col", "DC/PS2/GC 640col", "Neo Geo 320col", "X68k 512col", "VIC20 400col", "C64 4XXcol",
+                                                     "MSX 256col", "Spectrum 352col", "Atari 8bit 320col", "Atari 7800 LC 320col", "Intellivision 320col", "G7000/MC6847 320col" };
 static const char* const sm_scl_384p_desc[] = { "Generic", "VGA 640x350", "VGA 720x350", "VGA 640x400", "VGA 720x400", "GBI 240x360", "PC98 640x400" };
 static const char* const sm_scl_480i_576i_desc[] = { "Generic", "DTV 480i/576i", "SNES 512col", "MD 256col", "MD 320col", "PSX 512col", "PSX 640col", "SAT 640col", "SAT 704col", "N64 640col", "PS2 512col", "DC/PS2/GC 640col" };
 static const char* const sm_scl_480p_desc[] = { "Generic", "DTV 480p", "VESA 640x480", "DC/PS2/GC 640col", "PS2-GSM 512col", "PSP 480x272", "X68k 512col", "X68k 768col" };
@@ -184,7 +184,8 @@ static const char* const timing_1080p120_desc[] = { "CVT-RB", "Min. blank", "CEA
 static const char* const timing_2160p60_desc[] = { "CVT-RB PR2x", "Min. blank PR2x" };
 static const char* const edid_sel_desc[] = { "Default", "2ch audio", "10bpc RGB+HDR", "720p max.", c_edid.name };
 static const char* const exp_sel_desc[] = { "Auto", "Off", "Extra AV out", "Legacy AV in", "UVC bridge" };
-static const char* const extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB", "YPbPr" };
+static const char* const extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB", "YPbPr", "S-video+CVBS", "S-video+CVBS+RGBS" };
+static const char* const extra_av_out_sd_std_desc[] = { "NTSC", "PAL", "PAL-M/N" };
 static const char* const hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
 static const char* const sdp_timings_groups[] = { "-", "SDP 240p", "SDP 288p", "-", "SDP 480i", "SDP 576i", "-", "-", "-", "-", "-" };
 static const char* const sh_filt_c_desc[] = { "Auto 1.5MHz", "Auto 2.17MHz", "SH1", "SH2", "SH3", "SH4", "SH5", "Wideband" };
@@ -387,7 +388,7 @@ MENU(menu_isl_video_opt, P99_PROTECT({
     { "Auto level ctl (ALC)",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.isl_cfg.alc_enable,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "ALC V filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_v_filter,  OPT_NOWRAP, 0, ALC_V_FILTER_MAX, alc_v_filter_disp } } },
     { "ALC H filter",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.isl_cfg.alc_h_filter,  OPT_NOWRAP, 0, ALC_H_FILTER_MAX, alc_h_filter_disp } } },
-    { "Lumacode",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_mode,         OPT_WRAP,   SETTING_ITEM(lumacode_mode_desc) } } },
+    { "Lumacode",                               OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_mode,         OPT_WRAP,   SETTING_ITEM_LIST(lumacode_mode_desc) } } },
     { "Lumacode palette set",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.lumacode_pal,          OPT_WRAP,   SETTING_ITEM(lumacode_pal_desc) } } },
     { "Palette set load",                       OPT_CUSTOMMENU,         { .cstm = { &cstm_lc_palette_set_load, &palset_arg_info } } },
 }))
@@ -518,7 +519,7 @@ MENU(menu_output, P99_PROTECT({
     //{ "HDMI ITC",                              OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmi_itc,        OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
 #ifndef DExx_FW
     { LNG("Full TX setup","ﾌﾙTXｾｯﾄｱｯﾌﾟ"),       OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.full_tx_setup, OPT_WRAP, SETTING_ITEM(off_on_desc) } } },
-    { "1080p120 preset",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_1080p120,  OPT_WRAP, SETTING_ITEM_LIST(timing_1080p120_desc) } } },
+    { "1080p100/120 preset",                   OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_1080p120,  OPT_WRAP, SETTING_ITEM_LIST(timing_1080p120_desc) } } },
     { "2160p60 preset",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.timing_2160p60,   OPT_WRAP, SETTING_ITEM_LIST(timing_2160p60_desc) } } },
 #endif
 #ifdef INC_SII1136
@@ -554,6 +555,7 @@ MENU(menu_audio, P99_PROTECT({
     { "Sampling format",                        OPT_AVCONFIG_SELECTION, { .sel = { &tc.audio_fmt,  OPT_WRAP, SETTING_ITEM_LIST(audio_fmt_desc) } } },
     { "Quad stereo",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.hdmitx_cfg.i2s_stereo_cfg, OPT_WRAP, SETTING_ITEM_LIST(audio_sr_desc) } } },
 #ifdef INC_PCM186X
+    { "Mono ADC mode",                          OPT_AVCONFIG_SELECTION, { .sel = { &tc.pcm_cfg.mono,    OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "Pre-ADC gain",                           OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.pcm_cfg.gain,    OPT_NOWRAP, PCM_GAIN_M12DB, PCM_GAIN_12DB, aud_db_disp } } },
 #endif
 #ifndef DExx_FW
@@ -588,6 +590,11 @@ MENU(menu_sdp_filter, P99_PROTECT({
     { "DNR thold",                              OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.dnr1_th,         OPT_NOWRAP, 0, 0xff, value_disp } } },
 }))
 
+MENU(menu_extraav, P99_PROTECT({
+    { "Output mode",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.extra_av_out_mode,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_mode_desc) } } },
+    { "CVBS/S-video format",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.extra_av_out_sd_std,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_sd_std_desc) } } },
+}))
+
 MENU(menu_sdp, P99_PROTECT({
     { "NTSC pedestal",                          OPT_AVCONFIG_SELECTION, { .sel = { &tc.sdp_cfg.ntsc_pedestal, OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
     { "Brightness",                             OPT_AVCONFIG_NUMVALUE,  { .num = { &tc.sdp_cfg.brightness,    OPT_NOWRAP, 0, 0xff, signed_disp } } },
@@ -607,8 +614,8 @@ MENU(menu_sdp, P99_PROTECT({
 
 MENU(menu_exp, P99_PROTECT({
     { "Expansion select",                       OPT_AVCONFIG_SELECTION, { .sel = { &tc.exp_sel,  OPT_NOWRAP, SETTING_ITEM_LIST(exp_sel_desc) } } },
-    { "Extra AV out mode",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.extra_av_out_mode,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_mode_desc) } } },
-    { "Legacy AV opt.",                         OPT_SUBMENU,            { .sub = { &menu_sdp, NULL, NULL } } },
+    { "Extra AV out opt.",                      OPT_SUBMENU,            { .sub = { &menu_extraav, NULL, NULL } } },
+    { "Legacy AV in opt.",                      OPT_SUBMENU,            { .sub = { &menu_sdp, NULL, NULL } } },
 }))
 #endif
 
@@ -641,7 +648,8 @@ MENU(menu_settings, P99_PROTECT({
 #endif
     { "Chardisp contrast",                      OPT_AVCONFIG_NUMVALUE,  { .num = { &ts.chardisp_cfg.contrast,   OPT_NOWRAP, 0, 127,  value_disp } } },
     { "Chardisp fade out",                      OPT_AVCONFIG_SELECTION, { .sel = { &ts.chardisp_cfg.fade,       OPT_NOWRAP,   SETTING_ITEM_LIST(chardisp_fade_desc) } } },
-    { "Remote custom keys",                     OPT_SUBMENU,            { .sub = { &menu_remote_custom_keys, NULL, NULL } } },
+    { "Disable IR remote",                      OPT_AVCONFIG_SELECTION, { .sel = { &ts.rc_disable, OPT_WRAP,   SETTING_ITEM(off_on_desc) } } },
+    { "Customize IR remote",                    OPT_SUBMENU,            { .sub = { &menu_remote_custom_keys, NULL, NULL } } },
     { "Bind IR remote",                         OPT_FUNC_CALL,          { .fun = { setup_rc, NULL } } },
 #ifndef DE10N
     { LNG("Load profile","ﾌﾟﾛﾌｧｲﾙﾛｰﾄﾞ"),        OPT_FUNC_CALL,          { .fun = { load_profile, &profile_arg_info } } },
@@ -818,6 +826,8 @@ void display_menu(rc_code_t rcode, btn_code_t bcode)
         code = OPT_SELECT+(rcode-RC_OK);
     } else if (rcode <= RC_BTN0) {
         code = MENU_BTN1+rcode;
+    } else if (rcode == RC_OSD) {
+        code = MENU_EXTRA;
     } else if (bcode != (btn_code_t)-1) {
         code = OPT_SELECT+(bcode-BC_OK);
     }
@@ -1161,7 +1171,22 @@ int load_lc_palette_set(char *dirname, char *filename) {
                     entries_remaining = 128;
                 } else if (strncmp(tmpbuf, "gtia_pal", 10) == 0) {
                     offset = offsetof(lc_palette_set, gtia_pal)/4;
-                    entries_remaining = 128;
+                    entries_remaining = 256;
+                } else if (strncmp(tmpbuf, "maria_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, maria_pal)/4;
+                    entries_remaining = 256;
+                } else if (strncmp(tmpbuf, "sms_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, sms_pal)/4;
+                    entries_remaining = 64;
+                } else if (strncmp(tmpbuf, "vic20_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, vic20_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(tmpbuf, "g7000_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, g7000_pal)/4;
+                    entries_remaining = 16;
+                } else if (strncmp(tmpbuf, "mc6847_pal", 10) == 0) {
+                    offset = offsetof(lc_palette_set, mc6847_pal)/4;
+                    entries_remaining = 16;
                 }
             } else if (sscanf(tmpbuf, "%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx",    &c_lc_palette_set.pal.data[offset],
                                                                                                             &c_lc_palette_set.pal.data[offset+1],
@@ -1379,36 +1404,140 @@ void cstm_clock_phase(menucode_id code, int setup_disp) {
 }
 
 void cstm_size(menucode_id code, int setup_disp) {
-    uint32_t row_mask[2] = {0xfff, 0xff0};
+    uint32_t row_mask[2] = {0x3fff, 0x3ff0};
     sync_timings_t *st;
+    aspect_ratio_t *ar;
+    const aspect_ratio_t ar_default = {4, 3};
     const char *mode_name;
-    int i, adj=0;
+    char ar_str[OSD_CHAR_COLS];
+    int i, ar_adj_en=0, adj=0;
     static int size_step_idx;
+    static uint8_t size_fn;
     static uint8_t size_step_arr[] = {1, 4, 10};
     int active_mode = smp_is_active();
-    char *func_name = tc.oper_mode ? "Zoom" : "Crop";
+    char func_name[5];
 
 #ifndef DExx_FW
     if (advrx_dev.powered_on && advrx_dev.sync_active) {
         st = active_mode ? &vmode_in.timings : &hdmi_timings[dtmg_edit];
+        ar = &vmode_in.ar;
         mode_name = hdmi_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
     } else if (advsdp_dev.powered_on && advsdp_dev.sync_active) {
         st = active_mode ? &vmode_in.timings : &sdp_timings[dtmg_edit];
+        ar = &vmode_in.ar;
         mode_name = sdp_timings_groups[dtmg_edit % NUM_VIDEO_GROUPS];
     } else
 #endif
     {
         st = &smp_presets[smp_edit].timings_i;
+        ar = &smp_presets[smp_edit].ar;
         mode_name = smp_presets[smp_edit].name;
         if (active_mode)
             st->v_total = vmode_in.timings.v_total;
+        ar_adj_en = tc.oper_mode && (smp_presets[smp_edit].sm > SM_GEN_16_9);
     }
+
+    if (!ar_adj_en)
+        size_fn = 0;
+
+    // Parse menu control
+    switch (code) {
+    case PREV_PAGE:
+    case NEXT_PAGE:
+        if (size_fn == 0) {
+            adj = (code == PREV_PAGE) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
+            if ((int)st->v_active+adj < V_ACTIVE_MIN)
+                adj = V_ACTIVE_MIN - st->v_active;
+            else if ((int)st->v_active+adj > V_ACTIVE_MAX)
+                adj = V_ACTIVE_MAX - st->v_active;
+
+            if ((int)st->v_backporch+(adj/2)+st->v_synclen+st->v_active > (st->v_total>>st->interlaced))
+                adj = 2*((st->v_total>>st->interlaced)-(int)st->v_backporch-st->v_synclen-st->v_active);
+
+            if ((adj == -1) || (adj == 1)) {
+                if (((int)st->v_backporch - adj >= V_BPORCH_MIN) && ((int)st->v_backporch - adj <= V_BPORCH_MAX))
+                    st->v_backporch -= !(st->v_active % 2) ? adj : 0;
+                else
+                    adj = 0;
+            } else {
+                if (((int)st->v_backporch - (adj/2) >= V_BPORCH_MIN) && ((int)st->v_backporch - (adj/2) <= V_BPORCH_MAX))
+                    st->v_backporch -= adj/2;
+                else
+                    adj = 0;
+            }
+
+            st->v_active += adj;
+        } else {
+            if ((ar->h == 0) || (ar->v == 0))
+                *ar = ar_default;
+            else if ((code == PREV_PAGE) && (ar->v < 255))
+                ar->v++;
+            else if ((code == NEXT_PAGE) && (ar->v > 1))
+                ar->v--;
+            adj = 1;
+        }
+        break;
+    case VAL_MINUS:
+    case VAL_PLUS:
+        if (size_fn == 0) {
+            adj = (code == VAL_PLUS) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
+            if ((int)st->h_active+adj < H_ACTIVE_MIN)
+                adj = H_ACTIVE_MIN - st->h_active;
+            else if ((int)st->h_active+adj > H_ACTIVE_SMP_MAX)
+                adj = H_ACTIVE_SMP_MAX - st->h_active;
+
+            if ((int)st->h_backporch+adj+st->h_synclen+st->h_active > st->h_total)
+                adj = 0;
+
+            if ((adj == -1) || (adj == 1)) {
+                if (((int)st->h_backporch - adj >= H_BPORCH_MIN) && ((int)st->h_backporch - adj <= H_BPORCH_MAX))
+                    st->h_backporch -= !(st->h_active % 2) ? adj : 0;
+                else
+                    adj = 0;
+            } else {
+                if (((int)st->h_backporch - (adj/2) >= H_BPORCH_MIN) && ((int)st->h_backporch - (adj/2) <= H_BPORCH_MAX))
+                    st->h_backporch -= adj/2;
+                else
+                    adj = 0;
+            }
+
+            st->h_active += adj;
+        } else {
+            if ((ar->h == 0) || (ar->v == 0))
+                *ar = ar_default;
+            else if ((code == VAL_PLUS) && (ar->h < 255))
+                ar->h++;
+            else if ((code == VAL_MINUS) && (ar->h > 1))
+                ar->h--;
+            adj = 1;
+        }
+        break;
+    case OPT_SELECT:
+        if (size_fn == 0) {
+            size_step_idx = (size_step_idx + 1) % (sizeof(size_step_arr)/sizeof(uint8_t));
+        } else {
+            ar->h = 0;
+            ar->v = 0;
+            adj = 1;
+        }
+        break;
+    case MENU_EXTRA:
+        if (ar_adj_en) {
+            size_fn ^= 1;
+            setup_disp = 1;
+        }
+        break;
+    default:
+        break;
+    }
+
+    sniprintf(func_name, 5, "%s", size_fn ? "Asp " : (tc.oper_mode ? "Zoom" : "Crop"));
 
     if (setup_disp) {
         memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
 
         sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "       %sY+", func_name);
-        sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^");
+        sniprintf((char*)osd->osd_array.data[1][0], OSD_CHAR_COLS, "         ^ %c", ar_adj_en ? 0x84 : ' ');
         sniprintf((char*)osd->osd_array.data[2][0], OSD_CHAR_COLS, "%sX- < \x85 > %sX+", func_name, func_name);
         sniprintf((char*)osd->osd_array.data[3][0], OSD_CHAR_COLS, "         v");
         sniprintf((char*)osd->osd_array.data[4][0], OSD_CHAR_COLS, "       %sY-", func_name);
@@ -1417,73 +1546,18 @@ void cstm_size(menucode_id code, int setup_disp) {
 
         sniprintf((char*)osd->osd_array.data[6][0], OSD_CHAR_COLS, "H. active");
         sniprintf((char*)osd->osd_array.data[7][0], OSD_CHAR_COLS, "V. active");
+        sniprintf((char*)osd->osd_array.data[8][0], OSD_CHAR_COLS, "(H. backporch)");
+        sniprintf((char*)osd->osd_array.data[9][0], OSD_CHAR_COLS, "(V. backporch)");
 
-        sniprintf((char*)osd->osd_array.data[9][0], OSD_CHAR_COLS, "\x85 Stepsize");
-        sniprintf((char*)osd->osd_array.data[10][0], OSD_CHAR_COLS, "(H. backporch)");
-        sniprintf((char*)osd->osd_array.data[11][0], OSD_CHAR_COLS, "(V. backporch)");
+        if (ar_adj_en) {
+            sniprintf((char*)osd->osd_array.data[10][0], OSD_CHAR_COLS, "Aspect ratio");
+            sniprintf((char*)osd->osd_array.data[12][0], OSD_CHAR_COLS, "\x84 Function");
+        }
+        sniprintf((char*)osd->osd_array.data[13][0], OSD_CHAR_COLS, "\x85 %s", size_fn ? "Set 1:1 PAR" : "Stepsize");
 
         osd->osd_sec_enable[0].mask = row_mask[0];
         osd->osd_sec_enable[1].mask = row_mask[1];
         osd->osd_row_color.mask = 0;
-    }
-
-    // Parse menu control
-    switch (code) {
-    case PREV_PAGE:
-    case NEXT_PAGE:
-        adj = (code == PREV_PAGE) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
-        if ((int)st->v_active+adj < V_ACTIVE_MIN)
-            adj = V_ACTIVE_MIN - st->v_active;
-        else if ((int)st->v_active+adj > V_ACTIVE_MAX)
-            adj = V_ACTIVE_MAX - st->v_active;
-
-        if ((int)st->v_backporch+(adj/2)+st->v_synclen+st->v_active > (st->v_total>>st->interlaced))
-            adj = 2*((st->v_total>>st->interlaced)-(int)st->v_backporch-st->v_synclen-st->v_active);
-
-        if ((adj == -1) || (adj == 1)) {
-            if (((int)st->v_backporch - adj >= V_BPORCH_MIN) && ((int)st->v_backporch - adj <= V_BPORCH_MAX))
-                st->v_backporch -= !(st->v_active % 2) ? adj : 0;
-            else
-                adj = 0;
-        } else {
-            if (((int)st->v_backporch - (adj/2) >= V_BPORCH_MIN) && ((int)st->v_backporch - (adj/2) <= V_BPORCH_MAX))
-                st->v_backporch -= adj/2;
-            else
-                adj = 0;
-        }
-
-        st->v_active += adj;
-        break;
-    case VAL_MINUS:
-    case VAL_PLUS:
-        adj = (code == VAL_PLUS) ? -size_step_arr[size_step_idx] : size_step_arr[size_step_idx];
-        if ((int)st->h_active+adj < H_ACTIVE_MIN)
-            adj = H_ACTIVE_MIN - st->h_active;
-        else if ((int)st->h_active+adj > H_ACTIVE_SMP_MAX)
-            adj = H_ACTIVE_SMP_MAX - st->h_active;
-
-        if ((int)st->h_backporch+adj+st->h_synclen+st->h_active > st->h_total)
-            adj = 0;
-
-        if ((adj == -1) || (adj == 1)) {
-            if (((int)st->h_backporch - adj >= H_BPORCH_MIN) && ((int)st->h_backporch - adj <= H_BPORCH_MAX))
-                st->h_backporch -= !(st->h_active % 2) ? adj : 0;
-            else
-                adj = 0;
-        } else {
-            if (((int)st->h_backporch - (adj/2) >= H_BPORCH_MIN) && ((int)st->h_backporch - (adj/2) <= H_BPORCH_MAX))
-                st->h_backporch -= adj/2;
-            else
-                adj = 0;
-        }
-
-        st->h_active += adj;
-        break;
-    case OPT_SELECT:
-        size_step_idx = (size_step_idx + 1) % (sizeof(size_step_arr)/sizeof(uint8_t));
-        break;
-    default:
-        break;
     }
 
     if (active_mode && (adj != 0)) {
@@ -1497,16 +1571,30 @@ void cstm_size(menucode_id code, int setup_disp) {
     }
 
     // clear rows
-    for (i=6; i<=11; i++)
+    for (i=6; i<=13; i++)
         strncpy((char*)osd->osd_array.data[i][1], "", OSD_CHAR_COLS);
+
+    if ((ar->h == 0) && (ar->v == 0))
+        sniprintf(ar_str, OSD_CHAR_COLS, "1:1 PAR");
+    else
+        sniprintf(ar_str, OSD_CHAR_COLS, "%u:%u", ar->h, ar->v);
 
     sniprintf((char*)osd->osd_array.data[6][1], OSD_CHAR_COLS, "%u", st->h_active);
     sniprintf((char*)osd->osd_array.data[7][1], OSD_CHAR_COLS, "%u", st->v_active);
-    sniprintf((char*)osd->osd_array.data[9][1], OSD_CHAR_COLS, "%u", size_step_arr[size_step_idx]);
-    sniprintf((char*)osd->osd_array.data[10][1], OSD_CHAR_COLS, "%u", st->h_backporch);
-    sniprintf((char*)osd->osd_array.data[11][1], OSD_CHAR_COLS, "%u", st->v_backporch);
-    sniprintf(menu_row1, US2066_ROW_LEN+1, "H.bp: %u  V.bp: %u", st->h_backporch, st->v_backporch);
-    sniprintf(menu_row2, US2066_ROW_LEN+1, "Active: %ux%u", st->h_active, st->v_active);
+    sniprintf((char*)osd->osd_array.data[8][1], OSD_CHAR_COLS, "%u", st->h_backporch);
+    sniprintf((char*)osd->osd_array.data[9][1], OSD_CHAR_COLS, "%u", st->v_backporch);
+    if (ar_adj_en) {
+        sniprintf((char*)osd->osd_array.data[10][1], OSD_CHAR_COLS, "%s", ar_str);
+        sniprintf((char*)osd->osd_array.data[12][1], OSD_CHAR_COLS, "%s", func_name);
+    }
+    if (size_fn==0)
+        sniprintf((char*)osd->osd_array.data[13][1], OSD_CHAR_COLS, "%u", size_step_arr[size_step_idx]);
+
+    sniprintf(menu_row1, US2066_ROW_LEN+1, "Active: %ux%u", st->h_active, st->v_active);
+    if (ar_adj_en)
+        sniprintf(menu_row2, US2066_ROW_LEN+1, "Aspect: %s", ar_str);
+    else
+        sniprintf(menu_row2, US2066_ROW_LEN+1, " ");
 
     ui_disp_menu(0);
 }
@@ -1977,43 +2065,72 @@ void cstm_vm_stats(menucode_id code, int setup_disp) {
 
 void cstm_listview(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x03, 0x00};
-    int i;
+    int i, lw_page, items_curpage;
 
-    if (setup_disp) {
-        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+    if (setup_disp)
         lw_mp = *lw_item->sel.data;
-
-        sniprintf((char*)osd->osd_array.data[0][0], OSD_CHAR_COLS, "%s", lw_item->name);
-        strlcpy(menu_row1, lw_item->name, US2066_ROW_LEN+1);
-        for (i=0; i<OSD_CHAR_COLS; i++)
-            osd->osd_array.data[1][0][i] = '-';
-
-        for (i=0; i<=lw_item->sel.max; i++) {
-            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%c%s", (i==lw_mp? '*' : ' '), lw_item->sel.setting_str[i]);
-            row_mask[0] |= (1<<(i+2));
-        }
-        osd->osd_sec_enable[0].mask = row_mask[0];
-        osd->osd_sec_enable[1].mask = row_mask[1];
-        osd->osd_row_color.mask = (1<<(lw_mp+2));
-    }
 
     // Parse menu control
     switch (code) {
     case PREV_PAGE:
+        if (lw_mp % 20 == 0)
+            setup_disp = (lw_item->sel.max >= 20);
         lw_mp = (lw_mp > 0) ? (lw_mp - 1) : lw_item->sel.max;
-        osd->osd_row_color.mask = (1<<(lw_mp+2));
+        osd->osd_row_color.mask = (1<<((lw_mp%20)+2));
         break;
     case NEXT_PAGE:
+        if ((lw_mp % 20 == 19) || (lw_mp == lw_item->sel.max))
+            setup_disp = (lw_item->sel.max >= 20);
         lw_mp = (lw_mp < lw_item->sel.max) ? (lw_mp + 1) : 0;
-        osd->osd_row_color.mask = (1<<(lw_mp+2));
+        osd->osd_row_color.mask = (1<<((lw_mp%20)+2));
+        break;
+    case VAL_MINUS:
+        if (lw_item->sel.max >= 20) {
+            lw_mp = (lw_mp-20 < 0) ? (lw_item->sel.max/20)*20 : lw_mp-20;
+            setup_disp = 1;
+        }
+        break;
+    case VAL_PLUS:
+        if (lw_item->sel.max >= 20) {
+            lw_mp = (lw_mp+20 > lw_item->sel.max) ? (lw_mp/20 == lw_item->sel.max/20 ? 0 : (lw_item->sel.max/20)*20) : lw_mp+20;
+            setup_disp = 1;
+        }
         break;
     case OPT_SELECT:
-        osd->osd_array.data[*lw_item->sel.data+2][0][0] = ' ';
+        osd->osd_array.data[(*lw_item->sel.data % 20)+2][0][0] = ' ';
         *lw_item->sel.data = lw_mp;
-        osd->osd_array.data[lw_mp+2][0][0] = '*';
+        osd->osd_array.data[(lw_mp%20)+2][0][0] = '*';
         break;
     default:
         break;
+    }
+
+    lw_page = lw_mp / 20;
+    items_curpage = (((lw_page+1)*20) > lw_item->sel.max) ? ((lw_item->sel.max+1)-(lw_page*20)) : 20;
+
+    if (setup_disp) {
+        memset((void*)osd->osd_array.data, 0, sizeof(osd_char_array));
+
+        if (lw_item->sel.max >= 20)
+            sniprintf(menu_row1, US2066_ROW_LEN+1, "%s p%d/%d", lw_item->name, lw_page+1, (lw_item->sel.max/20)+1);
+        else
+            strlcpy(menu_row1, lw_item->name, US2066_ROW_LEN+1);
+        strncpy((char*)osd->osd_array.data[0][0], menu_row1, OSD_CHAR_COLS);
+        for (i=0; i<OSD_CHAR_COLS; i++)
+            osd->osd_array.data[1][0][i] = '-';
+
+        for (i=0; i<items_curpage; i++) {
+            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "%c%s", ((i+lw_page*20)==*lw_item->sel.data? '*' : ' '), lw_item->sel.setting_str[i+lw_page*20]);
+            row_mask[0] |= (1<<(i+2));
+        }
+        if (lw_item->sel.max >= 20) {
+            row_mask[0] |= (1<<((i++)+2));
+            sniprintf((char*)osd->osd_array.data[i+2][0], OSD_CHAR_COLS, "< Prev       Next >");
+            row_mask[0] |= (1<<(i+2));
+        }
+        osd->osd_sec_enable[0].mask = row_mask[0];
+        osd->osd_sec_enable[1].mask = row_mask[1];
+        osd->osd_row_color.mask = (1<<((lw_mp%20)+2));
     }
 
     sniprintf(menu_row2, US2066_ROW_LEN+1, "%c%s", (*lw_item->sel.data==lw_mp? '*' : ' '), lw_item->sel.setting_str[lw_mp]);
@@ -2266,6 +2383,7 @@ int rf_chscan() {
 int get_edid() {
     edid_t mon_edid;
     FIL e_file;
+    FRESULT f_res;
     int ret;
     unsigned bytes_written;
 
@@ -2273,13 +2391,18 @@ int get_edid() {
     if (ret != 0)
         return ret;
 
-    if (f_open(&e_file, "mon_edid.bin", FA_WRITE|FA_CREATE_ALWAYS) != F_OK) {
+    f_res = f_mkdir("edid");
+    if (!((f_res == FR_OK) || (f_res == FR_EXIST))) {
         return -3;
+    }
+
+    if (f_open(&e_file, "edid/mon_edid.bin", FA_WRITE|FA_CREATE_ALWAYS) != F_OK) {
+        return -4;
     }
 
     // Write edid to file
     if ((f_write(&e_file, &mon_edid.data, mon_edid.len, &bytes_written) != F_OK) || (bytes_written != mon_edid.len))
-        ret = -4;
+        ret = -5;
     else
         ret = 0;
 

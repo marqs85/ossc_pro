@@ -209,6 +209,7 @@ typedef struct {
     uint8_t exp_sel;
     uint8_t extra_av_out_mode;
     uint8_t isl_ext_range;
+    uint8_t extra_av_out_sd_std;
 #ifdef INC_THS7353
     uint8_t syncmux_stc;
 #endif

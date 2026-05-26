@@ -67,6 +67,7 @@ const ude_item_map ude_initcfg_items[] = {
     UDE_ITEM(9, 82, ts.chardisp_cfg),
     UDE_ITEM(10, 82, ts.rc_p19_func),
     UDE_ITEM(11, 82, ts.rc_rgyb_func),
+    UDE_ITEM(12, 82, ts.rc_disable),
 };
 
 const ude_item_map ude_profile_items[] = {
@@ -80,7 +81,7 @@ const ude_item_map ude_profile_items[] = {
 #endif
     UDE_ITEM(96, 76, c_shmask),
     UDE_ITEM(97, 77, c_edid),
-    UDE_ITEM(110, 81, c_lc_palette_set),
+    UDE_ITEM(110, 82, c_lc_palette_set),
     // avconfig_t
     UDE_ITEM(3, 58, tc.sl_mode),
     UDE_ITEM(4, 58, tc.sl_type),
@@ -174,7 +175,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(78, 79, tc.hdmirx_cfg),
 #endif
 #ifdef INC_PCM186X
-    UDE_ITEM(79, 58, tc.pcm_cfg),
+    UDE_ITEM(79, 82, tc.pcm_cfg),
 #endif
 #ifdef VIP
     UDE_ITEM(80, 80, tc.scl_crt_out_mode),
@@ -190,7 +191,7 @@ const ude_item_map ude_profile_items[] = {
     UDE_ITEM(88, 74, tc.scl_gen_sr),
 #endif
     UDE_ITEM(89, 74, tc.exp_sel),
-    UDE_ITEM(90, 75, tc.extra_av_out_mode),
+    UDE_ITEM(90, 82, tc.extra_av_out_mode),
     // 91 reserved for sdp_timings
 #ifndef DExx_FW
     UDE_ITEM(92, 82, tc.sdp_cfg),
@@ -217,7 +218,8 @@ const ude_item_map ude_profile_items[] = {
 #endif
     UDE_ITEM(109, 80, tc.hdmi_csync),
     // 110 reserved
-    UDE_ITEM(111, 80, tc.csync_combiner),
+    UDE_ITEM(111, 82, tc.csync_combiner),
+    UDE_ITEM(112, 82, tc.extra_av_out_sd_std),
 };
 
 int write_userdata(uint8_t entry) {
@@ -301,9 +303,14 @@ int write_userdata(uint8_t entry) {
 int read_userdata(uint8_t entry, int dry_run) {
     ude_hdr hdr;
     ude_item_hdr item_hdr;
+    mode_data_t item_mpreset;
+    smp_preset_t item_spreset;
+    mode_data_t *target_mpreset;
+    smp_preset_t *target_spreset;
     const ude_item_map *target_map;
     uint32_t flash_addr, bytes_read;
-    int i, j, target_map_items;
+    int i, j, k, l, target_map_items, loaded_items=0;
+    char retmsg[US2066_ROW_LEN+1];
 
     if (entry > MAX_USERDATA_ENTRY) {
         printf("invalid entry\n");
@@ -316,8 +323,7 @@ int read_userdata(uint8_t entry, int dry_run) {
 
     if (strncmp(hdr.userdata_key, "USRDATA", 8)) {
         printf("No userdata found on entry %u\n", entry);
-        set_func_ret_msg("Not loaded");
-        return 1;
+        return -2;
     }
 
     strlcpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
@@ -331,8 +337,43 @@ int read_userdata(uint8_t entry, int dry_run) {
         memcpy(&item_hdr, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read), sizeof(ude_item_hdr));
         bytes_read += sizeof(ude_item_hdr);
         for (j=0; j<target_map_items; j++) {
-            if (!memcmp(&item_hdr, &target_map[j].hdr, sizeof(ude_item_hdr))) {
-                memcpy(target_map[j].data, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read), item_hdr.data_size);
+            if (item_hdr.id == target_map[j].hdr.id) {
+                if (!memcmp(&item_hdr, &target_map[j].hdr, sizeof(ude_item_hdr))) {
+                    memcpy(target_map[j].data, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read), item_hdr.data_size);
+                    loaded_items++;
+                } else if ((hdr.type == UDE_PROFILE) && (item_hdr.id <= 1) && (item_hdr.version == target_map[j].hdr.version)) { // Import name-matching mode_data_t entries if only table size changed
+                    for (k=0; k<item_hdr.data_size; k+=sizeof(mode_data_t)) {
+                        memcpy(&item_mpreset, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read + k), sizeof(mode_data_t));
+                        target_mpreset = (mode_data_t*)target_map[j].data;
+                        for (l=0; l<target_map[j].hdr.data_size/sizeof(mode_data_t); l++) {
+                            if (!strncmp(item_mpreset.name, target_mpreset[l].name, 16)) {
+                                memcpy(&target_mpreset[l].timings, &item_mpreset.timings, sizeof(sync_timings_t));
+                                memcpy(&target_mpreset[l].sampler_phase, &item_mpreset.sampler_phase, sizeof(uint8_t));
+                                memcpy(&target_mpreset[l].ar, &item_mpreset.ar, sizeof(aspect_ratio_t));
+                                break;
+                            }
+                        }
+                    }
+                    printf("Ude type %u id %u sub-entries imported from matching version (v%u)\n", hdr.type, item_hdr.id, item_hdr.version);
+                    loaded_items++;
+                } else if ((hdr.type == UDE_PROFILE) && (item_hdr.id == 2) && (item_hdr.version == target_map[j].hdr.version)) { // Import name-matching smp_preset_t entries if only table size changed
+                    for (k=0; k<item_hdr.data_size; k+=sizeof(smp_preset_t)) {
+                        memcpy(&item_spreset, (uint32_t*)(INTEL_GENERIC_SERIAL_FLASH_INTERFACE_TOP_0_AVL_MEM_BASE + flash_addr + bytes_read + k), sizeof(smp_preset_t));
+                        target_spreset = (smp_preset_t*)target_map[j].data;
+                        for (l=0; l<target_map[j].hdr.data_size/sizeof(smp_preset_t); l++) {
+                            if (!strncmp(item_spreset.name, target_spreset[l].name, 16)) {
+                                memcpy(&target_spreset[l].timings_i, &item_spreset.timings_i, sizeof(sync_timings_t));
+                                memcpy(&target_spreset[l].sampler_phase, &item_spreset.sampler_phase, sizeof(uint8_t));
+                                memcpy(&target_spreset[l].ar, &item_spreset.ar, sizeof(aspect_ratio_t));
+                                break;
+                            }
+                        }
+                    }
+                    printf("Ude type %u id %u sub-entries imported from matching version (v%u)\n", hdr.type, item_hdr.id, item_hdr.version);
+                    loaded_items++;
+                } else {
+                    printf("Ude type %u id %u version mismatch: stored: v%u - required: v%u\n", hdr.type, item_hdr.id, item_hdr.version, target_map[j].hdr.version);
+                }
                 break;
             }
         }
@@ -350,9 +391,12 @@ int read_userdata(uint8_t entry, int dry_run) {
     }
 
     strlcpy(cur_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
-    printf("%lu bytes read from userdata entry %u\n", bytes_read, entry);
+    printf("%u/%u items loaded from userdata entry %u (%lu bytes)\n\n", loaded_items, hdr.num_items, entry, bytes_read);
 
-    return 0;
+    sniprintf(retmsg, US2066_ROW_LEN+1, "%u/%u items loaded", loaded_items, hdr.num_items);
+    set_func_ret_msg(retmsg);
+
+    return 1;
 }
 
 int write_userdata_sd(uint8_t entry) {
@@ -447,10 +491,15 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
     FIL p_file;
     ude_hdr hdr;
     ude_item_hdr item_hdr;
+    mode_data_t item_mpreset;
+    smp_preset_t item_spreset;
+    mode_data_t *target_mpreset;
+    smp_preset_t *target_spreset;
     const ude_item_map *target_map;
     unsigned int bytes_read, bytes_read_tot;
     char p_filename[14];
-    int i, j, target_map_items, retval=0;
+    char retmsg[US2066_ROW_LEN+1];
+    int i, j, k, l, retval, target_map_items, loaded_items=0;
 
     if (entry == SD_INIT_CONFIG_SLOT)
         sniprintf(p_filename, 14, "settings.bin");
@@ -480,8 +529,10 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
     }
 
     strlcpy(target_profile_name, hdr.name, USERDATA_NAME_LEN+1);
-    if (dry_run)
+    if (dry_run) {
+        retval = 0;
         goto close_file;
+    }
 
     target_map = (hdr.type == UDE_INITCFG) ? ude_initcfg_items : ude_profile_items;
     target_map_items = (hdr.type == UDE_INITCFG) ? sizeof(ude_initcfg_items)/sizeof(ude_item_map) : sizeof(ude_profile_items)/sizeof(ude_item_map);
@@ -494,18 +545,60 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
         }
         bytes_read_tot += sizeof(ude_item_hdr);
         for (j=0; j<target_map_items; j++) {
-            if (!memcmp(&item_hdr, &target_map[j].hdr, sizeof(ude_item_hdr))) {
-                if ((f_read(&p_file, target_map[j].data, item_hdr.data_size, &bytes_read) != F_OK) || (bytes_read != item_hdr.data_size)) {
-                    printf("Item data read fail\n");
-                    retval = -7;
-                    goto close_file;
+            if (item_hdr.id == target_map[j].hdr.id) {
+                if (!memcmp(&item_hdr, &target_map[j].hdr, sizeof(ude_item_hdr))) {
+                    if ((f_read(&p_file, target_map[j].data, item_hdr.data_size, &bytes_read) != F_OK) || (bytes_read != item_hdr.data_size)) {
+                        printf("Item data read fail\n");
+                        retval = -7;
+                        goto close_file;
+                    }
+                    loaded_items++;
+                } else if ((hdr.type == UDE_PROFILE) && (item_hdr.id <= 1) && (item_hdr.version == target_map[j].hdr.version)) { // Import name-matching mode_data_t entries if only table size changed
+                    for (k=0; k<item_hdr.data_size; k+=sizeof(mode_data_t)) {
+                        if ((f_read(&p_file, &item_mpreset, sizeof(mode_data_t), &bytes_read) != F_OK) || (bytes_read != sizeof(mode_data_t))) {
+                            printf("Item data read fail\n");
+                            retval = -7;
+                            goto close_file;
+                        }
+                        target_mpreset = (mode_data_t*)target_map[j].data;
+                        for (l=0; l<target_map[j].hdr.data_size/sizeof(mode_data_t); l++) {
+                            if (!strncmp(item_mpreset.name, target_mpreset[l].name, 16)) {
+                                memcpy(&target_mpreset[l].timings, &item_mpreset.timings, sizeof(sync_timings_t));
+                                memcpy(&target_mpreset[l].sampler_phase, &item_mpreset.sampler_phase, sizeof(uint8_t));
+                                memcpy(&target_mpreset[l].ar, &item_mpreset.ar, sizeof(aspect_ratio_t));
+                                break;
+                            }
+                        }
+                    }
+                    printf("Ude type %u id %u sub-entries imported from matching version (v%u)\n", hdr.type, item_hdr.id, item_hdr.version);
+                    loaded_items++;
+                } else if ((hdr.type == UDE_PROFILE) && (item_hdr.id == 2) && (item_hdr.version == target_map[j].hdr.version)) { // Import name-matching smp_preset_t entries if only table size changed
+                    for (k=0; k<item_hdr.data_size; k+=sizeof(smp_preset_t)) {
+                        if ((f_read(&p_file, &item_spreset, sizeof(smp_preset_t), &bytes_read) != F_OK) || (bytes_read != sizeof(smp_preset_t))) {
+                            printf("Item data read fail\n");
+                            retval = -7;
+                            goto close_file;
+                        }
+                        target_spreset = (smp_preset_t*)target_map[j].data;
+                        for (l=0; l<target_map[j].hdr.data_size/sizeof(smp_preset_t); l++) {
+                            if (!strncmp(item_spreset.name, target_spreset[l].name, 16)) {
+                                memcpy(&target_spreset[l].timings_i, &item_spreset.timings_i, sizeof(sync_timings_t));
+                                memcpy(&target_spreset[l].sampler_phase, &item_spreset.sampler_phase, sizeof(uint8_t));
+                                memcpy(&target_spreset[l].ar, &item_spreset.ar, sizeof(aspect_ratio_t));
+                                break;
+                            }
+                        }
+                    }
+                    printf("Ude type %u id %u sub-entries imported from matching version (v%u)\n", hdr.type, item_hdr.id, item_hdr.version);
+                    loaded_items++;
+                } else {
+                    printf("Ude type %u id %u version mismatch: stored: v%u - required: v%u\n", hdr.type, item_hdr.id, item_hdr.version, target_map[j].hdr.version);
                 }
                 break;
             }
         }
         bytes_read_tot += item_hdr.data_size;
-        if (j == target_map_items)
-            f_lseek(&p_file, bytes_read_tot);
+        f_lseek(&p_file, bytes_read_tot);
     }
 
     if (hdr.type == UDE_PROFILE) {
@@ -514,7 +607,11 @@ int read_userdata_sd(uint8_t entry, int dry_run) {
     }
 
     strlcpy(cur_profile_name, target_profile_name, USERDATA_NAME_LEN+1);
-    printf("%u bytes read from userdata entry %u\n", bytes_read_tot, entry);
+    printf("%u/%u items loaded from userdata entry %u (%lu bytes)\n\n", loaded_items, hdr.num_items, entry, bytes_read_tot);
+
+    sniprintf(retmsg, US2066_ROW_LEN+1, "%u/%u items loaded", loaded_items, hdr.num_items);
+    set_func_ret_msg(retmsg);
+    retval = 1;
 
 close_file:
     file_close(&p_file);
