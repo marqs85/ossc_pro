@@ -126,6 +126,8 @@ localparam EXTRA_OUT_RGBHV = 0;
 localparam EXTRA_OUT_RGBCS_RGBS = 1;
 localparam EXTRA_OUT_RGsB = 2;
 localparam EXTRA_OUT_YPbPr = 3;
+localparam EXTRA_OUT_SVID_CVBS = 4;
+localparam EXTRA_OUT_SVID_CVBS_RGBS = 5;
 
 wire jtagm_reset_req, ndmreset_req;
 reg ndmreset_ack, ndmreset_pulse;
@@ -150,10 +152,15 @@ wire [3:0] fan_duty = sys_ctrl[19:16];
 wire [3:0] led_duty = sys_ctrl[23:20];
 wire dram_refresh_enable = sys_ctrl[24];
 wire vip_dil_reset_n = sys_ctrl[25];
-wire [1:0] extra_out_mode = sys_ctrl[27:26];
-wire [1:0] exp_sel = sys_ctrl[29:28];
-wire audmux_sel = sys_ctrl[30];
-wire legacy_aud_sel = sys_ctrl[31];
+wire audmux_sel = sys_ctrl[26];
+
+wire [31:0] sys_ctrl_exp;
+wire [1:0] exp_sel = sys_ctrl_exp[1:0];
+wire [2:0] extra_out_mode = sys_ctrl_exp[4:2];
+wire [1:0] extra_out_sd_std = sys_ctrl_exp[6:5];
+wire hdmi_csync = sys_ctrl_exp[7];
+wire [1:0] csync_combiner = sys_ctrl_exp[9:8];
+wire legacy_aud_sel = sys_ctrl_exp[10];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -233,7 +240,7 @@ assign SD_DATA_io = sd_dat_oe_o ? sd_dat_out_o : 4'bzzzz;
 assign FPGA_PCLK1x_o = pclk_capture;
 
 wire [31:0] lumacode_data;
-wire [8:0] lumacode_addr;
+wire [7:0] lumacode_addr;
 wire lumacode_rden;
 
 // ISL51002 RGB digitizer
@@ -470,8 +477,6 @@ assign HDMITX_PCLK_o = ~pclk_out;
 
 // VIP / LB
 wire vip_select = misc_config2[3];
-wire hdmi_csync = misc_config2[4];
-wire [1:0] csync_combiner = misc_config2[6:5];
 wire lb_enable = sys_poweron & ~testpattern_enable & ~vip_select;
 
 always @(posedge pclk_capture) begin
@@ -586,10 +591,9 @@ end
 
 // output data assignment (2 stages and launch on negedge for timing closure)
 reg [7:0] R_out, G_out, B_out;
-reg HSYNC_out, VSYNC_out, DE_out;
+reg HSYNC_out, VSYNC_out, CSYNC_out, DE_out;
 wire [7:0] R_sc, G_sc, B_sc;
-wire HSYNC_sc, VSYNC_sc, DE_sc;
-wire CSYNC_out = csync_combiner == 0 ? HSYNC_out & VSYNC_out : ~(HSYNC_out ^ VSYNC_out);
+wire HSYNC_sc, VSYNC_sc, CSYNC_sc, DE_sc;
 
 always @(posedge pclk_out) begin
     if (osd_enable) begin
@@ -600,6 +604,7 @@ always @(posedge pclk_out) begin
 
     HSYNC_out <= HSYNC_sc;
     VSYNC_out <= VSYNC_sc;
+    CSYNC_out <= (csync_combiner == 0) ? HSYNC_out & VSYNC_out : CSYNC_sc;
     DE_out <= DE_sc;
 end
 
@@ -632,7 +637,7 @@ assign LS_DIR_o = (exp_sel == EXP_SEL_LEGAGY_IN) ? 2'b10 : 2'b11;
 `ifdef EXTRA_AV_OUT
 // CSC for YPbPr
 wire [7:0] VGA_CSC_R_out, VGA_CSC_G_out, VGA_CSC_B_out;
-wire VGA_CSC_HSYNC_out, VGA_CSC_VSYNC_out, VGA_CSC_DE_out;
+wire VGA_CSC_HSYNC_out, VGA_CSC_VSYNC_out, VGA_CSC_CSYNC_out, VGA_CSC_DE_out;
 output_csc csc_vga_inst (
     .PCLK_i(pclk_out),
     .reset_n(1'b1),
@@ -642,19 +647,20 @@ output_csc csc_vga_inst (
     .B_i(B_out),
     .HSYNC_i(HSYNC_out),
     .VSYNC_i(VSYNC_out),
+    .CSYNC_i(CSYNC_out),
     .DE_i(DE_out),
     .R_o(VGA_CSC_R_out),
     .G_o(VGA_CSC_G_out),
     .B_o(VGA_CSC_B_out),
     .HSYNC_o(VGA_CSC_HSYNC_out),
     .VSYNC_o(VGA_CSC_VSYNC_out),
+    .CSYNC_o(VGA_CSC_CSYNC_out),
     .DE_o(VGA_CSC_DE_out),
 );
 
 // VGA DAC
 reg [7:0] VGA_R, VGA_G, VGA_B, VGA_R_pre, VGA_G_pre, VGA_B_pre;
 reg VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N, VGA_HS_pre, VGA_VS_pre, VGA_SYNC_N_pre, VGA_BLANK_N_pre;
-wire VGA_CSC_CSYNC_out = csync_combiner == 0 ? VGA_CSC_HSYNC_out & VGA_CSC_VSYNC_out : ~(VGA_CSC_HSYNC_out ^ VGA_CSC_VSYNC_out);
 always @(posedge pclk_out) begin
     if (exp_sel == EXP_SEL_EXTRA_OUT) begin
         VGA_R_pre <= VGA_CSC_R_out;
@@ -663,7 +669,7 @@ always @(posedge pclk_out) begin
         VGA_HS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_HSYNC_out : VGA_CSC_CSYNC_out;
         VGA_VS_pre <= (extra_out_mode == EXTRA_OUT_RGBHV) ? VGA_CSC_VSYNC_out : 1'b1;
         VGA_BLANK_N_pre <= (extra_out_mode == EXTRA_OUT_YPbPr) ? 1'b1 : VGA_CSC_DE_out;
-        VGA_SYNC_N_pre <= (extra_out_mode >= EXTRA_OUT_RGsB) ? VGA_CSC_CSYNC_out : 1'b0;
+        VGA_SYNC_N_pre <= ((extra_out_mode == EXTRA_OUT_RGsB) || (extra_out_mode == EXTRA_OUT_YPbPr)) ? VGA_CSC_CSYNC_out : 1'b0;
 
         VGA_R <= VGA_R_pre;
         VGA_G <= VGA_G_pre;
@@ -674,6 +680,10 @@ always @(posedge pclk_out) begin
         VGA_SYNC_N <= VGA_SYNC_N_pre;
     end
 end
+assign EXT_IO_A_io[0] = (exp_sel == EXP_SEL_EXTRA_OUT) ? (extra_out_sd_std == 2) : 'z; // AD_SA
+assign EXT_IO_A_io[1] = sys_poweron & (exp_sel == EXP_SEL_EXTRA_OUT) & (extra_out_mode == EXTRA_OUT_SVID_CVBS); // AD_TERM
+assign EXT_IO_A_io[2] = sys_poweron & (exp_sel == EXP_SEL_EXTRA_OUT) & (extra_out_mode >= EXTRA_OUT_SVID_CVBS); // AD_EN
+assign EXT_IO_A_io[3] = (extra_out_sd_std == 0); // AD_STD
 assign EXT_IO_A_io[4] = sys_poweron; // VGA_PSAVE_N
 assign EXT_IO_A_io[5] = sys_poweron; // AUDIO_MUTE_N
 assign EXT_IO_B_io[27] = (exp_sel == EXP_SEL_EXTRA_OUT) ? ~pclk_out : 'z;
@@ -765,6 +775,7 @@ sys sys_inst (
     .pio_0_sys_ctrl_out_export              (sys_ctrl),
     .pio_1_controls_in_export               (controls),
     .pio_2_sys_status_in_export             (sys_status),
+    .pio_3_sys_ctrl2_out_export             (sys_ctrl_exp),
     .sc_config_0_sc_if_fe_status_i          (fe_status),
     .sc_config_0_sc_if_hv_in_config_o       (hv_in_config),
     .sc_config_0_sc_if_hv_in_config2_o      (hv_in_config2),
@@ -933,6 +944,7 @@ scanconverter #(
     .B_o(B_sc),
     .HSYNC_o(HSYNC_sc),
     .VSYNC_o(VSYNC_sc),
+    .CSYNC_o(CSYNC_sc),
     .DE_o(DE_sc),
     .xpos_o(xpos_sc),
     .ypos_o(ypos_sc),

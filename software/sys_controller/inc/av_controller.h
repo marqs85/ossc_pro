@@ -23,6 +23,7 @@
 #include "sysconfig.h"
 #include "controls.h"
 #include "hdmi.h"
+#include "us2066.h"
 #include "osd_generator_regs.h"
 
 // sys_ctrl
@@ -48,12 +49,20 @@
 #define SCTRL_LED_PWM_MASK      (0xf<<SCTRL_LED_PWM_OFFS)
 #define SCTRL_DRAM_RFR_ENA      (1<<24)
 #define SCTRL_VIP_DIL_RESET_N   (1<<25)
-#define SCTRL_EXTRA_AV_O_OFFS   26
-#define SCTRL_EXTRA_AV_O_MASK   (0x3<<SCTRL_EXTRA_AV_O_OFFS)
-#define SCTRL_EXP_SEL_OFFS      28
-#define SCTRL_EXP_SEL_MASK      (0x3<<SCTRL_EXP_SEL_OFFS)
-#define SCTRL_AUDMUX_SEL        (1<<30)
-#define SCTRL_RF_AUD_SEL        (1<<31)
+#define SCTRL_AUDMUX_SEL        (1<<26)
+
+// sys_ctrl_exp
+#define SCTRL_EXP_EXP_SEL_OFFS      0
+#define SCTRL_EXP_EXP_SEL_MASK      (0x3<<SCTRL_EXP_EXP_SEL_OFFS)
+#define SCTRL_EXP_EXTRA_AV_O_OFFS   2
+#define SCTRL_EXP_EXTRA_AV_O_MASK   (0x7<<SCTRL_EXP_EXTRA_AV_O_OFFS)
+#define SCTRL_EXP_EXTRA_AV_STD_OFFS 5
+#define SCTRL_EXP_EXTRA_AV_STD_MASK (0x3<<SCTRL_EXP_EXTRA_AV_STD_OFFS)
+#define SCTRL_EXP_HDMI_CSYNC        (1<<7)
+#define SCTRL_EXP_CSYNC_COMB_OFFS   8
+#define SCTRL_EXP_CSYNC_COMB_MASK   (0x3<<SCTRL_EXP_CSYNC_COMB_OFFS)
+#define SCTRL_EXP_RF_AUD_SEL        (1<<10)
+
 
 // sys_status
 #define SSTAT_EMIF_STAT_MASK            0x00000007
@@ -117,6 +126,10 @@ typedef struct {
     uint8_t fan_pwm;
     uint8_t led_pwm;
 #endif
+    us2066_config chardisp_cfg __attribute__ ((aligned (4)));
+    uint8_t rc_p19_func;
+    uint8_t rc_rgyb_func[4];
+    uint8_t rc_disable;
 } settings_t;
 
 typedef struct {
@@ -162,8 +175,13 @@ typedef union {
         uint32_t nes_pal[64];
         uint32_t tia_pal[128];
         uint32_t gtia_pal[256];
+        uint32_t maria_pal[256];
+        uint32_t sms_pal[64];
+        uint32_t vic20_pal[16];
+        uint32_t g7000_pal[16];
+        uint32_t mc6847_pal[16];
     } __attribute__((packed, __may_alias__));
-    uint32_t data[512];
+    uint32_t data[880];
 } lc_palette_set;
 
 typedef struct {
@@ -186,13 +204,15 @@ void switch_audmux(uint8_t audmux_sel);
 
 void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
 
-void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode);
+void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode, uint8_t extra_av_out_sd_std);
+
+void set_csync_comb(uint8_t hdmi_csync, uint8_t csync_combiner);
 
 void set_dram_refresh(uint8_t enable);
 
 int sys_is_powered_on();
 
-void sys_toggle_power();
+void sys_set_power(int mode);
 
 void print_vm_stats(int menu_mode);
 

@@ -195,7 +195,7 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     if (vm_in->timings.h_total) {
         gen_width_mode = GEN_WIDTH_SMALLEST;
 
-        for (i=1; i<=7; i++)
+        for (i=GROUP_240P; i<=GROUP_576P; i++)
             target_sm_list[i] = SM_GEN_4_3;
     }
 
@@ -262,10 +262,12 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
     smp_sel = mindiff_id;
 
     vm_in->group = smp_preset->group;
-    if (smp_preset->sm <= SM_GEN_16_9)
-        vm_in->ar = gen_ar_target;
-    else
-        vm_in->ar = smp_preset->ar;
+    if (vm_in->ar.h == 0) {
+        if (smp_preset->sm <= SM_GEN_16_9)
+            vm_in->ar = gen_ar_target;
+        else
+            vm_in->ar = smp_preset->ar;
+    }
 
     // write vm_in timings for digital sources (just preserve v_hz)
     if (vm_in->timings.h_total) {
@@ -324,6 +326,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
+    const stdmode_t timings_1080p100[] = {STDMODE_1080p_100, STDMODE_1080p_100_MB, STDMODE_1080p_100_CEA, STDMODE_1080p_100_CEA_PR2};
     const stdmode_t timings_1080p120[] = {STDMODE_1080p_120, STDMODE_1080p_120_MB, STDMODE_1080p_120_CEA, STDMODE_1080p_120_CEA_PR2};
     const stdmode_t timings_2160p60[] = {STDMODE_2880x2160_60, STDMODE_2880x2160_60_MB};
 
@@ -335,7 +338,7 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_720p_50, STDMODE_720p_240},
                                          {STDMODE_1280x1024_60, STDMODE_1280x1024_120},
                                          {STDMODE_1080i_50, STDMODE_1080i_60},
-                                         {STDMODE_1080p_50, timings_1080p120[cc->timing_1080p120]},
+                                         {timings_1080p100[cc->timing_1080p120], timings_1080p120[cc->timing_1080p120]},
                                          {STDMODE_1600x1200_60, STDMODE_1600x1200_120},
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60},
                                          {STDMODE_1920x1440_50, STDMODE_1920x1440_60},
@@ -362,12 +365,12 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
 
     const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
                                           SM_OPT_SNES_256COL, SM_OPT_SNES_512COL,
-                                          SM_OPT_MD_256COL, SM_OPT_MD_320COL,
+                                          SM_OPT_SMS_256COL, SM_OPT_MD_256COL, SM_OPT_MD_320COL,
                                           SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                           SM_OPT_N64_320COL, SM_OPT_N64_640COL,
                                           SM_OPT_DC_640COL,
-                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL};
+                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_VIC20_200COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL, SM_OPT_ATARI7800_320COL, SM_OPT_INTV_160COL, SM_OPT_G7000_320COL};
     const smp_mode_t sm_384p_map[] = {SM_GEN_4_3, SM_OPT_VGA_640x350, SM_OPT_VGA_720x350, SM_OPT_VGA_640x400, SM_OPT_VGA_720x400, SM_OPT_GBI_240COL, SM_OPT_PC98_640COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_OPT_DTV480I,
                                      SM_OPT_SNES_512COL,
@@ -494,8 +497,8 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     }
 
     // Fill in source AR values for Auto and 1:1 PAR
-    aspect_map[0][0] = vm_in->ar.h;
-    aspect_map[0][1] = vm_in->ar.v;
+    aspect_map[0][0] = vm_in->ar.h ? vm_in->ar.h : vm_in->timings.h_active;
+    aspect_map[0][1] = vm_in->ar.v ? vm_in->ar.v : vm_in->timings.v_active<<vm_in->timings.interlaced;
     aspect_map[4][0] = vm_in->timings.h_active;
     aspect_map[4][1] = vm_in->timings.v_active<<vm_in->timings.interlaced;
     aspect_map[5][0] = vm_out->ar.h;
@@ -601,8 +604,9 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
     const ad_mode_t pm_ad_240p_map[] = {{STDMODE_240p_CRT, 0}, {STDMODE_480p, 1}, {STDMODE_720p_60, 2}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3}, {STDMODE_1080p_60, 4},
                                         {STDMODE_1600x1200_60, 4}, {STDMODE_1920x1200_60, 4}, {STDMODE_1920x1440_60, 5}, {STDMODE_2560x1440_60, 5}, {timings_2160p60[cc->timing_2160p60], 8}};
-    const ad_mode_t pm_ad_288p_map[] = {{STDMODE_288p_CRT, 0}, {STDMODE_576p, 1}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3},
-                                        {STDMODE_1920x1200_50, 3}, {STDMODE_1920x1440_50, 4}, {STDMODE_2560x1440_50, 4}, {timings_2160p60[cc->timing_2160p60], 6}};
+    const ad_mode_t pm_ad_288p_map[] = {{STDMODE_288p_CRT, 0}, {STDMODE_576p, 1}, {STDMODE_1080i_50, 1}, {STDMODE_1080p_50, 3}, {STDMODE_1080p_50, 4}, {STDMODE_1600x1200_60, 3}, {STDMODE_1600x1200_60, 4},
+                                        {STDMODE_1920x1200_50, 3}, {STDMODE_1920x1200_50, 4}, {STDMODE_1920x1440_50, 4}, {STDMODE_1920x1440_50, 5}, {STDMODE_2560x1440_50, 4}, {STDMODE_2560x1440_50, 5},
+                                        {timings_2160p60[cc->timing_2160p60], 6}, {timings_2160p60[cc->timing_2160p60], 8}};
     const ad_mode_t pm_ad_384p_map[] = {{STDMODE_720p_60, 1}, {STDMODE_1024x768_60, 1}, {STDMODE_1080p_60, 2},
                                         {STDMODE_1600x1200_60, 2}, {STDMODE_1920x1200_60, 2}, {STDMODE_1920x1440_60, 3}, {STDMODE_2560x1440_60, 3}, {STDMODE_2560x1920_60, 4}};
     const ad_mode_t pm_ad_480i_map[] = {{STDMODE_480i, 0}, {STDMODE_240p_CRT, 0}, {STDMODE_480p, 1}, {STDMODE_1280x1024_60, 3}, {STDMODE_1080i_60, 1}, {STDMODE_1080p_60, 3},
@@ -618,12 +622,12 @@ int get_adaptive_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out
 
     const smp_mode_t sm_240p_288p_map[] = {SM_GEN_4_3,
                                           SM_OPT_SNES_256COL, SM_OPT_SNES_512COL,
-                                          SM_OPT_MD_256COL, SM_OPT_MD_320COL,
+                                          SM_OPT_SMS_256COL, SM_OPT_MD_256COL, SM_OPT_MD_320COL,
                                           SM_OPT_PSX_256COL, SM_OPT_PSX_320COL, SM_OPT_PSX_384COL, SM_OPT_PSX_512COL, SM_OPT_PSX_640COL,
                                           SM_OPT_SAT_320COL, SM_OPT_SAT_352COL, SM_OPT_SAT_640COL, SM_OPT_SAT_704COL,
                                           SM_OPT_N64_320COL, SM_OPT_N64_640COL,
                                           SM_OPT_DC_640COL,
-                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL};
+                                          SM_OPT_NG_320COL, SM_OPT_X68K_512COL, SM_OPT_VIC20_200COL, SM_OPT_C64_4XXCOL, SM_OPT_MSX_256COL, SM_OPT_ZX8X_352COL, SM_OPT_ATARI8B_320COL, SM_OPT_ATARI7800_320COL, SM_OPT_INTV_160COL, SM_OPT_G7000_320COL};
     const smp_mode_t sm_384p_map[] = {SM_GEN_4_3, SM_OPT_VGA_640x350, SM_OPT_VGA_720x350, SM_OPT_VGA_640x400, SM_OPT_VGA_720x400, SM_OPT_GBI_240COL, SM_OPT_PC98_640COL};
     const smp_mode_t sm_480i_map[] = {SM_GEN_4_3, SM_GEN_16_9, SM_OPT_DTV480I, SM_OPT_DTV480I_WS,
                                      SM_OPT_SNES_512COL,
@@ -893,7 +897,7 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
         switch (mode_preset->group) {
             case GROUP_384P:
                 //fixed Line2x/3x mode for 240x360p/400p
-                valid_lm[2] = MODE_L3_GEN_16_9;
+                valid_lm[2] = MODE_L3_GEN_16_9 | MODE_L3_GEN_4_3;
                 valid_lm[3] = MODE_L2_240x360;
                 valid_lm[4] = MODE_L3_240x360;
                 if ((!vm_in->timings.h_total) && (mode_preset->timings.v_total == 449)) {
@@ -1064,6 +1068,11 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
             }
             break;
         case MODE_L3_GEN_4_3:
+            // Upsample by 3x on GBI Line3x generic
+            if (mode_preset->group == GROUP_384P) {
+                vmode_hv_mult(vm_in, 3, 1);
+                vmode_hv_mult(vm_out, 3, 1);
+            }
             vm_conf->x_size = vm_out->timings.h_active-2*vm_in->mask.h;
             vm_out->timings.h_synclen /= 3;
             vm_out->timings.h_backporch /= 3;

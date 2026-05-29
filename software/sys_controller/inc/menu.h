@@ -43,6 +43,7 @@ typedef enum {
     MENU_BTN8,
     MENU_BTN9,
     MENU_BTN0,
+    MENU_EXTRA,
 } menucode_id;
 
 typedef enum {
@@ -92,19 +93,20 @@ typedef struct {
 
 typedef struct {
     func_call f;
-    const arg_info_t *arg_info;
+    const arg_info_t *arg_info; // must be at 4byte offset
 } opt_func_call;
 
 typedef struct menustruct menu_t;
 
 typedef struct {
     const menu_t *menu;
-    const arg_info_t *arg_info;
+    const arg_info_t *arg_info; // must be at 4byte offset
     arg_func arg_f;
 } opt_submenu;
 
 typedef struct {
     cstm_disp_func cstm_f;
+    const arg_info_t *arg_info; // must be at 4byte offset
 } opt_custommenu;
 
 typedef struct {
@@ -168,5 +170,6 @@ static void smp_select();
 static int smp_is_active();
 static int smp_reset();
 int rf_chscan();
+int get_edid();
 
 #endif

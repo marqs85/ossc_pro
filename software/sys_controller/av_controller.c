@@ -58,7 +58,7 @@
 #include "src/lumacode_palettes.c"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 81
+#define FW_VER_MINOR 82
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -179,7 +179,7 @@ struct mmc * ocsdc_mmc_init(int base_addr, int clk_freq, unsigned int host_caps)
 #define SDC_FREQ 108000000U
 #define SDC_HOST_CAPS (MMC_MODE_HS|MMC_MODE_HS_52MHz|MMC_MODE_4BIT)
 
-uint32_t sys_ctrl;
+uint32_t sys_ctrl, sys_ctrl_exp;
 uint32_t sys_status;
 int sys_powered_on = -1;
 
@@ -199,6 +199,8 @@ vm_proc_config_t vm_conf;
 
 settings_t cs, ts;
 
+int skip_next_osd_update;
+
 char row1[US2066_ROW_LEN+1], row2[US2066_ROW_LEN+1];
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 
@@ -206,6 +208,8 @@ extern const char *avinput_str[];
 
 const si5351_ms_config_t legacyav_sdp_conf =      {3682, 38, 125, 3442, 451014, 715909, 0, 0, 0};
 const si5351_ms_config_t legacyav_aadc_48k_conf = {3682, 38, 125, 72, 0, 0, 0, 0, 0};
+const si5351_ms_config_t extraav_cvbsenc_3p58m_x4 = {3747, 17704, 45000, 7520, 0, 4};
+const si5351_ms_config_t extraav_cvbsenc_4p43m_x4 = {3733, 275264, 360000, 5952, 0, 2};
 
 c_shmask_t c_shmask;
 const shmask_data_arr* shmask_data_arr_list[] = {NULL, &shmask_agrille, &shmask_tv, &shmask_pvm, &shmask_pvm_2530, &shmask_xc_3315c, &shmask_c_1084, &shmask_jvc, &shmask_vga, &c_shmask.arr};
@@ -214,7 +218,7 @@ int shmask_loaded_str = -1;
 #define SHMASKS_SIZE  (sizeof(shmask_data_arr_list) / sizeof((shmask_data_arr_list)[0]))
 
 c_lc_palette_set_t c_lc_palette_set;
-const lc_palette_set* lc_palette_set_list[] = {&lc_palette_pal, &c_lc_palette_set.pal};
+const lc_palette_set* lc_palette_set_list[] = {&lc_palette_pal, &lc_palette_ntsc, &c_lc_palette_set.pal};
 int loaded_lc_palette = -1;
 
 c_pp_coeffs_t c_pp_coeffs;
@@ -397,12 +401,15 @@ void ui_disp_status(uint8_t refresh_osd_timer) {
         if (refresh_osd_timer)
             osd->osd_config.status_refresh = 1;
 
-        strncpy((char*)osd->osd_array.data[0][0], row1, OSD_CHAR_COLS);
-        strncpy((char*)osd->osd_array.data[1][0], row2, OSD_CHAR_COLS);
-        osd->osd_row_color.mask = 0;
-        osd->osd_sec_enable[0].mask = 3;
-        osd->osd_sec_enable[1].mask = 0;
+        if (!skip_next_osd_update) {
+            strncpy((char*)osd->osd_array.data[0][0], row1, OSD_CHAR_COLS);
+            strncpy((char*)osd->osd_array.data[1][0], row2, OSD_CHAR_COLS);
+            osd->osd_row_color.mask = 0;
+            osd->osd_sec_enable[0].mask = 3;
+            osd->osd_sec_enable[1].mask = 0;
+        }
 
+        skip_next_osd_update = 0;
         us2066_write(&chardisp_dev, (char*)&row1, (char*)&row2);
     }
 }
@@ -412,6 +419,19 @@ void update_sc_config()
     int vip_enable, scl_target_pp_coeff, scl_ea, i, p, t;
     uint32_t h_blank, v_blank, h_frontporch, v_frontporch, dil_visualize_motion;
     shmask_data_arr *shmask_data_arr_ptr;
+    struct {uint32_t offset; uint32_t size; uint8_t mode;} lc_cfg_arr[] = {{0, 0, 0},
+                                                             {offsetof(lc_palette_set, vic20_pal), sizeof(lc_palette_pal.vic20_pal), 2},
+                                                             {offsetof(lc_palette_set, c64_pal), sizeof(lc_palette_pal.c64_pal), 1},
+                                                             {offsetof(lc_palette_set, zx_pal), sizeof(lc_palette_pal.zx_pal), 1},
+                                                             {offsetof(lc_palette_set, msx_pal), sizeof(lc_palette_pal.msx_pal), 1},
+                                                             {offsetof(lc_palette_set, intv_pal), sizeof(lc_palette_pal.intv_pal), 2},
+                                                             {offsetof(lc_palette_set, g7000_pal), sizeof(lc_palette_pal.g7000_pal), 2},
+                                                             {offsetof(lc_palette_set, mc6847_pal), sizeof(lc_palette_pal.mc6847_pal), 1},
+                                                             {offsetof(lc_palette_set, sms_pal), sizeof(lc_palette_pal.sms_pal), 3},
+                                                             {offsetof(lc_palette_set, nes_pal), sizeof(lc_palette_pal.nes_pal), 5},
+                                                             {offsetof(lc_palette_set, gtia_pal), sizeof(lc_palette_pal.gtia_pal), 6},
+                                                             {offsetof(lc_palette_set, tia_pal), sizeof(lc_palette_pal.tia_pal), 7},
+                                                             {offsetof(lc_palette_set, maria_pal), sizeof(lc_palette_pal.maria_pal), 4}};
 
     mode_data_t *vm_in = &vmode_in;
     mode_data_t *vm_out = &vmode_out;
@@ -461,10 +481,10 @@ void update_sc_config()
         shmask_data_arr_ptr = shmask_loaded_array ? (shmask_data_arr*)shmask_data_arr_list[shmask_loaded_array] : (shmask_data_arr*)shmask_data_arr_list[1];
     }
 
-    if (avconfig->lumacode_mode && (avconfig->lumacode_pal != loaded_lc_palette)) {
-        for (i=0; i<(sizeof(lc_palette_set)/4); i++)
-            sc->lumacode_pal_ram.data[i] = lc_palette_set_list[avconfig->lumacode_pal]->data[i];
-        loaded_lc_palette = avconfig->lumacode_pal;
+    if (avconfig->lumacode_mode && ((avconfig->lumacode_pal*100)+avconfig->lumacode_mode != loaded_lc_palette)) {
+        for (i=0; i<lc_cfg_arr[avconfig->lumacode_mode].size/4; i++)
+            sc->lumacode_pal_ram.data[i] = lc_palette_set_list[avconfig->lumacode_pal]->data[(lc_cfg_arr[avconfig->lumacode_mode].offset/4)+i];
+        loaded_lc_palette = (avconfig->lumacode_pal*100)+avconfig->lumacode_mode;
     }
 
     // Set input params
@@ -511,10 +531,8 @@ void update_sc_config()
     misc_config.shmask_enable = (avconfig->shmask_mode != 0);
     misc_config.shmask_iv_x = shmask_data_arr_ptr->iv_x;
     misc_config.shmask_iv_y = shmask_data_arr_ptr->iv_y;
-    misc_config2.lumacode_mode = avconfig->lumacode_mode;
+    misc_config2.lumacode_mode = lc_cfg_arr[avconfig->lumacode_mode].mode;
     misc_config2.vip_enable = vip_enable;
-    misc_config2.hdmi_csync = avconfig->hdmi_csync;
-    misc_config2.csync_combiner = avconfig->csync_combiner;
 
     // set default/custom scanline interval
     sl_def_iv_y = (vm_conf.y_rpt > 0) ? vm_conf.y_rpt : 1;
@@ -938,6 +956,7 @@ int init_hw()
 
     // reset hw
     sys_ctrl = 0x00;
+    sys_ctrl_exp = 0x00;
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     usleep(400000);
     sys_ctrl |= SCTRL_EMIF_MPFE_RESET_N|SCTRL_VIP_DIL_RESET_N|SCTRL_ISL_RESET_N|SCTRL_HDMI_RESET_N;
@@ -1011,7 +1030,7 @@ int init_hw()
         exp_det = 0;
 
     printf("Exp_det: %u\n", exp_det);
-    switch_expansion(0, 1);
+    switch_expansion(0, 1, 0);
 
     // Init ADV7610
     adv761x_init(&advrx_dev);
@@ -1127,20 +1146,37 @@ void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
     *aud_tx_fmt = (audsrc == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
 }
 
-void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode) {
-    sys_ctrl &= ~(SCTRL_EXP_SEL_MASK|SCTRL_EXTRA_AV_O_MASK);
+void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode, uint8_t extra_av_out_sd_std) {
+    sys_ctrl_exp &= ~(SCTRL_EXP_EXP_SEL_MASK|SCTRL_EXP_EXTRA_AV_O_MASK|SCTRL_EXP_EXTRA_AV_STD_MASK);
 
     // Set expansion flags
     if (((exp_sel == 0) && (exp_det == 1)) || (exp_sel == 2)) {
-        if (extra_av_out_mode)
-            sys_ctrl |= (1<<SCTRL_EXP_SEL_OFFS)|((extra_av_out_mode-1)<<SCTRL_EXTRA_AV_O_OFFS);
+        if (extra_av_out_mode) {
+            sys_ctrl_exp |= (1<<SCTRL_EXP_EXP_SEL_OFFS)|((extra_av_out_mode-1)<<SCTRL_EXP_EXTRA_AV_O_OFFS)|(extra_av_out_sd_std<<SCTRL_EXP_EXTRA_AV_STD_OFFS);
+
+            if (extra_av_out_mode >= 5) {
+                if (extra_av_out_sd_std == 1)
+                    si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&extraav_cvbsenc_4p43m_x4);
+                else
+                    si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&extraav_cvbsenc_3p58m_x4);
+            } else {
+                si5351_disable_outputs(&si_dev, (1<<SI_CLK4));
+            }
+        }
     } else if ((exp_sel == 0) && (exp_det > 1)) {
-        sys_ctrl |= exp_det<<SCTRL_EXP_SEL_OFFS;
+        sys_ctrl_exp |= exp_det<<SCTRL_EXP_EXP_SEL_OFFS;
     } else if (exp_sel > 2) {
-        sys_ctrl |= (exp_sel-1)<<SCTRL_EXP_SEL_OFFS;
+        sys_ctrl_exp |= (exp_sel-1)<<SCTRL_EXP_EXP_SEL_OFFS;
     }
 
-    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_3_BASE, sys_ctrl_exp);
+}
+
+void set_csync_comb(uint8_t hdmi_csync, uint8_t csync_combiner) {
+    sys_ctrl_exp &= ~(SCTRL_EXP_HDMI_CSYNC|SCTRL_EXP_CSYNC_COMB_MASK);
+    sys_ctrl_exp |= (hdmi_csync ? SCTRL_EXP_HDMI_CSYNC : 0) | (csync_combiner << SCTRL_EXP_CSYNC_COMB_OFFS);
+
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_3_BASE, sys_ctrl_exp);
 }
 
 void set_dram_refresh(uint8_t enable) {
@@ -1156,8 +1192,11 @@ int sys_is_powered_on() {
     return sys_powered_on;
 }
 
-void sys_toggle_power() {
-    sys_powered_on ^= 1;
+void sys_set_power(int mode) {
+    if (mode == 2)
+        sys_powered_on ^= 1;
+    else
+        sys_powered_on = mode;
 }
 
 void print_vm_stats(int menu_mode) {
@@ -1264,6 +1303,7 @@ int set_sampler_phase(uint8_t sampler_phase, uint8_t update_isl, uint8_t update_
 
 void set_default_settings() {
     memcpy(&ts, &ts_default, sizeof(settings_t));
+    us2066_get_default_cfg(&ts.chardisp_cfg);
     set_default_keymap();
 }
 
@@ -1309,6 +1349,7 @@ void update_settings(int init_setup) {
         sys_ctrl |= (ts.fan_pwm << SCTRL_FAN_PWM_OFFS) | (ts.led_pwm << SCTRL_LED_PWM_OFFS);
         IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
     }
+    us2066_update_config(&chardisp_dev, &ts.chardisp_cfg);
     if (init_setup)
         target_avinput = ts.default_avinput;
 
@@ -1451,9 +1492,13 @@ void mainloop()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL_MASK|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL|SCTRL_RF_AUD_SEL);
+            sys_ctrl &= ~(SCTRL_CAPTURE_SEL_MASK|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL);
+            sys_ctrl_exp &= ~(SCTRL_EXP_RF_AUD_SEL);
 
             ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, cur_avconfig->syncmux_stc ? THS_BIAS_STC_MID : THS_BIAS_AC, (3-cur_avconfig->syncmux_stc), (3-cur_avconfig->syncmux_stc));
+
+            if (advsdp_dev_avail && !enable_sdp)
+                si5351_disable_outputs(&si_dev, ((1<<SI_CLK4)|(1<<SI_CLK6)));
 
             if (enable_isl) {
                 isl_source_sel(&isl_dev, target_isl_input, target_isl_sync, target_format);
@@ -1476,7 +1521,7 @@ void mainloop()
             } else if (enable_sdp) {
                 sys_ctrl |= (SCTRL_CAPTURE_SEL_SDP<<SCTRL_CAPTURE_SEL_OFFS);
                 if (target_avinput == AV_EXP_RF)
-                    sys_ctrl |= SCTRL_RF_AUD_SEL;
+                    sys_ctrl_exp |= SCTRL_EXP_RF_AUD_SEL;
                 si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&legacyav_sdp_conf);
                 si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK6, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&legacyav_aadc_48k_conf);
             } else if (enable_tp) {
@@ -1489,6 +1534,7 @@ void mainloop()
             switch_audsrc(cur_avconfig->audio_src_map, &tgt_avconfig->hdmitx_cfg.audio_fmt);
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+            IOWR_ALTERA_AVALON_PIO_DATA(PIO_3_BASE, sys_ctrl_exp);
 
             if (!enable_tp) {
                 strlcpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
@@ -1702,6 +1748,10 @@ void mainloop()
                     vmode_in.timings.h_synclen = advrx_dev.ss.h_synclen/(h_skip_prev+1) + !!(advrx_dev.ss.h_synclen % (h_skip_prev+1));
                     vmode_in.timings.v_synclen = advrx_dev.ss.v_synclen;
                     vmode_in.timings.interlaced = advrx_dev.ss.interlace_flag;
+                    if (advrx_dev.ar_idx > 0) {
+                        vmode_in.ar.h = (advrx_dev.ar_idx == 2) ? 16 : 4;
+                        vmode_in.ar.v = (advrx_dev.ar_idx == 2) ? 9 : 3;
+                    }
                     //TODO: VIC
 
                     oper_mode = get_operating_mode(cur_avconfig, &vmode_in, &vmode_out, &vm_conf);
@@ -1926,7 +1976,7 @@ void wait_powerup() {
     }
 }
 
-int main()
+int main(int argc, char **argv, char **envp)
 {
     int ret;
 

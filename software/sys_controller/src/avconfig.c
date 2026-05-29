@@ -85,6 +85,7 @@ const avconfig_t tc_default = {
     .audio_src_map = {AUD_AV1_ANALOG, 0, 0, 0, 0},
 #endif
     .extra_av_out_mode = 1,
+    .csync_combiner = 1,
 };
 
 const HDMI_i2s_fs_t audio_fmt_iec_map[] = {IEC60958_FS_48KHZ, IEC60958_FS_96KHZ, IEC60958_FS_192KHZ};
@@ -112,8 +113,8 @@ status_t update_avconfig() {
 #ifndef DExx_FW
     if (tc.audmux_sel != cc.audmux_sel)
         switch_audmux(tc.audmux_sel);
-    if ((tc.exp_sel != cc.exp_sel) || (tc.extra_av_out_mode != cc.extra_av_out_mode))
-        switch_expansion(tc.exp_sel, tc.extra_av_out_mode);
+    if ((tc.exp_sel != cc.exp_sel) || (tc.extra_av_out_mode != cc.extra_av_out_mode) || (tc.extra_av_out_sd_std != cc.extra_av_out_sd_std))
+        switch_expansion(tc.exp_sel, tc.extra_av_out_mode, tc.extra_av_out_sd_std);
 #endif
 #ifdef INC_THS7353
     if (tc.syncmux_stc != cc.syncmux_stc)
@@ -123,6 +124,8 @@ status_t update_avconfig() {
         switch_audsrc(tc.audio_src_map, &tc.hdmitx_cfg.audio_fmt);
     if (tc.isl_ext_range != cc.isl_ext_range)
         restart_isl(tc.isl_ext_range);
+    if ((tc.hdmi_csync != cc.hdmi_csync) || (tc.csync_combiner != cc.csync_combiner))
+        set_csync_comb(tc.hdmi_csync, tc.csync_combiner);
 
     memcpy(&cc, &tc, sizeof(avconfig_t));
     update_cur_vm = 0;
@@ -183,7 +186,7 @@ int load_profile() {
     int retval;
 
     retval = read_userdata(profile_sel_menu, 0);
-    if (retval == 0) {
+    if (retval >= 0) {
         profile_sel = profile_sel_menu;
 
         // enforce custom EDID update
@@ -217,7 +220,16 @@ int save_profile() {
 }
 
 int load_profile_sd() {
-    return read_userdata_sd(sd_profile_sel_menu, 0);
+    int retval;
+
+    retval = read_userdata_sd(sd_profile_sel_menu, 0);
+    if (retval >= 0) {
+        // enforce custom EDID update
+        if (tc.hdmirx_cfg.edid_sel == 4)
+            set_custom_edid_reload();
+    }
+
+    return retval;
 }
 
 int save_profile_sd() {
