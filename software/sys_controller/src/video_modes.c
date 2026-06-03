@@ -326,10 +326,6 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
     memset(vm_out, 0, sizeof(mode_data_t));
     memset(vm_conf, 0, sizeof(vm_proc_config_t));
 
-    const stdmode_t timings_1080p100[] = {STDMODE_1080p_100, STDMODE_1080p_100_MB, STDMODE_1080p_100_CEA, STDMODE_1080p_100_CEA_PR2};
-    const stdmode_t timings_1080p120[] = {STDMODE_1080p_120, STDMODE_1080p_120_MB, STDMODE_1080p_120_CEA, STDMODE_1080p_120_CEA_PR2};
-    const stdmode_t timings_2160p60[] = {STDMODE_2880x2160_60, STDMODE_2880x2160_60_MB};
-
     // {MINMODE, MAXMODE} id array for each output resolution
     const stdmode_t pm_scl_map_dfp[][2] = {{STDMODE_480p, STDMODE_480p},
                                          {STDMODE_480p_WS, STDMODE_480p_WS},
@@ -338,12 +334,12 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
                                          {STDMODE_720p_50, STDMODE_720p_240},
                                          {STDMODE_1280x1024_60, STDMODE_1280x1024_120},
                                          {STDMODE_1080i_50, STDMODE_1080i_60},
-                                         {timings_1080p100[cc->timing_1080p120], timings_1080p120[cc->timing_1080p120]},
+                                         {STDMODE_1080p_50, STDMODE_1080p_120_CEA_PR2},
                                          {STDMODE_1600x1200_60, STDMODE_1600x1200_120},
                                          {STDMODE_1920x1200_50, STDMODE_1920x1200_60},
                                          {STDMODE_1920x1440_50, STDMODE_1920x1440_60},
                                          {STDMODE_2560x1440_50, STDMODE_2560x1440_60},
-                                         {STDMODE_2880x2160_50, timings_2160p60[cc->timing_2160p60]}};
+                                         {STDMODE_2880x2160_50, STDMODE_2880x2160_60_MB}};
 
     const stdmode_t pm_scl_map_crt[][2] = {{STDMODE_240p_CRT, STDMODE_240p_CRT},
                                          {STDMODE_240p_WS_CRT, STDMODE_240p_WS_CRT},
@@ -433,6 +429,15 @@ int get_scaler_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm_
 
         mindiff_v_hz_x100 = diff_v_hz_x100;
     }
+
+    // Force correct 1080p100/120 and 2160p60 preset
+    if ((i-1 >= STDMODE_1080p_100) && (i-1 <= STDMODE_1080p_100_CEA_PR2))
+        i = STDMODE_1080p_100+cc->timing_1080p120+1;
+    else if ((i-1 >= STDMODE_1080p_120) && (i-1 <= STDMODE_1080p_120_CEA_PR2))
+        i = STDMODE_1080p_120+cc->timing_1080p120+1;
+    else if ((i-1 >= STDMODE_2880x2160_60) && (i-1 <= STDMODE_2880x2160_60_MB))
+        i = STDMODE_2880x2160_60+cc->timing_2160p60+1;
+
     mode_preset = (mode_data_t*)&video_modes[i-1];
     vm_out_cur = vm_out_sel = i-1;
 
