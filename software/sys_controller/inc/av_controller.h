@@ -34,22 +34,23 @@
 #define SCTRL_EMIF_SWRESET_N    (1<<4)
 #define SCTRL_EMIF_POWERDN_REQ  (1<<5)
 #define SCTRL_EMIF_MPFE_RESET_N (1<<6)
-#define SCTRL_CAPTURE_SEL_OFFS  7
-#define SCTRL_CAPTURE_SEL_MASK  (0x3<<SCTRL_CAPTURE_SEL_OFFS)
-#define SCTRL_ISL_HS_POL        (1<<9)
-#define SCTRL_ISL_VS_POL        (1<<10)
-#define SCTRL_ISL_VS_TYPE       (1<<11)
-#define SCTRL_VGTP_ENABLE       (1<<12)
-#define SCTRL_CSC_ENABLE        (1<<13)
-#define SCTRL_FRAMELOCK         (1<<14)
-#define SCTRL_HDMIRX_AUD_SEL    (1<<15)
-#define SCTRL_FAN_PWM_OFFS      16
+#define SCTRL_VIP_DIL_RESET_N   (1<<7)
+#define SCTRL_VID_SRC_OFFS      8
+#define SCTRL_VID_SRC_MASK      (0x3<<SCTRL_VID_SRC_OFFS)
+#define SCTRL_AUD_SRC_OFFS      10
+#define SCTRL_AUD_SRC_MASK      (0x3<<SCTRL_AUD_SRC_OFFS)
+#define SCTRL_AUDMUX_SEL        (1<<12)
+#define SCTRL_ISL_HS_POL        (1<<13)
+#define SCTRL_ISL_VS_POL        (1<<14)
+#define SCTRL_ISL_VS_TYPE       (1<<15)
+#define SCTRL_VGTP_ENABLE       (1<<16)
+#define SCTRL_CSC_ENABLE        (1<<17)
+#define SCTRL_FRAMELOCK         (1<<18)
+#define SCTRL_DRAM_RFR_ENA      (1<<19)
+#define SCTRL_FAN_PWM_OFFS      20
 #define SCTRL_FAN_PWM_MASK      (0xf<<SCTRL_FAN_PWM_OFFS)
-#define SCTRL_LED_PWM_OFFS      20
+#define SCTRL_LED_PWM_OFFS      24
 #define SCTRL_LED_PWM_MASK      (0xf<<SCTRL_LED_PWM_OFFS)
-#define SCTRL_DRAM_RFR_ENA      (1<<24)
-#define SCTRL_VIP_DIL_RESET_N   (1<<25)
-#define SCTRL_AUDMUX_SEL        (1<<26)
 
 // sys_ctrl_exp
 #define SCTRL_EXP_EXP_SEL_OFFS      0
@@ -61,7 +62,6 @@
 #define SCTRL_EXP_HDMI_CSYNC        (1<<7)
 #define SCTRL_EXP_CSYNC_COMB_OFFS   8
 #define SCTRL_EXP_CSYNC_COMB_MASK   (0x3<<SCTRL_EXP_CSYNC_COMB_OFFS)
-#define SCTRL_EXP_RF_AUD_SEL        (1<<10)
 
 
 // sys_status
@@ -72,10 +72,6 @@
 #define SSTAT_EMIF_PLL_LOCKED           4
 #define SSTAT_SD_DETECT_BIT             5
 #define SSTAT_CVO_RESYNC_BIT            29
-
-#define SCTRL_CAPTURE_SEL_ISL       0
-#define SCTRL_CAPTURE_SEL_HDMIRX    1
-#define SCTRL_CAPTURE_SEL_SDP       2
 
 // SCL defs
 #define PP_TAPS 4
@@ -105,7 +101,7 @@ typedef enum {
 typedef enum {
     AUD_AV1_ANALOG  = 0,
     AUD_SPDIF       = 1,
-} audinput_t;
+} aud_input_t;
 #else
 typedef enum {
     AUD_AV1_ANALOG  = 0,
@@ -113,8 +109,21 @@ typedef enum {
     AUD_AV3_ANALOG  = 2,
     AUD_SPDIF       = 3,
     AUD_AV4_DIGITAL = 4,
-} audinput_t;
+} aud_input_t;
 #endif
+
+typedef enum {
+    VID_SRC_ISL = 0,
+    VID_SRC_HDMIRX,
+    VID_SRC_SDP
+} vid_src_t;
+
+typedef enum {
+    AUD_SRC_PCM = 0,
+    AUD_SRC_HDMI,
+    AUD_SRC_SPDIF,
+    AUD_SRC_LEGACY_RF
+} aud_src_t;
 
 typedef struct {
     avinput_t default_avinput;
@@ -202,7 +211,7 @@ void set_syncmux_biasmode(uint8_t syncmux_stc);
 
 void switch_audmux(uint8_t audmux_sel);
 
-void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
+void switch_audsrc(aud_input_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt);
 
 void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode, uint8_t extra_av_out_sd_std);
 

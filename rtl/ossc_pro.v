@@ -140,19 +140,19 @@ wire emif_hwreset_n = sys_ctrl[3];
 wire emif_swreset_n = sys_ctrl[4];
 wire emif_powerdn_req = sys_ctrl[5];
 wire emif_mpfe_reset_n = sys_ctrl[6];
-wire [1:0] capture_sel = sys_ctrl[8:7];
-wire isl_hsync_pol = sys_ctrl[9];
-wire isl_vsync_pol = sys_ctrl[10];
-wire isl_vsync_type = sys_ctrl[11];
-wire testpattern_enable = sys_ctrl[12];
-wire csc_enable = sys_ctrl[13];
-wire framelock = sys_ctrl[14];
-wire hdmirx_aud_sel = sys_ctrl[15];
-wire [3:0] fan_duty = sys_ctrl[19:16];
-wire [3:0] led_duty = sys_ctrl[23:20];
-wire dram_refresh_enable = sys_ctrl[24];
-wire vip_dil_reset_n = sys_ctrl[25];
-wire audmux_sel = sys_ctrl[26];
+wire vip_dil_reset_n = sys_ctrl[7];
+wire [1:0] vid_src = sys_ctrl[9:8];
+wire [1:0] aud_src = sys_ctrl[11:10];
+wire audmux_sel = sys_ctrl[12];
+wire isl_hsync_pol = sys_ctrl[13];
+wire isl_vsync_pol = sys_ctrl[14];
+wire isl_vsync_type = sys_ctrl[15];
+wire testpattern_enable = sys_ctrl[16];
+wire csc_enable = sys_ctrl[17];
+wire framelock = sys_ctrl[18];
+wire dram_refresh_enable = sys_ctrl[19];
+wire [3:0] fan_duty = sys_ctrl[23:20];
+wire [3:0] led_duty = sys_ctrl[27:24];
 
 wire [31:0] sys_ctrl_exp;
 wire [1:0] exp_sel = sys_ctrl_exp[1:0];
@@ -160,7 +160,6 @@ wire [2:0] extra_out_mode = sys_ctrl_exp[4:2];
 wire [1:0] extra_out_sd_std = sys_ctrl_exp[6:5];
 wire hdmi_csync = sys_ctrl_exp[7];
 wire [1:0] csync_combiner = sys_ctrl_exp[9:8];
-wire legacy_aud_sel = sys_ctrl_exp[10];
 
 reg ir_rx_sync1_reg, ir_rx_sync2_reg;
 reg [5:0] btn_sync1_reg, btn_sync2_reg;
@@ -431,14 +430,14 @@ adv7280a_frontend u_sdp_frontend (
 
 pll_sdp u_pll_sdp (
     .refclk(SDP_PCLK_i),
-    .rst(!capture_sel[1]),
+    .rst(!vid_src[1]),
     .outclk_0(SDP_PCLK),
     .locked()
 );
 
 // capture clock mux (inputs [3:2] must be PLL outputs)
 cyclonev_clkselect clkmux_capture ( 
-    .clkselect(capture_sel),
+    .clkselect(vid_src),
     .inclk({1'b0, SDP_PCLK, HDMIRX_PCLK_i, ISL_PCLK_i}),
     .outclk(pclk_capture)
 );
@@ -448,21 +447,21 @@ reg [7:0] R_capt, G_capt, B_capt;
 reg HSYNC_capt, VSYNC_capt, DE_capt, FID_capt, datavalid_capt;
 reg interlace_flag_capt, frame_change_capt, sof_scaler_capt;
 reg [10:0] xpos_capt, ypos_capt;
-wire [31:0] fe_status = capture_sel[1] ? {SDP_fe_pcnt_field, SDP_fe_interlace, SDP_fe_vtotal} : {ISL_fe_pcnt_field, ISL_fe_interlace, ISL_fe_vtotal};
+wire [31:0] fe_status = vid_src[1] ? {SDP_fe_pcnt_field, SDP_fe_interlace, SDP_fe_vtotal} : {ISL_fe_pcnt_field, ISL_fe_interlace, ISL_fe_vtotal};
 always @(posedge pclk_capture) begin
-    R_capt <= capture_sel[1] ? SDP_R_post : (capture_sel[0] ? HDMIRX_R_post : ISL_R_post);
-    G_capt <= capture_sel[1] ? SDP_G_post : (capture_sel[0] ? HDMIRX_G_post : ISL_G_post);
-    B_capt <= capture_sel[1] ? SDP_B_post : (capture_sel[0] ? HDMIRX_B_post : ISL_B_post);
-    HSYNC_capt <= capture_sel[1] ? SDP_HSYNC_post : (capture_sel[0] ? HDMIRX_HSYNC_post : ISL_HSYNC_post);
-    VSYNC_capt <= capture_sel[1] ? SDP_VSYNC_post : (capture_sel[0] ? HDMIRX_VSYNC_post : ISL_VSYNC_post);
-    DE_capt <= capture_sel[1] ? SDP_DE_post : (capture_sel[0] ? HDMIRX_DE_post : ISL_DE_post);
-    datavalid_capt <= capture_sel[1] ? SDP_datavalid_post : (capture_sel[0] ? HDMIRX_datavalid_post : ISL_datavalid_post);
-    FID_capt <= capture_sel[1] ? SDP_FID_post : (capture_sel[0] ? HDMIRX_FID_post : ISL_FID_post);
-    interlace_flag_capt <= capture_sel[1] ? SDP_fe_interlace : (capture_sel[0] ? HDMIRX_fe_interlace : ISL_fe_interlace);
-    frame_change_capt <= capture_sel[1] ? SDP_fe_frame_change : (capture_sel[0] ? HDMIRX_fe_frame_change : ISL_fe_frame_change);
-    sof_scaler_capt <= capture_sel[1] ? SDP_sof_scaler : (capture_sel[0] ? HDMIRX_sof_scaler : ISL_sof_scaler);
-    xpos_capt <= capture_sel[1] ? SDP_fe_xpos : (capture_sel[0] ? HDMIRX_fe_xpos : ISL_fe_xpos);
-    ypos_capt <= capture_sel[1] ? SDP_fe_ypos : (capture_sel[0] ? HDMIRX_fe_ypos : ISL_fe_ypos);
+    R_capt <= vid_src[1] ? SDP_R_post : (vid_src[0] ? HDMIRX_R_post : ISL_R_post);
+    G_capt <= vid_src[1] ? SDP_G_post : (vid_src[0] ? HDMIRX_G_post : ISL_G_post);
+    B_capt <= vid_src[1] ? SDP_B_post : (vid_src[0] ? HDMIRX_B_post : ISL_B_post);
+    HSYNC_capt <= vid_src[1] ? SDP_HSYNC_post : (vid_src[0] ? HDMIRX_HSYNC_post : ISL_HSYNC_post);
+    VSYNC_capt <= vid_src[1] ? SDP_VSYNC_post : (vid_src[0] ? HDMIRX_VSYNC_post : ISL_VSYNC_post);
+    DE_capt <= vid_src[1] ? SDP_DE_post : (vid_src[0] ? HDMIRX_DE_post : ISL_DE_post);
+    datavalid_capt <= vid_src[1] ? SDP_datavalid_post : (vid_src[0] ? HDMIRX_datavalid_post : ISL_datavalid_post);
+    FID_capt <= vid_src[1] ? SDP_FID_post : (vid_src[0] ? HDMIRX_FID_post : ISL_FID_post);
+    interlace_flag_capt <= vid_src[1] ? SDP_fe_interlace : (vid_src[0] ? HDMIRX_fe_interlace : ISL_fe_interlace);
+    frame_change_capt <= vid_src[1] ? SDP_fe_frame_change : (vid_src[0] ? HDMIRX_fe_frame_change : ISL_fe_frame_change);
+    sof_scaler_capt <= vid_src[1] ? SDP_sof_scaler : (vid_src[0] ? HDMIRX_sof_scaler : ISL_sof_scaler);
+    xpos_capt <= vid_src[1] ? SDP_fe_xpos : (vid_src[0] ? HDMIRX_fe_xpos : ISL_fe_xpos);
+    ypos_capt <= vid_src[1] ? SDP_fe_ypos : (vid_src[0] ? HDMIRX_fe_ypos : ISL_fe_ypos);
 end
 
 // output clock assignment
@@ -623,11 +622,36 @@ always @(posedge pclk_out) begin
     HDMITX_DE_o <= DE_out;
 end
 
-//audio
-assign HDMITX_I2S_BCK_o = hdmirx_aud_sel ? HDMIRX_I2S_BCK_i : (legacy_aud_sel ? RF_AADC_BCK_i : PCM_I2S_BCK_i);
-assign HDMITX_I2S_WS_o = hdmirx_aud_sel ? HDMIRX_I2S_WS_i : (legacy_aud_sel ? RF_AADC_WS_i : PCM_I2S_WS_i);
-assign HDMITX_I2S_DATA_o = hdmirx_aud_sel ? HDMIRX_AP_i : (legacy_aud_sel ? RF_AADC_DATA_i : PCM_I2S_DATA_i);
-assign HDMITX_SPDIF_o = sys_poweron ? (hdmirx_aud_sel ? HDMIRX_AP_i : SPDIF_EXT_i) : 1'b0;
+// audio source selection
+wire aes3rx_sclk, aes3rx_lrck, aes3rx_data, aes3rx_active;
+wire aes3_i2s_bck, aes3_i2s_ws, aes3_i2s_data;
+
+always @(*) begin
+    case(aud_src)
+      0 : begin
+        HDMITX_I2S_BCK_o = PCM_I2S_BCK_i;
+        HDMITX_I2S_WS_o = PCM_I2S_WS_i;
+        HDMITX_I2S_DATA_o = PCM_I2S_DATA_i;
+      end
+      1 : begin
+        HDMITX_I2S_BCK_o = HDMIRX_I2S_BCK_i;
+        HDMITX_I2S_WS_o = HDMIRX_I2S_WS_i;
+        HDMITX_I2S_DATA_o = HDMIRX_AP_i;
+      end
+      2 : begin
+        HDMITX_I2S_BCK_o = aes3_i2s_bck;
+        HDMITX_I2S_WS_o = aes3_i2s_ws;
+        HDMITX_I2S_DATA_o = aes3_i2s_data;
+      end
+      default : begin
+        HDMITX_I2S_BCK_o = RF_AADC_BCK_i;
+        HDMITX_I2S_WS_o = RF_AADC_WS_i;
+        HDMITX_I2S_DATA_o = RF_AADC_DATA_i;
+      end
+    endcase
+end
+
+assign HDMITX_SPDIF_o = sys_poweron ? ((aud_src == 1) ? HDMIRX_AP_i : SPDIF_EXT_i) : 1'b0;
 
 assign AUDMUX_o = ~audmux_sel;
 
@@ -806,7 +830,7 @@ sys sys_inst (
     .osd_generator_0_osd_if_osd_enable      (osd_enable),
     .osd_generator_0_osd_if_osd_color       (osd_color),
     .core_usb_0_usb_usb_dp_io               (USB_DP_io),
-    .core_usb_0_usb_usb_dn_io               (USB_DN_io), 
+    .core_usb_0_usb_usb_dn_io               (USB_DN_io),
     .emif_bridge_0_clk_o                    (emif_br_clk),
     .emif_bridge_0_reset_o                  (emif_br_reset),
     .emif_bridge_0_wr_address               (emif_wr_addr),
@@ -991,6 +1015,28 @@ dram_refresh_sched #(.REFRESH_INTERVAL(842)) dram_refresh_sched_inst (
     .enable         (dram_refresh_enable),
     .refresh_ack    (dram_refresh_ack),
     .refresh_req    (dram_refresh_req)
+);
+
+aes3rx #(.reg_width(6)) aes3rx_inst (
+    .clk            (emif_br_clk),
+    .reset          (~po_reset_n),
+    .aes3           (SPDIF_EXT_i),
+    .sclk           (aes3rx_sclk),
+    .sdata          (aes3rx_data),
+    .lrck           (aes3rx_lrck),
+    .bsync          (),
+    .active         (aes3rx_active)
+);
+
+aes3_i2s_tx aes3_i2s_tx_inst (
+    .clk            (emif_br_clk),
+    .reset_n        (po_reset_n),
+    .aes3_sclk      (aes3rx_sclk),
+    .aes3_lrck      (aes3rx_lrck),
+    .aes3_sdata     (aes3rx_data),
+    .i2s_bck        (aes3_i2s_bck),
+    .i2s_ws         (aes3_i2s_ws),
+    .i2s_data       (aes3_i2s_data),
 );
 
 endmodule
