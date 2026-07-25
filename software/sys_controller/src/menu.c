@@ -1413,7 +1413,7 @@ void cstm_size(menucode_id code, int setup_disp) {
     int i, ar_adj_en=0, adj=0;
     static int size_step_idx;
     static uint8_t size_fn;
-    static uint8_t size_step_arr[] = {1, 4, 10};
+    static uint8_t size_step_arr[] = {2, 4, 10, 1};
     int active_mode = smp_is_active();
     char func_name[5];
 
