@@ -186,6 +186,7 @@ static const char* const edid_sel_desc[] = { "Default", "2ch audio", "10bpc RGB+
 static const char* const exp_sel_desc[] = { "Auto", "Off", "Extra AV out", "Legacy AV in", "UVC bridge" };
 static const char* const extra_av_out_mode_desc[] = { "Off", "RGBHV", "RGBCS/RGBS", "RGsB", "YPbPr", "S-video+CVBS", "S-video+CVBS+RGBS" };
 static const char* const extra_av_out_sd_std_desc[] = { "NTSC", "PAL", "PAL-M/N" };
+static const char* const extra_av_out_again_desc[] = { "0dB", "-6dB" };
 static const char* const hdmi_timings_groups[] = { "HDMI other", "HDMI 240p", "HDMI 288p", "HDMI 384p", "HDMI 480i", "HDMI 576i", "HDMI 480p", "HDMI 576p", "HDMI 720p", "HDMI 1080i", "HDMI 1080p" };
 static const char* const sdp_timings_groups[] = { "-", "SDP 240p", "SDP 288p", "-", "SDP 480i", "SDP 576i", "-", "-", "-", "-", "-" };
 static const char* const sh_filt_c_desc[] = { "Auto 1.5MHz", "Auto 2.17MHz", "SH1", "SH2", "SH3", "SH4", "SH5", "Wideband" };
@@ -593,6 +594,7 @@ MENU(menu_sdp_filter, P99_PROTECT({
 MENU(menu_extraav, P99_PROTECT({
     { "Output mode",                            OPT_AVCONFIG_SELECTION, { .sel = { &tc.extra_av_out_mode,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_mode_desc) } } },
     { "CVBS/S-video format",                    OPT_AVCONFIG_SELECTION, { .sel = { &tc.extra_av_out_sd_std,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_sd_std_desc) } } },
+    { "Analog audio gain",                      OPT_AVCONFIG_SELECTION, { .sel = { &tc.pcm_out_cfg.gain_m6db,  OPT_NOWRAP, SETTING_ITEM_LIST(extra_av_out_again_desc) } } },
 }))
 
 MENU(menu_sdp, P99_PROTECT({

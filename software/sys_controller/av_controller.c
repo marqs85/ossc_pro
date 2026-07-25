@@ -58,7 +58,7 @@
 #include "src/lumacode_palettes.c"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 82
+#define FW_VER_MINOR 83
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -1947,6 +1947,7 @@ void mainloop()
 #endif
 
         adv7280a_update_config(&advsdp_dev, &cur_avconfig->sdp_cfg);
+        pcm514x_update_config(&pcm_out_dev, &cur_avconfig->pcm_out_cfg);
         si2177_update_config(&sirf_dev, &cur_avconfig->sirf_cfg);
 
         pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);

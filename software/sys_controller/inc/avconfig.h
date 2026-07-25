@@ -38,6 +38,7 @@
 #endif
 #ifndef DExx_FW
 #include "adv7280a.h"
+#include "pcm514x.h"
 #include "si2177.h"
 #endif
 
@@ -228,6 +229,7 @@ typedef struct {
 #endif
 #ifndef DExx_FW
     adv7280a_config sdp_cfg __attribute__ ((aligned (4)));
+    pcm514x_config pcm_out_cfg  __attribute__ ((aligned (4)));
     si2177_config sirf_cfg __attribute__ ((aligned (4)));
 #endif
 } __attribute__((packed)) avconfig_t;
