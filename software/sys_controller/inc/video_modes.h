@@ -42,7 +42,7 @@
 #define V_SYNCLEN_MAX 15
 #define V_BPORCH_MIN 0
 #define V_BPORCH_MAX 511
-#define V_ACTIVE_MIN 160
+#define V_ACTIVE_MIN 100
 #define V_ACTIVE_MAX 2160
 
 typedef enum {

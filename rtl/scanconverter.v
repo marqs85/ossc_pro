@@ -130,7 +130,7 @@ wire [11:0] V_STARTLINE_PREV = (V_STARTLINE == 0) ? (V_TOTAL-1) : (V_STARTLINE-1
 wire [11:0] X_SIZE = xy_out_config[11:0];
 wire [11:0] Y_SIZE = xy_out_config[23:12];
 wire signed [10:0] X_OFFSET = xy_out_config2[10:0];
-wire signed [8:0] Y_OFFSET = xy_out_config2[19:11];
+wire signed [9:0] Y_OFFSET = xy_out_config2[20:11];
 
 wire [7:0] X_START_LB = xy_out_config3[7:0];
 wire signed [7:0] Y_START_LB = xy_out_config3[15:8];

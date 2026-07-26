@@ -38,6 +38,7 @@
 #endif
 #ifndef DExx_FW
 #include "adv7280a.h"
+#include "pcm514x.h"
 #include "si2177.h"
 #endif
 
@@ -205,7 +206,7 @@ typedef struct {
     uint8_t tp_mode;
     uint8_t audio_fmt;
     uint8_t audmux_sel;
-    audinput_t audio_src_map[5];
+    aud_input_t audio_src_map[5];
     uint8_t exp_sel;
     uint8_t extra_av_out_mode;
     uint8_t isl_ext_range;
@@ -228,6 +229,7 @@ typedef struct {
 #endif
 #ifndef DExx_FW
     adv7280a_config sdp_cfg __attribute__ ((aligned (4)));
+    pcm514x_config pcm_out_cfg  __attribute__ ((aligned (4)));
     si2177_config sirf_cfg __attribute__ ((aligned (4)));
 #endif
 } __attribute__((packed)) avconfig_t;

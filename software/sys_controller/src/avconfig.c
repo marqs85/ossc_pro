@@ -120,7 +120,7 @@ status_t update_avconfig() {
     if (tc.syncmux_stc != cc.syncmux_stc)
         set_syncmux_biasmode(tc.syncmux_stc);
 #endif
-    if (memcmp(tc.audio_src_map, cc.audio_src_map, 5*sizeof(audinput_t)))
+    if (memcmp(tc.audio_src_map, cc.audio_src_map, 5*sizeof(aud_input_t)))
         switch_audsrc(tc.audio_src_map, &tc.hdmitx_cfg.audio_fmt);
     if (tc.isl_ext_range != cc.isl_ext_range)
         restart_isl(tc.isl_ext_range);
@@ -161,6 +161,7 @@ int set_default_profile(int update_cc)
     tc.hdmitx_cfg.i2s_fs = IEC60958_FS_96KHZ;
 #else
     adv7280a_get_default_cfg(&tc.sdp_cfg);
+    pcm514x_get_default_cfg(&tc.pcm_out_cfg);
     si2177_get_default_cfg(&tc.sirf_cfg);
 #endif
 

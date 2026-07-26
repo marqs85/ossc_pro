@@ -220,6 +220,9 @@ const ude_item_map ude_profile_items[] = {
     // 110 reserved
     UDE_ITEM(111, 82, tc.csync_combiner),
     UDE_ITEM(112, 82, tc.extra_av_out_sd_std),
+#ifndef DExx_FW
+    UDE_ITEM(113, 83, tc.pcm_out_cfg),
+#endif
 };
 
 int write_userdata(uint8_t entry) {
