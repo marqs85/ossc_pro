@@ -58,7 +58,7 @@
 #include "src/lumacode_palettes.c"
 
 #define FW_VER_MAJOR 0
-#define FW_VER_MINOR 82
+#define FW_VER_MINOR 83
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -1117,33 +1117,39 @@ void switch_audmux(uint8_t audmux_sel) {
     IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
 }
 
-void switch_audsrc(audinput_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
-    uint8_t audsrc;
+void switch_audsrc(aud_input_t *audsrc_map, HDMI_audio_fmt_t *aud_tx_fmt) {
+    uint8_t aud_input;
+
+    sys_ctrl &= ~SCTRL_AUD_SRC_MASK;
 
     if (avinput <= AV1_RGBCS)
-        audsrc = audsrc_map[0];
+        aud_input = audsrc_map[0];
     else if (avinput <= AV2_RGsB)
-        audsrc = audsrc_map[1];
+        aud_input = audsrc_map[1];
     else if (avinput <= AV3_YPbPr)
-        audsrc = audsrc_map[2];
+        aud_input = audsrc_map[2];
     else if (avinput == AV4)
-        audsrc = audsrc_map[3];
+        aud_input = audsrc_map[3];
+    else if (avinput == AV_EXP_RF)
+        aud_input = 10;
     else
-        audsrc = audsrc_map[4]; // AV_EXP
+        aud_input = audsrc_map[4]; // AV_EXP CVBS/S-video
 
-    if (audsrc <= AUD_AV3_ANALOG)
-        pcm186x_source_sel(&pcm_dev, audsrc);
-
-    if (avinput == AV4) {
-        sys_ctrl &= ~SCTRL_HDMIRX_AUD_SEL;
-
-        if (audsrc == AUD_AV4_DIGITAL)
-            sys_ctrl |= SCTRL_HDMIRX_AUD_SEL;
-
-        IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+    if (aud_input <= AUD_AV3_ANALOG) {
+        pcm186x_source_sel(&pcm_dev, aud_input);
+        sys_ctrl |= AUD_SRC_PCM<<SCTRL_AUD_SRC_OFFS;
+    } else if (aud_input == AUD_SPDIF) {
+        sys_ctrl |= AUD_SRC_SPDIF<<SCTRL_AUD_SRC_OFFS;
+    } else if (aud_input == AUD_AV4_DIGITAL) {
+        sys_ctrl |= AUD_SRC_HDMI<<SCTRL_AUD_SRC_OFFS;
+    } else {
+        sys_ctrl |= AUD_SRC_LEGACY_RF<<SCTRL_AUD_SRC_OFFS;
     }
 
-    *aud_tx_fmt = (audsrc == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
+
+    // TODO: HDMI RX SPDIF to TX SPDIF?
+    *aud_tx_fmt = (aud_input == AUD_SPDIF) ? AUDIO_SPDIF : AUDIO_I2S;
 }
 
 void switch_expansion(uint8_t exp_sel, uint8_t extra_av_out_mode, uint8_t extra_av_out_sd_std) {
@@ -1492,8 +1498,7 @@ void mainloop()
             isl_enable_power(&isl_dev, 0);
             isl_enable_outputs(&isl_dev, 0);
 
-            sys_ctrl &= ~(SCTRL_CAPTURE_SEL_MASK|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE|SCTRL_HDMIRX_AUD_SEL);
-            sys_ctrl_exp &= ~(SCTRL_EXP_RF_AUD_SEL);
+            sys_ctrl &= ~(SCTRL_VID_SRC_MASK|SCTRL_AUD_SRC_MASK|SCTRL_ISL_VS_POL|SCTRL_ISL_VS_TYPE|SCTRL_VGTP_ENABLE|SCTRL_CSC_ENABLE);
 
             ths7353_singlech_source_sel(&ths_dev, target_ths_ch, target_ths_input, cur_avconfig->syncmux_stc ? THS_BIAS_STC_MID : THS_BIAS_AC, (3-cur_avconfig->syncmux_stc), (3-cur_avconfig->syncmux_stc));
 
@@ -1517,11 +1522,9 @@ void mainloop()
                     sys_ctrl |= SCTRL_CSC_ENABLE;
             } else if (enable_hdmirx) {
                 advrx_dev.sync_active = 0;
-                sys_ctrl |= (SCTRL_CAPTURE_SEL_HDMIRX<<SCTRL_CAPTURE_SEL_OFFS);
+                sys_ctrl |= (VID_SRC_HDMIRX<<SCTRL_VID_SRC_OFFS);
             } else if (enable_sdp) {
-                sys_ctrl |= (SCTRL_CAPTURE_SEL_SDP<<SCTRL_CAPTURE_SEL_OFFS);
-                if (target_avinput == AV_EXP_RF)
-                    sys_ctrl_exp |= SCTRL_EXP_RF_AUD_SEL;
+                sys_ctrl |= (VID_SRC_SDP<<SCTRL_VID_SRC_OFFS);
                 si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK4, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&legacyav_sdp_conf);
                 si5351_set_frac_mult(&si_dev, SI_PLLB, SI_CLK6, SI_XTAL, 0, 0, 0, (si5351_ms_config_t*)&legacyav_aadc_48k_conf);
             } else if (enable_tp) {
@@ -1534,7 +1537,6 @@ void mainloop()
             switch_audsrc(cur_avconfig->audio_src_map, &tgt_avconfig->hdmitx_cfg.audio_fmt);
 
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, sys_ctrl);
-            IOWR_ALTERA_AVALON_PIO_DATA(PIO_3_BASE, sys_ctrl_exp);
 
             if (!enable_tp) {
                 strlcpy(row1, avinput_str[avinput], US2066_ROW_LEN+1);
@@ -1945,6 +1947,7 @@ void mainloop()
 #endif
 
         adv7280a_update_config(&advsdp_dev, &cur_avconfig->sdp_cfg);
+        pcm514x_update_config(&pcm_out_dev, &cur_avconfig->pcm_out_cfg);
         si2177_update_config(&sirf_dev, &cur_avconfig->sirf_cfg);
 
         pcm186x_update_config(&pcm_dev, &cur_avconfig->pcm_cfg);

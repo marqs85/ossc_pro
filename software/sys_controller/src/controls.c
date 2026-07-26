@@ -19,12 +19,17 @@
 
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include "altera_avalon_jtag_uart.h"
 #include "altera_avalon_pio_regs.h"
 #include "controls.h"
+#include "utils.h"
 #include "av_controller.h"
 #include "menu.h"
 #include "userdata.h"
 #include "us2066.h"
+
+#define UART_RX_BUF_SIZE 15
 
 static const char *rc_keydesc[REMOTE_MAX_KEYS] = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
                                                    "MENU", "OK", "BACK", "UP", "DOWN", "LEFT", "RIGHT",
@@ -54,10 +59,15 @@ uint16_t rc_keymap[REMOTE_MAX_KEYS];
 
 const uint16_t rc_extra_keymap[REMOTE_EXTRA_KEYS] = {0x0a66, 0x0a16, 0x0af2, 0x0a56, 0x0ae6, 0x0a96, 0x0a86, 0x0ab2, 0x0a1a};
 
+// ensure that last char is always 0 for safe use of strpbrk
+char uart_rx_buf[UART_RX_BUF_SIZE+1];
+char *uart_rx_buf_ptr = uart_rx_buf;
+
 uint32_t controls;
 uint16_t remote_code_raw;
 uint8_t remote_rpt, remote_rpt_prev;
 uint8_t btn_vec, btn_vec_prev, btn_rpt;
+int uart_rx_ret;
 
 rc_code_t r_code;
 btn_code_t b_code;
@@ -69,8 +79,13 @@ extern oper_mode_t oper_mode;
 extern mode_data_t vmode_in;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 extern settings_t ts;
+extern avinput_t target_avinput;
 extern char target_profile_name[USERDATA_NAME_LEN+1];
 extern volatile osd_regs *osd;
+
+extern altera_avalon_jtag_uart_state jtag_uart_0;
+extern int altera_avalon_jtag_uart_read(altera_avalon_jtag_uart_state* sp, char* buffer, int space, int flags);
+extern int altera_avalon_jtag_uart_write(altera_avalon_jtag_uart_state* sp, const char * ptr, int count, int flags);
 
 extern const menuitem_t menu_isl_video_opt_items[];
 extern const menuitem_t menu_scanlines_items[];
@@ -257,6 +272,13 @@ void read_controls() {
         b_code = (btn_code_t)-1;
     }
 
+    uart_rx_ret = altera_avalon_jtag_uart_read(&jtag_uart_0, uart_rx_buf_ptr, UART_RX_BUF_SIZE-(uart_rx_buf_ptr-uart_rx_buf), O_NONBLOCK);
+    if (uart_rx_ret > 0) {
+        // echo
+        altera_avalon_jtag_uart_write(&jtag_uart_0, uart_rx_buf_ptr, uart_rx_ret, 0);
+        uart_rx_buf_ptr += uart_rx_ret;
+    }
+
     if (remote_code_raw)
         printf("RC_CODE: 0x%.4x\n", remote_code_raw);
 
@@ -275,8 +297,10 @@ void read_controls() {
 
 void parse_control()
 {
-    int prof_x10=0, ret=0, retval, i;
+    int prof_x10=0, ret, i;
     int plm_group_proc_map[] = {-1, 0, 0, 1, 2, 2, 3, 3, -1, 4, -1};
+    char *pos;
+    unsigned uart_rx_arg;
 
     if (sys_is_powered_on()) {
         if (!is_menu_active()) {
@@ -407,6 +431,44 @@ void parse_control()
             if ((r_code <= RC_RIGHT) || (r_code == RC_OSD) || ((b_code >= BC_OK) && (b_code <= BC_RIGHT)))
                 display_menu(r_code, b_code);
         }
+
+        // Parse UART RX buffer
+        if (uart_rx_ret > 0) {
+            pos = strpbrk(uart_rx_buf, "\r\n");
+
+            if (pos != NULL) {
+                *pos = 0;
+                if (sscanf(uart_rx_buf, "input %u", &uart_rx_arg) == 1) {
+                    if (uart_rx_arg <= AV_EXP_RF) {
+                        target_avinput = uart_rx_arg;
+                        dd_printf("Input %u selected\n", uart_rx_arg);
+                    } else {
+                        dd_printf("Invalid input ID\n");
+                    }
+                } else if (sscanf(uart_rx_buf, "prof %u", &uart_rx_arg) == 1) {
+                    if (uart_rx_arg <= MAX_PROFILE) {
+                        ret = read_userdata(uart_rx_arg, 0);
+                        if (ret >= 0)
+                            dd_printf("Profile %u loaded\n", uart_rx_arg);
+                        else
+                            dd_printf("Profile load failed\n");
+                    } else {
+                        dd_printf("Invalid profile ID\n");
+                    }
+                } else if (sscanf(uart_rx_buf, "rc %u", &uart_rx_arg) == 1) {
+                    ts.rc_disable = !uart_rx_arg;
+                } else if (strncmp(uart_rx_buf, "poweroff", UART_RX_BUF_SIZE) == 0) {
+                    sys_set_power(0);
+                    dd_printf("Power off\n");
+                } else {
+                    dd_printf("Unrecognized command\n");
+                }
+                uart_rx_buf_ptr = uart_rx_buf;
+            } else if (uart_rx_buf_ptr >= uart_rx_buf+UART_RX_BUF_SIZE) {
+                dd_printf("\nUnrecognized sequence, RX buffer cleared\n");
+                uart_rx_buf_ptr = uart_rx_buf;
+            }
+        }
     } else {
         // Parse remote custom keys
         for (i=0; i<4; i++) {
@@ -416,6 +478,25 @@ void parse_control()
                     sys_set_power(1);
 
                 break;
+            }
+        }
+
+        // Parse UART RX buffer
+        if (uart_rx_ret > 0) {
+            pos = strpbrk(uart_rx_buf, "\r\n");
+
+            if (pos != NULL) {
+                *pos = 0;
+                if (strncmp(uart_rx_buf, "poweron", UART_RX_BUF_SIZE) == 0) {
+                    sys_set_power(1);
+                    dd_printf("Power on\n");
+                } else {
+                    dd_printf("Unrecognized command\n");
+                }
+                uart_rx_buf_ptr = uart_rx_buf;
+            } else if (uart_rx_buf_ptr >= uart_rx_buf+UART_RX_BUF_SIZE) {
+                dd_printf("\nUnrecognized sequence, RX buffer cleared\n");
+                uart_rx_buf_ptr = uart_rx_buf;
             }
         }
     }

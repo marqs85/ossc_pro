@@ -13,3 +13,6 @@
 [submodule "ip/sdc_controller_qsys"]
 	path = ip/sdc_controller_qsys
 	url = git@github.com:marqs85/sdc_controller_qsys.git
+[submodule "ip/aes3rx"]
+	path = ip/aes3rx
+	url = git@github.com:freecores/aes3rx.git

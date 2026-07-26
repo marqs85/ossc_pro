@@ -91,8 +91,8 @@ typedef union {
 typedef union {
     struct {
         int16_t x_offset:11;
-        int16_t y_offset:9;
-        uint16_t xy2_rsv:12;
+        int16_t y_offset:10;
+        uint16_t xy2_rsv:11;
     } __attribute__((packed, __may_alias__));
     uint32_t data;
 } xy_config2_reg;
