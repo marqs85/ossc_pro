@@ -171,7 +171,9 @@ int set_default_profile(int update_cc)
     set_default_c_pp_coeffs();
     set_default_c_shmask();
     set_default_c_lc_palette_set();
+#ifdef INC_ADV761X
     set_default_c_edid();
+#endif
     set_default_vm_table();
 
     return 0;
@@ -190,9 +192,11 @@ int load_profile() {
     if (retval >= 0) {
         profile_sel = profile_sel_menu;
 
+#ifdef INC_ADV761X
         // enforce custom EDID update
         if (tc.hdmirx_cfg.edid_sel == 4)
             set_custom_edid_reload();
+#endif
 
         // Change the input if the new profile demands it.
         /*if (tc.link_av != AV_LAST)
@@ -225,9 +229,11 @@ int load_profile_sd() {
 
     retval = read_userdata_sd(sd_profile_sel_menu, 0);
     if (retval >= 0) {
+#ifdef INC_ADV761X
         // enforce custom EDID update
         if (tc.hdmirx_cfg.edid_sel == 4)
             set_custom_edid_reload();
+#endif
     }
 
     return retval;

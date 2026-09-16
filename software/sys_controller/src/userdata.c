@@ -225,6 +225,7 @@ const ude_item_map ude_profile_items[] = {
 #endif
 };
 
+#ifndef DE10N
 int write_userdata(uint8_t entry) {
     ude_hdr hdr;
     FIL name_file;
@@ -401,6 +402,10 @@ int read_userdata(uint8_t entry, int dry_run) {
 
     return 1;
 }
+#else
+int write_userdata(uint8_t entry) { return -1; }
+int read_userdata(uint8_t entry, int dry_run) { return -1; }
+#endif
 
 int write_userdata_sd(uint8_t entry) {
     FIL p_file, name_file;

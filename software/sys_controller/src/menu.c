@@ -44,14 +44,16 @@
 extern avconfig_t tc;
 extern settings_t ts;
 extern isl51002_dev isl_dev;
-#ifndef DExx_FW
+#ifdef INC_ADV761X
 extern adv761x_dev advrx_dev;
 #endif
 #ifdef INC_SII1136
 extern sii1136_dev siitx_dev;
 #endif
+#ifndef DExx_FW
 extern adv7280a_dev advsdp_dev;
 extern si2177_dev sirf_dev;
+#endif
 extern volatile osd_regs *osd;
 extern mode_data_t video_modes_plm[];
 extern mode_data_t video_modes[], video_modes_default[];
@@ -1259,6 +1261,7 @@ int load_lc_nes_pal(char *dirname, char *filename) {
     return 0;
 }
 
+#ifdef INC_ADV761X
 int load_edid(char *dirname, char *filename) {
     FIL f_edid;
     char dirname_root[10];
@@ -1286,6 +1289,7 @@ int load_edid(char *dirname, char *filename) {
 
     return 0;
 }
+#endif
 
 void cstm_clock_phase(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0x3ff, 0x3f0};
@@ -1824,6 +1828,7 @@ void cstm_profile_load(menucode_id code, int setup_disp) {
     ui_disp_menu(0);
 }
 
+#ifndef DExx_FW
 void cstm_rf_tune(menucode_id code, int setup_disp) {
     uint32_t row_mask[2] = {0xff, 0xf0};
     int i, adj=0, adj_ft=0;
@@ -1901,6 +1906,7 @@ void cstm_rf_tune(menucode_id code, int setup_disp) {
 
     ui_disp_menu(0);
 }
+#endif
 
 void cstm_file_load(menucode_id code, int setup_disp, char *dir, char *pattern, load_func load_f) {
     uint32_t row_mask[2] = {0x03, 0x00};
@@ -2035,9 +2041,11 @@ void cstm_lc_palette_set_load(menucode_id code, int setup_disp) {
     }
 }
 
+#ifndef DExx_FW
 void cstm_edid_load(menucode_id code, int setup_disp) {
     cstm_file_load(code, setup_disp, "edid", "*.bin", load_edid);
 }
+#endif
 
 void cstm_fw_update(menucode_id code, int setup_disp) {
     int retval;
@@ -2351,6 +2359,7 @@ static int smp_reset() {
     return 0;
 }
 
+#ifndef DExx_FW
 int rf_chscan() {
     char ch_str[US2066_ROW_LEN+1];
     const rf_band_t rf_bands[] = { { "VHF I",    40000000,  88000000},
@@ -2380,6 +2389,7 @@ int rf_chscan() {
     set_func_ret_msg(ch_str);
     return 1;
 }
+#endif
 
 #ifdef INC_SII1136
 int get_edid() {

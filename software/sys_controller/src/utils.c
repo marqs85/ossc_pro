@@ -19,8 +19,10 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include "sys/alt_stdio.h"
 #include "utils.h"
+#ifndef DE10N
+#include "sys/alt_stdio.h"
+#endif
 #include "system.h"
 #include "io.h"
 
@@ -86,6 +88,7 @@ unsigned long __attribute__((noinline, flatten, __section__(".text_bram"))) crc3
 }
 #endif
 
+#ifndef DE10N
 /* printf for direct driver interface */
 int dd_printf(const char *__restrict fmt, ...) {
     int ret;
@@ -100,3 +103,4 @@ int dd_printf(const char *__restrict fmt, ...) {
 
     return 0;
 }
+#endif

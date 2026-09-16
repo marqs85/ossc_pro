@@ -83,9 +83,11 @@ extern avinput_t target_avinput;
 extern char target_profile_name[USERDATA_NAME_LEN+1];
 extern volatile osd_regs *osd;
 
+#ifndef DE10N
 extern altera_avalon_jtag_uart_state jtag_uart_0;
 extern int altera_avalon_jtag_uart_read(altera_avalon_jtag_uart_state* sp, char* buffer, int space, int flags);
 extern int altera_avalon_jtag_uart_write(altera_avalon_jtag_uart_state* sp, const char * ptr, int count, int flags);
+#endif
 
 extern const menuitem_t menu_isl_video_opt_items[];
 extern const menuitem_t menu_scanlines_items[];
@@ -272,12 +274,14 @@ void read_controls() {
         b_code = (btn_code_t)-1;
     }
 
+#ifndef DE10N
     uart_rx_ret = altera_avalon_jtag_uart_read(&jtag_uart_0, uart_rx_buf_ptr, UART_RX_BUF_SIZE-(uart_rx_buf_ptr-uart_rx_buf), O_NONBLOCK);
     if (uart_rx_ret > 0) {
         // echo
         altera_avalon_jtag_uart_write(&jtag_uart_0, uart_rx_buf_ptr, uart_rx_ret, 0);
         uart_rx_buf_ptr += uart_rx_ret;
     }
+#endif
 
     if (remote_code_raw)
         printf("RC_CODE: 0x%.4x\n", remote_code_raw);
@@ -432,6 +436,7 @@ void parse_control()
                 display_menu(r_code, b_code);
         }
 
+#ifndef DE10N
         // Parse UART RX buffer
         if (uart_rx_ret > 0) {
             pos = strpbrk(uart_rx_buf, "\r\n");
@@ -469,6 +474,7 @@ void parse_control()
                 uart_rx_buf_ptr = uart_rx_buf;
             }
         }
+#endif
     } else {
         // Parse remote custom keys
         for (i=0; i<4; i++) {
@@ -481,6 +487,7 @@ void parse_control()
             }
         }
 
+#ifndef DE10N
         // Parse UART RX buffer
         if (uart_rx_ret > 0) {
             pos = strpbrk(uart_rx_buf, "\r\n");
@@ -499,6 +506,7 @@ void parse_control()
                 uart_rx_buf_ptr = uart_rx_buf;
             }
         }
+#endif
     }
 
     if ((r_code == RC_STANDBY) || (b_code == BC_HOLD))

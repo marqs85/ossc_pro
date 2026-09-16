@@ -274,10 +274,12 @@ int get_sampling_preset(mode_data_t *vm_in, ad_mode_t ad_mode_list[], smp_mode_t
         v_total = vm_in->timings.v_total;
         v_hz_x100 = vm_in->timings.v_hz_x100;
 
+#ifndef DExx_FW
         if (advrx_dev.powered_on && (hdmi_timings[vm_in->group].h_total == vm_in->timings.h_total) && (hdmi_timings[vm_in->group].v_total == vm_in->timings.v_total))
             memcpy(&vm_in->timings, &hdmi_timings[vm_in->group], sizeof(sync_timings_t));
         else if (advsdp_dev.powered_on)
             memcpy(&vm_in->timings, &sdp_timings[vm_in->group], sizeof(sync_timings_t));
+#endif
 
         vm_in->timings.v_total = v_total;
         vm_in->timings.v_hz_x100 = v_hz_x100;
