@@ -924,7 +924,7 @@ int get_pure_lm_mode(avconfig_t *cc, mode_data_t *vm_in, mode_data_t *vm_out, vm
                 valid_lm[3] = MODE_L4_GEN_4_3;
                 break;
             case GROUP_480P:
-                 if (mode_preset->vic == HDMI_480p60) {
+                if (mode_preset->vic == HDMI_480p60) {
                     switch (cc->s480p_mode) {
                         case 0: // Auto
                             if (vm_in->timings.h_synclen > 82)

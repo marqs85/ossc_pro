@@ -1469,7 +1469,7 @@
   <parameter name="PLL_WRITE_CLK_MULT_PARAM" value="0" />
   <parameter name="PLL_WRITE_CLK_PHASE_PS_PARAM" value="0" />
   <parameter name="PLL_WRITE_CLK_PHASE_PS_SIM_STR_PARAM" value="" />
-  <parameter name="POWER_OF_TWO_BUS" value="false" />
+  <parameter name="POWER_OF_TWO_BUS" value="true" />
   <parameter name="PRIORITY_PORT" value="1,1,1,1,1,1" />
   <parameter name="RATE" value="Full" />
   <parameter name="READ_DQ_DQS_CLOCK_SOURCE" value="INVERTED_DQS_BUS" />
@@ -1483,7 +1483,7 @@
   <parameter name="SEQUENCER_TYPE" value="NIOS" />
   <parameter name="SEQ_MODE" value="0" />
   <parameter name="SKIP_MEM_INIT" value="false" />
-  <parameter name="SOPC_COMPAT_RESET" value="false" />
+  <parameter name="SOPC_COMPAT_RESET" value="true" />
   <parameter name="SPEED_GRADE" value="7" />
   <parameter name="STARVE_LIMIT" value="10" />
   <parameter name="SYS_INFO_DEVICE_FAMILY" value="Cyclone V" />
@@ -1564,11 +1564,11 @@
    enabled="1">
   <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
   <parameter name="ADDRESS_WIDTH" value="23" />
-  <parameter name="COMMAND_FIFO_DEPTH" value="64" />
+  <parameter name="COMMAND_FIFO_DEPTH" value="256" />
   <parameter name="DATA_WIDTH" value="32" />
   <parameter name="MASTER_SYNC_DEPTH" value="2" />
   <parameter name="MAX_BURST_SIZE" value="1" />
-  <parameter name="RESPONSE_FIFO_DEPTH" value="64" />
+  <parameter name="RESPONSE_FIFO_DEPTH" value="256" />
   <parameter name="SLAVE_SYNC_DEPTH" value="2" />
   <parameter name="SYMBOL_WIDTH" value="8" />
   <parameter name="SYSINFO_ADDR_WIDTH" value="27" />

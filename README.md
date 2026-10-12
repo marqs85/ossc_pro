@@ -53,7 +53,7 @@ git submodule update --init --recursive
     * Load platform configuration (sys.qsys)
     * Generate output (Generate -> Generate HDL, Generate)
     * Close Platform Designer
-    * Run "patch -p0 <scripts/qsys.patch" to patch generated files to use block RAM for large FIFOs
+    * Run "patch -p0 -F0 <scripts/qsys.patch" to patch generated files to use block RAM for large FIFOs
     * Run "touch software/sys_controller_bsp/bsp_timestamp" to acknowledge QSYS update
 4. Generate the FPGA bitstream (Processing -> Start Compilation)
 5. Ensure that there are no severe timing violations by looking into Timing Analyzer report
@@ -78,7 +78,7 @@ It will spawn a bash prompt with Quartus Lite, the RISC-V toolchain installed.
 Here are the commands used for building the RTL without GUI:
 ~~~~
 # qsys-generate --synthesis=VERILOG sys.qsys
-# patch -p0 < scripts/qsys.patch
+# patch -p0 -F0 < scripts/qsys.patch
 # touch software/sys_controller_bsp/bsp_timestamp
 # quartus_sh --flow compile ossc_pro.qpf
 ~~~~

@@ -1010,6 +1010,9 @@ int init_hw()
         exp_det = 0;
 
     printf("Exp_det: %u\n", exp_det);
+
+    // apply default sys_ctrl_exp
+    sys_ctrl_exp |= (1 << SCTRL_EXP_CSYNC_COMB_OFFS);
     switch_expansion(0, 1, 0);
 
     // Init ADV7610
