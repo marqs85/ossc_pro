@@ -28,8 +28,12 @@
 #include "menu.h"
 #include "userdata.h"
 #include "us2066.h"
+#ifdef INC_USB
+#include "usb_cdc_host.h"
+#endif
 
 #define UART_RX_BUF_SIZE 15
+#define CTRL_REPLY_SIZE 40
 
 static const char *rc_keydesc[REMOTE_MAX_KEYS] = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
                                                    "MENU", "OK", "BACK", "UP", "DOWN", "LEFT", "RIGHT",
@@ -79,7 +83,8 @@ extern oper_mode_t oper_mode;
 extern mode_data_t vmode_in;
 extern char menu_row1[US2066_ROW_LEN+1], menu_row2[US2066_ROW_LEN+1];
 extern settings_t ts;
-extern avinput_t target_avinput;
+extern avinput_t avinput, target_avinput;
+extern const uint8_t fw_ver_major, fw_ver_minor;
 extern char target_profile_name[USERDATA_NAME_LEN+1];
 extern volatile osd_regs *osd;
 
@@ -282,6 +287,9 @@ void read_controls() {
         uart_rx_buf_ptr += uart_rx_ret;
     }
 #endif
+#ifdef INC_USB
+    usb_cdc_host_poll();
+#endif
 
     if (remote_code_raw)
         printf("RC_CODE: 0x%.4x\n", remote_code_raw);
@@ -299,12 +307,102 @@ void read_controls() {
     btn_vec_prev = btn_vec;
 }
 
+static void ctrl_exec_line(const char *line, char *reply)
+{
+    unsigned arg;
+    int ret;
+
+    if (strcmp(line, "ver") == 0) {
+        sniprintf(reply, CTRL_REPLY_SIZE, "OSSC Pro %u.%.2u", fw_ver_major, fw_ver_minor);
+    } else if (strcmp(line, "stat") == 0) {
+        if (sys_is_powered_on())
+            sniprintf(reply, CTRL_REPLY_SIZE, "On input %u", avinput);
+        else
+            sniprintf(reply, CTRL_REPLY_SIZE, "Standby");
+    } else if (!sys_is_powered_on()) {
+        if (strcmp(line, "poweron") == 0) {
+            sys_set_power(1);
+            sniprintf(reply, CTRL_REPLY_SIZE, "Power on");
+        } else {
+            sniprintf(reply, CTRL_REPLY_SIZE, "Standby");
+        }
+    } else if (sscanf(line, "input %u", &arg) == 1) {
+        if (arg <= AV_EXP_RF) {
+            target_avinput = arg;
+            sniprintf(reply, CTRL_REPLY_SIZE, "Input %u selected", arg);
+        } else {
+            sniprintf(reply, CTRL_REPLY_SIZE, "Invalid input ID");
+        }
+    } else if (sscanf(line, "prof %u", &arg) == 1) {
+        if (arg <= MAX_PROFILE) {
+            ret = read_userdata(arg, 0);
+            if (ret >= 0)
+                sniprintf(reply, CTRL_REPLY_SIZE, "Profile %u loaded", arg);
+            else
+                sniprintf(reply, CTRL_REPLY_SIZE, "Profile load failed");
+        } else {
+            sniprintf(reply, CTRL_REPLY_SIZE, "Invalid profile ID");
+        }
+    } else if (sscanf(line, "sdprof %u", &arg) == 1) {
+        if (arg <= MAX_SD_PROFILE) {
+            ret = read_userdata_sd(arg, 0);
+            if (ret >= 0)
+                sniprintf(reply, CTRL_REPLY_SIZE, "SD profile %u loaded", arg);
+            else
+                sniprintf(reply, CTRL_REPLY_SIZE, "Profile load failed");
+        } else {
+            sniprintf(reply, CTRL_REPLY_SIZE, "Invalid profile ID");
+        }
+    } else if (sscanf(line, "rc %u", &arg) == 1) {
+        ts.rc_disable = !arg;
+        sniprintf(reply, CTRL_REPLY_SIZE, "RC %s", arg ? "on" : "off");
+    } else if (strcmp(line, "poweroff") == 0) {
+        sys_set_power(0);
+        sniprintf(reply, CTRL_REPLY_SIZE, "Power off");
+    } else {
+        sniprintf(reply, CTRL_REPLY_SIZE, "Unrecognized command");
+    }
+}
+
+static void parse_text_commands()
+{
+    char reply[CTRL_REPLY_SIZE];
+#ifndef DE10N
+    char *pos;
+#endif
+#ifdef INC_USB
+    char *line;
+#endif
+
+#ifndef DE10N
+    if (uart_rx_ret > 0) {
+        pos = strpbrk(uart_rx_buf, "\r\n");
+
+        if (pos != NULL) {
+            *pos = 0;
+            ctrl_exec_line(uart_rx_buf, reply);
+            dd_printf("%s\n", reply);
+            uart_rx_buf_ptr = uart_rx_buf;
+        } else if (uart_rx_buf_ptr >= uart_rx_buf+UART_RX_BUF_SIZE) {
+            dd_printf("\nUnrecognized sequence, RX buffer cleared\n");
+            uart_rx_buf_ptr = uart_rx_buf;
+        }
+    }
+#endif
+
+#ifdef INC_USB
+    line = usb_cdc_host_get_line();
+    if (line != NULL) {
+        ctrl_exec_line(line, reply);
+        usb_cdc_host_reply(reply);
+    }
+#endif
+}
+
 void parse_control()
 {
     int prof_x10=0, ret, i;
     int plm_group_proc_map[] = {-1, 0, 0, 1, 2, 2, 3, 3, -1, 4, -1};
-    char *pos;
-    unsigned uart_rx_arg;
 
     if (sys_is_powered_on()) {
         if (!is_menu_active()) {
@@ -435,46 +533,6 @@ void parse_control()
             if ((r_code <= RC_RIGHT) || (r_code == RC_OSD) || ((b_code >= BC_OK) && (b_code <= BC_RIGHT)))
                 display_menu(r_code, b_code);
         }
-
-#ifndef DE10N
-        // Parse UART RX buffer
-        if (uart_rx_ret > 0) {
-            pos = strpbrk(uart_rx_buf, "\r\n");
-
-            if (pos != NULL) {
-                *pos = 0;
-                if (sscanf(uart_rx_buf, "input %u", &uart_rx_arg) == 1) {
-                    if (uart_rx_arg <= AV_EXP_RF) {
-                        target_avinput = uart_rx_arg;
-                        dd_printf("Input %u selected\n", uart_rx_arg);
-                    } else {
-                        dd_printf("Invalid input ID\n");
-                    }
-                } else if (sscanf(uart_rx_buf, "prof %u", &uart_rx_arg) == 1) {
-                    if (uart_rx_arg <= MAX_PROFILE) {
-                        ret = read_userdata(uart_rx_arg, 0);
-                        if (ret >= 0)
-                            dd_printf("Profile %u loaded\n", uart_rx_arg);
-                        else
-                            dd_printf("Profile load failed\n");
-                    } else {
-                        dd_printf("Invalid profile ID\n");
-                    }
-                } else if (sscanf(uart_rx_buf, "rc %u", &uart_rx_arg) == 1) {
-                    ts.rc_disable = !uart_rx_arg;
-                } else if (strncmp(uart_rx_buf, "poweroff", UART_RX_BUF_SIZE) == 0) {
-                    sys_set_power(0);
-                    dd_printf("Power off\n");
-                } else {
-                    dd_printf("Unrecognized command\n");
-                }
-                uart_rx_buf_ptr = uart_rx_buf;
-            } else if (uart_rx_buf_ptr >= uart_rx_buf+UART_RX_BUF_SIZE) {
-                dd_printf("\nUnrecognized sequence, RX buffer cleared\n");
-                uart_rx_buf_ptr = uart_rx_buf;
-            }
-        }
-#endif
     } else {
         // Parse remote custom keys
         for (i=0; i<4; i++) {
@@ -486,28 +544,9 @@ void parse_control()
                 break;
             }
         }
-
-#ifndef DE10N
-        // Parse UART RX buffer
-        if (uart_rx_ret > 0) {
-            pos = strpbrk(uart_rx_buf, "\r\n");
-
-            if (pos != NULL) {
-                *pos = 0;
-                if (strncmp(uart_rx_buf, "poweron", UART_RX_BUF_SIZE) == 0) {
-                    sys_set_power(1);
-                    dd_printf("Power on\n");
-                } else {
-                    dd_printf("Unrecognized command\n");
-                }
-                uart_rx_buf_ptr = uart_rx_buf;
-            } else if (uart_rx_buf_ptr >= uart_rx_buf+UART_RX_BUF_SIZE) {
-                dd_printf("\nUnrecognized sequence, RX buffer cleared\n");
-                uart_rx_buf_ptr = uart_rx_buf;
-            }
-        }
-#endif
     }
+
+    parse_text_commands();
 
     if ((r_code == RC_STANDBY) || (b_code == BC_HOLD))
         sys_set_power(2);

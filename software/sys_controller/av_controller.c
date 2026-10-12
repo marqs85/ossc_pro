@@ -31,6 +31,7 @@
 #include "av_controller.h"
 #include "usb_hw.h"
 #include "usb_core.h"
+#include "usb_cdc_host.h"
 #include "avconfig.h"
 #include "isl51002.h"
 #include "ths7353.h"
@@ -59,6 +60,8 @@
 
 #define FW_VER_MAJOR 0
 #define FW_VER_MINOR 83
+
+const uint8_t fw_ver_major = FW_VER_MAJOR, fw_ver_minor = FW_VER_MINOR;
 
 //fix PD and cec
 #define ADV7513_MAIN_BASE 0x72
@@ -168,8 +171,6 @@ flash_ctrl_dev flashctrl_dev = {.regs = (volatile gen_flash_if_regs*)INTEL_GENER
 
 rem_update_dev rem_reconfig_dev = {.regs = (volatile rem_update_regs*)0x00023400};
 
-struct usb_device usbdev;
-
 volatile sc_regs *sc = (volatile sc_regs*)SC_CONFIG_0_BASE;
 volatile osd_regs *osd = (volatile osd_regs*)OSD_GENERATOR_0_BASE;
 
@@ -184,7 +185,6 @@ uint32_t sys_status;
 int sys_powered_on = -1;
 
 uint8_t sd_det, sd_det_prev;
-uint8_t usb_det, usb_det_prev;
 uint8_t sl_def_iv_x, sl_def_iv_y;
 
 uint8_t exp_det, pcm_out_dev_avail, advsdp_dev_avail, sirf_dev_avail;
@@ -930,26 +930,6 @@ int check_sdcard() {
     return ret;
 }
 
-int check_usb() {
-    int ret = 0;
-
-    usb_det = usbhw_hub_device_detected();
-
-    if (usb_det != usb_det_prev) {
-        if (usb_det) {
-            printf("USB device inserted\n");
-            usbhw_setup_device();
-            ret = usb_configure_device(&usbdev, 0x04);
-        } else {
-            printf("USB device ejected\n");
-        }
-    }
-
-    usb_det_prev = usb_det;
-
-    return ret;
-}
-
 int init_hw()
 {
     int ret;
@@ -1053,7 +1033,7 @@ int init_hw()
 #ifdef INC_USB
     usbhw_init(CORE_USB_0_BASE);
     usbhw_reset();
-    usb_det = usb_det_prev = 0;
+    usb_cdc_host_init();
 #endif
 
     set_default_profile(1);
@@ -1959,9 +1939,6 @@ void mainloop()
 #endif
 
         check_sdcard();
-#ifdef INC_USB
-        check_usb();
-#endif
 
         while (alt_timestamp() < start_ts + MAINLOOP_INTERVAL_US*(TIMER_0_FREQ/1000000)) {}
     }
